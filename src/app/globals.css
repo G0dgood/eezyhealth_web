@@ -1,0 +1,380 @@
+@import url(../css/SideNav.css);  
+@import url(../css/header.css);
+@import url(../css/table.css);
+
+
+@import "tailwindcss";
+
+
+
+
+
+:root {
+  /* Light Mode Colors */
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #22c55e;
+  --primary-foreground: #ffffff;
+  --secondary: #f8fafc;
+  --secondary-foreground: #475569;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #475569;
+  --accent-white: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #22c55e;
+  
+  /* eezyhealth specific colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --danger: #ef4444;
+  
+  /* Dashboard specific colors */
+  --card-blue: #3b82f6;
+  --card-green: #22c55e;
+  --card-pink: #ec4899;
+  --card-purple: #8b5cf6;
+  
+  /* Status colors */
+  --status-pending: #f59e0b;
+  --status-approved: #22c55e;
+  --status-rejected: #ef4444;
+  --status-completed: #3b82f6;
+}
+
+[data-theme="dark"] {
+  /* Dark Mode Colors */
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #22c55e;
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --secondary-foreground: #cbd5e1;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #cbd5e1;
+  --accent-white: #1e293b;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #475569;
+  --input: #475569;
+  --ring: #22c55e;
+  
+  /* eezyhealth specific colors - adjusted for dark mode */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #60a5fa;
+  --danger: #f87171;
+  
+  /* Dashboard specific colors - adjusted for dark mode */
+  --card-blue: #60a5fa;
+  --card-green: #4ade80;
+  --card-pink: #f472b6;
+  --card-purple: #a78bfa;
+  
+  /* Status colors - adjusted for dark mode */
+  --status-pending: #f59e0b;
+  --status-approved: #22c55e;
+  --status-rejected: #f87171;
+  --status-completed: #60a5fa;
+}
+
+/* *,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+} */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  background: #ffffff;
+  color: #171717;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  background: #ffffff;
+  color: #171717;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Dark mode for html and body using data-theme attribute */
+[data-theme="dark"] html {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Theme transition utilities */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
+
+main {
+  grid-area: main;
+  overflow-y: auto; 
+  width: 100%;
+  padding: 32px;
+  background-color: #F9FAFB;
+  color: #171717;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode for main content using data-theme attribute */
+[data-theme="dark"] main {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Ensure main background is properly set */
+#page-wrapper main {
+  background-color: #F9FAFB;
+  color: #171717;
+}
+
+[data-theme="dark"] #page-wrapper main {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+
+#page-wrapper {
+  display: grid;
+  position: relative;
+  height: 100dvh;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 70px 1fr;
+  grid-template-areas:
+    'sidenav header'
+    'sidenav main' ;
+  transition: background-color 0.3s ease;
+  overflow-x: hidden;
+  background-color: var(--background);
+}
+
+/* Mobile responsive layout */
+@media (max-width: 1024px) {
+  #page-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'main';
+    overflow-x: hidden;
+  }
+  
+  main {
+    padding: 16px;
+    min-width: 100vw;
+    transform-origin: left;
+  }
+  
+  header {
+    transform-origin: left;
+  }
+}
+
+/* Ensure smooth transitions for mobile sidenav */
+header, main {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Dark mode classes for dynamic theme switching - Updated to use data-theme attribute */
+[data-theme="dark"] {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] #page-wrapper {
+  background-color: var(--background);
+}
+
+/* Dark mode for header */
+[data-theme="dark"] header {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-bottom-color: var(--border);
+}
+
+/* Dark mode for sidenav */
+[data-theme="dark"] .sidenav {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-right-color: var(--border);
+}
+
+[data-theme="dark"] .sidenav a {
+  color: var(--card-foreground);
+}
+
+[data-theme="dark"] .sidenav a:hover {
+  background-color: var(--muted);
+}
+
+[data-theme="dark"] .sidenav a.active {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Dark mode for cards and components */
+[data-theme="dark"] .bg-white {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .text-gray-900 {
+  color: var(--card-foreground);
+}
+
+[data-theme="dark"] .text-gray-600 {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .text-gray-700 {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .border-gray-200 {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .border-gray-300 {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--muted);
+}
+
+[data-theme="dark"] .hover\:bg-gray-50:hover {
+  background-color: var(--muted);
+}
+
+/* Additional dark mode styles for better coverage */
+[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--muted);
+}
+
+[data-theme="dark"] .bg-gray-200 {
+  background-color: var(--border);
+}
+
+[data-theme="dark"] .text-gray-500 {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .text-gray-800 {
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .divide-gray-200 {
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure all elements use CSS variables for consistent theming */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Force CSS variables on key elements */
+[data-theme="dark"] * {
+  color-scheme: dark;
+}
+
+/* Ensure form elements also use CSS variables */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--input);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+/* Ensure buttons use CSS variables */
+[data-theme="dark"] button {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] button:hover {
+  background-color: var(--muted);
+}

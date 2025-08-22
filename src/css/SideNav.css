@@ -1,0 +1,70 @@
+/* Sidenav Component Styles */
+.sidenav-container {
+  width: 256px; /* 64 * 4 = 256px (w-64) */
+  position: relative;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  display: block;
+  height: 100vh;
+  overflow-y: auto;
+  transition: all 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode for sidenav */
+[data-theme="dark"] .sidenav-container {
+  background: var(--background);
+  border-right-color: var(--border);
+}
+
+/* Dropdown animation */
+.dropdown-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.dropdown-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+/* Hover effects */
+.nav-item:hover {
+  background-color: #f3f4f6;
+}
+
+[data-theme="dark"] .nav-item:hover {
+  background-color: var(--muted);
+}
+
+.nav-item.active {
+  background-color: #10b981;
+  color: white;
+}
+
+/* Chevron rotation */
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* Media query for small screens */
+@media screen and (max-width: 768px) {
+  .sidenav-container {
+    display: none !important;
+  }
+}
