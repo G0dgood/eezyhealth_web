@@ -1,6 +1,6 @@
 /* Sidenav Component Styles */
 .sidenav-container {
-  width: 256px; /* 64 * 4 = 256px (w-64) */
+  width: 270px; /* 64 * 4 = 256px (w-64) */
   position: relative;
   background: white;
   border-right: 1px solid #e5e7eb;

@@ -133,11 +133,11 @@ export default function NurseUsersPatientsPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      dismissLoading(loadingToast);
+      dismissLoading(loadingToast as string);
       showSuccess("Patient Saved", "New patient has been added successfully");
       setIsAddPatientModalOpen(false);
     } catch (error) {
-      dismissLoading(loadingToast);
+      dismissLoading(loadingToast as string);
       showError("Save Failed", "Failed to save patient. Please try again.");
     }
   };

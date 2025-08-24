@@ -1,35 +1,109 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { User, Bell, Shield, Camera } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Image from "next/image";
+import ToggleSwitch from "@/components/ToggleSwitch";
 
 export default function AdminSettings() {
   const { theme, setTheme } = useTheme();
+  const { userInfo } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Debug logging
-  console.log("Admin Settings - Current theme:", theme);
-  console.log(
-    "Admin Settings - Document data-theme:",
-    document.documentElement.getAttribute("data-theme")
-  );
+  // Sync securitySettings.darkMode with actual theme
+  useEffect(() => {
+    setSecuritySettings((prev) => ({
+      ...prev,
+      darkMode: theme === "dark",
+    }));
+  }, [theme]);
 
-  const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
+  // Handle theme change from security settings
+  const handleThemeToggle = (checked: boolean) => {
+    const newTheme = checked ? "dark" : "light";
+    setTheme(newTheme);
+  };
+
+  const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
+
+  // Function to check if image URL is valid for Next.js Image component
+  const isValidImageUrl = (url: string) => {
+    if (!url) return false;
+    // Check if it's a valid HTTP/HTTPS URL
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  // Sync profileImage with userInfo when it changes
+  useEffect(() => {
+    if (userInfo?.photo_url) {
+      setProfileImage(userInfo.photo_url);
+    }
+  }, [userInfo?.photo_url]);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
-    fullName: "Admin User",
-    adminId: "ADM-001",
-    role: "System Administrator",
-    email: "admin@eezyhealth.com",
-    mobileNumber: "08012345678",
+    fullName: userInfo?.display_name || "n/a",
+    adminId: userInfo?.uid || "n/a",
+    role: userInfo?.role || "n/a",
+    email: userInfo?.email || "n/a",
+    mobileNumber: userInfo?.phone_number || "n/a",
     department: "IT & Administration",
     accessLevel: "Full Access",
     bio: "System administrator with full access to all healthcare management system features and user management capabilities.",
+    firstName: userInfo?.first_name || "n/a",
+    lastName: userInfo?.last_name || "n/a",
+    address: userInfo?.address || "n/a",
+    location: userInfo?.location || "n/a",
+    dateOfBirth: userInfo?.date_of_birth || "n/a",
+    isActive: userInfo?.isActive || false,
   });
+
+  // Sync profileData with userInfo when it changes
+  useEffect(() => {
+    if (userInfo) {
+      setProfileData((prev) => ({
+        ...prev,
+        fullName: userInfo.display_name || prev.fullName,
+        adminId: userInfo.uid || prev.adminId,
+        role: userInfo.role || prev.role,
+        email: userInfo.email || prev.email,
+        mobileNumber: userInfo.phone_number || prev.mobileNumber,
+        firstName: userInfo.first_name || prev.firstName,
+        lastName: userInfo.last_name || prev.lastName,
+        address: userInfo.address || prev.address,
+        location: userInfo.location || prev.location,
+        dateOfBirth: userInfo.date_of_birth || prev.dateOfBirth,
+        isActive: userInfo.isActive || prev.isActive,
+      }));
+    }
+  }, [userInfo]);
+
+  // Update profile data when form fields change
+  const handleProfileDataChange = (field: string, value: string) => {
+    setProfileData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Authentication check
+  useEffect(() => {
+    if (!userInfo || userInfo.role !== "ADMIN") {
+      router.push("/");
+      return;
+    }
+  }, [userInfo, router]);
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -49,6 +123,7 @@ export default function AdminSettings() {
     sessionTimeout: "15",
     ipWhitelist: false,
     auditLogging: true,
+    darkMode: false,
   });
 
   // Password change state
@@ -61,27 +136,62 @@ export default function AdminSettings() {
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Create a temporary URL for the selected file
+      const tempUrl = URL.createObjectURL(file);
+      setProfileImage(tempUrl);
+
+      // In a real app, you would upload this file to Firebase Storage
+      // and then update the user's profile with the new photo URL
+      console.log("Profile image selected:", file.name);
+
+      // Clean up the temporary URL when component unmounts
+      return () => URL.revokeObjectURL(tempUrl);
     }
   };
 
-  const handleProfileSave = () => {
-    console.log("Profile saved:", profileData);
-    // Add toast notification here
+  const handleProfileSave = async () => {
+    try {
+      // Simulate API call to update profile
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update profile data (in real app, this would call Firebase)
+      console.log("Profile saved:", profileData);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update profile. Please try again.");
+    }
   };
 
-  const handleNotificationSave = () => {
-    console.log("Notification preferences saved:", notificationPrefs);
-    // Add toast notification here
+  const handleNotificationSave = async () => {
+    try {
+      // Simulate API call to update notification preferences
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log("Notification preferences saved:", notificationPrefs);
+      toast.success("Notification preferences updated successfully!");
+    } catch (error) {
+      toast.error(
+        "Failed to update notification preferences. Please try again."
+      );
+    }
   };
 
-  const handleSecuritySave = () => {
-    console.log("Security settings saved:", securitySettings);
-    // Add toast notification here
+  const handleSecuritySave = async () => {
+    try {
+      // Simulate API call to update security settings
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update securitySettings.darkMode to match current theme
+      setSecuritySettings((prev) => ({
+        ...prev,
+        darkMode: theme === "dark",
+      }));
+
+      console.log("Security settings saved:", securitySettings);
+      toast.success("Security settings updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update security settings. Please try again.");
+    }
   };
 
   const handlePasswordUpdate = () => {
@@ -119,11 +229,19 @@ export default function AdminSettings() {
             {/* Profile Picture Section */}
             <div className="text-center">
               <div className="relative inline-block">
-                <Image
-                  src={profileImage}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                />
+                {profileImage && isValidImageUrl(profileImage) ? (
+                  <Image
+                    src={profileImage}
+                    alt="Profile"
+                    width={128}
+                    height={128}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
+                    <UserCircle className="w-24 h-24 text-gray-400" />
+                  </div>
+                )}
                 <label className="absolute bottom-0 right-0 bg-[#22c55e] text-white p-2 rounded-full cursor-pointer hover:bg-[#1a9f4a] transition-colors">
                   <Camera className="w-4 h-4" />
                   <input
@@ -149,7 +267,7 @@ export default function AdminSettings() {
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, fullName: e.target.value })
+                    handleProfileDataChange("fullName", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
                 />
@@ -163,10 +281,7 @@ export default function AdminSettings() {
                   type="text"
                   value={profileData.adminId}
                   onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      adminId: e.target.value,
-                    })
+                    handleProfileDataChange("adminId", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
                 />
@@ -179,10 +294,7 @@ export default function AdminSettings() {
                 <select
                   value={profileData.role}
                   onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      role: e.target.value,
-                    })
+                    handleProfileDataChange("role", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
                   <option value="System Administrator">
@@ -203,7 +315,7 @@ export default function AdminSettings() {
                   type="email"
                   value={profileData.email}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, email: e.target.value })
+                    handleProfileDataChange("email", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
                 />
@@ -217,10 +329,7 @@ export default function AdminSettings() {
                   type="tel"
                   value={profileData.mobileNumber}
                   onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      mobileNumber: e.target.value,
-                    })
+                    handleProfileDataChange("mobileNumber", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
                 />
@@ -233,10 +342,7 @@ export default function AdminSettings() {
                 <select
                   value={profileData.department}
                   onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      department: e.target.value,
-                    })
+                    handleProfileDataChange("department", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
                   <option value="IT & Administration">
@@ -256,10 +362,7 @@ export default function AdminSettings() {
                 <select
                   value={profileData.accessLevel}
                   onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      accessLevel: e.target.value,
-                    })
+                    handleProfileDataChange("accessLevel", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
                   <option value="Full Access">Full Access</option>
@@ -270,6 +373,99 @@ export default function AdminSettings() {
               </div>
             </div>
 
+            {/* Additional Profile Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={profileData.firstName}
+                  onChange={(e) =>
+                    handleProfileDataChange("firstName", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={profileData.lastName}
+                  onChange={(e) =>
+                    handleProfileDataChange("lastName", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={profileData.address}
+                  onChange={(e) =>
+                    handleProfileDataChange("address", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={profileData.location}
+                  onChange={(e) =>
+                    handleProfileDataChange("location", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date of Birth
+                </label>
+                <input
+                  type="text"
+                  value={
+                    profileData.dateOfBirth
+                      ? new Date(
+                          profileData.dateOfBirth.seconds * 1000
+                        ).toLocaleDateString()
+                      : "n/a"
+                  }
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <div className="flex items-center">
+                  <span
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                      profileData.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                    {profileData.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Bio Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -277,9 +473,7 @@ export default function AdminSettings() {
               </label>
               <textarea
                 value={profileData.bio}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, bio: e.target.value })
-                }
+                onChange={(e) => handleProfileDataChange("bio", e.target.value)}
                 rows={4}
                 maxLength={400}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 resize-none"
@@ -309,7 +503,7 @@ export default function AdminSettings() {
             <div className="space-y-4">
               {/* New User Registrations */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     New User Registrations
                   </h3>
@@ -317,110 +511,65 @@ export default function AdminSettings() {
                     Get notified when new users register in the system.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.newUserRegistrations}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        newUserRegistrations: e.target.checked,
+                        newUserRegistrations: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.newUserRegistrations
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.newUserRegistrations
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* System Alerts */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">System Alerts</h3>
                   <p className="text-sm text-gray-600">
                     Receive critical system alerts and notifications.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.systemAlerts}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        systemAlerts: e.target.checked,
+                        systemAlerts: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.systemAlerts
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.systemAlerts
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Security Alerts */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">Security Alerts</h3>
                   <p className="text-sm text-gray-600">
                     Get notified about security breaches or suspicious
                     activities.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.securityAlerts}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        securityAlerts: e.target.checked,
+                        securityAlerts: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.securityAlerts
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.securityAlerts
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* User Account Updates */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     User Account Updates
                   </h3>
@@ -428,37 +577,22 @@ export default function AdminSettings() {
                     Get notified when user accounts are modified or updated.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.userAccountUpdates}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        userAccountUpdates: e.target.checked,
+                        userAccountUpdates: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.userAccountUpdates
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.userAccountUpdates
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* System Maintenance */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     System Maintenance
                   </h3>
@@ -467,37 +601,22 @@ export default function AdminSettings() {
                     updates.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.systemMaintenance}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        systemMaintenance: e.target.checked,
+                        systemMaintenance: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.systemMaintenance
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.systemMaintenance
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Emergency Notifications */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     Emergency Notifications
                   </h3>
@@ -505,37 +624,22 @@ export default function AdminSettings() {
                     Receive urgent notifications about system emergencies.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.emergencyNotifications}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        emergencyNotifications: e.target.checked,
+                        emergencyNotifications: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.emergencyNotifications
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.emergencyNotifications
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Report Generation */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     Report Generation
                   </h3>
@@ -543,37 +647,22 @@ export default function AdminSettings() {
                     Get notified when system reports are generated.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.reportGeneration}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        reportGeneration: e.target.checked,
+                        reportGeneration: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.reportGeneration
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.reportGeneration
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Backup Notifications */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">
                     Backup Notifications
                   </h3>
@@ -582,32 +671,17 @@ export default function AdminSettings() {
                     protection.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={notificationPrefs.backupNotifications}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setNotificationPrefs({
                         ...notificationPrefs,
-                        backupNotifications: e.target.checked,
+                        backupNotifications: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.backupNotifications
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.backupNotifications
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
             </div>
 
@@ -638,7 +712,7 @@ export default function AdminSettings() {
 
               {/* Two-Factor Authentication */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">
                     Two-Factor Authentication
                   </h4>
@@ -646,32 +720,17 @@ export default function AdminSettings() {
                     Require 2FA for admin access
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={securitySettings.twoFactorAuth}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setSecuritySettings({
                         ...securitySettings,
-                        twoFactorAuth: e.target.checked,
+                        twoFactorAuth: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      securitySettings.twoFactorAuth
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        securitySettings.twoFactorAuth
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Session Timeout */}
@@ -700,7 +759,7 @@ export default function AdminSettings() {
 
               {/* IP Whitelist */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">
                     IP Address Whitelist
                   </h4>
@@ -708,97 +767,57 @@ export default function AdminSettings() {
                     Restrict admin access to specific IP addresses
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={securitySettings.ipWhitelist}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setSecuritySettings({
                         ...securitySettings,
-                        ipWhitelist: e.target.checked,
+                        ipWhitelist: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      securitySettings.ipWhitelist
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        securitySettings.ipWhitelist
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Audit Logging */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Audit Logging</h4>
                   <p className="text-sm text-gray-600">
-                    Log all admin actions for security monitoring
+                    Track and log all admin actions for security monitoring
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={securitySettings.auditLogging}
-                    onChange={(e) =>
+                    onChange={(checked) =>
                       setSecuritySettings({
                         ...securitySettings,
-                        auditLogging: e.target.checked,
+                        auditLogging: checked,
                       })
                     }
-                    className="sr-only"
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      securitySettings.auditLogging
-                        ? "bg-[#22c55e]"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        securitySettings.auditLogging
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
 
               {/* Dark Mode */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
+                <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Dark Mode</h4>
                   <p className="text-sm text-gray-600">
-                    Toggle between light and dark themes
+                    Enable dark theme for the admin interface
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current theme: {theme}
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex-shrink-0">
+                  <ToggleSwitch
                     checked={theme === "dark"}
-                    onChange={(e) =>
-                      setTheme(e.target.checked ? "dark" : "light")
-                    }
-                    className="sr-only"
+                    onChange={handleThemeToggle}
                   />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      theme === "dark" ? "bg-[#22c55e]" : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        theme === "dark" ? "translate-x-5" : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
+                </div>
               </div>
             </div>
 

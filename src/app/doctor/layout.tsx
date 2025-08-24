@@ -2,6 +2,8 @@
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,6 +11,7 @@ interface LayoutProps {
 
 function DoctorLayout({ children }: LayoutProps) {
   const [isMobileSidenavOpen, setIsMobileSidenavOpen] = useState(false);
+  const pathname = usePathname();
 
   const handleMobileMenuToggle = () => {
     setIsMobileSidenavOpen(!isMobileSidenavOpen);
@@ -23,21 +26,30 @@ function DoctorLayout({ children }: LayoutProps) {
     isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
   } lg:translate-x-0`;
 
+  // Check if we're on the message page
+  const isMessagePage = pathname === "/doctor/message";
+
   return (
-    <div id="page-wrapper">
-      <Header
-        userRole="DOCTOR"
-        notificationCount={4}
-        onMobileMenuToggle={handleMobileMenuToggle}
-        className={transitionClasses}
-      />
-      <RoleBasedSidenav
-        userRole="DOCTOR"
-        isMobileOpen={isMobileSidenavOpen}
-        onMobileClose={handleMobileSidenavClose}
-      />
-      <main className={`p-6 ${transitionClasses}`}>{children}</main>
-    </div>
+    <ProtectedRoute>
+      <div id="page-wrapper">
+        <Header
+          userRole="DOCTOR"
+          notificationCount={4}
+          onMobileMenuToggle={handleMobileMenuToggle}
+          className={transitionClasses}
+        />
+        <RoleBasedSidenav
+          userRole="DOCTOR"
+          isMobileOpen={isMobileSidenavOpen}
+          onMobileClose={handleMobileSidenavClose}
+        />
+        <main
+          className={`${transitionClasses}`}
+          data-page={isMessagePage ? "message" : undefined}>
+          {children}
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }
 

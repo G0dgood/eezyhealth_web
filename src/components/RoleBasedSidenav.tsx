@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   Grid3X3,
   Users,
@@ -21,7 +22,14 @@ import {
   Bell,
   X,
   ChevronDown,
+  Home,
+  CalendarCheck,
+  MessageSquare,
+  Clock,
+  XCircle,
+  Award,
 } from "lucide-react";
+import Image from "next/image";
 
 interface NavItem {
   id: string;
@@ -47,6 +55,7 @@ export default function RoleBasedSidenav({
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const router = useRouter();
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   const toggleExpanded = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -128,27 +137,45 @@ export default function RoleBasedSidenav({
         ...baseItems,
         {
           id: "patients",
-          label: "Patients",
+          label: "Patient",
           icon: <Users className="w-5 h-5" />,
           href: `/${role.toLowerCase()}/patients`,
         },
         {
           id: "appointments",
-          label: "Appointments",
+          label: "Appointment",
           icon: <Calendar className="w-5 h-5" />,
           href: `/${role.toLowerCase()}/appointments`,
         },
         {
-          id: "medical-records",
-          label: "Medical Records",
-          icon: <FileText className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/medical-records`,
+          id: "bookings",
+          label: "Bookings",
+          icon: <Calendar className="w-5 h-5" />,
+          href: `/${role.toLowerCase()}/bookings`,
+        },
+        {
+          id: "message",
+          label: "Message",
+          icon: <Bell className="w-5 h-5" />,
+          href: `/${role.toLowerCase()}/message`,
         },
         {
           id: "availability",
           label: "Availability",
           icon: <Activity className="w-5 h-5" />,
           href: `/${role.toLowerCase()}/availability`,
+        },
+        {
+          id: "booking-cancellation",
+          label: "Booking Cancellation",
+          icon: <CalendarX className="w-5 h-5" />,
+          href: `/${role.toLowerCase()}/booking-cancellation`,
+        },
+        {
+          id: "payment",
+          label: "Payment",
+          icon: <CreditCard className="w-5 h-5" />,
+          href: `/${role.toLowerCase()}/payment`,
         },
         {
           id: "settings",
@@ -177,10 +204,16 @@ export default function RoleBasedSidenav({
               id: "patients",
               label: "Patient",
               icon: <User className="w-4 h-4" />,
-              href: `/nurse/users/patients`,
+              href: `/${role.toLowerCase()}/users/patients`,
               count: 156,
             },
           ],
+        },
+        {
+          id: "all-users",
+          label: "All Users",
+          icon: <Users className="w-5 h-5" />,
+          href: `/${role.toLowerCase()}/users`,
         },
         {
           id: "bookings",
@@ -216,10 +249,10 @@ export default function RoleBasedSidenav({
           count: 234,
         },
         {
-          id: "uploads",
-          label: "Uploads",
+          id: "document",
+          label: "Document",
           icon: <Upload className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/uploads`,
+          href: `/${role.toLowerCase()}/document`,
         },
         {
           id: "settings",
@@ -256,7 +289,7 @@ export default function RoleBasedSidenav({
       <div key={item.id} className="space-y-1">
         <div
           className={`px-4 py-3 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${
-            isItemActive ? "bg-green-500 text-white shadow-md" : ""
+            isItemActive ? "bg-[#44CE2D] text-white shadow-md" : ""
           }`}
           style={{
             color: isItemActive ? "white" : "var(--foreground)",
@@ -290,7 +323,7 @@ export default function RoleBasedSidenav({
               {item.icon}
             </div>
             <span
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`text-sm font-medium transition-colors whitespace-nowrap duration-200 ${
                 isItemActive ? "text-white" : ""
               }`}
               style={{
@@ -408,25 +441,24 @@ export default function RoleBasedSidenav({
     <>
       {/* Sidenav */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-64 p-4 transform transition-all duration-300 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-64 p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
         style={{
           gridArea: "sidenav",
           backgroundColor: "var(--accent-white)",
           borderRightColor: "var(--border)",
+          borderColor: "var(--border)",
         }}>
         {/* Mobile Close Button */}
         <div className="flex items-center justify-between mb-8 lg:hidden">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">e</span>
-            </div>
-            <span
-              className="font-medium text-lg transition-colors duration-200"
-              style={{ color: "var(--foreground)" }}>
-              eezyhealth
-            </span>
+            <Image
+              src={theme === "dark" ? "/logowhite.svg" : "/logodark.svg"}
+              alt="eezyhealth"
+              width={100}
+              height={100}
+            />
           </div>
           <button
             onClick={onMobileClose}
@@ -438,14 +470,12 @@ export default function RoleBasedSidenav({
 
         {/* Desktop Logo */}
         <div className="mb-8 flex items-center space-x-2 hidden lg:flex">
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">e</span>
-          </div>
-          <span
-            className="font-medium text-lg transition-colors duration-200"
-            style={{ color: "var(--foreground)" }}>
-            eezyhealth
-          </span>
+          <Image
+            src={theme === "dark" ? "/logowhite.svg" : "/logodark.svg"}
+            alt="eezyhealth"
+            width={150}
+            height={150}
+          />
         </div>
 
         {/* Navigation */}

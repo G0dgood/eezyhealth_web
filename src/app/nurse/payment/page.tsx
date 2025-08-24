@@ -5,16 +5,18 @@ import { Search, Plus } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
+import { Payment } from "@/types";
 
 export default function NursePaymentPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const totalPages = 10;
 
   // Sample payment data
-  const paymentsData = [
+  const paymentsData: Payment[] = [
     {
       patient: "Seun Simeon",
       doctor: "Dr. Tunde Sanni",
@@ -108,6 +110,7 @@ export default function NursePaymentPage() {
     <div>
       {/* Breadcrumb */}
       <Breadcrumb
+        homeHref="/nurse"
         items={[{ label: "Nurse", href: "/nurse" }, { label: "Payment" }]}
       />
 
@@ -118,7 +121,7 @@ export default function NursePaymentPage() {
       </div>
 
       {/* Search and Actions */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+      <div className=" mb-6">
         <div className="flex items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />

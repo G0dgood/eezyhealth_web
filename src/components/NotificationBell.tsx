@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { useNotifications } from "@/contexts/NotificationContext";
 import NotificationPanel from "./NotificationPanel";
@@ -13,8 +13,23 @@ export default function NotificationBell({
   className = "",
 }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAsRead, clearAll } =
     useNotifications();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleMarkAsRead = (id: string) => {
     markAsRead(id);
@@ -26,19 +41,17 @@ export default function NotificationBell({
   };
 
   return (
-    <>
-      <div className="relative">
-        <button
-          onClick={() => setIsOpen(true)}
-          className={`relative p-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer ${className}`}>
-          <Bell className="w-6 h-6" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </button>
-      </div>
+    <div className="relative" ref={notificationRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`relative p-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer ${className}`}>
+        <Bell className="w-6 h-6" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
 
       <NotificationPanel
         isOpen={isOpen}
@@ -47,6 +60,6 @@ export default function NotificationBell({
         onMarkAsRead={handleMarkAsRead}
         onClearAll={handleClearAll}
       />
-    </>
+    </div>
   );
 }

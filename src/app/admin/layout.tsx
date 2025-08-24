@@ -2,6 +2,7 @@
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
 import React, { useState } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,20 +25,22 @@ function AdminLayout({ children }: LayoutProps) {
   } lg:translate-x-0`;
 
   return (
-    <div id="page-wrapper">
-      <Header
-        userRole="ADMIN"
-        notificationCount={3}
-        onMobileMenuToggle={handleMobileMenuToggle}
-        className={transitionClasses}
-      />
-      <RoleBasedSidenav
-        userRole="ADMIN"
-        isMobileOpen={isMobileSidenavOpen}
-        onMobileClose={handleMobileSidenavClose}
-      />
-      <main className={`${transitionClasses}`}>{children}</main>
-    </div>
+    <ProtectedRoute>
+      <div id="page-wrapper">
+        <Header
+          userRole="ADMIN"
+          notificationCount={3}
+          onMobileMenuToggle={handleMobileMenuToggle}
+          className={transitionClasses}
+        />
+        <RoleBasedSidenav
+          userRole="ADMIN"
+          isMobileOpen={isMobileSidenavOpen}
+          onMobileClose={handleMobileSidenavClose}
+        />
+        <main className={`${transitionClasses}`}>{children}</main>
+      </div>
+    </ProtectedRoute>
   );
 }
 

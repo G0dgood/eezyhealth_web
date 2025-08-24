@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { Search, X } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -10,7 +10,7 @@ export default function NurseBookingCancellationPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const totalPages = 10;
 
   // Sample cancellation data matching the design
@@ -111,7 +111,7 @@ export default function NurseBookingCancellationPage() {
     {
       key: "action",
       label: "ACTION",
-      render: (value: string | number, row: any) => (
+      render: (value: string | number, row: SetStateAction<null>) => (
         <button
           onClick={() => {
             setSelectedBooking(row);
@@ -158,6 +158,7 @@ export default function NurseBookingCancellationPage() {
       {/* Cancellations Table */}
       <DataTable
         columns={columns}
+        // @ts-expect-error - data is not defined in the interface
         data={cancellationsData}
         currentPage={currentPage}
         totalPages={totalPages}
@@ -173,15 +174,6 @@ export default function NurseBookingCancellationPage() {
         size="md">
         {selectedBooking && (
           <div className="space-y-4">
-            {/* Close button at top right */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsCancelModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
             {/* Modal content matching the design */}
             <div className="space-y-4">
               <div>

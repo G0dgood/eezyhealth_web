@@ -198,7 +198,7 @@ main {
   position: relative;
   height: 100dvh;
   grid-template-columns: max-content 1fr;
-  grid-template-rows: 70px 1fr;
+  grid-template-rows: 60px 1fr;
   grid-template-areas:
     'sidenav header'
     'sidenav main' ;
@@ -255,6 +255,16 @@ header, main {
   background-color: var(--card);
   color: var(--card-foreground);
   border-bottom-color: var(--border);
+}
+
+/* Remove main padding for message page */
+main[data-page="message"] {
+  padding: 0;
+}
+
+/* Dark mode override for message page */
+[data-theme="dark"] main[data-page="message"] {
+  padding: 0;
 }
 
 /* Dark mode for sidenav */
