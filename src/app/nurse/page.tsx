@@ -110,7 +110,7 @@ export default function NurseDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div>
       {/* Main Content */}
       <div>
         {/* Metrics Cards */}
