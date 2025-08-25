@@ -583,10 +583,6 @@ export default function DoctorAvailabilityPage() {
       <div className="border-[var(--border)] mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-4">
-            <h2 className="text-lg font-medium text-gray-700">
-              Set your availability
-            </h2>
-
             <div className="flex items-center gap-3">
               <label className="text-sm font-medium text-gray-700">
                 Consultation duration:
@@ -594,7 +590,8 @@ export default function DoctorAvailabilityPage() {
               <select
                 value={consultationDuration}
                 onChange={(e) => setConsultationDuration(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] bg-white">
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] bg-white"
+              >
                 <option value="15 minutes">15 minutes</option>
                 <option value="30 minutes">30 minutes</option>
                 <option value="45 minutes">45 minutes</option>
@@ -606,14 +603,16 @@ export default function DoctorAvailabilityPage() {
           <div className="flex gap-3">
             <button
               onClick={handleAddRecurringPattern}
-              className="px-4 py-2 border border-[#44CE2D] text-[#44CE2D] rounded-lg hover:bg-[#44CE2D] hover:text-white transition-colors flex items-center gap-2 cursor-pointer">
+              className="px-4 py-2 border border-[#44CE2D] text-[#44CE2D] rounded-lg hover:bg-[#44CE2D] hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+            >
               <Plus className="w-4 h-4" />
               Add Recurring Pattern
             </button>
 
             <button
               onClick={handleSaveAvailability}
-              className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2 cursor-pointer">
+              className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2 cursor-pointer"
+            >
               <Save className="w-4 h-4" />
               Save Availability
             </button>
@@ -670,17 +669,20 @@ export default function DoctorAvailabilityPage() {
                 const year = today.getFullYear();
                 setCurrentMonth(`${month}, ${year}`);
               }}
-              className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+              className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+            >
               Today
             </button>
             <button
               onClick={() => navigateWeek("prev")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <ChevronLeft className="w-4 h-4 text-gray-600 cursor-pointer" />
             </button>
             <button
               onClick={() => navigateWeek("next")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <ChevronRight className="w-4 h-4 text-gray-600 cursor-pointer" />
             </button>
           </div>
@@ -695,7 +697,8 @@ export default function DoctorAvailabilityPage() {
               {availability.map((day) => (
                 <div
                   key={day.date}
-                  className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
+                  className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center"
+                >
                   <div className="font-semibold">{day.dayName}</div>
                   <div className="text-xs text-gray-500">{day.date}</div>
                 </div>
@@ -706,7 +709,8 @@ export default function DoctorAvailabilityPage() {
             {availability[0].timeSlots.map((_, slotIndex) => (
               <div
                 key={slotIndex}
-                className="grid grid-cols-8 border-b border-gray-200 last:border-b-0">
+                className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
+              >
                 {/* Time Label */}
                 <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                   {availability[0].timeSlots[slotIndex].time}
@@ -719,7 +723,8 @@ export default function DoctorAvailabilityPage() {
                     className={`p-3 border-r border-gray-200 last:border-r-0 cursor-pointer transition-colors hover:bg-gray-50 ${getSlotColor(
                       day.timeSlots[slotIndex].color
                     )} ${getSlotTextColor(day.timeSlots[slotIndex].color)}`}
-                    onClick={() => handleTimeSlotClick(dayIndex, slotIndex)}>
+                    onClick={() => handleTimeSlotClick(dayIndex, slotIndex)}
+                  >
                     <div className="w-full h-6 flex items-center justify-center">
                       {day.timeSlots[slotIndex].available && (
                         <div className="w-2 h-2 rounded-full bg-current opacity-75"></div>

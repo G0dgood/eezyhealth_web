@@ -1,5 +1,6 @@
 // Payment related types
 export interface Payment {
+  transactionId: string;
   patient: string;
   doctor: string;
   date: string;

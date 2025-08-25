@@ -140,9 +140,8 @@ export default function DoctorBookingCancellationPage() {
         />
       </div>
 
-      <Title title="Cancelled Appointments" />
-
-      <div className="relative max-w-md mb-6">
+      <div className="flex justify-between items-center mb-6">
+        <Title title="Cancelled Appointments" />
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
@@ -215,13 +214,15 @@ export default function DoctorBookingCancellationPage() {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed">
+            className="px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Previous
           </button>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed">
+            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Next
           </button>
         </div>

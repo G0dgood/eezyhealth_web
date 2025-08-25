@@ -520,7 +520,7 @@ export default function DoctorBookingsPage() {
             {timeSlots.map((time, timeIndex) => (
               <div
                 key={time}
-                className="grid grid-cols-8 border-b border-gray-200 last:border-b-0">
+                className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
                 {/* Time Label */}
                 <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                   {time} {"->"} {getNextTime(time)}

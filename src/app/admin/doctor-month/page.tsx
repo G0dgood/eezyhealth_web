@@ -68,24 +68,19 @@ const AdminDoctorOfMonthPage = () => {
       </div>
 
       {/* Current Leader Card */}
-      <div className="flex flex-row justify-between items-start p-4 gap-[372px] w-full md:w-[521px] h-[104px] bg-[#44CE2D] rounded-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-              <Trophy className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <p className="text-white/80 text-sm font-medium">
-                Current Leader
-              </p>
-              <p className="text-xl font-bold">Dr. John Doe</p>
-              <p className="text-white/80 text-sm">Cardiologist</p>
-            </div>
+      <div className="flex justify-between items-center p-4 w-full md:w-[521px] h-[104px] bg-[#44CE2D] rounded-2xl">
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+            <Trophy className="w-8 h-8 text-white" />
           </div>
-          <div className="text-right">
-            <p className="text-4xl font-bold">98.3</p>
-            <p className="text-white/80 text-sm">Score</p>
+          <div>
+            <p className="text-white/80 text-sm font-medium">Current Leader</p>
+            <p className="text-xl text-white font-bold">Dr. John Doe</p>
+            <p className="text-white/80 text-sm">Cardiologist</p>
           </div>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl text-white font-bold">98.3</p>
         </div>
       </div>
 
@@ -99,7 +94,7 @@ const AdminDoctorOfMonthPage = () => {
           <div className="space-y-3">
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm  w-full md:w-[521px]">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-4">
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-gray-600" />
                   </div>
@@ -182,7 +177,8 @@ const AdminDoctorOfMonthPage = () => {
                   {pastDoctors.map((doctor, index) => (
                     <tr
                       key={index}
-                      className="hover:bg-gray-50 transition-colors">
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
@@ -221,7 +217,8 @@ const AdminDoctorOfMonthPage = () => {
                 <div className="flex space-x-2">
                   <button
                     disabled
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     Previous
                   </button>
                   <button className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer">

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, FileText, Calendar } from "lucide-react";
+import { Eye, FileText, Calendar, Plus } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import AddPatientModal from "@/components/modals/AddPatientModal";
 
 interface Patient {
   id: string;
@@ -109,6 +110,8 @@ const mockData: Patient[] = [
 export default function DoctorPatientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
   const itemsPerPage = 8;
   const totalPages = Math.ceil(mockData.length / itemsPerPage);
@@ -153,17 +156,28 @@ export default function DoctorPatientsPage() {
     // Navigate to appointment scheduling page
   };
 
+  function handleAddPatient(patientData: any): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div>
       <Title title="Patient Management" />
 
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between">
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
           placeholder="Search patients by name, email, or phone..."
         />
+        <button
+          onClick={() => setIsAddPatientModalOpen(true)}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add New Patient</span>
+        </button>
       </div>
 
       {/* Table */}
@@ -196,8 +210,8 @@ export default function DoctorPatientsPage() {
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {true ? (
-                <SVGLoaderFetch colSpan={5} text={"Loading..."} />
+              {isLoading ? (
+                <SVGLoaderFetch colSpan={5} text={""} />
               ) : paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
                 <NoRecordFound colSpan={5} />
@@ -243,19 +257,22 @@ export default function DoctorPatientsPage() {
                         <button
                           onClick={() => handleViewPatient(patient.id)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View Patient">
+                          title="View Patient"
+                        >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleViewRecords(patient.id)}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="View Medical Records">
+                          title="View Medical Records"
+                        >
                           <FileText className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleScheduleAppointment(patient.id)}
                           className="p-2 text-[#44CE2D] hover:bg-green-50 rounded-lg transition-colors"
-                          title="Schedule Appointment">
+                          title="Schedule Appointment"
+                        >
                           <Calendar className="w-4 h-4" />
                         </button>
                       </div>
@@ -268,6 +285,12 @@ export default function DoctorPatientsPage() {
         </div>
       </div>
 
+      <AddPatientModal
+        isOpen={isAddPatientModalOpen}
+        onClose={() => setIsAddPatientModalOpen(false)}
+        onAdd={(patientData) => handleAddPatient(patientData)}
+      />
+
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between">
         <div className="text-sm text-[var(--muted-foreground)]">
@@ -277,7 +300,8 @@ export default function DoctorPatientsPage() {
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed">
+            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Previous
           </button>
           <button
@@ -285,7 +309,8 @@ export default function DoctorPatientsPage() {
               setCurrentPage(Math.min(totalPages, currentPage + 1))
             }
             disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-white bg-[#44CE2D] rounded-lg hover:bg-[#3bb025] disabled:opacity-50 disabled:cursor-not-allowed">
+            className="px-4 py-2 text-sm font-medium text-white bg-[#44CE2D] rounded-lg hover:bg-[#3bb025] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Next
           </button>
         </div>

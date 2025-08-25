@@ -18,6 +18,7 @@ export default function NursePaymentPage() {
   // Sample payment data
   const paymentsData: Payment[] = [
     {
+      transactionId: "TXN123456",
       patient: "Seun Simeon",
       doctor: "Dr. Tunde Sanni",
       date: "25-05-2024",
@@ -26,6 +27,7 @@ export default function NursePaymentPage() {
       status: "Completed",
     },
     {
+      transactionId: "TXN123456",
       patient: "Felix Simeon",
       doctor: "Dr. Mary Paul",
       date: "25-05-2024",
@@ -34,6 +36,7 @@ export default function NursePaymentPage() {
       status: "Pending",
     },
     {
+      transactionId: "TXN123456",
       patient: "Kofi Simeon",
       doctor: "Dr. Paul Moses",
       date: "25-05-2024",
@@ -42,6 +45,7 @@ export default function NursePaymentPage() {
       status: "Completed",
     },
     {
+      transactionId: "TXN123456",
       patient: "Fatima Simeon",
       doctor: "Dr. Sarah James",
       date: "26-05-2024",
@@ -50,6 +54,7 @@ export default function NursePaymentPage() {
       status: "Failed",
     },
     {
+      transactionId: "TXN123456",
       patient: "Joy Simeon",
       doctor: "Dr. Zainab Ali",
       date: "26-05-2024",
@@ -60,6 +65,7 @@ export default function NursePaymentPage() {
   ];
 
   const columns = [
+    { key: "transactionId", label: "TRANSACTION ID" },
     {
       key: "patient",
       label: "PATIENT",

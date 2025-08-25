@@ -200,7 +200,7 @@ export default function AdminUsersPage() {
                 borderTopColor: "var(--border)",
               }}>
               {isLoading ? (
-                <SVGLoaderFetch colSpan={6} text="Loading users..." />
+                <SVGLoaderFetch colSpan={6} text="" />
               ) : paginatedUsers?.length === 0 ||
                 paginatedUsers?.length === undefined ? (
                 <NoRecordFound colSpan={6} />

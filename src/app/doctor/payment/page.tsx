@@ -220,11 +220,11 @@ export default function DoctorPaymentPage() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  Date
+                  Transaction Id
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
                   Actions
-                </th>
+                </th> */}
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
@@ -268,16 +268,16 @@ export default function DoctorPaymentPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-[var(--foreground)]">
-                      {payment.appointmentDate}
+                      {payment.transactionId}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <button className="text-[#44CE2D] hover:text-[#3bb025] transition-colors">
                         <Eye className="w-4 h-4" />
                       </button>
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

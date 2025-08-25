@@ -97,7 +97,8 @@ export default function PatientDetailsPage({
       <div className="flex items-center space-x-4 mb-6">
         <Link
           href="/nurse/users/patients"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+        >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div className="flex items-center space-x-3">
@@ -121,7 +122,8 @@ export default function PatientDetailsPage({
                 activeTab === "incoming"
                   ? "border-green-500 text-green-600 bg-green-50"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}>
+              }`}
+            >
               Incoming Appointment
             </button>
             <button
@@ -130,7 +132,8 @@ export default function PatientDetailsPage({
                 activeTab === "past"
                   ? "border-green-500 text-green-600 bg-green-50"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}>
+              }`}
+            >
               Past Appointment
             </button>
           </nav>
@@ -188,7 +191,8 @@ export default function PatientDetailsPage({
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={handleVitalsClick}
-                      className="text-green-600 hover:text-green-700 font-medium text-sm cursor-pointer">
+                      className="text-green-600 hover:text-green-700 font-medium text-sm cursor-pointer"
+                    >
                       Vitals
                     </button>
                   </td>
@@ -204,7 +208,8 @@ export default function PatientDetailsPage({
           <div className="flex space-x-2">
             <button
               disabled
-              className="px-3 py-1 text-sm border border-gray-300 text-gray-400 rounded cursor-not-allowed">
+              className="px-3 py-1 text-sm border border-gray-300 text-gray-400 rounded cursor-not-allowed"
+            >
               Previous
             </button>
             <button className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50 cursor-pointer">
@@ -224,7 +229,8 @@ export default function PatientDetailsPage({
                 <h3 className="text-lg font-semibold text-gray-900">Vitals</h3>
                 <button
                   onClick={() => setIsVitalsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                  className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>

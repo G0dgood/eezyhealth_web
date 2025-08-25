@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
+import { time } from "console";
 
 export default function NurseBookingCancellationPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,81 +18,98 @@ export default function NurseBookingCancellationPage() {
   const cancellationsData = [
     {
       doctor: "Dr. Tunde Sim",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "08:30 AM",
       status: "Pending",
     },
     {
       doctor: "Dr. Ernest Sim",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "09:00 AM",
       status: "Approved",
     },
     {
       doctor: "Dr. Godwin Sir",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "10:00 AM",
       status: "Rejected",
     },
     {
       doctor: "Dr. Daniel Simo",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "11:30 AM",
       status: "Pending",
     },
     {
       doctor: "Dr. Seun Sime",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "01:00 PM",
       status: "Approved",
     },
     {
       doctor: "Dr. Felix Simed",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
+
       date: "24-05-2024",
+      time: "02:30 PM",
       status: "Pending",
     },
     {
       doctor: "Dr. Kofi Simeo",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
       date: "24-05-2024",
+      time: "03:00 PM",
       status: "Rejected",
     },
     {
       doctor: "Dr. Fatima Sim",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
       date: "24-05-2024",
+      time: "04:30 PM",
       status: "Approved",
     },
     {
       doctor: "Dr. Joy Simeon",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
       date: "24-05-2024",
+      time: "05:00 PM",
       status: "Pending",
     },
     {
       doctor: "Dr. Tolu Simeon",
+      specialty: "Dentist",
       patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
       date: "24-05-2024",
+      time: "06:30 PM",
       status: "Pending",
     },
   ];
 
   const columns = [
     { key: "doctor", label: "DOCTOR" },
+    { key: "specialty", label: "SPECIALTY" },
     { key: "patientName", label: "PATIENT NAME" },
-    { key: "userId", label: "USER ID" },
     { key: "date", label: "DATE" },
+    { key: "time", label: "TIME" },
     {
       key: "status",
       label: "STATUS",
@@ -103,7 +121,8 @@ export default function NurseBookingCancellationPage() {
               : value === "Pending"
               ? "bg-yellow-100 text-yellow-800"
               : "bg-red-100 text-red-800"
-          }`}>
+          }`}
+        >
           {String(value)}
         </span>
       ),
@@ -117,7 +136,8 @@ export default function NurseBookingCancellationPage() {
             setSelectedBooking(row);
             setIsCancelModalOpen(true);
           }}
-          className="text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer">
+          className="text-green-500 hover:text-green-700 font-medium text-sm cursor-pointer"
+        >
           View Details
         </button>
       ),
@@ -142,7 +162,7 @@ export default function NurseBookingCancellationPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+      <div className="bp-6 mb-6">
         <div className="relative max-w-md">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
           <input
@@ -171,7 +191,8 @@ export default function NurseBookingCancellationPage() {
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
         title=""
-        size="md">
+        size="md"
+      >
         {selectedBooking && (
           <div className="space-y-4">
             {/* Modal content matching the design */}
