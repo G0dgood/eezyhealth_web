@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useGetUsersQuery } from "@/store/api";
+import { useGetUsersQuery, useUpdateUserMutation } from "@/store/api";
 import { User, Mail, Eye, Edit, Trash2 } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -13,6 +13,11 @@ import {
   NoRecordFound,
   SVGLoaderFetch,
 } from "@/components/Options";
+import UserDetailsModal from "@/components/modals/UserDetailsModal";
+import UserEditModal from "@/components/modals/UserEditModal";
+import DeleteUserModal from "@/components/modals/DeleteUserModal";
+import { deleteUser } from "@/hooks/deleteUser";
+import { updateUserByUid } from "@/hooks/updateUserByUid";
 
 interface UserData {
   uid: string;
@@ -36,6 +41,16 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRole, setSelectedRole] = useState<string>("all");
+
+  // Modal states
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+
+  // Loading states
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -76,18 +91,50 @@ export default function AdminUsersPage() {
   );
 
   const handleViewUser = (user: UserData) => {
-    console.log("View user:", user);
-    // TODO: Implement user detail view
+    setSelectedUser(user);
+    setIsDetailsModalOpen(true);
   };
 
   const handleEditUser = (user: UserData) => {
-    console.log("Edit user:", user);
-    // TODO: Implement user edit
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
   };
 
   const handleDeleteUser = (user: UserData) => {
-    console.log("Delete user:", user);
-    // TODO: Implement user deletion with confirmation
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleUpdateUser = async (updatedData: Partial<UserData>) => {
+    if (!selectedUser) return;
+
+    setIsUpdating(true);
+    try {
+      await updateUserByUid(selectedUser.uid, updatedData);
+      toast.success("User updated successfully!");
+      refetch(); // Refresh the data
+    } catch (error) {
+      toast.error("Failed to update user. Please try again.");
+      console.error("Error updating user:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedUser) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteUser(selectedUser.uid);
+      toast.success("User deleted successfully!");
+      refetch(); // Refresh the data
+    } catch (error) {
+      toast.error("Failed to delete user. Please try again.");
+      console.error("Error deleting user:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -132,7 +179,7 @@ export default function AdminUsersPage() {
 
       {/* Users Table */}
       <div
-        className="rounded-lg shadow-lg border overflow-hidden"
+        className="rounded-lg  border overflow-hidden"
         style={{
           backgroundColor: "var(--card)",
           borderColor: "var(--border)",
@@ -200,7 +247,7 @@ export default function AdminUsersPage() {
                 borderTopColor: "var(--border)",
               }}>
               {isLoading ? (
-                <SVGLoaderFetch colSpan={6} text="" />
+                <SVGLoaderFetch colSpan={6} />
               ) : paginatedUsers?.length === 0 ||
                 paginatedUsers?.length === undefined ? (
                 <NoRecordFound colSpan={6} />
@@ -376,6 +423,40 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      {/* User Details Modal */}
+      <UserDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+      />
+
+      {/* User Edit Modal */}
+      <UserEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onSave={handleUpdateUser}
+        isUpdating={isUpdating}
+      />
+
+      {/* Delete User Confirmation Modal */}
+      <DeleteUserModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

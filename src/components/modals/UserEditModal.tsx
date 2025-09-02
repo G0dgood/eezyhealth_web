@@ -1,0 +1,320 @@
+import React, { useState, useEffect } from "react";
+import { User, Mail, Phone, MapPin, Calendar, Shield, Save, X } from "lucide-react";
+import Modal from "./Modal";
+import { toast } from "sonner";
+
+interface UserData {
+  uid: string;
+  email: string;
+  display_name?: string;
+  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  phone_number?: string;
+  address?: string;
+  location?: string;
+  date_of_birth?: string;
+  isActive?: boolean;
+  createdTime?: string;
+  first_name?: string;
+  last_name?: string;
+  photo_url?: string;
+}
+
+interface UserEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: UserData | null;
+  onSave: (updatedUser: Partial<UserData>) => Promise<void>;
+  isUpdating: boolean;
+}
+
+const UserEditModal: React.FC<UserEditModalProps> = ({
+  isOpen,
+  onClose,
+  user,
+  onSave,
+  isUpdating,
+}) => {
+  const [formData, setFormData] = useState<Partial<UserData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        display_name: user.display_name || "",
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        role: user.role,
+        phone_number: user.phone_number || "",
+        address: user.address || "",
+        location: user.location || "",
+        date_of_birth: user.date_of_birth || "",
+        isActive: user.isActive,
+        email: user.email,
+      });
+      setErrors({});
+    }
+  }, [user]);
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.email?.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    if (!formData.display_name?.trim() && !formData.first_name?.trim() && !formData.last_name?.trim()) {
+      newErrors.display_name = "At least one name field is required";
+    }
+
+    if (formData.phone_number && !/^\+?[\d\s\-\(\)]+$/.test(formData.phone_number)) {
+      newErrors.phone_number = "Phone number is invalid";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await onSave(formData);
+      toast.success("User updated successfully!");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to update user. Please try again.");
+      console.error("Error updating user:", error);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  if (!user) return null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit User" size="lg">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* User Header */}
+        <div className="flex items-center space-x-4">
+          <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={user.display_name || "User"}
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <User className="h-8 w-8 text-gray-600 dark:text-gray-400" />
+            )}
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {user.display_name ||
+                `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+                "N/A"}
+            </h2>
+            <p className="text-gray-600">ID: {user.uid}</p>
+          </div>
+        </div>
+
+        {/* Form Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+              <Shield className="h-5 w-5 mr-2" />
+              Basic Information
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Display Name
+              </label>
+              <input
+                type="text"
+                value={formData.display_name || ""}
+                onChange={(e) => handleInputChange("display_name", e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
+                  errors.display_name ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Display Name"
+              />
+              {errors.display_name && (
+                <p className="text-red-500 text-sm mt-1">{errors.display_name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                value={formData.first_name || ""}
+                onChange={(e) => handleInputChange("first_name", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                placeholder="First Name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={formData.last_name || ""}
+                onChange={(e) => handleInputChange("last_name", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                placeholder="Last Name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <select
+                value={formData.role || "PATIENT"}
+                onChange={(e) => handleInputChange("role", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
+                <option value="PATIENT">Patient</option>
+                <option value="NURSE">Nurse</option>
+                <option value="DOCTOR">Doctor</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.isActive ? "true" : "false"}
+                onChange={(e) => handleInputChange("isActive", e.target.value === "true")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={formData.date_of_birth || ""}
+                onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+              />
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+              <Mail className="h-5 w-5 mr-2" />
+              Contact Information
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email *
+              </label>
+              <input
+                type="email"
+                value={formData.email || ""}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Email"
+                required
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={formData.phone_number || ""}
+                onChange={(e) => handleInputChange("phone_number", e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
+                  errors.phone_number ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Phone Number"
+              />
+              {errors.phone_number && (
+                <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <textarea
+                value={formData.address || ""}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                placeholder="Address"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                value={formData.location || ""}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                placeholder="City, Country"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isUpdating}
+            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+            <Save className="h-4 w-4 mr-2" />
+            {isUpdating ? "Updating..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export default UserEditModal;

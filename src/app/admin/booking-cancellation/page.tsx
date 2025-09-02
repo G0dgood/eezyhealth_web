@@ -5,91 +5,21 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
-import { BookingCancellation } from "@/types";
-import { useGetBookingCancellationsQuery } from "@/store/api";
+
+import {
+  useGetBookingCancellationsQuery,
+  useRespondToCancellationRequestMutation,
+} from "@/store/api";
 import { toast } from "sonner";
 import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { FirebaseBookingCancellation } from "@/types";
 
 export default function AdminBookingCancellationPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] =
-    useState<BookingCancellation | null>(null);
-
-  // Use mock data as fallback if API fails
-  const cancellationsData: BookingCancellation[] = [
-    {
-      doctor: "Dr. Tunde Sim",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Pending",
-    },
-    {
-      doctor: "Dr. Ernest Sim",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Approved",
-    },
-    {
-      doctor: "Dr. Godwin Sir",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Rejected",
-    },
-    {
-      doctor: "Dr. Daniel Simo",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Pending",
-    },
-    {
-      doctor: "Dr. Seun Sime",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Approved",
-    },
-    {
-      doctor: "Dr. Felix Simed",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Pending",
-    },
-    {
-      doctor: "Dr. Kofi Simeo",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Rejected",
-    },
-    {
-      doctor: "Dr. Fatima Sim",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Approved",
-    },
-    {
-      doctor: "Dr. Joy Simeon",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Pending",
-    },
-    {
-      doctor: "Dr. Tolu Simeon",
-      patientName: "Tina Simeon",
-      userId: "uPBYpITyJBafDtk086FnyUQIRE23",
-      date: "24-05-2024",
-      status: "Pending",
-    },
-  ];
+    useState<FirebaseBookingCancellation | null>(null);
 
   // Fetch booking cancellations from API
   const {
@@ -99,22 +29,32 @@ export default function AdminBookingCancellationPage() {
     refetch,
   } = useGetBookingCancellationsQuery({});
 
+  // Respond to cancellation request mutation
+  const [respondToCancellation, { isLoading: isResponding }] =
+    useRespondToCancellationRequestMutation();
+
   // Use API data if available, otherwise fall back to mock data
-  const dataSource = cancellations || cancellationsData;
+  const dataSource = cancellations || [];
 
   // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return dataSource;
 
-    return dataSource.filter(
-      (cancellation: BookingCancellation) =>
-        cancellation.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cancellation.patientName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        cancellation.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cancellation.status.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return dataSource.filter((cancellation: Record<string, unknown>) => {
+      const doctorName = cancellation.doctorName as string;
+      const patientName = cancellation.patientName as string;
+      const userId = cancellation.userId as string;
+      const status = (
+        cancellation.cancellationRequest as Record<string, unknown>
+      )?.status as string;
+
+      return (
+        doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        status?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
   }, [dataSource, searchTerm]);
 
   const itemsPerPage = 10;
@@ -139,7 +79,42 @@ export default function AdminBookingCancellationPage() {
     }
   }, [error, refetch]);
 
-  console.log("cancellations--->", cancellations);
+  // Handle approve/reject cancellation requests
+  const handleApproveCancellation = async (bookingId: string) => {
+    try {
+      await respondToCancellation({
+        bookingId,
+        status: "approved",
+        adminResponse: "Cancellation request approved",
+      }).unwrap();
+
+      toast.success("Cancellation request approved successfully!");
+      refetch(); // Refresh the data
+      setIsCancelModalOpen(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      toast.error("Failed to approve cancellation request. Please try again.");
+      console.error("Error approving cancellation:", error);
+    }
+  };
+
+  const handleRejectCancellation = async (bookingId: string) => {
+    try {
+      await respondToCancellation({
+        bookingId,
+        status: "rejected",
+        adminResponse: "Cancellation request rejected",
+      }).unwrap();
+
+      toast.success("Cancellation request rejected successfully!");
+      refetch(); // Refresh the data
+      setIsCancelModalOpen(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      toast.error("Failed to reject cancellation request. Please try again.");
+      console.error("Error rejecting cancellation:", error);
+    }
+  };
 
   return (
     <div>
@@ -161,11 +136,13 @@ export default function AdminBookingCancellationPage() {
       {/* Search and Actions */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
         {/* Search Input */}
-        <SearchInput
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search cancellations..."
-        />
+        <div className="flex-1">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search cancellations..."
+          />
+        </div>
 
         {/* Refresh Button */}
         <button
@@ -178,59 +155,9 @@ export default function AdminBookingCancellationPage() {
         </button>
       </div>
 
-      {/* Cancellations Summary */}
-      {cancellations && cancellations.length > 0 && (
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <div className="text-sm text-[var(--muted-foreground)]">
-              Total Cancellations
-            </div>
-            <div className="text-2xl font-bold text-[var(--foreground)]">
-              {cancellations.length}
-            </div>
-          </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <div className="text-sm text-[var(--muted-foreground)]">
-              Pending
-            </div>
-            <div className="text-2xl font-bold text-yellow-600">
-              {
-                cancellations.filter(
-                  (c: BookingCancellation) => c.status === "Pending"
-                ).length
-              }
-            </div>
-          </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <div className="text-sm text-[var(--muted-foreground)]">
-              Approved
-            </div>
-            <div className="text-2xl font-bold text-green-600">
-              {
-                cancellations.filter(
-                  (c: BookingCancellation) => c.status === "Approved"
-                ).length
-              }
-            </div>
-          </div>
-          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-            <div className="text-sm text-[var(--muted-foreground)]">
-              Rejected
-            </div>
-            <div className="text-2xl font-bold text-red-600">
-              {
-                cancellations.filter(
-                  (c: BookingCancellation) => c.status === "Rejected"
-                ).length
-              }
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Cancellations Table */}
 
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[var(--border)]">
@@ -258,52 +185,69 @@ export default function AdminBookingCancellationPage() {
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {isLoading ? (
-                <SVGLoaderFetch colSpan={7} text="Loading users..." />
+                <SVGLoaderFetch colSpan={7} />
               ) : paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
                 <NoRecordFound colSpan={7} />
               ) : (
                 paginatedData.map(
-                  (cancellation: BookingCancellation, index: number) => (
+                  (cancellation: Record<string, unknown>, index: number) => (
                     <tr
                       key={index}
                       className="hover:bg-[var(--muted)] transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-[var(--foreground)]">
-                          {cancellation.doctor}
+                          {(cancellation.doctorName as string) || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-[var(--foreground)]">
-                          {cancellation.patientName}
+                          {(cancellation.patientName as string) || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-[var(--muted-foreground)]">
-                          {cancellation.userId}
+                          {(cancellation.userId as string) || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-[var(--muted-foreground)]">
-                          {cancellation.date}
+                          {(cancellation.bookingDate as string) || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${
-                            cancellation.status === "Approved"
+                            (
+                              cancellation.cancellationRequest as Record<
+                                string,
+                                unknown
+                              >
+                            )?.status === "approved"
                               ? "bg-green-100 text-green-800"
-                              : cancellation.status === "Pending"
+                              : (
+                                  cancellation.cancellationRequest as Record<
+                                    string,
+                                    unknown
+                                  >
+                                )?.status === "pending"
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
                           }`}>
-                          {cancellation.status}
+                          {((
+                            cancellation.cancellationRequest as Record<
+                              string,
+                              unknown
+                            >
+                          )?.status as string) || "Unknown"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => {
-                            setSelectedBooking(cancellation);
+                            setSelectedBooking(
+                              cancellation as unknown as FirebaseBookingCancellation
+                            );
                             setIsCancelModalOpen(true);
                           }}
                           className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-sm cursor-pointer">
@@ -394,37 +338,83 @@ export default function AdminBookingCancellationPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Communication Channel
+                  Doctor
                 </label>
-                <p className="text-gray-900">Video Consultation</p>
+                <p className="text-gray-900">
+                  {selectedBooking.doctorName || "N/A"}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Booking ID
+                  Patient Name
                 </label>
-                <p className="text-gray-900">086FnyUQIRE23</p>
+                <p className="text-gray-900">
+                  {selectedBooking.patientName || "N/A"}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
+                  User ID
                 </label>
-                <p className="text-gray-900">N10,000</p>
+                <p className="text-gray-900">
+                  {selectedBooking.userId || "N/A"}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cancellation Reason
+                  Booking Date
                 </label>
-                <p className="text-gray-900">Emergency surgery scheduled</p>
+                <p className="text-gray-900">
+                  {selectedBooking?.bookingDate
+                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
+                    : "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cancellation Status
+                </label>
+                <p className="text-gray-900">
+                  {selectedBooking.cancellationRequest?.status || "Unknown"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hospital
+                </label>
+                <p className="text-gray-900">
+                  {selectedBooking.hospital || "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Specialization
+                </label>
+                <p className="text-gray-900">
+                  {selectedBooking.specialization || "N/A"}
+                </p>
               </div>
             </div>
 
             {/* Action buttons */}
             <div className="flex justify-between pt-4 border-t border-gray-200">
-              <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                Approve
+              <button
+                onClick={() =>
+                  selectedBooking?.id &&
+                  handleApproveCancellation(selectedBooking.id)
+                }
+                disabled={isResponding || !selectedBooking?.id}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {isResponding ? "Approving..." : "Approve"}
               </button>
-              <button className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer">
-                Reject
+              <button
+                onClick={() =>
+                  selectedBooking?.id &&
+                  handleRejectCancellation(selectedBooking.id)
+                }
+                disabled={isResponding || !selectedBooking?.id}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {isResponding ? "Rejecting..." : "Reject"}
               </button>
             </div>
           </div>

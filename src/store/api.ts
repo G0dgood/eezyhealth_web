@@ -14,7 +14,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Booking', 'Appointment', 'Patient', 'Payment', 'User', 'Doctor', 'Upload', 'Survey', 'BookingCancellation', 'DoctorOfTheMonth'],
+  tagTypes: ['Booking', 'Appointment', 'Patient', 'Payment', 'User', 'Doctor', 'Upload', 'Survey', 'BookingCancellation', 'DoctorOfTheMonth', 'Specialization'],
   endpoints: (builder) => ({
     // ===== AUTHENTICATION & USER MANAGEMENT =====
     generateTokenForUser: builder.mutation({
@@ -269,6 +269,75 @@ export const api = createApi({
       providesTags: ['Doctor'],
     }),
 
+    // Firebase-powered doctor profiles query
+    getFirebaseDoctorProfiles: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery } = await import('@/lib/firebase-rtk');
+          
+          const doctorsData = await createFirebaseQuery('doctorProfiles');
+          
+          return { data: doctorsData };
+        } catch (error) {
+          console.error('Error fetching Firebase doctor profiles:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      providesTags: ['Doctor'],
+    }),
+
+    // Firebase-powered single doctor profile query
+    getFirebaseDoctorProfileById: builder.query({
+      async queryFn(doctorId: string) {
+        try {
+          const { collection, query, where, getDocs } = await import('firebase/firestore');
+          const { db } = await import('@/lib/firebase');
+          
+          const doctorCollectionRef = collection(db, 'doctorProfiles');
+          const q = query(doctorCollectionRef, where("doctorId", "==", doctorId));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            // Get the first matching document
+            const doc = querySnapshot.docs[0];
+            const data = doc.data();
+            // Serialize the data to handle Firestore Timestamps
+            const serializedData = Object.entries(data).reduce((acc, [key, value]) => {
+              if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
+                acc[key] = value.toDate().toISOString();
+              } else {
+                acc[key] = value;
+              }
+              return acc;
+            }, {} as Record<string, unknown>);
+            
+            return { data: { id: doc.id, ...serializedData } };
+          } else {
+            return { 
+              error: { 
+                status: 404, 
+                data: 'Doctor not found' 
+              } 
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching Firebase doctor profile:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              data: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      providesTags: (result, error, doctorId) => [{ type: 'Doctor', id: doctorId }],
+    }),
+
     // Firebase-powered doctor of the month query
     getFirebaseDoctorOfTheMonth: builder.query({
       async queryFn() {
@@ -294,6 +363,30 @@ export const api = createApi({
         }
       },
       providesTags: ['DoctorOfTheMonth'],
+    }),
+
+    // Firebase-powered all bookings query
+    getFirebaseBookings: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import('@/lib/firebase-rtk');
+          
+          const bookingsData = await createFirebaseQuery('Bookings', [
+            firebaseConstraints.orderBy('createdTime', 'desc')
+          ]);
+          
+          return { data: bookingsData };
+        } catch (error) {
+          console.error('Error fetching Firebase bookings:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              data: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      providesTags: ['Booking'],
     }),
 
     // ===== BOOKING & APPOINTMENT MANAGEMENT =====
@@ -397,12 +490,75 @@ export const api = createApi({
       }),
     }),
 
+    // Create doctor appointment booking
+    createDoctorAppointment: builder.mutation({
+      query: ({ patientId, doctorId, bookingData }) => ({
+        url: `/bookDoctorAppointment/${patientId}/${doctorId}`,
+        method: 'POST',
+        body: bookingData,
+      }),
+      invalidatesTags: ['Booking', 'Appointment'],
+    }),
+
     // ===== BOOKING CANCELLATION =====
     getBookingCancellations: builder.query({
-      query: (params) => ({
-        url: '/getBookingCancellations',
-        params,
-      }),
+      async queryFn() {
+        try {
+          const { collection, query, where, getDocs } = await import('firebase/firestore');
+          const { db } = await import('@/lib/firebase');
+          
+          const bookingsCollectionRef = collection(db, 'Bookings');
+          
+          // Create a query to filter documents where: 
+          // - cancellationRequest exists (not null)
+          const bookingsQuery = query(
+            bookingsCollectionRef, 
+            where('cancellationRequest', '!=', null)
+          ); 
+          
+          // Fetch the documents that match the query
+          const snapshot = await getDocs(bookingsQuery);
+
+          // Extract the data from the documents and convert Firestore Timestamps to ISO strings
+          const bookingsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            
+            // Convert Firestore Timestamps to ISO strings for Redux serialization
+            const convertedData: Record<string, unknown> = { id: doc.id };
+            
+            for (const [key, value] of Object.entries(data)) {
+              if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
+                // This is a Firestore Timestamp, convert to ISO string
+                convertedData[key] = (value as { toDate(): Date }).toDate().toISOString();
+              } else if (value && typeof value === 'object' && value !== null) {
+                // Handle nested objects (like cancellationRequest)
+                convertedData[key] = {};
+                for (const [nestedKey, nestedValue] of Object.entries(value)) {
+                  if (nestedValue && typeof nestedValue === 'object' && 'toDate' in nestedValue && typeof nestedValue.toDate === 'function') {
+                    (convertedData[key] as Record<string, unknown>)[nestedKey] = (nestedValue as { toDate(): Date }).toDate().toISOString();
+                  } else {
+                    (convertedData[key] as Record<string, unknown>)[nestedKey] = nestedValue;
+                  }
+                }
+              } else {
+                convertedData[key] = value;
+              }
+            }
+            
+            return convertedData;
+          });
+
+          return { data: bookingsData };
+        } catch (error) {
+          console.error('Error fetching Firebase cancellation requests:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
       providesTags: ['BookingCancellation'],
     }),
     
@@ -416,56 +572,37 @@ export const api = createApi({
     }),
     
     respondToCancellationRequest: builder.mutation({
-      query: (responseData) => ({
-        url: '/respondToCancellationRequest',
-        method: 'PUT',
-        body: responseData,
-      }),
+      async queryFn(responseData) {
+        try {
+          const { doc, updateDoc } = await import('firebase/firestore');
+          const { db } = await import('@/lib/firebase');
+          
+          const { bookingId, status, adminResponse } = responseData;
+          
+          // Update the booking document with the admin response
+          const bookingRef = doc(db, 'Bookings', bookingId);
+          await updateDoc(bookingRef, {
+            'cancellationRequest.status': status,
+            'cancellationRequest.adminResponse': adminResponse,
+            'cancellationRequest.respondedAt': new Date().toISOString(),
+            'cancellationRequest.respondedBy': 'admin' // You can get this from auth context
+          });
+
+          return { data: { success: true, bookingId, status } };
+        } catch (error) {
+          console.error('Error responding to cancellation request:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
       invalidatesTags: ['Booking', 'BookingCancellation'],
     }),
 
-    // ===== PAYMENT MANAGEMENT =====
-    getPayments: builder.query({
-      query: (params) => ({
-        url: '/getPayments',
-        params,
-      }),
-      providesTags: ['Payment'],
-    }),
-    
-    getPayment: builder.query({
-      query: (paymentId) => ({
-        url: '/getPayment',
-        params: { paymentId },
-      }),
-      providesTags: (result, error, paymentId) => [{ type: 'Payment', id: paymentId }],
-    }),
-    
-    getPaymentById: builder.query({
-      query: (paymentId) => ({
-        url: '/getPaymentById',
-        params: { paymentId },
-      }),
-      providesTags: (result, error, paymentId) => [{ type: 'Payment', id: paymentId }],
-    }),
-    
-    updatePaymentStatus: builder.mutation({
-      query: ({ paymentId, status }) => ({
-        url: '/updatePaymentStatus',
-        method: 'PUT',
-        body: { paymentId, status },
-      }),
-      invalidatesTags: (result, error, { paymentId }) => [{ type: 'Payment', id: paymentId }],
-    }),
-    
-    handlePaymentConfirmation: builder.mutation({
-      query: (confirmationData) => ({
-        url: '/handlePaymentConfirmation',
-        method: 'POST',
-        body: confirmationData,
-      }),
-      invalidatesTags: ['Payment'],
-    }),
+
 
     // ===== SURVEYS & COMMENTS =====
     submitSurvey: builder.mutation({
@@ -518,6 +655,175 @@ export const api = createApi({
         method: 'POST',
       }),
     }),
+
+    // ===== SPECIALIZATION MANAGEMENT =====
+    getSpecializations: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery } = await import('@/lib/firebase-rtk');
+          
+          const specializationsData = await createFirebaseQuery('specialization');
+          
+          return { data: specializationsData };
+        } catch (error) {
+          console.error('Error fetching Firebase specializations:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      providesTags: ['Specialization'],
+    }),
+
+    createSpecialization: builder.mutation({
+      async queryFn(specializationData) {
+        try {
+          const { createFirebaseDocument } = await import('@/lib/firebase-rtk');
+          
+          const result = await createFirebaseDocument('specialization', specializationData);
+          
+          return { data: result };
+        } catch (error) {
+          console.error('Error creating specialization:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Specialization'],
+    }),
+
+    updateSpecialization: builder.mutation({
+      async queryFn({ id, ...specializationData }) {
+        try {
+          const { updateFirebaseDocument } = await import('@/lib/firebase-rtk');
+          
+          await updateFirebaseDocument('specialization', id, specializationData);
+          
+          return { data: { id, ...specializationData } };
+        } catch (error) {
+          console.error('Error updating specialization:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Specialization'],
+    }),
+
+    deleteSpecialization: builder.mutation({
+      async queryFn(id) {
+        try {
+          const { deleteFirebaseDocument } = await import('@/lib/firebase-rtk');
+          
+          await deleteFirebaseDocument('specialization', id);
+          
+          return { data: { id } };
+        } catch (error) {
+          console.error('Error deleting specialization:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Specialization'],
+    }),
+
+    // ===== PAYMENTS MANAGEMENT =====
+    getPayments: builder.query({
+      async queryFn({ limit: limitCount = 10 }) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import('@/lib/firebase-rtk');
+          
+          const paymentsData = await createFirebaseQuery('payments', [
+            firebaseConstraints.limit(limitCount)
+          ]);
+          
+          return { data: paymentsData };
+        } catch (error) {
+          console.error('Error fetching Firebase payments:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      providesTags: ['Payment'],
+    }),
+
+    createPayment: builder.mutation({
+      async queryFn(paymentData) {
+        try {
+          const { createFirebaseDocument } = await import('@/lib/firebase-rtk');
+          
+          const result = await createFirebaseDocument('payments', paymentData);
+          
+          return { data: result };
+        } catch (error) {
+          console.error('Error creating payment:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Payment'],
+    }),
+
+    updatePayment: builder.mutation({
+      async queryFn({ id, ...paymentData }) {
+        try {
+          const { updateFirebaseDocument } = await import('@/lib/firebase-rtk');
+          await updateFirebaseDocument('payments', id, paymentData);
+          return { data: { id, ...paymentData } };
+        } catch (error) {
+          console.error('Error updating payment:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Payment'],
+    }),
+
+    deletePayment: builder.mutation({
+      async queryFn(id) {
+        try {
+          const { deleteFirebaseDocument } = await import('@/lib/firebase-rtk');
+          await deleteFirebaseDocument('payments', id);
+          return { data: { id } };
+        } catch (error) {
+          console.error('Error deleting payment:', error);
+          return { 
+            error: { 
+              status: 'FETCH_ERROR', 
+              error: error instanceof Error ? error.message : 'Unknown error occurred' 
+            } 
+          };
+        }
+      },
+      invalidatesTags: ['Payment'],
+    }),
+
   }),
 });
 
@@ -554,7 +860,10 @@ export const {
   useGetPatientVitalsByDoctorIdQuery,
   useGetFirebasePatientsQuery,
   useGetFirebaseDoctorsQuery,
+  useGetFirebaseDoctorProfilesQuery,
+  useGetFirebaseDoctorProfileByIdQuery,
   useGetFirebaseDoctorOfTheMonthQuery,
+  useGetFirebaseBookingsQuery,
   
   // Booking & Appointment Management
   useBookDoctorAppointmentMutation,
@@ -569,6 +878,7 @@ export const {
   useCancelAppointmentMutation,
   useRespondToBookingMutation,
   useCheckBookingEligibilityQuery,
+  useCreateDoctorAppointmentMutation,
   
   // Booking Cancellation
   useGetBookingCancellationsQuery,
@@ -577,10 +887,9 @@ export const {
   
   // Payment Management
   useGetPaymentsQuery,
-  useGetPaymentQuery,
-  useGetPaymentByIdQuery,
-  useUpdatePaymentStatusMutation,
-  useHandlePaymentConfirmationMutation,
+  useCreatePaymentMutation,
+  useUpdatePaymentMutation,
+  useDeletePaymentMutation,
   
   // Surveys & Comments
   useSubmitSurveyMutation,
@@ -597,4 +906,10 @@ export const {
   
   // Triggered Functions
   useTriggerSendAppointmentReminderMutation,
+  
+  // Specialization Management
+  useGetSpecializationsQuery,
+  useCreateSpecializationMutation,
+  useUpdateSpecializationMutation,
+  useDeleteSpecializationMutation,
 } = api;

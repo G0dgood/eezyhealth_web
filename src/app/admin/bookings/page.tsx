@@ -21,120 +21,6 @@ interface Booking {
   channel: "chat" | "videoCall" | "voiceCall";
 }
 
-// Use mock data as fallback if API fails
-const mockData: Booking[] = [
-  {
-    id: "1",
-    patientName: "Seun Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Tunde Simeon",
-    specialty: "Dentist",
-    status: "pending",
-    channel: "chat",
-  },
-  {
-    id: "2",
-    patientName: "Felix Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Ernest Simeon",
-    specialty: "ENT",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "3",
-    patientName: "Kofi Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Godwin Simeon",
-    specialty: "Optician",
-    status: "cancelled",
-    channel: "voiceCall",
-  },
-  {
-    id: "4",
-    patientName: "Fatima Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Daniel Simeon",
-    specialty: "Dentist",
-    status: "cancelled",
-    channel: "voiceCall",
-  },
-  {
-    id: "5",
-    patientName: "Joy Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Seun Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "6",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Felix Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "7",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Kofi Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "8",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Fatima Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "9",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Joy Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "10",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Tolu Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-  {
-    id: "11",
-    patientName: "Tolu Simeon",
-    date: "2 January 2025",
-    time: "8:00AM",
-    doctor: "Dr. Abbey Simeon",
-    specialty: "Dentist",
-    status: "completed",
-    channel: "videoCall",
-  },
-];
-
 export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -148,9 +34,7 @@ export default function BookingsPage() {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(
-    (bookings?.length || mockData.length) / itemsPerPage
-  );
+  const totalPages = Math.ceil(bookings?.length / itemsPerPage);
 
   // Apply search and filters
   const filteredData = bookings?.bookings?.filter(
@@ -245,14 +129,12 @@ export default function BookingsPage() {
       timestamp._seconds
     ) {
       const formatted = moment.unix(timestamp._seconds).format("DD MMMM YYYY");
-      console.log("Formatted date:", formatted, "from timestamp:", timestamp);
       return formatted;
     }
 
     // Handle regular date string or number
     if (typeof timestamp === "string" || typeof timestamp === "number") {
       const formatted = moment(timestamp).format("DD MMMM YYYY");
-      console.log("Formatted date:", formatted, "from timestamp:", timestamp);
       return formatted;
     }
 
@@ -279,24 +161,12 @@ export default function BookingsPage() {
       const formatted = moment
         .unix(timestamp._seconds)
         .format("DD MMMM YYYY, h:mm A");
-      console.log(
-        "Formatted datetime:",
-        formatted,
-        "from timestamp:",
-        timestamp
-      );
       return formatted;
     }
 
     // Handle regular date string or number
     if (typeof timestamp === "string" || typeof timestamp === "number") {
       const formatted = moment(timestamp).format("DD MMMM YYYY, h:mm A");
-      console.log(
-        "Formatted datetime:",
-        formatted,
-        "from timestamp:",
-        timestamp
-      );
       return formatted;
     }
 
@@ -323,11 +193,13 @@ export default function BookingsPage() {
       {/* Search and Filter Bar */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-center space-x-4">
         {/* Search Input */}
-        <SearchInput
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search patient."
-        />
+        <div className="flex-1">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search patient."
+          />
+        </div>
 
         <div className="flex space-x-2">
           {/* Refresh Button */}
@@ -394,44 +266,27 @@ export default function BookingsPage() {
 
       {/* Table */}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  PATIENT NAME
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  BOOKING DATE
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  BOOKING CHANNEL
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  SLOT
-                </th>
-
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  DOCTOR
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SPECIALIZATION
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  STATUS
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  CHANNEL
-                </th>
+                <th>PATIENT NAME</th>
+                <th>BOOKING DATE</th>
+                <th>BOOKING CHANNEL</th>
+                <th>SLOT</th>
+                <th>DOCTOR</th>
+                <th>SPECIALIZATION</th>
+                <th>STATUS</th>
+                <th>CHANNEL</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
-                <SVGLoaderFetch colSpan={7} text="Loading users..." />
+                <SVGLoaderFetch colSpan={8} />
               ) : paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
-                <NoRecordFound colSpan={7} />
+                <NoRecordFound colSpan={8} />
               ) : (
                 paginatedData?.map(
                   (booking: {
@@ -446,45 +301,45 @@ export default function BookingsPage() {
                     slot: string;
                   }) => (
                     <tr key={booking.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm font-medium text-gray-900">
                           {booking?.patientName}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-500">
                           {formatFirebaseTimestamp(booking?.bookingDate)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-500">
                           {booking?.bookingChannel}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-500">
                           {isFirebaseTimestamp(booking?.slot)
                             ? formatFirebaseTimestampWithTime(booking.slot)
                             : booking?.slot || "N/A"}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-900">
                           {booking?.doctorName}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-500">
                           {booking.specialization}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <span className={getStatusBadge(booking.bookingStatus)}>
                           {booking?.bookingStatus?.charAt(0).toUpperCase() +
                             booking?.bookingStatus?.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td>
                         <div className="text-sm text-gray-500">
                           {getChannelText(booking.bookingChannel)}
                         </div>

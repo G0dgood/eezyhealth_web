@@ -8,7 +8,7 @@ const NewProvider = ({ children }: React.PropsWithChildren) => {
   return (
     <ProgressProvider
       height="4px"
-      color="#002DB3"
+      color="#44CE2D"
       options={{ showSpinner: false }}
       shallowRouting>
       {/* <Provider store={store}>  */}

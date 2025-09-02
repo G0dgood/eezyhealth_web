@@ -5,12 +5,8 @@ import {
   Users,
   Stethoscope,
   Calendar,
-  Camera,
-  Search,
-  Bell,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
+  Camera, 
+  Filter
 } from "lucide-react";
 import { getTypeColor } from "@/components/Options";
 

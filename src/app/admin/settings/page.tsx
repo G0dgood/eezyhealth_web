@@ -230,7 +230,7 @@ export default function AdminSettings() {
             <div className="text-center">
               <div className="relative inline-block">
                 {profileImage && isValidImageUrl(profileImage) ? (
-                  <Image
+                  <img
                     src={profileImage}
                     alt="Profile"
                     width={128}

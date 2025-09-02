@@ -93,20 +93,18 @@ export default function RoleBasedSidenav({
       return [
         ...baseItems,
         {
-          id: "users",
-          label: "Users",
+          id: "patients",
+          label: "Patients",
           icon: <Users className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/users`,
-          subItems: [
-            {
-              id: "patients",
-              label: "Patient",
-              icon: <User className="w-4 h-4" />,
-              href: `/${role.toLowerCase()}/users/patients`,
-              count: 156,
-            },
-          ],
+          href: `/${role.toLowerCase()}/patients`,
+          count: 156,
         },
+        // {
+        //   id: "appointments",
+        //   label: "Appointments",
+        //   icon: <Calendar className="w-5 h-5" />,
+        //   href: `/${role.toLowerCase()}/patients/appointments`,
+        // },
         {
           id: "bookings",
           label: "Bookings",
@@ -342,16 +340,16 @@ export default function RoleBasedSidenav({
               }}
             />
           )}
-          {!hasSubItems && item.count && (
+          {!hasSubItems && item?.count && (
             <span
-              className={`w-5 h-5 text-xs rounded-full flex items-center justify-center transition-all duration-200 ${
+              className={`p-1 text-xs rounded flex items-center justify-center transition-all duration-200 ${
                 isItemActive ? "bg-white text-green-500" : ""
               }`}
               style={{
                 backgroundColor: isItemActive ? "white" : "var(--muted)",
                 color: isItemActive ? "#22c55e" : "var(--muted-foreground)",
               }}>
-              {item.count}
+              {item?.count}
             </span>
           )}
         </div>
@@ -441,7 +439,7 @@ export default function RoleBasedSidenav({
     <>
       {/* Sidenav */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-64 p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
         style={{

@@ -19,7 +19,7 @@ export function getUserPrivileges(): {
 } {
 
    
-  	// @ts-ignore  
+    // @ts-expect-error  
 	const userString = JSON.parse(localStorage.getItem("eezy-user-info"));
   const userInfo = userString ? userString : null;
   const privileges = userInfo || [];

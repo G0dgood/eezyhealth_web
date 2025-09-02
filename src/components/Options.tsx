@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { SVGLoader } from "./SVGLoader";
+import { Star } from "lucide-react";
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -40,18 +41,11 @@ const getStatusBadge = (isActive: boolean) => {
 };
 
 // SVGLoader Fetch
-const SVGLoaderFetch = ({
-  colSpan,
-  text,
-}: {
-  colSpan: number;
-  text: string;
-}) => (
+const SVGLoaderFetch = ({ colSpan }: { colSpan: number }) => (
   <tr>
     <td colSpan={colSpan} className="h-[300px] p-0 m-auto">
       <div className="center-content flex flex-col justify-center items-center h-full">
-        <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} />
-        <p className="mt-3">{text}</p>
+        <SVGLoader width={"40px"} height={"40px"} color={"#22c55e"} />
       </div>
     </td>
   </tr>
@@ -94,6 +88,73 @@ const formatDate = (
   }
 };
 
+const topDoctorColors = [
+  "bg-[#EAF2C0]",
+  "bg-[#D2EDCD]",
+  "bg-[#E9E3EA]",
+  "bg-[#EBF2D8]",
+  "bg-[#DBE1EA]",
+  "bg-[#EBE9E7]",
+  "bg-[#D1F1D9]",
+  "bg-[#DDE4C1]",
+];
+const topDoctorMainColors = [
+  "bg-[#EDF115]",
+  "bg-[#44CE2D]",
+  "bg-[#E015F1]",
+  "bg-[#F17115]",
+  "bg-[#2715F1]",
+  "bg-[#FE0BAB]",
+  "bg-[#75EC9E]",
+  "bg-[#9C9F00]",
+];
+
+const communicationChannels = [
+  "Video Consultation",
+  "Chat Consultation",
+  "Voice Call",
+  "In-Person",
+  "Online",
+  "Face to Face",
+];
+
+// Get day name from date
+const getDayName = (date: Date) => {
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  return days[date.getDay()];
+};
+
+const renderStars = (rating: number) => {
+  if (!rating) return null;
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <Star
+        key={i}
+        className={`w-4 h-4 ${
+          i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+        }`}
+      />
+    );
+  }
+  return stars;
+};
+
+const formatTime = (timeSlot: string) => {
+  return timeSlot
+    .replace(/_/g, " ")
+    .replace(/([A-Z])/g, " $1")
+    .trim();
+};
+
 export {
   getTypeColor,
   SVGLoaderFetch,
@@ -101,4 +162,10 @@ export {
   getRoleBadge,
   getStatusBadge,
   formatDate,
+  getDayName,
+  renderStars,
+  formatTime,
+  topDoctorColors,
+  topDoctorMainColors,
+  communicationChannels,
 };

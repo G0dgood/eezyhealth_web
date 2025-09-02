@@ -1,17 +1,18 @@
-"use client";
-
-import { useState } from "react";
-import { X, UserPlus } from "lucide-react";
+import React, { useState } from "react";
+import Modal from "@/components/modals/Modal";
+import FormInput from "@/components/FormInput";
+import FormSelect from "@/components/FormSelect";
+import { toast } from "sonner";
 
 interface AddPatientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (patientData: PatientFormData) => void;
+  onSuccess: () => void;
 }
 
 interface PatientFormData {
   name: string;
-  gender: "male" | "female";
+  gender: string;
   dateOfBirth: string;
   phone: string;
   email: string;
@@ -20,227 +21,145 @@ interface PatientFormData {
 export default function AddPatientModal({
   isOpen,
   onClose,
-  onAdd,
+  onSuccess,
 }: AddPatientModalProps) {
   const [formData, setFormData] = useState<PatientFormData>({
     name: "",
-    gender: "male",
+    gender: "",
     dateOfBirth: "",
     phone: "",
     email: "",
   });
 
-  const [errors, setErrors] = useState<Partial<PatientFormData>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+  ];
 
   const handleInputChange = (field: keyof PatientFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<PatientFormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Patient name is required";
-    }
-
-    if (!formData.dateOfBirth.trim()) {
-      newErrors.dateOfBirth = "Date of birth is required";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\+?[\d\s\-\(\)]+$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
+  const handleSavePatient = async () => {
+    // Validate required fields
+    if (
+      !formData.name ||
+      !formData.gender ||
+      !formData.dateOfBirth ||
+      !formData.phone ||
+      !formData.email
+    ) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      // Here you would typically make an API call to add the patient
-      console.log("Adding new patient:", formData);
+      // Show loading toast
+      const loadingToast = toast.loading("Saving patient...");
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      onAdd(formData);
-      handleClose();
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast);
+      toast.success("Patient saved successfully");
+
+      // Reset form
+      setFormData({
+        name: "",
+        gender: "",
+        dateOfBirth: "",
+        phone: "",
+        email: "",
+      });
+
+      // Close modal and notify parent
+      onClose();
+      onSuccess();
     } catch (error) {
-      console.error("Error adding patient:", error);
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Failed to save patient. Please try again.");
     }
   };
 
   const handleClose = () => {
+    // Reset form when closing
     setFormData({
       name: "",
-      gender: "male",
+      gender: "",
       dateOfBirth: "",
       phone: "",
       email: "",
     });
-    setErrors({});
-    setIsSubmitting(false);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-[#00000020] bg-opacity-50  flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <UserPlus className="w-6 h-6 text-[#44CE2D]" />
-            <h3 className="text-lg font-semibold text-gray-900">
-              Add New Patient
-            </h3>
-          </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add New Patient"
+      size="md">
+      <div className="space-y-4">
+        <FormInput
+          label="Name"
+          placeholder="Enter patient fullname"
+          value={formData.name}
+          onChange={(value) => handleInputChange("name", value)}
+          required
+        />
+
+        <FormSelect
+          label="Gender"
+          options={genderOptions}
+          placeholder="Select Gender"
+          value={formData.gender}
+          onChange={(value) => handleInputChange("gender", value)}
+          required
+        />
+
+        <FormInput
+          label="Date of Birth"
+          type="date"
+          placeholder="dd/mm/yy"
+          value={formData.dateOfBirth}
+          onChange={(value) => handleInputChange("dateOfBirth", value)}
+          required
+        />
+
+        <FormInput
+          label="Phone Number"
+          type="tel"
+          placeholder="Enter patient number"
+          value={formData.phone}
+          onChange={(value) => handleInputChange("phone", value)}
+          required
+        />
+
+        <FormInput
+          label="Email Address"
+          type="email"
+          placeholder="Enter patient email"
+          value={formData.email}
+          onChange={(value) => handleInputChange("email", value)}
+          required
+        />
+
+        <div className="flex justify-end space-x-3 pt-4">
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="w-5 h-5" />
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button
+            onClick={handleSavePatient}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
+            Save
           </button>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent ${
-                errors.name ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter patient fullname"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Gender *
-            </label>
-            <select
-              value={formData.gender}
-              onChange={(e) =>
-                handleInputChange("gender", e.target.value as "male" | "female")
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent">
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date of Birth *
-            </label>
-            <input
-              type="date"
-              value={formData.dateOfBirth}
-              onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent ${
-                errors.dateOfBirth ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="dd/mm/yy"
-            />
-            {errors.dateOfBirth && (
-              <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => handleInputChange("phone", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent ${
-                errors.phone ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter patient number"
-            />
-            {errors.phone && (
-              <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter patient email"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center space-x-2">
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  <span>Add Patient</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </Modal>
   );
 }

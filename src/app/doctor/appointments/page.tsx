@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import {
-  Plus,
-  MoreVertical,
-  Video,
-  MessageCircle,
-  Phone,
-  Calendar,
-  Clock,
-  X,
-} from "lucide-react";
+import { Plus, MoreVertical, Video, MessageCircle, Phone } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -20,6 +10,13 @@ import {
   AppointmentStatus,
   AppointmentChannel,
 } from "@/types";
+import {
+  AddAppointmentModal,
+  AppointmentDetailModal,
+  ConsultationNoteModal,
+  RescheduleModal,
+  CancelAppointmentModal,
+} from "@/components/modals";
 
 export default function DoctorAppointmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,6 +55,27 @@ export default function DoctorAppointmentsPage() {
     isCancelModalOpen,
     isConsultationNoteModalOpen,
   ]);
+
+  // Handler functions for modals
+  const handleAddAppointment = (appointmentData: {
+    patientName: string;
+    date: string;
+    time: string;
+    reason: string;
+  }) => {
+    console.log("Adding appointment:", appointmentData);
+    // TODO: Implement appointment creation
+  };
+
+  const handleConsultationNote = (note: string) => {
+    console.log("Adding consultation note:", note);
+    // TODO: Implement consultation note addition
+  };
+
+  const handleCancelAppointment = (reason: string) => {
+    console.log("Canceling appointment:", reason);
+    // TODO: Implement appointment cancellation
+  };
 
   // Sample appointment data
   const appointments: DoctorAppointment[] = [
@@ -235,8 +253,7 @@ export default function DoctorAppointmentsPage() {
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status]}`}
-      >
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status]}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -276,6 +293,14 @@ export default function DoctorAppointmentsPage() {
     setSelectedAppointment(appointment);
     setIsRescheduleModalOpen(true);
     setActionMenuOpen(null);
+  };
+
+  const handleRescheduleSubmit = (rescheduleData: {
+    date: string;
+    time: string;
+  }) => {
+    console.log("Rescheduling appointment:", rescheduleData);
+    // TODO: Implement appointment rescheduling
   };
 
   const handleCancel = (appointment: DoctorAppointment) => {
@@ -319,8 +344,7 @@ export default function DoctorAppointmentsPage() {
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2"
-        >
+          className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Add Appointment
         </button>
@@ -379,8 +403,7 @@ export default function DoctorAppointmentsPage() {
                   <td className="px-6 py-4 whitespace-nowrap relative">
                     <button
                       onClick={() => handleActionMenuToggle(appointment.id)}
-                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                    >
+                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
                       <MoreVertical className="w-4 h-4" />
                     </button>
 
@@ -389,31 +412,27 @@ export default function DoctorAppointmentsPage() {
                         <div className="py-1">
                           <button
                             onClick={() => handleViewDetails(appointment)}
-                            className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                          >
+                            className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
                             View Details
                           </button>
                           {appointment.status === "completed" && (
                             <button
                               onClick={() => handleViewNote(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                            >
+                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
                               View Note
                             </button>
                           )}
                           {appointment.status === "pending" && (
                             <button
                               onClick={() => handleReschedule(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                            >
+                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
                               Reschedule Appointment
                             </button>
                           )}
                           {appointment.status === "pending" && (
                             <button
                               onClick={() => handleCancel(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                            >
+                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
                               Cancel Appointment
                             </button>
                           )}
@@ -434,8 +453,7 @@ export default function DoctorAppointmentsPage() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
+                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                 Previous
               </button>
               <button
@@ -443,8 +461,7 @@ export default function DoctorAppointmentsPage() {
                   setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                 Next
               </button>
             </div>
@@ -459,8 +476,7 @@ export default function DoctorAppointmentsPage() {
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                     Previous
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -472,8 +488,7 @@ export default function DoctorAppointmentsPage() {
                           currentPage === page
                             ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
                             : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-                        }`}
-                      >
+                        }`}>
                         {page}
                       </button>
                     )
@@ -483,8 +498,7 @@ export default function DoctorAppointmentsPage() {
                       setCurrentPage(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                     Next
                   </button>
                 </nav>
@@ -495,304 +509,51 @@ export default function DoctorAppointmentsPage() {
       </div>
 
       {/* Add Appointment Modal */}
-      {isAddModalOpen &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Add Appointment
-                </h3>
-                <button
-                  onClick={closeAllModals}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search Patient Name
-                  </label>
-                  <SearchInput
-                    value=""
-                    onChange={() => {}}
-                    placeholder="Search patient name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="dd/mm/yy"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-                    />
-                    <Calendar className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Time
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Select Time"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-                    />
-                    <Clock className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason for consultation
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Enter reason for consultation"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-                  />
-                </div>
-                <button className="w-full px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
-                  Schedule Appointment
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <AddAppointmentModal
+        isOpen={isAddModalOpen}
+        onClose={closeAllModals}
+        onSubmit={handleAddAppointment}
+      />
 
       {/* Appointment Detail Modal */}
-      {isDetailModalOpen &&
-        selectedAppointment &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Appointment Detail
-                </h3>
-                <button
-                  onClick={closeAllModals}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Patient Name:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.patientName}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Age:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.patientAge}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Temperature:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.temperature}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Weight:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.weight}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Blood Pressure:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.bloodPressure}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Heart Rate:{" "}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedAppointment.heartRate}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Reason for Consultation:{" "}
-                  </span>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {selectedAppointment.reason}
-                  </p>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={closeAllModals}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button className="flex-1 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
-                    Start Consultation
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <AppointmentDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={closeAllModals}
+        appointment={selectedAppointment}
+      />
 
       {/* Consultation Note Modal */}
-      {isConsultationNoteModalOpen &&
-        selectedAppointment &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Consultation Note
-                </h3>
-                <button
-                  onClick={closeAllModals}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-gray-900">
-                  {selectedAppointment.consultationNote}
-                </p>
-                <button
-                  onClick={closeAllModals}
-                  className="w-full mt-4 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <ConsultationNoteModal
+        isOpen={isConsultationNoteModalOpen}
+        onClose={closeAllModals}
+        onSubmit={handleConsultationNote}
+        initialNote={selectedAppointment?.consultationNote || ""}
+      />
 
       {/* Reschedule Modal */}
-      {isRescheduleModalOpen &&
-        selectedAppointment &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Reschedule
-                </h3>
-                <button
-                  onClick={closeAllModals}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="text-center">
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">
-                    December, 2024
-                  </h4>
-                  <div className="grid grid-cols-7 gap-1 text-sm">
-                    {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
-                      <div key={day} className="p-2 text-gray-500 font-medium">
-                        {day}
-                      </div>
-                    ))}
-                    {Array.from({ length: 35 }, (_, i) => i + 1).map((date) => (
-                      <button
-                        key={date}
-                        className={`p-2 rounded-full hover:bg-gray-100 ${
-                          date === 6
-                            ? "bg-[#44CE2D] text-white"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {date}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Time
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Select Time"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-                    />
-                    <Clock className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2" />
-                  </div>
-                </div>
-                <button className="w-full px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
-                  Confirm Reschedule
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <RescheduleModal
+        isOpen={isRescheduleModalOpen}
+        onClose={closeAllModals}
+        onSubmit={handleRescheduleSubmit}
+        currentDate={selectedAppointment?.date || ""}
+        currentTime={selectedAppointment?.time || ""}
+      />
 
       {/* Cancel Appointment Modal */}
-      {isCancelModalOpen &&
-        selectedAppointment &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Cancel Appointment
-                </h3>
-                <button
-                  onClick={closeAllModals}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <p className="text-sm text-gray-900">
-                  Are you sure you want to cancel this appointment?
-                </p>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Please provide a reason for cancellation
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Enter reason for cancellation"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-                  />
-                </div>
-                <button className="w-full px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
-                  Cancel Appointment
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <CancelAppointmentModal
+        isOpen={isCancelModalOpen}
+        onClose={closeAllModals}
+        onConfirm={handleCancelAppointment}
+        appointmentDetails={
+          selectedAppointment
+            ? {
+                patientName: selectedAppointment.patientName,
+                date: selectedAppointment.date,
+                time: selectedAppointment.time,
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }

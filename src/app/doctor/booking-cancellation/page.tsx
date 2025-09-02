@@ -140,8 +140,8 @@ export default function DoctorBookingCancellationPage() {
         />
       </div>
 
-      <div className="flex justify-between items-center mb-6">
         <Title title="Cancelled Appointments" />
+      <div className="flex-1 mb-6">
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
@@ -150,7 +150,7 @@ export default function DoctorBookingCancellationPage() {
       </div>
 
       {/* Appointments Table */}
-      <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[var(--border)]">
             <thead className="bg-[var(--muted)]">

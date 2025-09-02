@@ -187,7 +187,7 @@ export default function DoctorMessagePage() {
     <div className="h-full flex">
       {/* Central Column - Messages/Chat List */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 h-[80px] border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
         </div>
 
@@ -247,7 +247,7 @@ export default function DoctorMessagePage() {
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+            <div className="p-4 border-b border-gray-200 flex items-center gap-3 h-[80px] ">
               <div className="relative">
                 <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-lg">
                   {activeConversation.profilePicture}

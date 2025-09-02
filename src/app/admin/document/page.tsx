@@ -335,7 +335,7 @@ export default function DocumentPage() {
 
       {/* Table */}
       <div
-        className="rounded-lg shadow-lg border overflow-hidden"
+        className="rounded-lg  border overflow-hidden"
         style={{
           backgroundColor: "var(--card)",
           borderColor: "var(--border)",

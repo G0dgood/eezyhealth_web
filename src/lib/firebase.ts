@@ -54,8 +54,7 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 export const signOutUser = async () => {
   try {
     await signOut(auth);
-  } catch (error) {
-    console.error('Error signing out:', error);
+  } catch (error) { 
     throw error;
   }
 };
@@ -95,27 +94,18 @@ export const fetchAllUsers = async () => {
     console.log('Snapshot received:', snapshot.exists() ? 'Data exists' : 'No data');
     
     if (snapshot.exists()) {
-      const usersData = snapshot.val();
-      console.log('Raw users data:', usersData);
+      const usersData = snapshot.val(); 
       
       // Convert object to array and add uid as property
       const usersArray = Object.keys(usersData).map(uid => ({
         uid,
         ...usersData[uid]
-      }));
-      
-      console.log('Processed users array:', usersArray);
+      })); 
       return usersArray;
-    } else {
-      console.log('No users found in database');
+    } else { 
       return [];
     }
-  } catch (error) {
-    console.error('Error fetching users from Realtime Database:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    });
+  } catch (error) {  
     throw error;
   }
 };

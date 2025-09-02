@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useGetFirebasePatientsQuery } from "@/store/api";
 import { toast } from "sonner";
 import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import Title from "@/components/Title";
 
 interface Patient {
   display_name: string;
@@ -113,9 +114,7 @@ export default function AdminPatientsPage() {
             className="text-gray-600 hover:text-gray-800 cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Patient Management
-          </h1>
+          <Title title="Patient Management" />
         </div>
 
         <div className="flex items-center justify-between">
@@ -184,12 +183,12 @@ export default function AdminPatientsPage() {
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {isLoading ? (
-                <SVGLoaderFetch colSpan={8} text="Loading patients..." />
+                <SVGLoaderFetch colSpan={8} />
               ) : error ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="text-[var(--muted-foreground)]">
-                      <p className="text-lg font-medium text-[var(--foreground)] text-red-600">
+                      <p className="text-lg font-medium text-[var(--foreground)]">
                         Failed to load patients
                       </p>
                       <button

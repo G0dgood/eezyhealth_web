@@ -151,3 +151,209 @@ export type PaymentMethod = 'Credit Card' | 'Bank Transfer' | 'Cash' | 'Mobile M
 
 // User role types
 export type UserRole = 'admin' | 'doctor' | 'nurse' | 'patient';
+
+// Define the Firebase data structure for booking cancellations
+export interface FirebaseBookingCancellation {
+  id: string;
+  bookingChannel?: string;
+  bookingDate?: string; // ISO date string from Firebase
+  bookingId?: string;
+  bookingStatus?: string;
+  comments?: unknown[];
+  doctorId?: string;
+  doctorName?: string;
+  doctorPhotoUrl?: string;
+  hospital?: string;
+  patientAddress?: string;
+  patientName?: string;
+  paymentStatus?: string;
+  photo_url?: string;
+  slot?: string;
+  specialization?: string;
+  userId?: string;
+  cancellationRequest?: {
+    status?: string;
+    reason?: string;
+    requestedAt?: string; // ISO date string from Firebase
+    adminResponse?: string;
+    respondedAt?: string; // ISO date string from Firebase
+    respondedBy?: string;
+  };
+}
+
+export interface AppointmentData {
+  patientName: string;
+  date: string;
+  time: string;
+  reason: string;
+}
+
+// ===== ERROR HANDLING TYPES =====
+
+// Base error interface
+export interface AppError {
+  message: string;
+  code?: string;
+  status?: number | string;
+  details?: unknown;
+}
+
+// API error types
+export interface ApiError extends AppError {
+  status: number;
+  endpoint?: string;
+  method?: string;
+  timestamp?: string;
+}
+
+// Firebase error types
+export interface FirebaseError extends AppError {
+  code: string;
+  path?: string;
+  operation?: string;
+}
+
+// Network error types
+export interface NetworkError extends AppError {
+  isNetworkError: boolean;
+  retryable: boolean;
+}
+
+// Validation error types
+export interface ValidationError extends AppError {
+  field: string;
+  value: unknown;
+  rule: string;
+}
+
+// Generic error handler function type
+export type ErrorHandler = (error: unknown) => void;
+
+// Error with context
+export interface ErrorWithContext extends AppError {
+  context: {
+    component?: string;
+    action?: string;
+    userId?: string;
+    timestamp: string;
+  };
+}
+
+// RTK Query error types
+export interface RTKQueryError extends AppError {
+  status: number | string; // Override the base status to allow both number and string
+  data?: unknown;
+  originalStatus?: number;
+}
+
+// ===== ERROR UTILITY TYPES =====
+
+// Type guard for checking if value is an error
+export function isError(value: unknown): value is AppError {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    typeof (value as AppError).message === 'string'
+  );
+}
+
+// Type guard for checking if value is an API error
+export function isApiError(value: unknown): value is ApiError {
+  return isError(value) && 'status' in value && typeof (value as ApiError).status === 'number';
+}
+
+// Type guard for checking if value is a Firebase error
+export function isFirebaseError(value: unknown): value is FirebaseError {
+  return isError(value) && 'code' in value && typeof (value as FirebaseError).code === 'string';
+}
+
+// Type guard for checking if value is a network error
+export function isNetworkError(value: unknown): value is NetworkError {
+  return isError(value) && 'isNetworkError' in value && (value as NetworkError).isNetworkError === true;
+}
+
+// Type guard for checking if value is a validation error
+export function isValidationError(value: unknown): value is ValidationError {
+  return isError(value) && 'field' in value && typeof (value as ValidationError).field === 'string';
+}
+
+// Type guard for checking if value is an RTK Query error
+export function isRTKQueryError(value: unknown): value is RTKQueryError {
+  return isError(value) && 'status' in value;
+}
+
+// ===== ERROR MESSAGE EXTRACTORS =====
+
+// Extract error message from any error type
+export function getErrorMessage(error: unknown): string {
+  if (isError(error)) {
+    return error.message;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  if (typeof error === 'object' && error !== null) {
+    // Try to extract message from common error objects
+    const errorObj = error as Record<string, unknown>;
+    
+    if ('message' in errorObj && typeof errorObj.message === 'string') {
+      return errorObj.message;
+    }
+    
+    if ('error' in errorObj && typeof errorObj.error === 'string') {
+      return errorObj.error;
+    }
+    
+    if ('msg' in errorObj && typeof errorObj.msg === 'string') {
+      return errorObj.msg;
+    }
+  }
+  
+  return 'An unexpected error occurred';
+}
+
+// Extract error code from any error type
+export function getErrorCode(error: unknown): string | undefined {
+  if (isError(error) && error.code) {
+    return error.code;
+  }
+  
+  if (error instanceof Error && 'code' in error) {
+    const errorWithCode = error as Error & { code: unknown };
+    return typeof errorWithCode.code === 'string' ? errorWithCode.code : String(errorWithCode.code);
+  }
+  
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const errorObj = error as Record<string, unknown>;
+    return String(errorObj.code);
+  }
+  
+  return undefined;
+}
+
+// Extract error status from any error type
+export function getErrorStatus(error: unknown): number | undefined {
+  if (isApiError(error)) {
+    return error.status;
+  }
+  
+  if (error instanceof Error && 'status' in error) {
+    const errorWithStatus = error as Error & { status: unknown };
+    return typeof errorWithStatus.status === 'number' ? errorWithStatus.status : undefined;
+  }
+  
+  if (typeof error === 'object' && error !== null && 'status' in error) {
+    const errorObj = error as Record<string, unknown>;
+    const status = errorObj.status;
+    return typeof status === 'number' ? status : undefined;
+  }
+  
+  return undefined;
+}

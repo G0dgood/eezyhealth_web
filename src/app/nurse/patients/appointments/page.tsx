@@ -5,6 +5,7 @@ import { ArrowLeft, Activity } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/modals/Modal";
 import Breadcrumb from "@/components/Breadcrumb";
+import AppointmentTabs from "@/components/Tabs/AppointmentTabs";
 import Link from "next/link";
 
 export default function NursePatientAppointmentsPage() {
@@ -96,7 +97,7 @@ export default function NursePatientAppointmentsPage() {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: "Nurse", href: "/nurse" },
+          { label: "Nurse Dashboard", href: "/nurse" },
           { label: "Patients", href: "/nurse/patients" },
           { label: "Appointments" },
         ]}
@@ -114,26 +115,10 @@ export default function NursePatientAppointmentsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          <button
-            onClick={() => setActiveTab("incoming")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-              activeTab === "incoming"
-                ? "bg-green-500 text-white"
-                : "text-gray-600 hover:text-gray-800"
-            }`}>
-            Incoming Appointment
-          </button>
-          <button
-            onClick={() => setActiveTab("past")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-              activeTab === "past"
-                ? "bg-green-500 text-white"
-                : "text-gray-600 hover:text-gray-800"
-            }`}>
-            Past Appointment
-          </button>
-        </div>
+        <AppointmentTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       </div>
 
       {/* Appointments Table */}

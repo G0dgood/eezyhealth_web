@@ -1,53 +1,317 @@
-.table-container{
- overflow: auto !important;  
+/* Global Table Styles for eezyhealth */
+.table-container {
+  overflow: auto !important;
 }
- 
+
 .table {
-  width: 100%;  
+  width: 100%;
   background-color: var(--card) !important;
 }
 
-
+/* Base table styles */
 table {
   width: 100%;
   border-collapse: collapse !important;
-  background: var(--card) !important; 
-  overflow-x: auto !important; 
-  /* border: 1px solid #ddd !important;  */
+  background: var(--card) !important;
+  overflow-x: auto !important;
   transition: background-color 0.3s ease, border-color 0.3s ease !important;
 }
- 
-.table > thead > tr > th { 
-  text-align: left !important;
-}
+
+/* Table header styles */
 .table > thead > tr > th,
-.table > tbody > tr > td {
+table thead tr th {
+  text-align: left !important;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  background: rgba(68, 206, 45, 0.05) !important; /* Custom green with 5% opacity */
   border-bottom: 1px solid var(--border) !important;
 }
 
-.table > tbody > tr:last-child > td {
+/* Table body styles */
+.table > tbody > tr > td,
+table tbody tr td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--card);
+  transition: background-color 0.2s ease;
+}
+
+/* Ensure table cells inherit hover background from parent row */
+.table > tbody > tr:hover > td,
+table tbody tr:hover td {
+  background-color: rgba(68, 206, 45, 0.06) !important;
+}
+
+/* Remove border from last row */
+.table > tbody > tr:last-child > td,
+table tbody tr:last-child td {
   border-bottom: none !important;
 }
 
-.table > thead > tr > th,
-.table > tbody > tr > td {
-  padding: 0.60rem;
-  background: var(--card);
+/* Global Table Row Hover Effects */
+.table > tbody > tr:hover,
+table tbody tr:hover,
+.table-row-hover:hover,
+tr:hover {  
+  background-color: rgba(68, 206, 45, 0.06) !important;   
+  transition: all 0.2s ease;
 }
 
-.table > thead > tr > th {
+/* Enhanced hover effects for table rows */
+.table-row-hover,
+tr {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}   
+
+.table-row-hover:hover,
+tr:hover {
+  background-color: rgba(68, 206, 45, 0.1) !important; 
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+
+.table-row-hover:hover td,
+tr:hover td {
+  border-color: rgba(68, 206, 45, 0.2);
+  background-color: rgba(68, 206, 45, 0.12) !important;
+}
+
+/* Subtle left border accent on hover */
+.table-row-hover td:first-child,
+tr td:first-child {
+  border-left: 3px solid transparent;
+}
+
+.table-row-hover:hover td:first-child,
+tr:hover td:first-child {
+  border-left: 3px solid #44CE2D;
+}
+
+/* Global table hover for any table element */
+tbody tr:hover {
+  background-color: rgba(68, 206, 45, 0.08) !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Enhanced global table row hover */
+tbody tr {
+  transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: rgba(68, 206, 45, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+tbody tr:hover td {
+  background-color: rgba(68, 206, 45, 0.06) !important;
+}
+
+/* Table header specific styles */
+.table > thead > tr > th,
+table thead tr th {
   font-weight: 600;
   color: var(--muted-foreground);
-  background: var(--muted);
 }
- 
- 
-#table-loader { 
-  color: var(--muted-foreground) !important; 
-  padding-top: 5rem  ;
-  padding-bottom: 5rem ;   
+
+/* Custom green color scheme for status badges */
+.status-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
 }
+
+.status-badge.active {
+  background-color: rgba(68, 206, 45, 0.1);
+  color: #44CE2D;
+}
+
+.status-badge.inactive {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: rgb(107, 114, 128);
+}
+
+.status-badge.pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgb(245, 158, 11);
+}
+
+/* Custom green avatar styles */
+.avatar-green {
+  background-color: rgba(68, 206, 45, 0.1);
+  color: #44CE2D;
+}
+
+/* Custom green button styles */
+.btn-primary-green {
+  background-color: #44CE2D;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary-green:hover {
+  background-color: rgba(68, 206, 45, 0.9);
+}
+
+/* Custom green link styles */
+.link-green {
+  color: #44CE2D;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.link-green:hover {
+  color: rgba(68, 206, 45, 0.8);
+  transform: translateY(-1px);
+}
+
+.link-green:hover::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #44CE2D;
+  transform: scaleX(1);
+  transition: transform 0.2s ease;
+}
+
+/* Enhanced status badge hover effects */
+.status-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom green focus ring */
+.focus-ring-green:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #44CE2D;
+  ring-offset: 2px;
+}
+
+/* Enhanced search input hover effects */
+.search-input {
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+}
+
+.search-input:hover {
+  border-color: rgba(68, 206, 45, 0.3);
+  box-shadow: 0 2px 8px rgba(68, 206, 45, 0.1);
+}
+
+.search-input:focus {
+  border-color: #44CE2D;
+  box-shadow: 0 0 0 3px rgba(68, 206, 45, 0.1);
+}
+
+/* Pagination button hover effects */
+.pagination-btn {
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: rgba(68, 206, 45, 0.3);
+  background-color: rgba(68, 206, 45, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(68, 206, 45, 0.1);
+}
+
+.pagination-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(68, 206, 45, 0.1);
+}
+
+/* Table loader styles */
+#table-loader {
+  color: var(--muted-foreground) !important;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
 #table-loader p {
   color: var(--muted-foreground) !important;
+}
+
+/* Responsive table styles */
+@media (max-width: 768px) {
+  .table > thead > tr > th,
+  .table > tbody > tr > td,
+  table thead tr th,
+  table tbody tr td {
+    padding: 0.5rem 1rem;
+  }
+  
+  .table > thead > tr > th,
+  table thead tr th {
+    font-size: 0.7rem;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .table > thead > tr > th,
+[data-theme="dark"] table thead tr th {
+  background: rgba(68, 206, 45, 0.1) !important;
+}
+
+[data-theme="dark"] .table > tbody > tr:hover,
+[data-theme="dark"] table tbody tr:hover {
+  background-color: rgba(68, 206, 45, 0.1) !important;
+}
+
+/* Utility Classes for Easy Table Hover Implementation */
+.table-hover-global {
+  /* This class can be added to any table for instant hover effects */
+}
+
+.table-hover-global tbody tr {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.table-hover-global tbody tr:hover {
+  background-color: rgba(68, 206, 45, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.table-hover-global tbody tr td:first-child {
+  border-left: 3px solid transparent;
+}
+
+.table-hover-global tbody tr:hover td:first-child {
+  border-left: 3px solid #44CE2D;
+}
+
+/* Enhanced hover for data tables */
+.data-table-hover tbody tr td:first-child {
+  border-left: 3px solid transparent;
+}
+
+.data-table-hover tbody tr:hover {
+  background-color: rgba(68, 206, 45, 0.08) !important;
+  border-left: 3px solid #44CE2D;
+  transform: translateY(-2px);
 }
  
