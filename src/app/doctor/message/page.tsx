@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Send, MoreVertical, FileText } from "lucide-react";
-import Breadcrumb from "@/components/Breadcrumb";
-import Title from "@/components/Title";
+import { useAuth } from "@/contexts/AuthContext";
+import { showError } from "@/utils/toast";
+import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
+import moment from "moment";
 
 interface Message {
   id: string;
@@ -26,11 +28,82 @@ interface Conversation {
   profilePicture: string;
 }
 
+interface BookingData {
+  userId: string;
+  patientName?: string;
+  first_name?: string;
+  photo_url?: string;
+  timestamp?: string;
+  lastMessage?: string;
+  isOnline?: boolean;
+  date?: string;
+  [key: string]: unknown;
+}
+
 export default function DoctorMessagePage() {
+  const { user } = useAuth();
+  const doctorId =
+    user && typeof user === "object" && "uid" in user ? user.uid : null;
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedConversation, setSelectedConversation] =
-    useState<string>("conv-1");
+  const [selectedConversation, setSelectedConversation] = useState<string>("");
   const [messageInput, setMessageInput] = useState("");
+  // Fetch bookings using RTK Query
+  const { data: bookingsData, error } = useBookingsByDoctorId(doctorId);
+
+  // Show error toast when there's an error
+  useEffect(() => {
+    if (error) {
+      showError("Booking Error", "Failed to load bookings. Please try again.");
+    }
+  }, [error]);
+
+  // Function to categorize chats based on the date
+  const getChatTimeCategory = (date: moment.MomentInput) => {
+    const today = moment();
+    const chatDate = moment(date, "YYYY-MM-DD");
+
+    if (chatDate.isSame(today, "day")) return "Today";
+    if (chatDate.isSame(today.clone().subtract(1, "days"), "day"))
+      return "Yesterday";
+    if (chatDate.isBetween(today.clone().startOf("week"), today, null, "[]"))
+      return "This Week";
+    if (
+      chatDate.isBetween(
+        today.clone().startOf("week").subtract(1, "week"),
+        today.clone().startOf("week").subtract(1, "days"),
+        null,
+        "[]"
+      )
+    )
+      return "Last Week";
+    return "Older";
+  };
+
+  // Function to group chats by time frame
+  const groupChatsByCategory = (bookings: BookingData[]) => {
+    return bookings?.reduce(
+      (groups: Record<string, BookingData[]>, chat: BookingData) => {
+        const category = getChatTimeCategory(chat.date || "");
+        if (!groups[category]) groups[category] = [];
+        groups[category].push(chat);
+        return groups;
+      },
+      {} as Record<string, BookingData[]>
+    );
+  };
+  // Get unique patients based on userId, ensuring no duplicates
+  const uniquePatients: BookingData[] = bookingsData
+    ? [
+        ...new Map(
+          bookingsData
+            .filter((item: BookingData) => item?.userId)
+            .map((item: BookingData) => [item.userId, item])
+        ).values(),
+      ]
+    : [];
+  const chatGroups = groupChatsByCategory(uniquePatients);
+
+  // console.log("chatGroups-----", chatGroups);
 
   // Sample conversation data
   const conversations: Conversation[] = [
@@ -207,33 +280,41 @@ export default function DoctorMessagePage() {
 
         {/* Conversation List */}
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((conversation) => (
+          {uniquePatients?.map((patient: BookingData, i: number) => (
             <div
-              key={conversation.id}
-              onClick={() => setSelectedConversation(conversation.id)}
+              key={`patient-${patient.userId}-${i}`}
+              onClick={() => setSelectedConversation(`patient-${i}`)}
               className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                conversation.isActive ? "bg-blue-50" : ""
+                selectedConversation === `patient-${i}` ? "bg-blue-50" : ""
               }`}>
               <div className="flex items-start gap-3">
                 <div className="relative">
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg">
-                    {conversation.profilePicture}
+                    <img
+                      src={patient.photo_url || "/default-avatar.png"}
+                      alt={patient.patientName}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
                   </div>
-                  {conversation.isOnline && (
+                  {patient.isOnline && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#44CE2D] rounded-full border-2 border-white"></div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {conversation.patientName}
+                      {patient.patientName ||
+                        patient.first_name ||
+                        "Unknown Patient"}
                     </h3>
                     <span className="text-xs text-gray-500">
-                      {conversation.timestamp}
+                      {patient.timestamp || "Recently"}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 truncate mt-1">
-                    {conversation.lastMessage}
+                    {patient.lastMessage || "No messages yet"}
                   </p>
                 </div>
               </div>

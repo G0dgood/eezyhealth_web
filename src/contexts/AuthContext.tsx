@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "firebase/auth";
 import {
-  auth,
   onAuthStateChange,
   signInWithGoogle,
   signOutUser,
@@ -17,14 +16,14 @@ interface UserInfo {
   role: "ADMIN" | "DOCTOR" | "NURSE";
   phone_number?: string;
   address?: string;
-  date_of_birth?: any; // Firestore timestamp
+  date_of_birth?: string | { seconds: number; nanoseconds: number }; // Firestore timestamp
   first_name?: string;
   last_name?: string;
   location?: string;
   isActive?: boolean;
   password?: string;
   confirmPassword?: string;
-  createdTime?: any; // Firestore timestamp
+  createdTime?: string | { seconds: number; nanoseconds: number }; // Firestore timestamp
   // Legacy fields for backward compatibility
   displayName?: string;
   photoURL?: string;

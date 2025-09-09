@@ -62,7 +62,7 @@ export default function NurseAppointmentsPage() {
     {
       key: "status",
       label: "STATUS",
-      render: (value: string) => (
+      render: (value: string | number) => (
         <span
           className={`px-2 py-1 text-xs rounded-full ${
             value === "Confirmed"
@@ -127,7 +127,7 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Today's Appointments</p>
+              <p className="text-sm text-gray-600">Today&apos;s Appointments</p>
               <p className="text-2xl font-bold text-blue-600">5</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">

@@ -57,7 +57,16 @@ export default function NurseReportsPage() {
     {
       key: "status",
       label: "STATUS",
-      render: (value: string) => (
+      render: (
+        value: string | number,
+        row: {
+          reportName: string;
+          type: string;
+          date: string;
+          status: string;
+          size: string;
+        }
+      ) => (
         <span
           className={`px-2 py-1 text-xs rounded-full ${
             value === "Generated"
@@ -72,7 +81,16 @@ export default function NurseReportsPage() {
     {
       key: "action",
       label: "ACTION",
-      render: (value: string, row: unknown) => (
+      render: (
+        value: string | number,
+        row: {
+          reportName: string;
+          type: string;
+          date: string;
+          status: string;
+          size: string;
+        }
+      ) => (
         <button className="text-green-600 hover:text-green-700 font-medium flex items-center space-x-1">
           <Download className="w-4 h-4" />
           <span>Download</span>

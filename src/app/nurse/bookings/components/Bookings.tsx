@@ -16,6 +16,8 @@ import {
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
+import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
+import { monthNames, timeSlots } from "@/components/Options";
 
 interface Booking {
   id: string;
@@ -45,6 +47,7 @@ export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Sample booking data
   const [weekBookings, setWeekBookings] = useState<DayBooking[]>([
@@ -219,56 +222,56 @@ export default function Bookings() {
     },
   ]);
 
-  const timeSlots = [
-    "12:00 AM",
-    "12:30 AM",
-    "01:00 AM",
-    "01:30 AM",
-    "02:00 AM",
-    "02:30 AM",
-    "03:00 AM",
-    "03:30 AM",
-    "04:00 AM",
-    "04:30 AM",
-    "05:00 AM",
-    "05:30 AM",
-    "06:00 AM",
-    "06:30 AM",
-    "07:00 AM",
-    "07:30 AM",
-    "08:00 AM",
-    "08:30 AM",
-    "09:00 AM",
-    "09:30 AM",
-    "10:00 AM",
-    "10:30 AM",
-    "11:00 AM",
-    "11:30 AM",
-    "12:00 PM",
-    "12:30 PM",
-    "01:00 PM",
-    "01:30 PM",
-    "02:00 PM",
-    "02:30 PM",
-    "03:00 PM",
-    "03:30 PM",
-    "04:00 PM",
-    "04:30 PM",
-    "05:00 PM",
-    "05:30 PM",
-    "06:00 PM",
-    "06:30 PM",
-    "07:00 PM",
-    "07:30 PM",
-    "08:00 PM",
-    "08:30 PM",
-    "09:00 PM",
-    "09:30 PM",
-    "10:00 PM",
-    "10:30 PM",
-    "11:00 PM",
-    "11:30 PM",
-  ];
+  // const timeSlots = [
+  //   "12:00 AM",
+  //   "12:30 AM",
+  //   "01:00 AM",
+  //   "01:30 AM",
+  //   "02:00 AM",
+  //   "02:30 AM",
+  //   "03:00 AM",
+  //   "03:30 AM",
+  //   "04:00 AM",
+  //   "04:30 AM",
+  //   "05:00 AM",
+  //   "05:30 AM",
+  //   "06:00 AM",
+  //   "06:30 AM",
+  //   "07:00 AM",
+  //   "07:30 AM",
+  //   "08:00 AM",
+  //   "08:30 AM",
+  //   "09:00 AM",
+  //   "09:30 AM",
+  //   "10:00 AM",
+  //   "10:30 AM",
+  //   "11:00 AM",
+  //   "11:30 AM",
+  //   "12:00 PM",
+  //   "12:30 PM",
+  //   "01:00 PM",
+  //   "01:30 PM",
+  //   "02:00 PM",
+  //   "02:30 PM",
+  //   "03:00 PM",
+  //   "03:30 PM",
+  //   "04:00 PM",
+  //   "04:30 PM",
+  //   "05:00 PM",
+  //   "05:30 PM",
+  //   "06:00 PM",
+  //   "06:30 PM",
+  //   "07:00 PM",
+  //   "07:30 PM",
+  //   "08:00 PM",
+  //   "08:30 PM",
+  //   "09:00 PM",
+  //   "09:30 PM",
+  //   "10:00 PM",
+  //   "10:30 PM",
+  //   "11:00 PM",
+  //   "11:30 PM",
+  // ];
 
   const navigateWeek = (direction: "prev" | "next") => {
     const newWeekStart = new Date(currentWeekStart);
@@ -282,20 +285,20 @@ export default function Bookings() {
     setCurrentWeekStart(newWeekStart);
 
     // Update the month display
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
+    // const monthNames = [
+    //   "January",
+    //   "February",
+    //   "March",
+    //   "April",
+    //   "May",
+    //   "June",
+    //   "July",
+    //   "August",
+    //   "September",
+    //   "October",
+    //   "November",
+    //   "December",
+    // ];
     const month = monthNames[newWeekStart.getMonth()];
     const year = newWeekStart.getFullYear();
     setCurrentMonth(`${month}, ${year}`);
@@ -380,6 +383,15 @@ export default function Bookings() {
     setSelectedBooking(null);
   };
 
+  // Simulate loading for demonstration
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show skeleton for 2 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Prevent body scroll when modal is open
   useEffect(() => {
     if (isDetailModalOpen) {
@@ -401,18 +413,23 @@ export default function Bookings() {
     return day.bookings.find((booking) => booking.time === time);
   };
 
-  const getNextTime = (currentTime: string) => {
-    const timeIndex = timeSlots.indexOf(currentTime);
+  const getNextTime = (currentTimeSlot: {
+    key: string;
+    from: string;
+    to: string;
+  }) => {
+    const timeIndex = timeSlots.findIndex(
+      (slot) => slot.key === currentTimeSlot.key
+    );
     if (timeIndex === -1 || timeIndex === timeSlots.length - 1) {
-      return currentTime;
+      return currentTimeSlot.to;
     }
-    return timeSlots[timeIndex + 1];
+    return timeSlots[timeIndex + 1].from;
   };
 
   return (
     <div>
       {/* Search and Navigation */}
-
       <div className="flex-1 max-w-md mb-6">
         <SearchInput
           value={searchTerm}
@@ -421,134 +438,145 @@ export default function Bookings() {
         />
       </div>
 
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div className="mb-6">
+          <CalendarSkeleton />
+        </div>
+      )}
+
       {/* Calendar Grid */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* Calendar Header */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900">
-              {currentMonth}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {currentWeekStart.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}{" "}
-              -{" "}
-              {new Date(
-                currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000
-              ).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                const today = new Date();
-                const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - today.getDay());
-                setCurrentWeekStart(startOfWeek);
-                generateWeekBookings(startOfWeek);
-                const monthNames = [
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ];
-                const month = monthNames[today.getMonth()];
-                const year = today.getFullYear();
-                setCurrentMonth(`${month}, ${year}`);
-              }}
-              className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
-              Today
-            </button>
-            <div className="flex gap-3">
+      {!isLoading && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* Calendar Header */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                {currentMonth}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {currentWeekStart.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+                -
+                {new Date(
+                  currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000
+                ).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => navigateWeek("prev")}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
+                onClick={() => {
+                  const today = new Date();
+                  const startOfWeek = new Date(today);
+                  startOfWeek.setDate(today.getDate() - today.getDay());
+                  setCurrentWeekStart(startOfWeek);
+                  generateWeekBookings(startOfWeek);
+                  // const monthNames = [
+                  //   "January",
+                  //   "February",
+                  //   "March",
+                  //   "April",
+                  //   "May",
+                  //   "June",
+                  //   "July",
+                  //   "August",
+                  //   "September",
+                  //   "October",
+                  //   "November",
+                  //   "December",
+                  // ];
+                  const month = monthNames[today.getMonth()];
+                  const year = today.getFullYear();
+                  setCurrentMonth(`${month}, ${year}`);
+                }}
+                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+                Today
               </button>
-              <button
-                onClick={() => navigateWeek("next")}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <ChevronRight className="w-4 h-4 text-gray-600" />
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigateWeek("prev")}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                </button>
+                <button
+                  onClick={() => navigateWeek("next")}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Calendar Grid */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[1000px]">
-            {/* Day Headers */}
-            <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="p-3 text-sm font-medium text-gray-500 bg-gray-50"></div>
-              {weekBookings.map((day) => (
+          {/* Calendar Grid */}
+          <div className="overflow-x-auto">
+            <div className="min-w-[1000px]">
+              {/* Day Headers */}
+              <div className="grid grid-cols-8 border-b border-gray-200">
+                <div className="p-3 text-sm font-medium text-gray-500 bg-gray-50"></div>
+                {weekBookings.map((day) => (
+                  <div
+                    key={day.date}
+                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
+                    <div className="font-semibold">{day.dayName}</div>
+                    <div className="text-xs text-gray-500">{day.dayNumber}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Time Slots */}
+              {timeSlots.map((timeSlot, timeIndex) => (
                 <div
-                  key={day.date}
-                  className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
-                  <div className="font-semibold">{day.dayName}</div>
-                  <div className="text-xs text-gray-500">{day.dayNumber}</div>
+                  key={timeSlot.key}
+                  className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
+                  {/* Time Label */}
+                  <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
+                    {timeSlot.from} {"->"} {getNextTime(timeSlot)}
+                  </div>
+
+                  {/* Day Columns */}
+                  {weekBookings.map((day, dayIndex) => {
+                    const booking = getBookingAtTime(dayIndex, timeSlot.from);
+
+                    return (
+                      <div
+                        key={`${day.date}-${timeSlot.key}`}
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
+                          booking
+                            ? "cursor-pointer hover:scale-105 transition-transform"
+                            : ""
+                        }`}>
+                        {booking && (
+                          <div
+                            onClick={() => handleBookingClick(booking)}
+                            className={`${getBookingColor(
+                              booking.channel
+                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}>
+                            <div className="flex items-center gap-1 mb-1">
+                              {getChannelIcon(booking.channel)}
+                              <span className="font-medium">
+                                {booking.type}
+                              </span>
+                            </div>
+                            <div className="font-semibold">
+                              {booking.patientName}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
-
-            {/* Time Slots */}
-            {timeSlots.map((time, timeIndex) => (
-              <div
-                key={time}
-                className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
-                {/* Time Label */}
-                <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
-                  {time} {"->"} {getNextTime(time)}
-                </div>
-
-                {/* Day Columns */}
-                {weekBookings.map((day, dayIndex) => {
-                  const booking = getBookingAtTime(dayIndex, time);
-
-                  return (
-                    <div
-                      key={`${day.date}-${time}`}
-                      className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
-                        booking
-                          ? "cursor-pointer hover:scale-105 transition-transform"
-                          : ""
-                      }`}>
-                      {booking && (
-                        <div
-                          onClick={() => handleBookingClick(booking)}
-                          className={`${getBookingColor(
-                            booking.channel
-                          )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}>
-                          <div className="flex items-center gap-1 mb-1">
-                            {getChannelIcon(booking.channel)}
-                            <span className="font-medium">{booking.type}</span>
-                          </div>
-                          <div className="font-semibold">
-                            {booking.patientName}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Booking Detail Modal */}
       {isDetailModalOpen &&
@@ -579,7 +607,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Patient:{" "}
+                    Patient:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.patientName}
@@ -588,7 +616,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Age:{" "}
+                    Age:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.patientAge} years
@@ -597,7 +625,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Date:{" "}
+                    Date:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.date}
@@ -606,7 +634,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Time:{" "}
+                    Time:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.time}
@@ -615,7 +643,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Channel:{" "}
+                    Channel:
                   </span>
                   <span className="text-sm text-gray-900 capitalize">
                     {selectedBooking.channel.replace("Call", " Call")}
@@ -624,7 +652,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Contact:{" "}
+                    Contact:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.contactNumber}
@@ -633,7 +661,7 @@ export default function Bookings() {
 
                 <div>
                   <span className="text-sm font-medium text-gray-700">
-                    Reason:{" "}
+                    Reason:
                   </span>
                   <span className="text-sm text-gray-900">
                     {selectedBooking.reason}

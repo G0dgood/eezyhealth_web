@@ -7,12 +7,116 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
-import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import Image from "next/image";
+
+// Skeleton Components
+const ProfileSkeleton = () => (
+  <div className="space-y-6">
+    {/* Profile Picture Skeleton */}
+    <div className="text-center">
+      <div className="w-32 h-32 rounded-full bg-gray-200 mx-auto animate-pulse"></div>
+      <div className="w-16 h-4 bg-gray-200 rounded mx-auto mt-2 animate-pulse"></div>
+    </div>
+
+    {/* Form Fields Skeleton */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i}>
+          <div className="w-20 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      ))}
+    </div>
+
+    {/* Bio Section Skeleton */}
+    <div>
+      <div className="w-16 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+      <div className="w-full h-24 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+
+    {/* Action Buttons Skeleton */}
+    <div className="flex justify-end space-x-3">
+      <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+      <div className="w-16 h-10 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  </div>
+);
+
+const NotificationSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between py-4 border-b border-gray-200">
+          <div className="flex-1 pr-4">
+            <div className="w-48 h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+            <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="w-12 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+      ))}
+    </div>
+    <div className="flex justify-end">
+      <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  </div>
+);
+
+const SecuritySkeleton = () => (
+  <div className="space-y-8">
+    {/* Security Settings Section */}
+    <div className="space-y-6">
+      <div>
+        <div className="w-48 h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
+        <div className="w-80 h-4 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+
+      {Array.from({ length: 2 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between py-4 border-b border-gray-200">
+          <div className="flex-1">
+            <div className="w-32 h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+            <div className="w-48 h-4 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      ))}
+    </div>
+
+    {/* Change Password Section */}
+    <div className="space-y-6">
+      <div>
+        <div className="w-40 h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
+        <div className="w-72 h-4 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i}>
+            <div className="w-32 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+            <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+        <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    </div>
+
+    <div className="flex justify-end">
+      <div className="w-28 h-10 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  </div>
+);
 
 export default function AdminSettings() {
   const { theme, setTheme } = useTheme();
-  const { userInfo } = useAuth();
+  const { userInfo, loading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -108,21 +212,14 @@ export default function AdminSettings() {
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
     newUserRegistrations: true,
-    systemAlerts: true,
     securityAlerts: true,
     userAccountUpdates: true,
     systemMaintenance: true,
-    emergencyNotifications: true,
-    reportGeneration: false,
-    backupNotifications: true,
   });
 
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: true,
     sessionTimeout: "15",
-    ipWhitelist: false,
-    auditLogging: true,
     darkMode: false,
   });
 
@@ -157,7 +254,7 @@ export default function AdminSettings() {
       // Update profile data (in real app, this would call Firebase)
       console.log("Profile saved:", profileData);
       toast.success("Profile updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update profile. Please try again.");
     }
   };
@@ -169,7 +266,7 @@ export default function AdminSettings() {
 
       console.log("Notification preferences saved:", notificationPrefs);
       toast.success("Notification preferences updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error(
         "Failed to update notification preferences. Please try again."
       );
@@ -189,7 +286,7 @@ export default function AdminSettings() {
 
       console.log("Security settings saved:", securitySettings);
       toast.success("Security settings updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update security settings. Please try again.");
     }
   };
@@ -220,6 +317,26 @@ export default function AdminSettings() {
       icon: <Shield className="w-5 h-5" />,
     },
   ];
+
+  // Tab Skeleton Component
+  const TabSkeleton = () => (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8 px-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="py-4 px-1">
+              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </nav>
+      </div>
+      <div className="p-6">
+        {activeTab === "profile" && <ProfileSkeleton />}
+        {activeTab === "notifications" && <NotificationSkeleton />}
+        {activeTab === "security" && <SecuritySkeleton />}
+      </div>
+    </div>
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -439,9 +556,14 @@ export default function AdminSettings() {
                   type="text"
                   value={
                     profileData.dateOfBirth
-                      ? new Date(
-                          profileData.dateOfBirth.seconds * 1000
-                        ).toLocaleDateString()
+                      ? typeof profileData.dateOfBirth === "string"
+                        ? new Date(profileData.dateOfBirth).toLocaleDateString()
+                        : typeof profileData.dateOfBirth === "object" &&
+                          "seconds" in profileData.dateOfBirth
+                        ? new Date(
+                            profileData.dateOfBirth.seconds * 1000
+                          ).toLocaleDateString()
+                        : "n/a"
                       : "n/a"
                   }
                   disabled
@@ -479,7 +601,7 @@ export default function AdminSettings() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 resize-none"
               />
               <div className="text-right text-sm text-gray-500 mt-1">
-                {profileData.bio.length} characters
+                {profileData?.bio?.length} characters
               </div>
             </div>
 
@@ -518,27 +640,6 @@ export default function AdminSettings() {
                       setNotificationPrefs({
                         ...notificationPrefs,
                         newUserRegistrations: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* System Alerts */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">System Alerts</h3>
-                  <p className="text-sm text-gray-600">
-                    Receive critical system alerts and notifications.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.systemAlerts}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        systemAlerts: checked,
                       })
                     }
                   />
@@ -613,76 +714,6 @@ export default function AdminSettings() {
                   />
                 </div>
               </div>
-
-              {/* Emergency Notifications */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Emergency Notifications
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Receive urgent notifications about system emergencies.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.emergencyNotifications}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        emergencyNotifications: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Report Generation */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Report Generation
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Get notified when system reports are generated.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.reportGeneration}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        reportGeneration: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Backup Notifications */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Backup Notifications
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Receive notifications about system backups and data
-                    protection.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.backupNotifications}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        backupNotifications: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Save Button */}
@@ -710,29 +741,6 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {/* Two-Factor Authentication */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">
-                    Two-Factor Authentication
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Require 2FA for admin access
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.twoFactorAuth}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        twoFactorAuth: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
               {/* Session Timeout */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
@@ -754,50 +762,6 @@ export default function AdminSettings() {
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 text-center"
                   />
                   <span className="text-sm text-gray-600">minutes</span>
-                </div>
-              </div>
-
-              {/* IP Whitelist */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">
-                    IP Address Whitelist
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Restrict admin access to specific IP addresses
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.ipWhitelist}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        ipWhitelist: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Audit Logging */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">Audit Logging</h4>
-                  <p className="text-sm text-gray-600">
-                    Track and log all admin actions for security monitoring
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.auditLogging}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        auditLogging: checked,
-                      })
-                    }
-                  />
                 </div>
               </div>
 
@@ -916,6 +880,29 @@ export default function AdminSettings() {
         return null;
     }
   };
+
+  // Show loading state while user data is being fetched
+  if (loading) {
+    return (
+      <div>
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[{ label: "Admin", href: "/admin" }, { label: "Settings" }]}
+        />
+
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
+          <p className="text-gray-600">
+            Manage your admin account preferences and security settings
+          </p>
+        </div>
+
+        {/* Loading Skeleton */}
+        <TabSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div>

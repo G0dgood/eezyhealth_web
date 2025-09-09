@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Search, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Filter } from "lucide-react";
 import Title from "@/components/Title";
 import FilterModal from "@/components/modals/FilterModal";
 import SearchInput from "@/components/SearchInput";
 import { useGetBookingsQuery } from "@/store/api";
 import { toast } from "sonner";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { NoRecordFound } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import moment from "moment";
 
 interface Booking {
@@ -266,92 +267,108 @@ export default function BookingsPage() {
 
       {/* Table */}
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th>PATIENT NAME</th>
-                <th>BOOKING DATE</th>
-                <th>BOOKING CHANNEL</th>
-                <th>SLOT</th>
-                <th>DOCTOR</th>
-                <th>SPECIALIZATION</th>
-                <th>STATUS</th>
-                <th>CHANNEL</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <SVGLoaderFetch colSpan={8} />
-              ) : paginatedData?.length === 0 ||
+      {isLoading ? (
+        <TableSkeleton
+          columns={8}
+          rows={5}
+          headerLabels={[
+            "PATIENT NAME",
+            "BOOKING DATE",
+            "BOOKING CHANNEL",
+            "SLOT",
+            "DOCTOR",
+            "SPECIALIZATION",
+            "STATUS",
+            "CHANNEL",
+          ]}
+        />
+      ) : (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th>PATIENT NAME</th>
+                  <th>BOOKING DATE</th>
+                  <th>BOOKING CHANNEL</th>
+                  <th>SLOT</th>
+                  <th>DOCTOR</th>
+                  <th>SPECIALIZATION</th>
+                  <th>STATUS</th>
+                  <th>CHANNEL</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
-                <NoRecordFound colSpan={8} />
-              ) : (
-                paginatedData?.map(
-                  (booking: {
-                    id: string;
-                    patientName: string;
-                    bookingDate: string;
-                    bookingChannel: string;
-                    doctorName: string;
-                    specialization: string;
-                    bookingStatus: string;
-                    channel: string;
-                    slot: string;
-                  }) => (
-                    <tr key={booking.id} className="hover:bg-gray-50">
-                      <td>
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking?.patientName}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-500">
-                          {formatFirebaseTimestamp(booking?.bookingDate)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-500">
-                          {booking?.bookingChannel}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-500">
-                          {isFirebaseTimestamp(booking?.slot)
-                            ? formatFirebaseTimestampWithTime(booking.slot)
-                            : booking?.slot || "N/A"}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-900">
-                          {booking?.doctorName}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-500">
-                          {booking.specialization}
-                        </div>
-                      </td>
-                      <td>
-                        <span className={getStatusBadge(booking.bookingStatus)}>
-                          {booking?.bookingStatus?.charAt(0).toUpperCase() +
-                            booking?.bookingStatus?.slice(1)}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="text-sm text-gray-500">
-                          {getChannelText(booking.bookingChannel)}
-                        </div>
-                      </td>
-                    </tr>
+                  <NoRecordFound colSpan={8} />
+                ) : (
+                  paginatedData?.map(
+                    (booking: {
+                      id: string;
+                      patientName: string;
+                      bookingDate: string;
+                      bookingChannel: string;
+                      doctorName: string;
+                      specialization: string;
+                      bookingStatus: string;
+                      channel: string;
+                      slot: string;
+                    }) => (
+                      <tr key={booking.id} className="hover:bg-gray-50">
+                        <td>
+                          <div className="text-sm font-medium text-gray-900">
+                            {booking?.patientName}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-500">
+                            {formatFirebaseTimestamp(booking?.bookingDate)}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-500">
+                            {booking?.bookingChannel}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-500">
+                            {isFirebaseTimestamp(booking?.slot)
+                              ? formatFirebaseTimestampWithTime(booking.slot)
+                              : booking?.slot || "N/A"}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-900">
+                            {booking?.doctorName}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-500">
+                            {booking.specialization}
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            className={getStatusBadge(booking.bookingStatus)}>
+                            {booking?.bookingStatus?.charAt(0).toUpperCase() +
+                              booking?.bookingStatus?.slice(1)}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="text-sm text-gray-500">
+                            {getChannelText(booking.bookingChannel)}
+                          </div>
+                        </td>
+                      </tr>
+                    )
                   )
-                )
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between">

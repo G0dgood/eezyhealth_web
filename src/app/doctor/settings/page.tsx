@@ -3,21 +3,23 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
   const { userInfo } = useAuth();
+  const { notificationPrefs, updateNotificationPrefs } = useNotifications();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
-
-  console.log("userInfo--userInfo", userInfo);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const handleSettingsClick = () => {
     setLoading(true);
@@ -33,6 +35,15 @@ export default function DoctorSettings() {
       setLoading(false);
     }
   }, [userInfo, router, loading]);
+
+  // Initialize component
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 1000); // Simulate loading time
+
+    return () => clearTimeout(timer);
+  }, []);
   // Sync securitySettings.darkMode with actual theme
   useEffect(() => {
     setSecuritySettings((prev) => ({
@@ -107,23 +118,9 @@ export default function DoctorSettings() {
     }
   }, [userInfo]);
 
-  // Notification preferences state
-  const [notificationPrefs, setNotificationPrefs] = useState({
-    newPatientBookings: true,
-    appointmentReminders: true,
-    patientMessages: true,
-    systemAlerts: true,
-    emergencyNotifications: true,
-    reportGeneration: false,
-    backupNotifications: true,
-  });
-
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: true,
     sessionTimeout: "15",
-    ipWhitelist: false,
-    auditLogging: true,
     darkMode: false,
   });
 
@@ -228,6 +225,80 @@ export default function DoctorSettings() {
     return null;
   }
 
+  // Show skeleton loader while initializing
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Breadcrumb Skeleton */}
+          <div className="mb-6">
+            <Skeleton className="h-6 w-48" />
+          </div>
+
+          {/* Title Skeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-8 w-64" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <Skeleton className="h-6 w-32 mb-4" />
+                <div className="space-y-3">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <Skeleton className="h-6 w-40 mb-6" />
+
+                {/* Profile Section Skeleton */}
+                <div className="space-y-6">
+                  {/* Profile Picture Skeleton */}
+                  <div className="text-center">
+                    <Skeleton className="w-24 h-24 rounded-full mx-auto mb-4" />
+                    <Skeleton className="h-4 w-32 mx-auto" />
+                  </div>
+
+                  {/* Form Fields Skeleton */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </div>
+
+                  {/* Save Button Skeleton */}
+                  <div className="flex justify-end">
+                    <Skeleton className="h-10 w-24" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const tabs = [
     {
       id: "profile",
@@ -255,7 +326,7 @@ export default function DoctorSettings() {
             <div className="text-center">
               <div className="relative inline-block">
                 {profileImage && isValidImageUrl(profileImage) ? (
-                  <Image
+                  <img
                     src={profileImage}
                     alt="Profile"
                     width={128}
@@ -426,9 +497,14 @@ export default function DoctorSettings() {
                   type="text"
                   value={
                     profileData.dateOfBirth
-                      ? new Date(
-                          profileData.dateOfBirth.seconds * 1000
-                        ).toLocaleDateString()
+                      ? typeof profileData.dateOfBirth === "string"
+                        ? new Date(profileData.dateOfBirth).toLocaleDateString()
+                        : typeof profileData.dateOfBirth === "object" &&
+                          "seconds" in profileData.dateOfBirth
+                        ? new Date(
+                            profileData.dateOfBirth.seconds * 1000
+                          ).toLocaleDateString()
+                        : "n/a"
                       : "n/a"
                   }
                   disabled
@@ -446,8 +522,7 @@ export default function DoctorSettings() {
                       profileData.isActive
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
-                    }`}
-                  >
+                    }`}>
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -457,8 +532,7 @@ export default function DoctorSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
-              >
+                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
                 Save Changes
               </button>
             </div>
@@ -492,8 +566,7 @@ export default function DoctorSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newPatientBookings}
                     onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
+                      updateNotificationPrefs({
                         newPatientBookings: checked,
                       })
                     }
@@ -515,8 +588,7 @@ export default function DoctorSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.appointmentReminders}
                     onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
+                      updateNotificationPrefs({
                         appointmentReminders: checked,
                       })
                     }
@@ -538,99 +610,8 @@ export default function DoctorSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.patientMessages}
                     onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
+                      updateNotificationPrefs({
                         patientMessages: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* System Alerts */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">System Alerts</h3>
-                  <p className="text-sm text-gray-600">
-                    Receive critical system alerts and notifications.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.systemAlerts}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        systemAlerts: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Emergency Notifications */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Emergency Notifications
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Receive urgent notifications about emergencies.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.emergencyNotifications}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        emergencyNotifications: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Report Generation */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Report Generation
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Get notified when reports are generated.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.reportGeneration}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        reportGeneration: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Backup Notifications */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h3 className="font-medium text-gray-900">
-                    Backup Notifications
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Receive notifications about system backups.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={notificationPrefs.backupNotifications}
-                    onChange={(checked) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        backupNotifications: checked,
                       })
                     }
                   />
@@ -641,8 +622,7 @@ export default function DoctorSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleNotificationSave}
-                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
-              >
+                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
                 Save Preferences
               </button>
             </div>
@@ -662,73 +642,6 @@ export default function DoctorSettings() {
             </div>
 
             <div className="space-y-4">
-              {/* Two-Factor Authentication */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">
-                    Two-Factor Authentication
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Require 2FA for doctor access
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.twoFactorAuth}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        twoFactorAuth: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* IP Whitelist */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">
-                    IP Address Whitelist
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Restrict doctor access to specific IP addresses
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.ipWhitelist}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        ipWhitelist: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Audit Logging */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1 pr-4">
-                  <h4 className="font-medium text-gray-900">Audit Logging</h4>
-                  <p className="text-sm text-gray-600">
-                    Track and log all doctor actions for security monitoring
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <ToggleSwitch
-                    checked={securitySettings.auditLogging}
-                    onChange={(checked) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        auditLogging: checked,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
               {/* Dark Mode */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
@@ -819,8 +732,7 @@ export default function DoctorSettings() {
               <div className="flex justify-end">
                 <button
                   onClick={handlePasswordUpdate}
-                  className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
-                >
+                  className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
                   Update Password
                 </button>
               </div>
@@ -829,8 +741,7 @@ export default function DoctorSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSecuritySave}
-                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
-              >
+                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
                 Save Security Settings
               </button>
             </div>
@@ -866,8 +777,7 @@ export default function DoctorSettings() {
                   activeTab === tab.id
                     ? "border-[#44CE2D] text-[#44CE2D]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
+                }`}>
                 {tab.icon}
                 <span>{tab.label}</span>
               </button>

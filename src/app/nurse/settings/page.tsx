@@ -1,24 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { User, Bell, Shield, Camera } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Bell, Shield, Camera, Moon, Sun } from "lucide-react";
+import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
+import { useUserInfo } from "@/hooks/useUserInfo";
+import { useUpdateUserMutation } from "@/store/api";
+import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "sonner";
 
 export default function NurseSettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
 
-  // Profile form state
+  // Get current user information
+  const userInfo = useUserInfo();
+
+  // RTK Query mutation for updating user
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+
+  // Theme context
+  const { theme, toggleTheme } = useTheme();
+
+  // Profile form state - initialize with user data
   const [profileData, setProfileData] = useState({
-    fullName: "Dr Tunde Sanni",
-    medicalLicense: "MD-12345",
-    specialization: "Cardiology",
-    email: "tundesanni@gmail.com",
-    mobileNumber: "08034567890",
-    yearsOfExperience: "5",
-    hospitalClinic: "LASUTH",
-    consultationFees: "",
-    bio: "Dr. Tunde is a board-certified cardiologist with over 15 years of experience in diagnosing and treating heart conditions. She specializes in interventional cardiology and has a particular interest in minimally invasive procedures.",
+    fullName: "",
+    medicalLicense: "",
+    specialization: "",
+    email: "",
+    mobileNumber: "",
+    yearsOfExperience: "",
+    hospitalClinic: "",
+    bio: "",
   });
 
   // Notification preferences state
@@ -28,12 +41,10 @@ export default function NurseSettingsPage() {
     accountUpdates: false,
     appointmentUpdates: true,
     appointmentCancellations: true,
-    systemAlerts: false,
   });
 
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
     sessionTimeout: "30",
   });
 
@@ -43,6 +54,66 @@ export default function NurseSettingsPage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Initialize profile data with user information
+  useEffect(() => {
+    if (userInfo) {
+      setProfileData({
+        fullName: String(userInfo.display_name || userInfo.first_name || ""),
+        medicalLicense: String(userInfo.medical_license || ""),
+        specialization: String(userInfo.specialization || ""),
+        email: String(userInfo.email || ""),
+        mobileNumber: String(userInfo.phone_number || ""),
+        yearsOfExperience: String(userInfo.experience_yrs || ""),
+        hospitalClinic: String(userInfo.hospital || ""),
+        bio: String(userInfo.about || ""),
+      });
+
+      // Set profile image if available
+      if (userInfo.photo_url || userInfo.image) {
+        setProfileImage(
+          String(
+            userInfo.photo_url || userInfo.image || "/api/placeholder/120/120"
+          )
+        );
+      }
+
+      // Initialize notification preferences if available
+      if (
+        userInfo.notification_preferences &&
+        typeof userInfo.notification_preferences === "object"
+      ) {
+        setNotificationPrefs((prev) => ({
+          ...prev,
+          ...(userInfo.notification_preferences as Record<string, unknown>),
+        }));
+      }
+
+      // Initialize security settings if available
+      if (
+        userInfo.security_settings &&
+        typeof userInfo.security_settings === "object"
+      ) {
+        const securityData = userInfo.security_settings as Record<
+          string,
+          unknown
+        >;
+        setSecuritySettings((prev) => ({
+          ...prev,
+          ...securityData,
+        }));
+
+        // Set theme preference if available in security settings
+        if (
+          securityData.theme_preference &&
+          typeof securityData.theme_preference === "string"
+        ) {
+          // Note: We don't call setTheme here as it would conflict with the ThemeContext
+          // The theme is already managed by the ThemeContext and localStorage
+        }
+      }
+    }
+  }, [userInfo]);
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,28 +126,153 @@ export default function NurseSettingsPage() {
     }
   };
 
-  const handleProfileSave = () => {
-    console.log("Profile saved:", profileData);
-    // Add toast notification here
-  };
-
-  const handleNotificationSave = () => {
-    console.log("Notification preferences saved:", notificationPrefs);
-    // Add toast notification here
-  };
-
-  const handleSecuritySave = () => {
-    console.log("Security settings saved:", securitySettings);
-    // Add toast notification here
-  };
-
-  const handlePasswordUpdate = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords don't match!");
+  const handleProfileSave = async () => {
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
       return;
     }
-    console.log("Password updated");
-    // Add toast notification here
+
+    try {
+      // Prepare the update data
+      const updateData = {
+        display_name: profileData.fullName,
+        medical_license: profileData.medicalLicense,
+        specialization: profileData.specialization,
+        email: profileData.email,
+        phone_number: profileData.mobileNumber,
+        experience_yrs: profileData.yearsOfExperience,
+        hospital: profileData.hospitalClinic,
+        about: profileData.bio,
+        photo_url: profileImage,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update user in database
+      await updateUser({
+        userId: userInfo.uid,
+        ...updateData,
+      }).unwrap();
+
+      // Update localStorage with new data
+      const updatedUserInfo = { ...userInfo, ...updateData };
+      localStorage.setItem(
+        "userInfo-eezy-health",
+        JSON.stringify(updatedUserInfo)
+      );
+
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
+  };
+
+  const handleNotificationSave = async () => {
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
+      return;
+    }
+
+    try {
+      // Update notification preferences in database
+      await updateUser({
+        userId: userInfo.uid,
+        notification_preferences: notificationPrefs,
+        updatedAt: new Date().toISOString(),
+      }).unwrap();
+
+      // Update localStorage
+      const updatedUserInfo = {
+        ...userInfo,
+        notification_preferences: notificationPrefs,
+      };
+      localStorage.setItem(
+        "userInfo-eezy-health",
+        JSON.stringify(updatedUserInfo)
+      );
+
+      toast.success("Notification preferences updated successfully!");
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      toast.error(
+        "Failed to update notification preferences. Please try again."
+      );
+    }
+  };
+
+  const handleSecuritySave = async () => {
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
+      return;
+    }
+
+    try {
+      // Update security settings in database (including theme preference)
+      await updateUser({
+        userId: userInfo.uid,
+        security_settings: {
+          ...securitySettings,
+          theme_preference: theme,
+        },
+        updatedAt: new Date().toISOString(),
+      }).unwrap();
+
+      // Update localStorage
+      const updatedUserInfo = {
+        ...userInfo,
+        security_settings: {
+          ...securitySettings,
+          theme_preference: theme,
+        },
+      };
+      localStorage.setItem(
+        "userInfo-eezy-health",
+        JSON.stringify(updatedUserInfo)
+      );
+
+      toast.success("Security settings updated successfully!");
+    } catch (error) {
+      console.error("Error updating security settings:", error);
+      toast.error("Failed to update security settings. Please try again.");
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("New passwords don't match!");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    try {
+      // Update password in database
+      await updateUser({
+        userId: userInfo.uid,
+        password: passwordData.newPassword,
+        updatedAt: new Date().toISOString(),
+      }).unwrap();
+
+      // Clear password fields
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      toast.success("Password updated successfully!");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password. Please try again.");
+    }
   };
 
   const tabs = [
@@ -105,9 +301,11 @@ export default function NurseSettingsPage() {
             {/* Profile Picture Section */}
             <div className="text-center">
               <div className="relative inline-block">
-                <img
+                <Image
                   src={profileImage}
                   alt="Profile"
+                  width={128}
+                  height={128}
                   className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                 />
                 <label className="absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition-colors">
@@ -243,24 +441,6 @@ export default function NurseSettingsPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Consultation Fees
-                </label>
-                <input
-                  type="text"
-                  value={profileData.consultationFees}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      consultationFees: e.target.value,
-                    })
-                  }
-                  placeholder="Enter consultation fees"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
             </div>
 
             {/* Bio Section */}
@@ -269,7 +449,7 @@ export default function NurseSettingsPage() {
                 Your bio
               </label>
               <textarea
-                value={profileData.bio}
+                value={profileData?.bio}
                 onChange={(e) =>
                   setProfileData({ ...profileData, bio: e.target.value })
                 }
@@ -278,7 +458,7 @@ export default function NurseSettingsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
               />
               <div className="text-right text-sm text-gray-500 mt-1">
-                {profileData.bio.length} characters
+                {profileData?.bio?.length} characters
               </div>
             </div>
 
@@ -289,8 +469,9 @@ export default function NurseSettingsPage() {
               </button>
               <button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                Save
+                disabled={isUpdating}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {isUpdating ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -489,51 +670,15 @@ export default function NurseSettingsPage() {
                   </div>
                 </label>
               </div>
-
-              {/* System Alerts */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">System Alerts</h3>
-                  <p className="text-sm text-gray-600">
-                    Receive alerts about system maintenance, downtime, or other
-                    technical issues.
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.systemAlerts}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        systemAlerts: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.systemAlerts
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.systemAlerts
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
-                  </div>
-                </label>
-              </div>
             </div>
 
             {/* Save Button */}
             <div className="flex justify-end">
               <button
                 onClick={handleNotificationSave}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                Save Preference
+                disabled={isUpdating}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {isUpdating ? "Saving..." : "Save Preferences"}
               </button>
             </div>
           </div>
@@ -553,42 +698,51 @@ export default function NurseSettingsPage() {
                 </p>
               </div>
 
-              {/* Two-Factor Authentication */}
+              {/* Theme Preference */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">
-                    Two-Factor Authentication
+                    Theme Preference
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Require 2FA for admin access
+                    Choose between light and dark mode
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={securitySettings.twoFactorAuth}
-                    onChange={(e) =>
-                      setSecuritySettings({
-                        ...securitySettings,
-                        twoFactorAuth: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      securitySettings.twoFactorAuth
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}>
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        securitySettings.twoFactorAuth
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}></div>
+                <div className="flex items-end justify-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Sun
+                      className={`w-4 h-4 ${
+                        theme === "light" ? "text-yellow-500" : "text-gray-400"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-600">Light</span>
                   </div>
-                </label>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={theme === "dark"}
+                      onChange={toggleTheme}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
+                      }`}>
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                        }`}></div>
+                    </div>
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <Moon
+                      className={`w-4 h-4 ${
+                        theme === "dark" ? "text-blue-500" : "text-gray-400"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-600">Dark</span>
+                  </div>
+                </div>
               </div>
 
               {/* Session Timeout */}
@@ -690,8 +844,9 @@ export default function NurseSettingsPage() {
                 </button>
                 <button
                   onClick={handlePasswordUpdate}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                  Update Password
+                  disabled={isUpdating}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isUpdating ? "Updating..." : "Update Password"}
                 </button>
               </div>
             </div>
@@ -700,8 +855,9 @@ export default function NurseSettingsPage() {
             <div className="flex justify-end">
               <button
                 onClick={handleSecuritySave}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-                Save Settings
+                disabled={isUpdating}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {isUpdating ? "Saving..." : "Save Settings"}
               </button>
             </div>
           </div>

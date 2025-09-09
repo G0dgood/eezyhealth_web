@@ -5,7 +5,7 @@ import { Plus, MoreVertical, Shield, X, AlertCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
-import { SVGLoaderFetch } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import {
   getSpecializationCollection,
   createSpecialization,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/specialization";
 import { toast } from "sonner";
 import { SVGLoader } from "@/components/SVGLoader";
+import { SpecializationSkeleton } from "@/components/ui/specialization-skeleton";
 import { useGetDoctorsBySpecializationCountQuery } from "@/store/api";
 
 interface Specialization {
@@ -107,8 +108,6 @@ export default function AdminSpecializationPage() {
     });
 
     const doctorCount = countData?.count || 0;
-
-    console.log("doctorCount--->", doctorCount);
 
     return (
       <div
@@ -277,11 +276,13 @@ export default function AdminSpecializationPage() {
 
           {/* Search and Create Section */}
           <div className="flex items-center justify-between mb-6">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search specialization..."
-            />
+            <div className="flex-1">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search specialization..."
+              />
+            </div>
 
             <button
               onClick={() => setIsCreateModalOpen(true)}
@@ -293,27 +294,25 @@ export default function AdminSpecializationPage() {
 
           {/* Specialization Cards */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {isLoading ? (
-              <div className="center-content flex flex-row justify-center items-center h-full w-full">
-                <SVGLoader width={"40px"} height={"40px"} color={"#22c55e"} />
-              </div>
-            ) : paginatedSpecializations?.length === 0 ||
-              paginatedSpecializations?.length === undefined ? (
-              <div className="col-span-full flex flex-col justify-center items-center h-64 text-center">
-                <AlertCircle size={75} color="#a4a9b2" />
-                <p className="mt-3 text-gray-500">No specializations found</p>
-              </div>
-            ) : (
-              paginatedSpecializations?.map((specialization, index) => (
+          {isLoading ? (
+            <SpecializationSkeleton cards={6} className="mb-8" />
+          ) : paginatedSpecializations?.length === 0 ||
+            paginatedSpecializations?.length === undefined ? (
+            <div className="col-span-full flex flex-col justify-center items-center h-64 text-center">
+              <AlertCircle size={75} color="#a4a9b2" />
+              <p className="mt-3 text-gray-500">No specializations found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {paginatedSpecializations?.map((specialization, index) => (
                 <SpecializationCard
                   key={specialization.id}
                   specialization={specialization}
                   index={index}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Pagination  */}
           {!isLoading && !error && totalPages > 1 && (

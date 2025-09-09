@@ -15,7 +15,7 @@ export const getSpecializationCollection = async () => {
 
 // Usage example:
 getSpecializationCollection()
-  .then(data => {  
+  .then(() => {  
   })
   .catch(error => {
     console.error('Error fetching specialization collection:', error);

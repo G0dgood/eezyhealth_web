@@ -11,16 +11,39 @@ export interface Payment {
 
 // Doctor Payment types
 export interface DoctorPayment {
-  id: string;
-  patientName: string;
-  appointmentDate: string;
-  serviceType: string;
+  id?: string;
   amount: number;
-  paymentMethod: PaymentMethod;
-  status: DoctorPaymentStatus;
-  transactionId: string;
-  doctorName: string;
-  specialization: string;
+  bookingDate: string;
+  channel: string;
+  createdAt: string;
+  currency: string;
+  doctorId: string;
+  patientId: string;
+  patientName: string;
+  paymentDate: string;
+  paymentMethod: string;
+  paymentReference: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  paymentStatus: string;
+  reason: string;
+  slot: string;
+  transactionId: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  updatedAt: string;
 }
 
 export interface PaymentFilterData {

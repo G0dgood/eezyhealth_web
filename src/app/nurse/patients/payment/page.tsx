@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, CreditCard, DollarSign, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -71,7 +71,7 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: "cash",
     name: "Cash Payment",
-    icon: <DollarSign className="w-6 h-6" />,
+    icon: <span className="text-green-600">₦</span>,
     description: "Pay in cash at the hospital/clinic",
   },
 ];
@@ -190,7 +190,7 @@ export default function PaymentPage() {
 
       // Create payment data
       const paymentData = {
-        email: "chinedu.go@gmail.com", // Replace with logged-in user email
+        email: "chinedu.go@gmail.com",
         amount: consultationFee, // Amount in kobo
         currency: "NGN",
         reference: `APPT_${Date.now()}_${Math.random()
@@ -345,7 +345,9 @@ export default function PaymentPage() {
       }, 3000);
       return result;
     } catch (error) {
-      toast.error(error.data.error);
+      toast.error(
+        (error as { data?: { error?: string } }).data?.error || "Payment failed"
+      );
       setIsPaystackLoaded(true);
       throw error;
     }

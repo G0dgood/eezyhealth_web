@@ -15,14 +15,11 @@ export const updateAdminPassword = async (uid: string, updatedData: Record<strin
       throw new Error(`No admin profile found with UID: ${uid}`);
     }
 
-    // Update the user document in the `/users` collection
-    for (const docSnapshot of querySnapshot.docs) {
+    // Update the user document in the `/users` collection 
       const userDocRef = doc(db, 'users', uid); // Use the UID to get the user document reference
 
       // Update the user document
-      await updateDoc(userDocRef, updatedData);
-      console.log(`User ${uid} updated successfully`);
-    }
+      await updateDoc(userDocRef, updatedData);  
   } catch (error) {
     console.error('Error updating user:', error);
     throw error;

@@ -13,9 +13,7 @@ import {
   startAfter,
   onSnapshot,
   type QueryConstraint,
-  type DocumentData,
-  type QueryDocumentSnapshot,
-  type WithFieldValue
+  type QueryDocumentSnapshot
 } from 'firebase/firestore';
 
 // Reusable Firebase instance getter
@@ -39,7 +37,7 @@ export const getFirestoreInstance = () => ({
 
 // Helper function to serialize Firebase data
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const serializeFirebaseData = (data: unknown): unknown => {
+export const serializeFirebaseData = (data: unknown): unknown => {
   if (data === null || data === undefined) {
     return data;
   }

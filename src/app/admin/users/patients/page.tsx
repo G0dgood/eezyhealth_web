@@ -14,7 +14,8 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Link from "next/link";
 import { useGetFirebasePatientsQuery } from "@/store/api";
 import { toast } from "sonner";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { NoRecordFound } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
 
 interface Patient {
@@ -182,9 +183,7 @@ export default function AdminPatientsPage() {
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {isLoading ? (
-                <SVGLoaderFetch colSpan={8} />
-              ) : error ? (
+              {error ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="text-[var(--muted-foreground)]">
@@ -318,7 +317,10 @@ export default function AdminPatientsPage() {
       <AddPatientModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onAdd={handlePatientAdded}
+        onSuccess={() => {
+          setIsAddModalOpen(false);
+          refetch();
+        }}
       />
     </div>
   );

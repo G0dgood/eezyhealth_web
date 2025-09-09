@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
@@ -275,11 +275,11 @@ export default function DocumentPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
-        return <Clock className="w-4 h-4 text-orange-500" />;
+        return <Clock className="w-4 h-4 text-yellow-600" />;
       case "approved":
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
       case "rejected":
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return <XCircle className="w-4 h-4 text-red-600" />;
       default:
         return null;
     }
@@ -290,13 +290,13 @@ export default function DocumentPage() {
 
     switch (status) {
       case "pending":
-        return `${baseClasses} bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200`;
+        return `${baseClasses} bg-yellow-100 text-yellow-800`;
       case "approved":
-        return `${baseClasses} bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200`;
+        return `${baseClasses} bg-green-100 text-green-800`;
       case "rejected":
-        return `${baseClasses} bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200`;
+        return `${baseClasses} bg-red-100 text-red-800`;
       default:
-        return `${baseClasses} bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200`;
+        return `${baseClasses} bg-gray-100 text-gray-800`;
     }
   };
 

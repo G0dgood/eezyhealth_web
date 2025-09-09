@@ -97,14 +97,7 @@ export default function RoleBasedSidenav({
           label: "Patients",
           icon: <Users className="w-5 h-5" />,
           href: `/${role.toLowerCase()}/patients`,
-          count: 156,
         },
-        // {
-        //   id: "appointments",
-        //   label: "Appointments",
-        //   icon: <Calendar className="w-5 h-5" />,
-        //   href: `/${role.toLowerCase()}/patients/appointments`,
-        // },
         {
           id: "bookings",
           label: "Bookings",
@@ -133,12 +126,6 @@ export default function RoleBasedSidenav({
     } else if (role === "DOCTOR") {
       return [
         ...baseItems,
-        {
-          id: "patients",
-          label: "Patient",
-          icon: <Users className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/patients`,
-        },
         {
           id: "appointments",
           label: "Appointment",
@@ -197,13 +184,6 @@ export default function RoleBasedSidenav({
               icon: <Stethoscope className="w-4 h-4" />,
               href: `/${role.toLowerCase()}/users/doctors`,
               count: 24,
-            },
-            {
-              id: "patients",
-              label: "Patient",
-              icon: <User className="w-4 h-4" />,
-              href: `/${role.toLowerCase()}/users/patients`,
-              count: 156,
             },
           ],
         },

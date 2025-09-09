@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { ArrowLeft, User, X } from "lucide-react";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -8,15 +8,16 @@ import Breadcrumb from "@/components/Breadcrumb";
 export default function PatientDetailsPage({
   params,
 }: {
-  params: { patientId: string };
+  params: Promise<{ patientId: string }>;
 }) {
+  const { patientId } = use(params);
   const [activeTab, setActiveTab] = useState("incoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
 
   // Sample patient data
   const patient = {
     name: "Seun Simeon",
-    id: "P001",
+    id: patientId || "P001",
   };
 
   // Sample appointment data
@@ -226,7 +227,7 @@ export default function PatientDetailsPage({
                   onClick={() => setIsVitalsModalOpen(false)}
                   className="text-gray-400 hover:text-gray-600 cursor-pointer">
                   <X className="w-5 h-5" />
-                  </button>
+                </button>
               </div>
 
               {/* Modal Content */}
@@ -258,3 +259,4 @@ export default function PatientDetailsPage({
       )}
     </div>
   );
+}

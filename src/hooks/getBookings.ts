@@ -20,7 +20,7 @@ export const getBookingsCollection = async () => {
 
 // Usage example:
 getBookingsCollection()
-  .then(data => {  })
+  .then(() => {  })
   .catch(error => {
     console.error('Error fetching bookings collection:', error);
   });

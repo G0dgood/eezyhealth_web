@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryDocumentSnapshot, type QueryConstraint } from 'firebase/firestore';
 import { db } from "@/lib/firebase";
 
 export interface PatientSearchFilters {
@@ -35,7 +35,7 @@ export const searchPatients = async (
 ): Promise<{ patients: PatientSearchResult[]; lastDoc: QueryDocumentSnapshot | null }> => {
   try {
     const usersCollectionRef = collection(db, 'users');
-    const constraints = [where('role', '==', 'PATIENT'), where('isActive', '==', true)];
+    const constraints: QueryConstraint[] = [where('role', '==', 'PATIENT'), where('isActive', '==', true)];
     
     // Add filters
     if (filters.name) {

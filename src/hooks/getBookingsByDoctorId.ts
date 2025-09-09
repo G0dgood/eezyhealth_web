@@ -1,7 +1,7 @@
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export const getBookingsByDoctorId = async (doctorId: unknown) => {
+export const getBookingsByDoctorId = async (doctorId: unknown) => { 
   try {
     const bookingsCollectionRef = collection(db, 'Bookings');
     
@@ -11,12 +11,14 @@ export const getBookingsByDoctorId = async (doctorId: unknown) => {
     // Execute the query
     const snapshot = await getDocs(q);
     
-    // Map the results to an array of booking data
-    const bookingsData = snapshot.docs.map(doc => doc.data());
+    // Map the results to an array of booking data with document IDs
+    const bookingsData = snapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    }));
     
     return bookingsData;
-  } catch (error) {
-    console.error('Error fetching bookings by doctorId:', error);
+  } catch (error) { 
     throw error;
   }
 };

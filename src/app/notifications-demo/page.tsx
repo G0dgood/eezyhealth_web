@@ -37,6 +37,7 @@ export default function NotificationsDemoPage() {
       type: selectedType,
       title: titles[selectedType],
       description: descriptions[selectedType],
+      category: "general",
     });
   };
 
@@ -147,7 +148,11 @@ export default function NotificationsDemoPage() {
             <label className="text-sm font-medium text-gray-700">Type:</label>
             <select
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value as any)}
+              onChange={(e) =>
+                setSelectedType(
+                  e.target.value as "success" | "error" | "warning" | "info"
+                )
+              }
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer">
               <option value="success">Success</option>
               <option value="error">Error</option>

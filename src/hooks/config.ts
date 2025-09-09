@@ -1,13 +1,9 @@
-import DataService from '../features/Auth/dataService';
-
-// Create an instance of DataService
-const dataService = DataService();
-
 // Define getUserAuthorizationConfig function
 export async function getUserAuthorizationConfig() {
   try {
-    // Retrieve the token from the data service
-    const token = dataService.getToken(); 
+    // Retrieve the token from localStorage (same approach as RTK Query)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    
     // Check if the token exists
     if (!token) {
       throw new Error('Token not found');

@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Plus,
   ArrowLeft,
-  Calendar,
   Filter,
-  User,
   Edit,
   Trash2,
   Eye,
@@ -22,7 +20,6 @@ import {
   showError,
   showLoading,
   dismissLoading,
-  showInfo,
 } from "@/utils/toast";
 import Link from "next/link";
 import {
@@ -45,7 +42,7 @@ export default function NurseUsersPatientsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState<PatientSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] =
     useState<PatientSearchResult | null>(null);
   const [totalPages, setTotalPages] = useState(1);
@@ -72,14 +69,9 @@ export default function NurseUsersPatientsPage() {
     weight: undefined,
   });
 
-  const [formErrors, setFormErrors] = useState<Partial<CreatePatientData>>({});
+  const [, setFormErrors] = useState<Partial<CreatePatientData>>({});
 
-  // Fetch patients on component mount and when filters change
-  useEffect(() => {
-    fetchPatients();
-  }, [currentPage, filters]);
-
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       setIsLoading(true);
       const result = await getPatientsPaginated(currentPage, 20, filters);
@@ -92,7 +84,12 @@ export default function NurseUsersPatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, filters]);
+
+  // Fetch patients on component mount and when filters change
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
   // Search patients
   const handleSearch = async () => {
@@ -260,7 +257,7 @@ export default function NurseUsersPatientsPage() {
       setIsEditPatientModalOpen(false);
       resetForm();
       fetchPatients();
-    } catch (error) {
+    } catch {
       dismissLoading(loadingToast as string);
       showError("Save Failed", "Failed to save patient. Please try again.");
     }
@@ -280,7 +277,7 @@ export default function NurseUsersPatientsPage() {
       setIsDeletePatientModalOpen(false);
       setSelectedPatient(null);
       fetchPatients();
-    } catch (error) {
+    } catch {
       dismissLoading(loadingToast as string);
       showError("Delete Failed", "Failed to delete patient. Please try again.");
     }
@@ -470,9 +467,7 @@ export default function NurseUsersPatientsPage() {
               label="Name"
               placeholder="Enter patient fullname"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(value) => setFormData({ ...formData, name: value })}
               required
             />
 
@@ -481,10 +476,10 @@ export default function NurseUsersPatientsPage() {
               options={genderOptions}
               placeholder="Select Gender"
               value={formData.gender}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFormData({
                   ...formData,
-                  gender: e.target.value as "male" | "female",
+                  gender: value as "male" | "female",
                 })
               }
               required
@@ -497,8 +492,8 @@ export default function NurseUsersPatientsPage() {
               type="date"
               placeholder="dd/mm/yy"
               value={formData.dateOfBirth}
-              onChange={(e) =>
-                setFormData({ ...formData, dateOfBirth: e.target.value })
+              onChange={(value) =>
+                setFormData({ ...formData, dateOfBirth: value })
               }
               required
             />
@@ -508,8 +503,8 @@ export default function NurseUsersPatientsPage() {
               options={bloodTypeOptions}
               placeholder="Select Blood Type"
               value={formData.bloodType}
-              onChange={(e) =>
-                setFormData({ ...formData, bloodType: e.target.value })
+              onChange={(value) =>
+                setFormData({ ...formData, bloodType: value })
               }
             />
           </div>
@@ -520,9 +515,7 @@ export default function NurseUsersPatientsPage() {
               type="tel"
               placeholder="Enter patient number"
               value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
+              onChange={(value) => setFormData({ ...formData, phone: value })}
               required
             />
 
@@ -531,9 +524,7 @@ export default function NurseUsersPatientsPage() {
               type="email"
               placeholder="Enter patient email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(value) => setFormData({ ...formData, email: value })}
               required
             />
           </div>
@@ -542,9 +533,7 @@ export default function NurseUsersPatientsPage() {
             label="Address"
             placeholder="Enter patient address"
             value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
-            }
+            onChange={(value) => setFormData({ ...formData, address: value })}
           />
 
           <div className="border-t pt-4">
@@ -555,13 +544,16 @@ export default function NurseUsersPatientsPage() {
               <FormInput
                 label="Name"
                 placeholder="Emergency contact name"
-                value={formData.emergencyContact.name}
-                onChange={(e) =>
+                value={formData.emergencyContact?.name || ""}
+                onChange={(value) =>
                   setFormData({
                     ...formData,
                     emergencyContact: {
                       ...formData.emergencyContact,
-                      name: e.target.value,
+                      name: value,
+                      phone: formData.emergencyContact?.phone || "",
+                      relationship:
+                        formData.emergencyContact?.relationship || "",
                     },
                   })
                 }
@@ -569,13 +561,16 @@ export default function NurseUsersPatientsPage() {
               <FormInput
                 label="Phone"
                 placeholder="Emergency contact phone"
-                value={formData.emergencyContact.phone}
-                onChange={(e) =>
+                value={formData.emergencyContact?.phone || ""}
+                onChange={(value) =>
                   setFormData({
                     ...formData,
                     emergencyContact: {
                       ...formData.emergencyContact,
-                      phone: e.target.value,
+                      name: formData.emergencyContact?.name || "",
+                      phone: value,
+                      relationship:
+                        formData.emergencyContact?.relationship || "",
                     },
                   })
                 }
@@ -583,13 +578,15 @@ export default function NurseUsersPatientsPage() {
               <FormInput
                 label="Relationship"
                 placeholder="Relationship to patient"
-                value={formData.emergencyContact.relationship}
-                onChange={(e) =>
+                value={formData.emergencyContact?.relationship || ""}
+                onChange={(value) =>
                   setFormData({
                     ...formData,
                     emergencyContact: {
                       ...formData.emergencyContact,
-                      relationship: e.target.value,
+                      name: formData.emergencyContact?.name || "",
+                      phone: formData.emergencyContact?.phone || "",
+                      relationship: value,
                     },
                   })
                 }
@@ -668,8 +665,11 @@ export default function NurseUsersPatientsPage() {
               ]}
               placeholder="Select Status"
               value={filters.status || ""}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value as any })
+              onChange={(value) =>
+                setFilters({
+                  ...filters,
+                  status: value as "ACTIVE" | "INACTIVE" | "SUSPENDED",
+                })
               }
             />
 
@@ -678,8 +678,8 @@ export default function NurseUsersPatientsPage() {
               options={genderOptions}
               placeholder="Select Gender"
               value={filters.gender || ""}
-              onChange={(e) =>
-                setFilters({ ...filters, gender: e.target.value as any })
+              onChange={(value) =>
+                setFilters({ ...filters, gender: value as "male" | "female" })
               }
             />
           </div>
@@ -689,9 +689,7 @@ export default function NurseUsersPatientsPage() {
             options={bloodTypeOptions}
             placeholder="Select Blood Type"
             value={filters.bloodType || ""}
-            onChange={(e) =>
-              setFilters({ ...filters, bloodType: e.target.value })
-            }
+            onChange={(value) => setFilters({ ...filters, bloodType: value })}
           />
 
           <div className="flex justify-end space-x-3 pt-4">

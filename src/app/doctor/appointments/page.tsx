@@ -17,8 +17,24 @@ import {
   RescheduleModal,
   CancelAppointmentModal,
 } from "@/components/modals";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
+import { showError, showSuccess, showInfo } from "@/utils/toast";
+import { convertSlotToTime } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default function DoctorAppointmentsPage() {
+  const { user } = useAuth();
+  const doctorId =
+    user && typeof user === "object" && "uid" in user ? user.uid : null;
+
+  // Fetch appointments using RTK Query
+  const {
+    data: bookingsData,
+    isLoading,
+    error,
+  } = useBookingsByDoctorId(doctorId);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,6 +46,7 @@ export default function DoctorAppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] =
     useState<DoctorAppointment | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<"top" | "bottom">("bottom");
 
   // Prevent body scrolling when modals are open
   useEffect(() => {
@@ -77,162 +94,65 @@ export default function DoctorAppointmentsPage() {
     // TODO: Implement appointment cancellation
   };
 
-  // Sample appointment data
-  const appointments: DoctorAppointment[] = [
-    {
-      id: "APT-001",
-      patientName: "Seun Simeon",
-      date: "24-05-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "pending",
-      patientAge: 45,
-      temperature: "36°C",
-      weight: "55kg",
-      bloodPressure: "120/80 mmHg",
-      heartRate: "72 bpm",
-      reason: "I am feeling sick and i've been weak for some days now",
-      consultationNote:
-        "Patient reported improvement. Prescribed antibiotics medication for 7 days.",
-    },
-    {
-      id: "APT-002",
-      patientName: "Felix Simeon",
-      date: "21-05-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "completed",
-      patientAge: 32,
-      temperature: "37°C",
-      weight: "70kg",
-      bloodPressure: "125/85 mmHg",
-      heartRate: "75 bpm",
-      reason: "Regular checkup",
-      consultationNote: "Patient is healthy. No medication needed.",
-    },
-    {
-      id: "APT-003",
-      patientName: "Kofi Simeon",
-      date: "20-05-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "completed",
-      patientAge: 28,
-      temperature: "36.5°C",
-      weight: "65kg",
-      bloodPressure: "118/78 mmHg",
-      heartRate: "70 bpm",
-      reason: "Follow-up consultation",
-      consultationNote: "Patient condition stable. Continue current treatment.",
-    },
-    {
-      id: "APT-004",
-      patientName: "Fatima Simeon",
-      date: "19-05-2024",
-      time: "08:30 AM",
-      channel: "chat",
-      status: "completed",
-      patientAge: 35,
-      temperature: "36.8°C",
-      weight: "58kg",
-      bloodPressure: "122/82 mmHg",
-      heartRate: "73 bpm",
-      reason: "General consultation",
-      consultationNote: "Patient advised to maintain healthy lifestyle.",
-    },
-    {
-      id: "APT-005",
-      patientName: "Joy Simeon",
-      date: "18-05-2024",
-      time: "08:30 AM",
-      channel: "chat",
-      status: "completed",
-      patientAge: 29,
-      temperature: "37.2°C",
-      weight: "62kg",
-      bloodPressure: "120/80 mmHg",
-      heartRate: "71 bpm",
-      reason: "Health checkup",
-      consultationNote:
-        "Patient is in good health. Annual checkup recommended.",
-    },
-    {
-      id: "APT-006",
-      patientName: "Tolu Simeon",
-      date: "17-05-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "completed",
-      patientAge: 41,
-      temperature: "36.9°C",
-      weight: "68kg",
-      bloodPressure: "125/83 mmHg",
-      heartRate: "74 bpm",
-      reason: "Follow-up appointment",
-      consultationNote: "Treatment progressing well. Continue medication.",
-    },
-    {
-      id: "APT-007",
-      patientName: "Tolu Simeon",
-      date: "16-05-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "completed",
-      patientAge: 41,
-      temperature: "36.7°C",
-      weight: "68kg",
-      bloodPressure: "124/82 mmHg",
-      heartRate: "73 bpm",
-      reason: "Regular consultation",
-      consultationNote: "Patient condition stable. No changes needed.",
-    },
-    {
-      id: "APT-008",
-      patientName: "Tolu Simeon",
-      date: "01-04-2024",
-      time: "08:30 AM",
-      channel: "videoCall",
-      status: "completed",
-      patientAge: 41,
-      temperature: "37.1°C",
-      weight: "67kg",
-      bloodPressure: "126/84 mmHg",
-      heartRate: "75 bpm",
-      reason: "Health assessment",
-      consultationNote:
-        "Patient showing improvement. Continue current regimen.",
-    },
-    {
-      id: "APT-009",
-      patientName: "Tolu Simeon",
-      date: "01-04-2024",
-      time: "08:30 AM",
-      channel: "chat",
-      status: "completed",
-      patientAge: 41,
-      temperature: "36.8°C",
-      weight: "67kg",
-      bloodPressure: "125/83 mmHg",
-      heartRate: "74 bpm",
-      reason: "Follow-up consultation",
-      consultationNote: "Patient responding well to treatment.",
-    },
-    {
-      id: "APT-010",
-      patientName: "Tolu Simeon",
-      date: "01-04-2024",
-      time: "08:30 AM",
-      channel: "voiceCall",
-      status: "cancelled",
-      patientAge: 41,
-      temperature: "36.9°C",
-      weight: "67kg",
-      bloodPressure: "125/83 mmHg",
-      heartRate: "74 bpm",
-      reason: "Emergency consultation",
-      consultationNote: "Appointment cancelled by patient.",
-    },
-  ];
+  // Transform API data to appointments
+  const transformBookingsToAppointments = (
+    bookings: Record<string, unknown>[]
+  ): DoctorAppointment[] => {
+    if (!bookings || bookings.length === 0) return [];
+
+    return bookings.map((booking) => {
+      // Handle Firestore timestamp conversion
+      let appointmentDate: string;
+      if (
+        booking.bookingDate &&
+        typeof booking.bookingDate === "object" &&
+        booking.bookingDate !== null
+      ) {
+        const timestamp = booking.bookingDate as {
+          seconds: number;
+          nanoseconds: number;
+        };
+        const date = new Date(timestamp.seconds * 1000);
+        appointmentDate = date.toLocaleDateString("en-GB"); // DD-MM-YYYY format
+      } else {
+        appointmentDate = String(booking.bookingDate || booking.date || "");
+      }
+
+      return {
+        id: String(booking.bookingId || ""),
+        patientName: String(booking.patientName || "Unknown Patient"),
+        date: appointmentDate,
+        time: convertSlotToTime(String(booking.slot || "")),
+        channel: (() => {
+          const channel = String(booking.bookingChannel || "");
+          if (channel === "1" || channel === "videoCall") return "videoCall";
+          if (channel === "2" || channel === "chat") return "chat";
+          if (channel === "3" || channel === "voiceCall") return "voiceCall";
+          if (channel === "4" || channel === "physical") return "videoCall"; // Default to videoCall for physical
+          return "videoCall";
+        })(),
+        status: (() => {
+          const status = String(booking.bookingStatus || "").toLowerCase();
+          if (status === "accepted" || status === "confirmed")
+            return "completed";
+          if (status === "pending") return "pending";
+          if (status === "cancelled") return "cancelled";
+          return "pending";
+        })(),
+        patientAge: Number(booking.patientAge) || 0,
+        temperature: "36°C", // Default values since these aren't in booking data
+        weight: "65kg",
+        bloodPressure: "120/80 mmHg",
+        heartRate: "72 bpm",
+        reason: String(booking.reason || "No reason provided"),
+        consultationNote: String(booking.consultationNote || ""),
+      };
+    });
+  };
+
+  const appointments: DoctorAppointment[] = transformBookingsToAppointments(
+    bookingsData || []
+  );
 
   const filteredAppointments = appointments.filter((appointment) =>
     appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -273,7 +193,36 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
-  const handleActionMenuToggle = (appointmentId: string) => {
+  const handleActionMenuToggle = (
+    appointmentId: string,
+    event: React.MouseEvent
+  ) => {
+    const button = event.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const menuHeight = 200; // Approximate height of the menu
+
+    // Find the table container to determine table boundaries
+    const tableContainer = button.closest("table")?.parentElement;
+    const tableRect = tableContainer?.getBoundingClientRect();
+
+    // Check if there's enough space below within the table
+    const spaceBelowInTable = tableRect
+      ? tableRect.bottom - rect.bottom
+      : viewportHeight - rect.bottom;
+    const spaceBelowInViewport = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Face up if close to end of table OR close to bottom of viewport
+    if (
+      (spaceBelowInTable < menuHeight && spaceAbove > menuHeight) ||
+      (spaceBelowInViewport < menuHeight && spaceAbove > menuHeight)
+    ) {
+      setMenuPosition("top");
+    } else {
+      setMenuPosition("bottom");
+    }
+
     setActionMenuOpen(actionMenuOpen === appointmentId ? null : appointmentId);
   };
 
@@ -318,6 +267,16 @@ export default function DoctorAppointmentsPage() {
     setSelectedAppointment(null);
   };
 
+  // Show error toast when there's an error
+  useEffect(() => {
+    if (error) {
+      showError(
+        "Appointment Error",
+        "Failed to load appointments. Please try again."
+      );
+    }
+  }, [error]);
+
   return (
     <div>
       <div className="mb-6">
@@ -341,110 +300,114 @@ export default function DoctorAppointmentsPage() {
             placeholder="Search..."
           />
         </div>
-
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Appointment
-        </button>
       </div>
 
       {/* Appointments Table */}
       <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[var(--border)]">
-            <thead className="bg-[var(--muted)]">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  PATIENT NAME
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  DATE
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  TIME
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  CHANNEL
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  APPOINTMENT STATUS
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  ACTION
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {currentAppointments.map((appointment) => (
-                <tr key={appointment.id} className="hover:bg-[var(--muted)]">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-[var(--foreground)]">
-                      {appointment.patientName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[var(--foreground)]">
-                      {appointment.date}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[var(--foreground)]">
-                      {appointment.time}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getChannelIcon(appointment.channel)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(appointment.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap relative">
-                    <button
-                      onClick={() => handleActionMenuToggle(appointment.id)}
-                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-
-                    {actionMenuOpen === appointment.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-[var(--card)] rounded-md shadow-lg z-10 border border-[var(--border)]">
-                        <div className="py-1">
-                          <button
-                            onClick={() => handleViewDetails(appointment)}
-                            className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                            View Details
-                          </button>
-                          {appointment.status === "completed" && (
-                            <button
-                              onClick={() => handleViewNote(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                              View Note
-                            </button>
-                          )}
-                          {appointment.status === "pending" && (
-                            <button
-                              onClick={() => handleReschedule(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                              Reschedule Appointment
-                            </button>
-                          )}
-                          {appointment.status === "pending" && (
-                            <button
-                              onClick={() => handleCancel(appointment)}
-                              className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                              Cancel Appointment
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </td>
+        {isLoading ? (
+          <TableSkeleton rows={8} columns={6} />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-[var(--border)]">
+              <thead className="bg-[var(--muted)]">
+                <tr>
+                  <th>PATIENT NAME</th>
+                  <th>DATE</th>
+                  <th>TIME</th>
+                  <th>CHANNEL</th>
+                  <th>APPOINTMENT STATUS</th>
+                  <th>ACTION</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
+                {currentAppointments.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-sm text-[var(--muted-foreground)]">
+                      No appointments found
+                    </td>
+                  </tr>
+                ) : (
+                  currentAppointments.map((appointment) => (
+                    <tr
+                      key={appointment.id}
+                      className="hover:bg-[var(--muted)]">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-[var(--foreground)]">
+                          {appointment.patientName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-[var(--foreground)]">
+                          {appointment.date}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-[var(--foreground)]">
+                          {appointment.time}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getChannelIcon(appointment.channel)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(appointment.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap relative">
+                        <button
+                          onClick={(e) =>
+                            handleActionMenuToggle(appointment.id, e)
+                          }
+                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+
+                        {actionMenuOpen === appointment.id && (
+                          <div
+                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${
+                              menuPosition === "top"
+                                ? "bottom-full mb-2"
+                                : "top-full mt-2"
+                            }`}>
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleViewDetails(appointment)}
+                                className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                View Details
+                              </button>
+                              {appointment.status === "completed" && (
+                                <button
+                                  onClick={() => handleViewNote(appointment)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  View Note
+                                </button>
+                              )}
+                              {appointment.status === "pending" && (
+                                <button
+                                  onClick={() => handleReschedule(appointment)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  Reschedule Appointment
+                                </button>
+                              )}
+                              {appointment.status === "pending" && (
+                                <button
+                                  onClick={() => handleCancel(appointment)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  Cancel Appointment
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -507,13 +470,6 @@ export default function DoctorAppointmentsPage() {
           </div>
         )}
       </div>
-
-      {/* Add Appointment Modal */}
-      <AddAppointmentModal
-        isOpen={isAddModalOpen}
-        onClose={closeAllModals}
-        onSubmit={handleAddAppointment}
-      />
 
       {/* Appointment Detail Modal */}
       <AppointmentDetailModal

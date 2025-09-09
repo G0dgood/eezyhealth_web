@@ -95,12 +95,12 @@ export default function HomePage() {
             className="text-white hover:text-gray-200 transition-colors">
             Resources
           </Link>
-          <button className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-gray-900 transition-colors">
+          {/* <button className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-gray-900 transition-colors">
             Log in
-          </button>
-          <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
+          </button> */}
+          {/* <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
             Sign up
-          </button>
+          </button> */}
         </div>
       </div>
 

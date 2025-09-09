@@ -26,7 +26,7 @@ export const getPaymentsCollection = async (limits: number = 10): Promise<Paymen
     const paymentsData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as Payment));
 
     return paymentsData;
   } catch (error) {
@@ -43,7 +43,7 @@ export const getAllPayments = async (): Promise<Payment[]> => {
     const paymentsData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as Payment));
 
     return paymentsData;
   } catch (error) {
@@ -107,7 +107,7 @@ export const getPaymentsByStatus = async (status: Payment['status']): Promise<Pa
     const paymentsData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as Payment[];
+    } as Payment));
 
     return paymentsData.filter(payment => payment.status === status);
   } catch (error) {
@@ -124,7 +124,7 @@ export const getPaymentsByPatientId = async (patientId: string): Promise<Payment
     const paymentsData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as Payment[];
+    } as Payment));
 
     return paymentsData.filter(payment => payment.patientId === patientId);
   } catch (error) {
@@ -141,7 +141,7 @@ export const getPaymentsByDoctorId = async (doctorId: string): Promise<Payment[]
     const paymentsData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as Payment[];
+    } as Payment));
 
     return paymentsData.filter(payment => payment.doctorId === doctorId);
   } catch (error) {

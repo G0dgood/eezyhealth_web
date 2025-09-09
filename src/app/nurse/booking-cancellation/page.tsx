@@ -11,7 +11,8 @@ import {
   useRespondToCancellationRequestMutation,
 } from "@/store/api";
 import { toast } from "sonner";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { NoRecordFound } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { FirebaseBookingCancellation } from "@/types";
 
 export default function NurseBookingCancellationPage() {
@@ -184,9 +185,7 @@ export default function NurseBookingCancellationPage() {
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {isLoading ? (
-                <SVGLoaderFetch colSpan={7} />
-              ) : paginatedData?.length === 0 ||
+              {paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
                 <NoRecordFound colSpan={7} />
               ) : (

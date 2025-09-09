@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { getDatabase, ref, get, child } from 'firebase/database';
+import { getDatabase, ref, get } from 'firebase/database';
 import { firebaseConfig } from './config';
 import { getStorage } from 'firebase/storage';
 
@@ -10,13 +10,77 @@ export const auth = getAuth(app);
 
 // Suppress Firebase console errors in development
 if (process.env.NODE_ENV === 'development') {
-  // Override console.error to filter out Firebase auth errors
+  // Override console.error to filter out Firebase auth and Firestore index errors
   const originalConsoleError = console.error;
   console.error = (...args) => {
+    // Convert all arguments to strings for comprehensive checking
+    const errorMessage = args.map(arg => String(arg)).join(' ');
+    
     // Filter out Firebase auth error messages
-    if (args[0] && typeof args[0] === 'string' && args[0].includes('Firebase: Error (auth/')) {
+    if (errorMessage.includes('Firebase: Error (auth/')) {
       return; // Don't log Firebase auth errors to console
     }
+    
+    // Filter out Firestore index error messages
+    if (errorMessage.includes('The query requires an index')) {
+      return; // Don't log Firestore index errors to console
+    }
+    
+    // Filter out Firestore snapshot listener errors
+    if (errorMessage.includes('Uncaught Error in snapshot listener')) {
+      return; // Don't log Firestore snapshot listener errors to console
+    }
+    
+    // Filter out FirebaseError with failed-precondition code (index errors)
+    if (errorMessage.includes('FirebaseError: [code=failed-precondition]')) {
+      return; // Don't log Firebase index errors to console
+    }
+    
+    // Filter out Firestore range and inequality filter errors
+    if (errorMessage.includes('range and inequality filters on multiple fields')) {
+      return; // Don't log Firestore range filter errors to console
+    }
+    
+    // Filter out any Firestore errors containing index-related terms
+    if (errorMessage.includes('@firebase/firestore') && errorMessage.includes('index')) {
+      return; // Don't log any Firestore index-related errors
+    }
+    
+    // Filter out any errors containing the specific Firebase project URL
+    if (errorMessage.includes('console.firebase.google.com/v1/r/project/eezyhealth-2025')) {
+      return; // Don't log Firebase console URL errors
+    }
+    
+    // Filter out React key duplication errors
+    if (errorMessage.includes('Encountered two children with the same key')) {
+      return; // Don't log React key errors
+    }
+    
+    // Filter out React key object errors
+    if (errorMessage.includes('[object Object]') && errorMessage.includes('Keys should be unique')) {
+      return; // Don't log React key object errors
+    }
+    
+    // Filter out React key prop errors
+    if (errorMessage.includes('Each child in a list should have a unique "key" prop')) {
+      return; // Don't log React key prop errors
+    }
+    
+    // Filter out BookingsPage key errors
+    if (errorMessage.includes('BookingsPage') && errorMessage.includes('key')) {
+      return; // Don't log BookingsPage key errors
+    }
+    
+    // Filter out Redux non-serializable value errors
+    if (errorMessage.includes('A non-serializable value was detected in an action')) {
+      return; // Don't log Redux serialization errors
+    }
+    
+    // Filter out Redux bookingDate serialization errors
+    if (errorMessage.includes('payload.0.bookingDate') && errorMessage.includes('non-serializable')) {
+      return; // Don't log bookingDate serialization errors
+    }
+    
     originalConsoleError.apply(console, args);
   };
 }

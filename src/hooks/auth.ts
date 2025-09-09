@@ -19,7 +19,7 @@ export function getUserPrivileges(): {
 } {
 
    
-    // @ts-expect-error  
+    // @ts-expect-error - localStorage.getItem can return null, but JSON.parse expects string
 	const userString = JSON.parse(localStorage.getItem("eezy-user-info"));
   const userInfo = userString ? userString : null;
   const privileges = userInfo || [];

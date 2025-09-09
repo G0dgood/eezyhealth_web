@@ -1,16 +1,34 @@
 import React from "react";
 import { Search } from "lucide-react";
-import { useState } from "react";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { useState, useEffect } from "react";
+import { NoRecordFound } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useGetBookingsQuery } from "@/store/api";
 
+interface Booking {
+  bookingId?: string;
+  patientName?: string;
+  doctorName?: string;
+  date?: string;
+  time?: string;
+  bookingChannel?: string;
+  specialization?: string;
+  bookingStatus?: string;
+  status?: string;
+}
+
 const BookingList = () => {
-  const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery();
+  const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
   console.log("bookings---", bookings?.bookings);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [bookingsData, setBookingsData] = useState(bookings?.bookings);
+  const [bookingsData, setBookingsData] = useState<Booking[] | undefined>(bookings?.bookings);
+
+  // Update bookingsData when bookings change
+  useEffect(() => {
+    setBookingsData(bookings?.bookings);
+  }, [bookings?.bookings]);
 
   console.log("bookingsData---", bookingsData);
 
@@ -23,14 +41,12 @@ const BookingList = () => {
       return;
     }
 
-    const filteredBookings = bookings?.bookings?.filter(
-      (booking: { bookingStatus: string }) => {
-        return booking.bookingStatus.toLowerCase().includes(term);
-        // booking.doctor.toLowerCase().includes(term) ||
-        // booking.Specialty.toLowerCase().includes(term) ||
-        // booking.type.toLowerCase().includes(term)
-      }
-    );
+    const filteredBookings = bookings?.bookings?.filter((booking: Booking) => {
+      return booking.bookingStatus?.toLowerCase().includes(term) || false;
+      // booking.doctorName?.toLowerCase().includes(term) ||
+      // booking.specialization?.toLowerCase().includes(term) ||
+      // booking.bookingChannel?.toLowerCase().includes(term)
+    });
 
     setBookingsData(filteredBookings);
   };
@@ -48,58 +64,72 @@ const BookingList = () => {
         />
       </div>
       {/* Bookings Table */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th>Patient Name</th>
-                <th>Doctor</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Channel</th>
-                <th>Specialty</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <SVGLoaderFetch colSpan={7} />
-              ) : bookingsData?.length === 0 ||
+      {isLoading ? (
+        <TableSkeleton
+          columns={7}
+          rows={5}
+          headerLabels={[
+            "Patient Name",
+            "Doctor",
+            "Date",
+            "Time",
+            "Channel",
+            "Specialty",
+            "Status",
+          ]}
+        />
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th>Patient Name</th>
+                  <th>Doctor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Channel</th>
+                  <th>Specialty</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {bookingsData?.length === 0 ||
                 bookingsData?.length === undefined ? (
-                <NoRecordFound colSpan={7} />
-              ) : (
-                bookingsData.map((booking, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-green-600 font-medium">
-                        {booking.patientName}
-                      </span>
-                    </td>
-                    <td> {booking.doctorName}</td>
-                    <td>{booking.date}</td>
-                    <td>{booking.time}</td>
-                    <td>{booking.bookingChannel}</td>
-                    <td> {booking.specialization}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          booking.bookingStatus === "Accepted"
-                            ? "bg-green-100 text-green-800"
-                            : booking.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}>
-                        {booking.bookingStatus}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                  <NoRecordFound colSpan={7} />
+                ) : (
+                  bookingsData.map((booking: Booking, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 font-medium">
+                          {booking?.patientName}
+                        </span>
+                      </td>
+                      <td> {booking?.doctorName}</td>
+                      <td>{booking?.date}</td>
+                      <td>{booking?.time}</td>
+                      <td>{booking?.bookingChannel}</td>
+                      <td> {booking?.specialization}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            booking.bookingStatus === "Accepted"
+                              ? "bg-green-100 text-green-800"
+                              : booking.status === "Pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}>
+                          {booking.bookingStatus || "Unknown"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

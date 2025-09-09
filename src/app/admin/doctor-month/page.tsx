@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trophy, User, Search, Bell } from "lucide-react";
+import { Trophy, User } from "lucide-react";
 import Title from "@/components/Title";
 import {
   useGetFirebaseDoctorOfTheMonthQuery,
@@ -20,7 +20,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { NoRecordFound } from "@/components/Options";
 import { showSuccess, showInfo } from "@/utils/toast";
 
 interface DoctorPerformance {
@@ -725,11 +725,9 @@ const AdminDoctorOfMonthPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {isLoadingPastDoctors ? (
-                    <SVGLoaderFetch colSpan={7} />
-                  ) : pastDoctors?.length === 0 ||
-                    pastDoctors?.length === undefined ? (
-                    <NoRecordFound colSpan={7} />
+                  {pastDoctors?.length === 0 ||
+                  pastDoctors?.length === undefined ? (
+                    <NoRecordFound colSpan={6} />
                   ) : (
                     pastDoctors.map((doctor, index) => (
                       <tr

@@ -17,7 +17,7 @@ export const getPatients = async () => {
 
 // Usage example:
 getPatients()
-  .then(data => { })
+  .then(() => { })
   .catch(error => {
     console.error('Error fetching patients:', error);
   });

@@ -32,7 +32,7 @@ export const getDoctorById = async (doctorId: string) => {
 
 // Usage example:
 getDoctorsCollection()
-  .then(data => {  })
+  .then(() => {  })
   .catch(error => {
     console.error('Error fetching doctors collection:', error);
   });

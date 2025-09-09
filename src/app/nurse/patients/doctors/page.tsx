@@ -1,23 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Search,
-  Star,
-  Mail,
-  Phone,
-  HelpCircle,
-  Bell,
-  User,
-  ArrowLeft,
-  MapPin,
-} from "lucide-react";
+import React from "react";
+import { Star, Mail, Phone, User, ArrowLeft, MapPin } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 
@@ -50,9 +39,6 @@ interface Doctor {
   image?: string;
 }
 
-// Type guard to check if a value is a string
-const isString = (value: unknown): value is string => typeof value === "string";
-
 // Type guard to check if a value is a number
 const isNumber = (value: unknown): value is number => typeof value === "number";
 
@@ -61,63 +47,47 @@ export default function NursesDoctorsPage() {
   const router = useRouter();
   const patientName = searchParams.get("patient");
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-
   // Fetch doctors using RTK
   const {
     data: doctorsData = [],
     isLoading,
-    error,
     isError,
-  } = useGetFirebaseDoctorProfilesQuery();
+  } = useGetFirebaseDoctorProfilesQuery({});
 
   // Transform the data to match our Doctor interface
   const transformedDoctors: Doctor[] = doctorsData.map(
     (doc: Record<string, unknown>, index: number) => ({
-      id: doc.doctorId || doc.id || `doc-${index}`,
-      display_name: doc.display_name,
-      first_name: doc.first_name,
-      last_name: doc.last_name,
-      title: doc.title,
-      specialization: doc.specialization,
-      experience_yrs: doc.experience_yrs,
+      id: (doc.doctorId as string) || (doc.id as string) || `doc-${index}`,
+      display_name: doc.display_name as string,
+      first_name: doc.first_name as string,
+      last_name: doc.last_name as string,
+      title: doc.title as string,
+      specialization: doc.specialization as string,
+      experience_yrs: doc.experience_yrs as string,
       rating: typeof doc.rating === "number" ? doc.rating : 0,
-      email: doc.email,
-      phone_number: doc.phone_number,
+      email: doc.email as string,
+      phone_number: doc.phone_number as string,
       isTop: typeof doc.isTop === "boolean" ? doc.isTop : false,
       isActive: typeof doc.isActive === "boolean" ? doc.isActive : true,
       isVerify: typeof doc.isVerify === "boolean" ? doc.isVerify : false,
-      address: doc.address,
-      hospital: doc.hospital,
-      about: doc.about,
-      availability: doc.availability,
-      createdTime: doc.createdTime,
-      date_of_birth: doc.date_of_birth,
-      doctorId: doc.doctorId,
-      photo_url: doc.photo_url,
-      image: doc.image,
+      address: doc.address as string,
+      hospital: doc.hospital as string,
+      about: doc.about as string,
+      availability: doc.availability as {
+        [day: string]: {
+          [time: string]: string;
+        };
+      },
+      createdTime: doc.createdTime as Date | string,
+      date_of_birth: doc.date_of_birth as Date | string,
+      doctorId: doc.doctorId as string,
+      photo_url: doc.photo_url as string,
+      image: doc.image as string,
     })
   );
 
   // Use fetched doctors data
   const dataSource = transformedDoctors;
-
-  // Filter doctors based on search
-  const filteredDoctors = dataSource.filter((doctor) => {
-    const name =
-      doctor.display_name ||
-      `${doctor.first_name || ""} ${doctor.last_name || ""}`.trim() ||
-      "";
-    const specialization = doctor.specialization || doctor.title || "";
-
-    return (
-      (isString(name) &&
-        name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (isString(specialization) &&
-        specialization.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
 
   // Determine top doctors (either by isTop flag or by rating)
   const topDoctors = dataSource.filter(
@@ -128,17 +98,6 @@ export default function NursesDoctorsPage() {
     .slice(0, 4); // Show first 4 as regular doctors
 
   // Handle errors and success with Sonner toast
-
-  // Show info toast when search is performed
-  useEffect(() => {
-    if (searchQuery && filteredDoctors.length > 0) {
-      toast.info(
-        `Found ${filteredDoctors.length} doctors matching "${searchQuery}"`
-      );
-    } else if (searchQuery && filteredDoctors.length === 0) {
-      toast.warning(`No doctors found matching "${searchQuery}"`);
-    }
-  }, [searchQuery, filteredDoctors.length]);
 
   const renderStars = (rating: number) => {
     if (!rating) return null;
@@ -156,28 +115,12 @@ export default function NursesDoctorsPage() {
     return stars;
   };
 
-  const handleDoctorSelect = (doctor: Doctor) => {
-    setSelectedDoctor(doctor);
-    toast.success(
-      `Selected Dr. ${
-        doctor.display_name ||
-        `${doctor.first_name || ""} ${doctor.last_name || ""}`.trim() ||
-        "Unknown"
-      }`,
-      {
-        description: `Specialization: ${
-          doctor.specialization || doctor.title || "N/A"
-        }`,
-      }
-    );
-  };
-
   const handleBookAppointment = (doctor: Doctor) => {
     // Navigate to booking page with doctor and patient info
     const patientId = searchParams.get("patientId");
     const bookingUrl = `/nurse/patients/book-appointment/${
       doctor.doctorId || doctor.id
-    }?patient=${encodeURIComponent(patientName)}&patientId=${patientId}`;
+    }?patient=${encodeURIComponent(patientName || "")}&patientId=${patientId}`;
     router.push(bookingUrl);
   };
 
@@ -243,8 +186,7 @@ export default function NursesDoctorsPage() {
           {topDoctors.map((doctor, index) => (
             <div
               key={doctor.id}
-              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200`}
-              onClick={() => handleDoctorSelect(doctor)}>
+              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200`}>
               {/* Top Doctor Banner */}
               <div
                 className={`${topDoctorMainColors[index]} absolute top-[110px] left-[-30px] text-[#fff] px-3 py-1 w-[200px] text-xs font-bold transform -rotate-45 origin-top-left text-center font-inter text-[12px] leading-[15px]  
@@ -332,8 +274,7 @@ export default function NursesDoctorsPage() {
           {regularDoctors?.map((doctor: Doctor) => (
             <div
               key={doctor.id}
-              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
-              onClick={() => handleDoctorSelect(doctor)}>
+              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200">
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
                   <Image

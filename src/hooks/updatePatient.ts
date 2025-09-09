@@ -1,4 +1,4 @@
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from "@/lib/firebase";
 
 export interface UpdatePatientData {
@@ -25,12 +25,12 @@ export const updatePatient = async (patientId: string, updateData: UpdatePatient
   try {
     const userDocRef = doc(db, 'users', patientId);
     
-    const updateDoc = {
+    const updateDataWithTimestamp = {
       ...updateData,
       updatedAt: serverTimestamp(),
     };
 
-    await updateDoc(userDocRef, updateDoc);
+    await updateDoc(userDocRef, updateDataWithTimestamp);
     
     return {
       id: patientId,

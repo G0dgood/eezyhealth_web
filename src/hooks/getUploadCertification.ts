@@ -16,7 +16,7 @@ export const getUploadCertification = async () => {
 
 // Usage example:
 getUploadCertification()
-  .then(data => {  })
+  .then(() => {  })
   .catch(error => {
     console.error('Error fetching uploads collection:', error);
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -16,13 +16,10 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { useSearchParams } from "next/navigation";
 import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/api";
 import { toast } from "sonner";
-import {
-  communicationChannels,
-  getDayName,
-  renderStars,
-} from "@/components/Options";
+import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
 import { BookingConfirmationModal } from "@/components/modals";
+import { DoctorBookingSkeleton } from "@/components/ui/doctor-booking-skeleton";
 
 interface Doctor {
   id: string;
@@ -56,8 +53,9 @@ interface Doctor {
 export default function DoctorBookingPage({
   params,
 }: {
-  params: { doctorId: string };
+  params: Promise<{ doctorId: string }>;
 }) {
+  const { doctorId } = use(params);
   const searchParams = useSearchParams();
   const patientName = searchParams.get("patient");
   const patientId = searchParams.get("patientId");
@@ -74,13 +72,16 @@ export default function DoctorBookingPage({
 
   // Fetch doctor data using RTK
   const {
-    data: doctor,
+    data: doctorData,
     isLoading,
     error,
     isError,
-  } = useGetFirebaseDoctorProfileByIdQuery(params.doctorId, {
-    skip: !params.doctorId,
+  } = useGetFirebaseDoctorProfileByIdQuery(doctorId, {
+    skip: !doctorId,
   });
+
+  // Type assertion to ensure proper typing
+  const doctor = doctorData as Doctor | undefined;
 
   const errorMessage = getErrorMessage(error);
 
@@ -88,10 +89,10 @@ export default function DoctorBookingPage({
     if (isError) {
       toast.warning(errorMessage);
     }
-  }, [isError]);
+  }, [isError, errorMessage]);
 
   // Get day name from date
-  const getDayName = (date: Date) => {
+  const getDayName = (date: Date): string => {
     const days = [
       "Sunday",
       "Monday",
@@ -105,7 +106,7 @@ export default function DoctorBookingPage({
   };
 
   // Check if a date has availability
-  const hasAvailability = (date: Date) => {
+  const hasAvailability = (date: Date): boolean => {
     if (!doctor?.availability) return false;
     const dayName = getDayName(date);
     return (
@@ -115,14 +116,22 @@ export default function DoctorBookingPage({
   };
 
   // Get availability for a specific day
-  const getDayAvailability = (date: Date) => {
+  const getDayAvailability = (date: Date): { [key: string]: string } | null => {
     if (!doctor?.availability) return null;
     const dayName = getDayName(date);
     return doctor.availability[dayName] || null;
   };
 
   // Calendar functions
-  const getDaysInMonth = (date: Date) => {
+  const getDaysInMonth = (
+    date: Date
+  ): Array<{
+    date: Date;
+    day: number;
+    currentMonth: boolean;
+    selected: boolean | null;
+    hasAvailability: boolean;
+  }> => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -176,33 +185,33 @@ export default function DoctorBookingPage({
     return days;
   };
 
-  const goToPreviousMonth = () => {
+  const goToPreviousMonth = (): void => {
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
     );
   };
 
-  const goToNextMonth = () => {
+  const goToNextMonth = (): void => {
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
     );
   };
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = (date: Date): void => {
     setSelectedDate(date);
     const availability = getDayAvailability(date);
     setSelectedDayAvailability(availability);
     setSelectedTime(""); // Reset time selection when date changes
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = (): void => {
     if (!selectedDate || !selectedTime || !selectedChannel) {
       toast.error("Please select date, time, and communication channel");
       return;
@@ -212,19 +221,12 @@ export default function DoctorBookingPage({
     setShowConfirmationModal(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     setShowConfirmationModal(false);
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading doctor information...</p>
-        </div>
-      </div>
-    );
+    return <DoctorBookingSkeleton />;
   }
 
   if (isError || !doctor) {
@@ -233,7 +235,7 @@ export default function DoctorBookingPage({
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Error Loading Doctor
         </h2>
-        <p className="text-gray-600 mb-6">{errorMessage}</p>
+        <p className="text-gray-600 mb-6">{String(errorMessage)}</p>
         <Link
           href="/nurse/patients/doctors"
           className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
@@ -258,7 +260,7 @@ export default function DoctorBookingPage({
     time: selectedTime,
     channel: selectedChannel,
     reason: consultationReason,
-    doctorId: params.doctorId,
+    doctorId: doctorId,
   };
 
   return (

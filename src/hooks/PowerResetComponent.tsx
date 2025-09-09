@@ -1,6 +1,5 @@
 import React from "react";
 import { GrPowerReset } from "react-icons/gr";
-import axios from "axios";
 
 const PowerResetComponent: React.FC<{
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -10,12 +9,19 @@ const PowerResetComponent: React.FC<{
   const handleResetEmail = async () => {
     setIsLoading(true);
     try {
-      const { data } = await axios.post(
-        "/api/v2/auth/resend-email-verification",
-        {
+      const response = await fetch("/api/v2/auth/resend-email-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           email: email,
-        }
-      );
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     } catch (error) {
       console.error("Error:", error); // Handle error
     } finally {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { ArrowLeft, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,8 +9,9 @@ import Breadcrumb from "@/components/Breadcrumb";
 export default function DoctorBookingPage({
   params,
 }: {
-  params: { doctorId: string };
+  params: Promise<{ doctorId: string }>;
 }) {
+  const { doctorId } = use(params);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState("08:00");

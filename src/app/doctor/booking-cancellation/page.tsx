@@ -1,106 +1,117 @@
 "use client";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BookingCancellationTableSkeleton } from "@/components/ui/BookingCancellationTableSkeleton";
+import {
+  NoRecordFound,
+  getCancellationStatusBadge,
+} from "@/components/Options";
 
 interface CancelledAppointment {
   id: string;
   patientName: string;
-  date: string;
-  time: string;
-  reason: string;
-  status: "Cancelled";
+  patientId?: string;
+  userId?: string;
+  doctorId: string;
+  doctorName?: string;
+  bookingDate: any; // Firebase timestamp
+  slot: string;
+  timeSlot?: string; // fallback
+  bookingChannel?: string;
+  bookingStatus?: string;
+  bookingId?: string;
+  cancellationRequest: {
+    reasonForCancellation?: string;
+    reason?: string; // fallback
+    status: string;
+    adminResponse?: string;
+    respondedAt?: any; // Firebase timestamp
+    respondedBy?: string;
+  };
+  status: string;
+  paymentStatus?: string;
+  specialization?: string;
+  hospital?: string;
+  patientAddress?: string;
+  doctorPhotoUrl?: string;
+  photo_url?: string;
+  comments?: any[];
 }
 
 export default function DoctorBookingCancellationPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const cancelledAppointments: CancelledAppointment[] = [
-    {
-      id: "1",
-      patientName: "Godwin Paul",
-      date: "2 December 2024",
-      time: "8:30 AM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "2",
-      patientName: "Daniel Sean",
-      date: "1 December 2024",
-      time: "9:30 AM",
-      reason: "Schedule Conflict",
-      status: "Cancelled",
-    },
-    {
-      id: "3",
-      patientName: "Tolu Ali",
-      date: "27 November 2024",
-      time: "10:00 AM",
-      reason: "Doctor Illness",
-      status: "Cancelled",
-    },
-    {
-      id: "4",
-      patientName: "Fatima Tope",
-      date: "23 November 2024",
-      time: "8:00 AM",
-      reason: "Patient Request",
-      status: "Cancelled",
-    },
-    {
-      id: "5",
-      patientName: "Seun Okoro",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "6",
-      patientName: "Aisha Taiwo",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "7",
-      patientName: "Joy Pascal",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "8",
-      patientName: "Hadiza Sanni",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "9",
-      patientName: "Kofi Ben",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-    {
-      id: "10",
-      patientName: "Efe Felix",
-      date: "23 November 2024",
-      time: "2:00 PM",
-      reason: "Doctor Emergency",
-      status: "Cancelled",
-    },
-  ];
+  // Get current doctor ID
+  const { user } = useAuth();
+  const doctorId =
+    user && typeof user === "object" && "uid" in user ? user.uid : null;
+
+  // Use RTK Query to fetch booking cancellations by doctorId
+  const {
+    data: cancellationsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetBookingCancellationsByDoctorIdQuery(
+    { doctorId: doctorId! },
+    { skip: !doctorId }
+  );
+
+  const cancelledAppointments =
+    (cancellationsData as unknown as CancelledAppointment[]) || [];
+
+  // Handle notifications
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load cancellation requests", {
+        description:
+          "Please try again or contact support if the issue persists.",
+        action: {
+          label: "Retry",
+          onClick: () => refetch(),
+        },
+      });
+    }
+  }, [
+    error,
+    refetch,
+    cancellationsData,
+    isLoading,
+    cancelledAppointments.length,
+  ]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div>
+        <div className="mb-6">
+          <Breadcrumb
+            homeHref="/doctor"
+            items={[
+              { label: "Doctor", href: "/doctor" },
+              {
+                label: "Booking Cancellation",
+                href: "/doctor/booking-cancellation",
+              },
+            ]}
+          />
+        </div>
+        <Title title="Cancelled Appointments" />
+        <div className="flex-1 mb-6">
+          <Skeleton className="h-10 w-full max-w-md" />
+        </div>
+        <BookingCancellationTableSkeleton rows={5} />
+      </div>
+    );
+  }
 
   // Filter appointments based on search term
   const filteredAppointments = cancelledAppointments.filter((appointment) =>
@@ -108,22 +119,9 @@ export default function DoctorBookingCancellationPage() {
   );
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const getStatusBadge = (status: string) => {
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-        {status}
-      </span>
-    );
-  };
 
   return (
     <div>
@@ -140,7 +138,7 @@ export default function DoctorBookingCancellationPage() {
         />
       </div>
 
-        <Title title="Cancelled Appointments" />
+      <Title title="Cancelled Appointments" />
       <div className="flex-1 mb-6">
         <SearchInput
           value={searchTerm}
@@ -155,76 +153,60 @@ export default function DoctorBookingCancellationPage() {
           <table className="min-w-full divide-y divide-[var(--border)]">
             <thead className="bg-[var(--muted)]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  PATIENT
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  DATE
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  TIME
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  REASON
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  STATUS
-                </th>
+                <th>PATIENT</th>
+                <th>DATE</th>
+                <th>TIME</th>
+                <th>REASON </th>
+                <th>STATUS</th>
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {currentAppointments.map((appointment) => (
-                <tr key={appointment.id} className="hover:bg-[var(--muted)]">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-[var(--foreground)]">
-                      {appointment.patientName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[var(--foreground)]">
-                      {appointment.date}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[var(--foreground)]">
-                      {appointment.time}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[var(--foreground)]">
-                      {appointment.reason}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(appointment.status)}
-                  </td>
-                </tr>
-              ))}
+              {currentAppointments?.length === 0 ||
+              currentAppointments?.length === undefined ? (
+                <NoRecordFound colSpan={6} />
+              ) : (
+                currentAppointments?.map((appointment) => (
+                  <tr key={appointment.id} className="hover:bg-[var(--muted)]">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-[var(--foreground)]">
+                        {appointment.patientName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[var(--foreground)]">
+                        {appointment.bookingDate?.toDate
+                          ? appointment.bookingDate
+                              .toDate()
+                              .toLocaleDateString()
+                          : new Date(
+                              appointment.bookingDate
+                            ).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[var(--foreground)]">
+                        {appointment.slot || appointment.timeSlot}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[var(--foreground)]">
+                        {appointment.cancellationRequest
+                          ?.reasonForCancellation ||
+                          appointment.cancellationRequest?.reason ||
+                          "No reason provided"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getCancellationStatusBadge(
+                        appointment.cancellationRequest?.status ||
+                          appointment.status
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between mt-6">
-        <div className="text-sm text-[var(--muted-foreground)]">
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-md hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
         </div>
       </div>
     </div>

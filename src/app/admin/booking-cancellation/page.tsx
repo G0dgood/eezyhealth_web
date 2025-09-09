@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
@@ -11,7 +11,8 @@ import {
   useRespondToCancellationRequestMutation,
 } from "@/store/api";
 import { toast } from "sonner";
-import { NoRecordFound, SVGLoaderFetch } from "@/components/Options";
+import { NoRecordFound } from "@/components/Options";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { FirebaseBookingCancellation } from "@/types";
 
 export default function AdminBookingCancellationPage() {
@@ -157,174 +158,180 @@ export default function AdminBookingCancellationPage() {
 
       {/* Cancellations Table */}
 
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[var(--border)]">
-            <thead className="bg-[var(--muted)]">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  DOCTOR
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  PATIENT NAME
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  USER ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  DATE
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  STATUS
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
-                  ACTION
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {isLoading ? (
-                <SVGLoaderFetch colSpan={7} />
-              ) : paginatedData?.length === 0 ||
+      {isLoading ? (
+        <TableSkeleton
+          columns={6}
+          rows={5}
+          headerLabels={[
+            "DOCTOR",
+            "PATIENT NAME",
+            "USER ID",
+            "DATE",
+            "STATUS",
+            "ACTION",
+          ]}
+        />
+      ) : (
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-[var(--border)]">
+              <thead className="bg-[var(--muted)]">
+                <tr>
+                  <th>DOCTOR</th>
+                  <th>PATIENT NAME</th>
+                  <th>USER ID</th>
+                  <th>DATE</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
+                {paginatedData?.length === 0 ||
                 paginatedData?.length === undefined ? (
-                <NoRecordFound colSpan={7} />
-              ) : (
-                paginatedData.map(
-                  (cancellation: Record<string, unknown>, index: number) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-[var(--muted)] transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-[var(--foreground)]">
-                          {(cancellation.doctorName as string) || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--foreground)]">
-                          {(cancellation.patientName as string) || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--muted-foreground)]">
-                          {(cancellation.userId as string) || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--muted-foreground)]">
-                          {(cancellation.bookingDate as string) || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            (
+                  <NoRecordFound colSpan={6} />
+                ) : (
+                  paginatedData.map(
+                    (cancellation: Record<string, unknown>, index: number) => (
+                      <tr
+                        key={index}
+                        className="hover:bg-[var(--muted)] transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-[var(--foreground)]">
+                            {(cancellation.doctorName as string) || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-[var(--foreground)]">
+                            {(cancellation.patientName as string) || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-[var(--muted-foreground)]">
+                            {(cancellation.userId as string) || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-[var(--muted-foreground)]">
+                            {(cancellation.bookingDate as string) || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              (
+                                cancellation.cancellationRequest as Record<
+                                  string,
+                                  unknown
+                                >
+                              )?.status === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : (
+                                    cancellation.cancellationRequest as Record<
+                                      string,
+                                      unknown
+                                    >
+                                  )?.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                            }`}>
+                            {((
                               cancellation.cancellationRequest as Record<
                                 string,
                                 unknown
                               >
-                            )?.status === "approved"
-                              ? "bg-green-100 text-green-800"
-                              : (
-                                  cancellation.cancellationRequest as Record<
-                                    string,
-                                    unknown
-                                  >
-                                )?.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}>
-                          {((
-                            cancellation.cancellationRequest as Record<
-                              string,
-                              unknown
-                            >
-                          )?.status as string) || "Unknown"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => {
-                            setSelectedBooking(
-                              cancellation as unknown as FirebaseBookingCancellation
-                            );
-                            setIsCancelModalOpen(true);
-                          }}
-                          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-sm cursor-pointer">
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
+                            )?.status as string) || "Unknown"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              setSelectedBooking(
+                                cancellation as unknown as FirebaseBookingCancellation
+                              );
+                              setIsCancelModalOpen(true);
+                            }}
+                            className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-sm cursor-pointer">
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    )
                   )
-                )
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="bg-[var(--card)] px-4 py-3 border-t border-[var(--border)] flex items-center justify-between sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Showing{" "}
-                  <span className="font-medium text-[var(--foreground)]">
-                    {(currentPage - 1) * itemsPerPage + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-medium text-[var(--foreground)]">
-                    {Math.min(currentPage * itemsPerPage, filteredData.length)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-medium text-[var(--foreground)]">
-                    {filteredData.length}
-                  </span>{" "}
-                  results
-                </p>
-              </div>
-              <div>
-                <nav
-                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                  aria-label="Pagination">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <span className="sr-only">Next</span>
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </nav>
-              </div>
-            </div>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="bg-[var(--card)] px-4 py-3 border-t border-[var(--border)] flex items-center justify-between sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Showing{" "}
+                    <span className="font-medium text-[var(--foreground)]">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium text-[var(--foreground)]">
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredData.length
+                      )}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium text-[var(--foreground)]">
+                      {filteredData.length}
+                    </span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination">
+                    <button
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      <span className="sr-only">Next</span>
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Cancellation Details Modal */}
       <Modal

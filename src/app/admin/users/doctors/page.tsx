@@ -6,131 +6,120 @@ import {
   Star,
   Mail,
   Phone,
-  HelpCircle,
-  Bell,
+  MapPin,
+  Calendar,
+  Clock,
   User,
 } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import Image from "next/image";
+import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
+import { NoRecordFound } from "@/components/Options";
+import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 
 interface Doctor {
   id: string;
-  name: string;
-  specialization: string;
-  experience: string;
-  rating: number;
+  display_name?: string;
+  first_name?: string;
+  last_name?: string;
+  title?: string;
+  specialization?: string;
+  experience_yrs?: string;
+  rating?: number;
   email: string;
-  phone: string;
-  isTopDoctor: boolean;
-  image: string;
+  phone_number?: string;
+  isTop?: boolean;
+  isActive?: boolean;
+  isVerify?: boolean;
+  address?: string;
+  hospital?: string;
+  about?: string;
+  availability?: {
+    [day: string]: {
+      [time: string]: string;
+    };
+  };
+  createdTime?: Date | string;
+  date_of_birth?: Date | string;
+  doctorId?: string;
+  photo_url?: string;
+  image?: string;
 }
 
 export default function AdminDoctorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sample doctor data
-  const doctors: Doctor[] = [
-    {
-      id: "1",
-      name: "Dr Prosper Matt",
-      specialization: "Psychologist Specialist",
-      experience: "10 years experience",
-      rating: 4.0,
-      email: "prospermatt@gmail.com",
-      phone: "+234144236775",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "2",
-      name: "Dr Sarah Johnson",
-      specialization: "Cardiologist",
-      experience: "8 years experience",
-      rating: 4.5,
-      email: "sarah.johnson@email.com",
-      phone: "+234144236776",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "3",
-      name: "Dr Michael Chen",
-      specialization: "Neurologist",
-      experience: "12 years experience",
-      rating: 4.8,
-      email: "michael.chen@email.com",
-      phone: "+234144236777",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "4",
-      name: "Dr Emily Davis",
-      specialization: "Pediatrician",
-      experience: "6 years experience",
-      rating: 4.2,
-      email: "emily.davis@email.com",
-      phone: "+234144236778",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "5",
-      name: "Dr Robert Wilson",
-      specialization: "Orthopedic Surgeon",
-      experience: "15 years experience",
-      rating: 4.7,
-      email: "robert.wilson@email.com",
-      phone: "+234144236779",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "6",
-      name: "Dr Lisa Brown",
-      specialization: "Dermatologist",
-      experience: "9 years experience",
-      rating: 4.3,
-      email: "lisa.brown@email.com",
-      phone: "+234144236780",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "7",
-      name: "Dr James Miller",
-      specialization: "Oncologist",
-      experience: "11 years experience",
-      rating: 4.6,
-      email: "james.miller@email.com",
-      phone: "+234144236781",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-    {
-      id: "8",
-      name: "Dr Maria Garcia",
-      specialization: "Endocrinologist",
-      experience: "7 years experience",
-      rating: 4.1,
-      email: "maria.garcia@email.com",
-      phone: "+234144236782",
-      isTopDoctor: true,
-      image: "/api/placeholder/120/120",
-    },
-  ];
+  // Fetch doctors using RTK Query (same as nurse page)
+  const {
+    data: doctorsData = [],
+    isLoading,
+    error,
+    isError,
+  } = useGetFirebaseDoctorProfilesQuery({});
 
-  const topDoctors = doctors.filter((d) => d.isTopDoctor);
-  const regularDoctors = doctors.slice(0, 4); // Show first 4 as regular doctors
-
-  const filteredDoctors = doctors.filter(
-    (doctor) =>
-      doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doctor.specialization.toLowerCase().includes(searchQuery.toLowerCase())
+  // Transform the data to match our Doctor interface (same as nurse page)
+  const transformedDoctors: Doctor[] = doctorsData.map(
+    (doc: Record<string, unknown>, index: number) => ({
+      id: (doc.doctorId as string) || (doc.id as string) || `doc-${index}`,
+      display_name: doc.display_name as string,
+      first_name: doc.first_name as string,
+      last_name: doc.last_name as string,
+      title: doc.title as string,
+      specialization: doc.specialization as string,
+      experience_yrs: doc.experience_yrs as string,
+      rating: typeof doc.rating === "number" ? doc.rating : 0,
+      email: doc.email as string,
+      phone_number: doc.phone_number as string,
+      isTop: typeof doc.isTop === "boolean" ? doc.isTop : false,
+      isActive: typeof doc.isActive === "boolean" ? doc.isActive : true,
+      isVerify: typeof doc.isVerify === "boolean" ? doc.isVerify : false,
+      address: doc.address as string,
+      hospital: doc.hospital as string,
+      about: doc.about as string,
+      availability: doc.availability as {
+        [day: string]: {
+          [time: string]: string;
+        };
+      },
+      createdTime: doc.createdTime as Date | string,
+      date_of_birth: doc.date_of_birth as Date | string,
+      doctorId: doc.doctorId as string,
+      photo_url: doc.photo_url as string,
+      image: doc.image as string,
+    })
   );
 
-  const renderStars = (rating: number) => {
+  // Use transformed doctors data
+  const doctors = transformedDoctors;
+
+  // Debug logging
+
+  // Filter doctors based on search (same as nurse page)
+  const filteredDoctors = doctors.filter((doctor) => {
+    const name =
+      doctor.display_name ||
+      `${doctor.first_name || ""} ${doctor.last_name || ""}`.trim() ||
+      "";
+    const specialization = doctor.specialization || doctor.title || "";
+
+    return (
+      (typeof name === "string" &&
+        name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (typeof specialization === "string" &&
+        specialization.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
+
+  // Determine top doctors (same as nurse page)
+  const topDoctors = doctors.filter(
+    (d) => d.isTop || (typeof d.rating === "number" && d.rating >= 4.5)
+  );
+  const regularDoctors = doctors
+    .filter((d) => !d.isTop && (typeof d.rating !== "number" || d.rating < 4.5))
+    .slice(0, 8); // Show first 8 as regular doctors
+
+  const renderStars = (rating: number = 0) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
@@ -145,16 +134,36 @@ export default function AdminDoctorsPage() {
     return stars;
   };
 
-  const topDoctorColors = [
-    "bg-yellow-400",
-    "bg-green-400",
-    "bg-pink-500",
-    "bg-green-600",
-    "bg-blue-500",
-    "bg-pink-400",
-    "bg-green-300",
-    "bg-green-700",
-  ];
+  // Loading state (same as nurse page)
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading doctors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state (same as nurse page)
+  if (isError) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Failed to load doctors
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Please try again or contact support if the problem persists.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -171,24 +180,44 @@ export default function AdminDoctorsPage() {
 
       <Title title="Doctor Management" />
 
+      {/* Search Bar */}
+      <div className="mb-8">
+        <div className="relative max-w-md mx-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search doctors by name, specialization, or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+          />
+        </div>
+      </div>
+
       {/* Top Doctors Section */}
-      <div className="mb-12">
+      <div className="mb-12 cursor-pointer">
         <h2 className="text-2xl font-semibold mb-6">Top Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {topDoctors.map((doctor, index) => (
             <div
               key={doctor.id}
-              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg`}>
+              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200`}>
               {/* Top Doctor Banner */}
-              <div className="absolute top-0 left-0 bg-yellow-500 text-red-600 px-3 py-1 text-xs font-bold transform -rotate-45 origin-top-left">
+              <div
+                className={`${topDoctorMainColors[index]} absolute top-[110px] left-[-30px] text-[#fff] px-3 py-1 w-[200px] text-xs font-bold transform -rotate-45 origin-top-left text-center font-inter text-[12px] leading-[15px]  
+         tracking-[0.5px]`}>
                 Top Doctor
               </div>
 
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-white">
-                  <Image
-                    src={doctor.image}
-                    alt={doctor.name}
+                  <img
+                    src={
+                      doctor.photo_url ||
+                      doctor.image ||
+                      "/api/placeholder/120/120"
+                    }
+                    alt={doctor.display_name || "Doctor"}
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
@@ -196,20 +225,19 @@ export default function AdminDoctorsPage() {
                 </div>
 
                 <h3 className="font-bold text-lg mb-2 text-gray-900">
-                  {doctor.name}
+                  {doctor.title || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-800 mb-2">
-                  {doctor.specialization}
+                <p className="text-sm text-gray-600 mb-2">
+                  {doctor.display_name?.trim() || ""}
                 </p>
-                <p className="text-xs text-gray-700 mb-3">
-                  {doctor.experience}
+                <p className="text-sm text-gray-600 mb-2">
+                  {`${doctor.first_name || ""}  ${
+                    doctor.last_name || ""
+                  }`.trim() || ""}
                 </p>
 
                 <div className="flex items-center justify-center mb-3">
-                  {renderStars(doctor.rating)}
-                  <span className="ml-2 text-sm font-medium text-gray-900">
-                    {doctor.rating}
-                  </span>
+                  {renderStars(doctor.rating || 0)}
                 </div>
 
                 <div className="space-y-2 text-left">
@@ -219,8 +247,30 @@ export default function AdminDoctorsPage() {
                   </div>
                   <div className="flex items-center text-sm text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
-                    <span>{doctor.phone}</span>
+                    <span>{doctor.phone_number || "Phone not available"}</span>
                   </div>
+
+                  {doctor.hospital && (
+                    <div className="flex items-center text-sm text-gray-800">
+                      <User className="w-4 h-4 mr-2" />
+                      <span className="truncate">{doctor.hospital}</span>
+                    </div>
+                  )}
+
+                  {doctor.address && (
+                    <div className="flex items-center text-sm text-gray-800">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      <span className="truncate">{doctor.address}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 flex space-x-2">
+                  <button
+                    className={`${topDoctorMainColors[index]} text-white flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}>
+                    View Details
+                  </button>
                 </div>
               </div>
             </div>
@@ -232,13 +282,19 @@ export default function AdminDoctorsPage() {
       <div>
         <h2 className="text-2xl font-semibold mb-6">All Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {regularDoctors.map((doctor) => (
-            <div key={doctor.id} className="bg-white rounded-lg p-6 shadow-lg">
+          {regularDoctors?.map((doctor: Doctor) => (
+            <div
+              key={doctor.id}
+              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200">
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
                   <Image
-                    src={doctor.image}
-                    alt={doctor.name}
+                    src={
+                      doctor.photo_url ||
+                      doctor.image ||
+                      "/api/placeholder/120/120"
+                    }
+                    alt={doctor.display_name || "Doctor"}
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
@@ -246,30 +302,49 @@ export default function AdminDoctorsPage() {
                 </div>
 
                 <h3 className="font-bold text-lg mb-2 text-gray-900">
-                  {doctor.name}
+                  {doctor.display_name || `${doctor.title}`.trim() || "N/A"}
                 </h3>
                 <p className="text-sm text-gray-600 mb-2">
-                  {doctor.specialization}
+                  {doctor.display_name?.trim() || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600 mb-2">
+                  {`${doctor.first_name || ""} ${
+                    doctor.last_name || ""
+                  }`.trim() || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600 mb-2">
+                  {doctor.specialization || "N/A"}
                 </p>
                 <p className="text-xs text-gray-500 mb-3">
-                  {doctor.experience}
+                  {doctor.experience_yrs
+                    ? `${doctor.experience_yrs} years experience`
+                    : "N/A"}
                 </p>
 
                 <div className="flex items-center justify-center mb-3">
-                  {renderStars(doctor.rating)}
-                  <span className="ml-2 text-sm font-medium text-gray-900">
-                    {doctor.rating}
-                  </span>
+                  {renderStars(doctor?.rating || 0)}
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
-                    <span className="truncate">{doctor.email}</span>
+                    <span className="truncate">{doctor?.email || "n/a"}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
-                    <span>{doctor.phone}</span>
+                    <span>{doctor?.phone_number || "Phone not available"}</span>
+                  </div>
+
+                  <div className="flex items-center text-sm text-gray-800">
+                    <User className="w-4 h-4 mr-2" />
+                    <span className="truncate">
+                      {doctor?.hospital || "n/a"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center text-sm text-gray-800">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span className="truncate">{doctor?.address || "n/a"}</span>
                   </div>
                 </div>
               </div>
