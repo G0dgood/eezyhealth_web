@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-  userRole = "ADMIN",
+  userRole,
   notificationCount = 0,
   onMobileMenuToggle,
   onEditClick,
@@ -81,7 +81,7 @@ export default function Header({
             className="text-lg font-medium"
             style={{ color: "var(--foreground)" }}>
             {userInfo ? `${userRole} ${userInfo?.first_name || ""} ${userInfo?.last_name || ""}` : "Hello"}
-          </span> 
+          </span>
         </div>
       </div>
 
@@ -114,7 +114,7 @@ export default function Header({
                   style={{ color: "var(--foreground)" }}>
                   {authUserInfo?.displayName?.charAt(0) ||
                     user?.displayName?.charAt(0) ||
-                    userRole.charAt(0)}
+                    userRole?.charAt(0)}
                 </span>
               )}
             </div>

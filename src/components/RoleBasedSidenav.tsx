@@ -176,22 +176,22 @@ export default function RoleBasedSidenav({
           id: "users",
           label: "Users",
           icon: <Users className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/users`,
           subItems: [
             {
+              id: "all-users",
+              label: "All Users",
+              icon: <Users className="w-4 h-4" />,
+              href: `/${role.toLowerCase()}/users`,
+              count: 89,
+            },
+            {
               id: "doctors",
-              label: "Doctor",
+              label: "Doctors",
               icon: <Stethoscope className="w-4 h-4" />,
               href: `/${role.toLowerCase()}/users/doctors`,
               count: 24,
             },
           ],
-        },
-        {
-          id: "all-users",
-          label: "All Users",
-          icon: <Users className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/users`,
         },
         {
           id: "bookings",
@@ -266,9 +266,8 @@ export default function RoleBasedSidenav({
     return (
       <div key={item.id} className="space-y-1">
         <div
-          className={`px-4 py-3 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${
-            isItemActive ? "bg-[#44CE2D] text-white shadow-md" : ""
-          }`}
+          className={`px-4 py-3 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${isItemActive ? "bg-[#44CE2D] text-white shadow-md" : ""
+            }`}
           style={{
             color: isItemActive ? "white" : "var(--foreground)",
             backgroundColor: isItemActive ? "#22c55e" : "transparent",
@@ -292,18 +291,16 @@ export default function RoleBasedSidenav({
           }}>
           <div className="flex items-center space-x-3">
             <div
-              className={`transition-all duration-200 ${
-                isItemActive ? "text-white" : ""
-              }`}
+              className={`transition-all duration-200 ${isItemActive ? "text-white" : ""
+                }`}
               style={{
                 color: isItemActive ? "white" : "var(--muted-foreground)",
               }}>
               {item.icon}
             </div>
             <span
-              className={`text-sm font-medium transition-colors whitespace-nowrap duration-200 ${
-                isItemActive ? "text-white" : ""
-              }`}
+              className={`text-sm font-medium transition-colors whitespace-nowrap duration-200 ${isItemActive ? "text-white" : ""
+                }`}
               style={{
                 color: isItemActive ? "white" : "var(--foreground)",
               }}>
@@ -312,9 +309,8 @@ export default function RoleBasedSidenav({
           </div>
           {hasSubItems && (
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                }`}
               style={{
                 color: isItemActive ? "white" : "var(--muted-foreground)",
               }}
@@ -322,9 +318,8 @@ export default function RoleBasedSidenav({
           )}
           {!hasSubItems && item?.count && (
             <span
-              className={`p-1 text-xs rounded flex items-center justify-center transition-all duration-200 ${
-                isItemActive ? "bg-white text-green-500" : ""
-              }`}
+              className={`p-1 text-xs rounded flex items-center justify-center transition-all duration-200 ${isItemActive ? "bg-white text-green-500" : ""
+                }`}
               style={{
                 backgroundColor: isItemActive ? "white" : "var(--muted)",
                 color: isItemActive ? "#22c55e" : "var(--muted-foreground)",
@@ -336,17 +331,15 @@ export default function RoleBasedSidenav({
 
         {hasSubItems && (
           <div
-            className={`ml-4 space-y-1 overflow-hidden transition-all duration-300 ease-in-out ${
-              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-            }`}>
+            className={`ml-4 space-y-1 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              }`}>
             {item.subItems!.map((subItem) => {
               const isSubItemActive = isActive(subItem.href);
               return (
                 <div
                   key={subItem.id}
-                  className={`px-4 py-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${
-                    isSubItemActive ? "bg-green-500 text-white shadow-md" : ""
-                  }`}
+                  className={`px-4 py-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${isSubItemActive ? "bg-green-500 text-white shadow-md" : ""
+                    }`}
                   style={{
                     color: isSubItemActive
                       ? "white"
@@ -368,9 +361,8 @@ export default function RoleBasedSidenav({
                   onClick={() => handleNavigation(subItem.href)}>
                   <div className="flex items-center space-x-3">
                     <div
-                      className={`transition-all duration-200 ${
-                        isSubItemActive ? "text-white" : ""
-                      }`}
+                      className={`transition-all duration-200 ${isSubItemActive ? "text-white" : ""
+                        }`}
                       style={{
                         color: isSubItemActive
                           ? "white"
@@ -379,9 +371,8 @@ export default function RoleBasedSidenav({
                       {subItem.icon}
                     </div>
                     <span
-                      className={`text-sm transition-colors duration-200 ${
-                        isSubItemActive ? "text-white" : ""
-                      }`}
+                      className={`text-sm transition-colors duration-200 ${isSubItemActive ? "text-white" : ""
+                        }`}
                       style={{
                         color: isSubItemActive
                           ? "white"
@@ -392,9 +383,8 @@ export default function RoleBasedSidenav({
                   </div>
                   {subItem.count && (
                     <span
-                      className={`w-5 h-5 text-xs rounded-full flex items-center justify-center transition-all duration-200 ${
-                        isSubItemActive ? "bg-white text-green-500" : ""
-                      }`}
+                      className={`w-5 h-5 text-xs rounded-full flex items-center justify-center transition-all duration-200 ${isSubItemActive ? "bg-white text-green-500" : ""
+                        }`}
                       style={{
                         backgroundColor: isSubItemActive
                           ? "white"
@@ -419,9 +409,8 @@ export default function RoleBasedSidenav({
     <>
       {/* Sidenav */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
         style={{
           gridArea: "sidenav",
           backgroundColor: "var(--accent-white)",

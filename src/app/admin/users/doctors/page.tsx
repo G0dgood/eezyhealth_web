@@ -2,17 +2,15 @@
 
 import { useState } from "react";
 import {
-  Search,
   Star,
   Mail,
   Phone,
   MapPin,
-  Calendar,
-  Clock,
   User,
 } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
+import SearchInput from "@/components/SearchInput";
 import Image from "next/image";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
 import { NoRecordFound } from "@/components/Options";
@@ -125,9 +123,8 @@ export default function AdminDoctorsPage() {
       stars.push(
         <Star
           key={i}
-          className={`w-4 h-4 ${
-            i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
-          }`}
+          className={`w-4 h-4 ${i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+            }`}
         />
       );
     }
@@ -137,10 +134,91 @@ export default function AdminDoctorsPage() {
   // Loading state (same as nurse page)
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading doctors...</p>
+      <div>
+        {/* Breadcrumb Skeleton */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-2">
+            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-4 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-4 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Header and Search Skeleton */}
+        <div className="flex flex-row justify-between items-center mb-4">
+          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-12 bg-gray-200 rounded w-80 animate-pulse"></div>
+        </div>
+
+        {/* Top Doctors Section Skeleton */}
+        <div className="mb-12">
+          <div className="h-8 bg-gray-200 rounded w-32 mb-6 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+                {/* Avatar */}
+                <div className="flex items-center mb-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full mr-4"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center mb-4">
+                  <div className="h-4 bg-gray-200 rounded w-20 mr-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-2 mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                </div>
+
+                {/* Button */}
+                <div className="h-8 bg-gray-200 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* All Doctors Section Skeleton */}
+        <div>
+          <div className="h-8 bg-gray-200 rounded w-40 mb-6 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+                {/* Avatar */}
+                <div className="flex items-center mb-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full mr-4"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-28 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-20"></div>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center mb-4">
+                  <div className="h-4 bg-gray-200 rounded w-20 mr-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-2 mb-4">
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                </div>
+
+                {/* Button */}
+                <div className="h-8 bg-gray-200 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -178,21 +256,20 @@ export default function AdminDoctorsPage() {
         />
       </div>
 
-      <Title title="Doctor Management" />
+      <div className="flex flex-row justify-between items-center mb-4">
+        <Title title="Doctor Management" />
 
-      {/* Search Bar */}
-      <div className="mb-8">
-        <div className="relative max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search doctors by name, specialization, or email..."
+        {/* Search Bar */}
+        <div >
+          <SearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+            onChange={setSearchQuery}
+            placeholder="Search doctors by name, specialization, or email..."
+            className="max-w-none"
           />
         </div>
       </div>
+
 
       {/* Top Doctors Section */}
       <div className="mb-12 cursor-pointer">
@@ -215,7 +292,7 @@ export default function AdminDoctorsPage() {
                     src={
                       doctor.photo_url ||
                       doctor.image ||
-                      "/api/placeholder/120/120"
+                      ""
                     }
                     alt={doctor.display_name || "Doctor"}
                     width={80}
@@ -231,9 +308,8 @@ export default function AdminDoctorsPage() {
                   {doctor.display_name?.trim() || ""}
                 </p>
                 <p className="text-sm text-gray-600 mb-2">
-                  {`${doctor.first_name || ""}  ${
-                    doctor.last_name || ""
-                  }`.trim() || ""}
+                  {`${doctor.first_name || ""}  ${doctor.last_name || ""
+                    }`.trim() || ""}
                 </p>
 
                 <div className="flex items-center justify-center mb-3">
@@ -263,14 +339,6 @@ export default function AdminDoctorsPage() {
                       <span className="truncate">{doctor.address}</span>
                     </div>
                   )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-4 flex space-x-2">
-                  <button
-                    className={`${topDoctorMainColors[index]} text-white flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}>
-                    View Details
-                  </button>
                 </div>
               </div>
             </div>
@@ -308,9 +376,8 @@ export default function AdminDoctorsPage() {
                   {doctor.display_name?.trim() || "N/A"}
                 </p>
                 <p className="text-sm text-gray-600 mb-2">
-                  {`${doctor.first_name || ""} ${
-                    doctor.last_name || ""
-                  }`.trim() || "N/A"}
+                  {`${doctor.first_name || ""} ${doctor.last_name || ""
+                    }`.trim() || "N/A"}
                 </p>
                 <p className="text-sm text-gray-600 mb-2">
                   {doctor.specialization || "N/A"}
