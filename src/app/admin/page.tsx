@@ -52,19 +52,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <Title
-          title={`Welcome Admin ${
-            userInfo?.first_name || userInfo?.display_name || "Administrator"
-          }`}
-        />
-        <button
-          className="rounded bg-white flex items-center justify-center p-2 hover:bg-gray-50 transition-colors"
-          aria-label="Edit dashboard layout"
-          title="Edit dashboard layout">
-          <Edit size={20} />
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
         <div className="col-span-4 rounded min-h-[400px] overflow-y-auto border border-gray-200">

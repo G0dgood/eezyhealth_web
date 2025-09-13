@@ -1,9 +1,19 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { usePathname } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Create context for edit mode
+const EditModeContext = createContext<{
+  isEditing: boolean;
+  setIsEditing: (editing: boolean) => void;
+}>({
+  isEditing: false,
+  setIsEditing: () => {},
+});
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +21,9 @@ interface LayoutProps {
 
 function DoctorLayout({ children }: LayoutProps) {
   const [isMobileSidenavOpen, setIsMobileSidenavOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const pathname = usePathname();
+  const { userInfo } = useAuth();
 
   const handleMobileMenuToggle = () => {
     setIsMobileSidenavOpen(!isMobileSidenavOpen);
@@ -19,6 +31,10 @@ function DoctorLayout({ children }: LayoutProps) {
 
   const handleMobileSidenavClose = () => {
     setIsMobileSidenavOpen(false);
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(!isEditing);
   };
 
   // Create the exact same transition classes for both elements
@@ -31,26 +47,31 @@ function DoctorLayout({ children }: LayoutProps) {
 
   return (
     <ProtectedRoute>
-      <div id="page-wrapper">
-        <Header
-          userRole="DOCTOR"
-          notificationCount={4}
-          onMobileMenuToggle={handleMobileMenuToggle}
-          className={transitionClasses}
-        />
-        <RoleBasedSidenav
-          userRole="DOCTOR"
-          isMobileOpen={isMobileSidenavOpen}
-          onMobileClose={handleMobileSidenavClose}
-        />
-        <main
-          className={`${transitionClasses}`}
-          data-page={isMessagePage ? "message" : undefined}>
-          {children}
-        </main>
-      </div>
+      <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
+        <div id="page-wrapper">
+          <Header
+            userRole="DOCTOR"
+            notificationCount={4}
+            onMobileMenuToggle={handleMobileMenuToggle}
+            onEditClick={handleEditClick}
+            className={transitionClasses}
+            userInfo={userInfo}
+          />
+          <RoleBasedSidenav
+            userRole="DOCTOR"
+            isMobileOpen={isMobileSidenavOpen}
+            onMobileClose={handleMobileSidenavClose}
+          />
+          <main
+            className={`${transitionClasses}`}
+            data-page={isMessagePage ? "message" : undefined}>
+            {children}
+          </main>
+        </div>
+      </EditModeContext.Provider>
     </ProtectedRoute>
   );
 }
 
+export { EditModeContext };
 export default DoctorLayout;

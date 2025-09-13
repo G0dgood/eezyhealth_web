@@ -1,8 +1,18 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Create context for edit mode
+const EditModeContext = createContext<{
+  isEditing: boolean;
+  setIsEditing: (editing: boolean) => void;
+}>({
+  isEditing: false,
+  setIsEditing: () => { },
+});
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +20,8 @@ interface LayoutProps {
 
 function NurseLayout({ children }: LayoutProps) {
   const [isMobileSidenavOpen, setIsMobileSidenavOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const { userInfo } = useAuth();
 
   const handleMobileMenuToggle = () => {
     setIsMobileSidenavOpen(!isMobileSidenavOpen);
@@ -19,29 +31,37 @@ function NurseLayout({ children }: LayoutProps) {
     setIsMobileSidenavOpen(false);
   };
 
+  const handleEditClick = () => {
+    setIsEditing(!isEditing);
+  };
+
   // Create the exact same transition classes for both elements
-  const transitionClasses = `transition-all duration-300 ease-in-out ${
-    isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
-  } lg:translate-x-0`;
+  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
+    } lg:translate-x-0`;
 
   return (
     <ProtectedRoute>
-      <div id="page-wrapper">
-        <Header
-          userRole="NURSE"
-          notificationCount={3}
-          onMobileMenuToggle={handleMobileMenuToggle}
-          className={transitionClasses}
-        />
-        <RoleBasedSidenav
-          userRole="NURSE"
-          isMobileOpen={isMobileSidenavOpen}
-          onMobileClose={handleMobileSidenavClose}
-        />
-        <main className={`p-6 ${transitionClasses}`}>{children}</main>
-      </div>
+      <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
+        <div id="page-wrapper">
+          <Header
+            userRole="NURSE"
+            notificationCount={3}
+            onMobileMenuToggle={handleMobileMenuToggle}
+            onEditClick={handleEditClick}
+            className={transitionClasses}
+            userInfo={userInfo}
+          />
+          <RoleBasedSidenav
+            userRole="NURSE"
+            isMobileOpen={isMobileSidenavOpen}
+            onMobileClose={handleMobileSidenavClose}
+          />
+          <main className={`p-6 ${transitionClasses}`}>{children}</main>
+        </div>
+      </EditModeContext.Provider>
     </ProtectedRoute>
   );
 }
 
+export { EditModeContext };
 export default NurseLayout;

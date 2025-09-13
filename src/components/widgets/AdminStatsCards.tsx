@@ -7,6 +7,7 @@ import {
   Calendar,
   TrendingUp,
   TrendingDown,
+  DollarSign,
 } from "lucide-react";
 import { useGetUsersQuery } from "@/store/api";
 import { useGetBookingsQuery } from "@/store/api";
@@ -127,7 +128,7 @@ const AdminStatsCards: React.FC = () => {
     {
       title: "Total Revenue",
       value: `₦ ${totalRevenue.toFixed(2)}`,
-      icon: <span className="text-green-600">₦</span>,
+      icon: DollarSign,
       gradient: "from-yellow-500 to-orange-600",
       bgColor: "bg-yellow-50",
       iconColor: "text-yellow-600",
@@ -188,9 +189,8 @@ const AdminStatsCards: React.FC = () => {
                   </div>
                   {item.trend && (
                     <div
-                      className={`text-xs font-medium flex items-center gap-1 ${
-                        item.trendUp ? "text-green-600" : "text-red-600"
-                      }`}>
+                      className={`text-xs font-medium flex items-center gap-1 ${item.trendUp ? "text-green-600" : "text-red-600"
+                        }`}>
                       {item.trendUp ? (
                         <TrendingUp size={12} />
                       ) : (
