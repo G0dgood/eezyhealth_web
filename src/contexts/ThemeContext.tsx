@@ -18,10 +18,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check for saved theme preference or default to light
     const savedTheme = localStorage.getItem("eezyhealth-theme") as Theme;
+    console.log("Theme initialization:", { savedTheme });
+
     if (savedTheme) {
       setThemeState(savedTheme);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setThemeState("dark");
+    } else {
+      // Always default to light mode
+      setThemeState("light");
+      console.log("Using default theme: light");
     }
   }, []);
 

@@ -8,131 +8,17 @@ import { toast } from "sonner";
 import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
-import Image from "next/image";
-
-// Skeleton Components
-const ProfileSkeleton = () => (
-  <div className="space-y-6">
-    {/* Profile Picture Skeleton */}
-    <div className="text-center">
-      <div className="w-32 h-32 rounded-full bg-gray-200 mx-auto animate-pulse"></div>
-      <div className="w-16 h-4 bg-gray-200 rounded mx-auto mt-2 animate-pulse"></div>
-    </div>
-
-    {/* Form Fields Skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i}>
-          <div className="w-20 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-          <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-      ))}
-    </div>
-
-    {/* Bio Section Skeleton */}
-    <div>
-      <div className="w-16 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-      <div className="w-full h-24 bg-gray-200 rounded animate-pulse"></div>
-    </div>
-
-    {/* Action Buttons Skeleton */}
-    <div className="flex justify-end space-x-3">
-      <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
-      <div className="w-16 h-10 bg-gray-200 rounded animate-pulse"></div>
-    </div>
-  </div>
-);
-
-const NotificationSkeleton = () => (
-  <div className="space-y-6">
-    <div className="space-y-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-between py-4 border-b border-gray-200">
-          <div className="flex-1 pr-4">
-            <div className="w-48 h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
-            <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="w-12 h-6 bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
-      ))}
-    </div>
-    <div className="flex justify-end">
-      <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
-    </div>
-  </div>
-);
-
-const SecuritySkeleton = () => (
-  <div className="space-y-8">
-    {/* Security Settings Section */}
-    <div className="space-y-6">
-      <div>
-        <div className="w-48 h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
-        <div className="w-80 h-4 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-
-      {Array.from({ length: 2 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-between py-4 border-b border-gray-200">
-          <div className="flex-1">
-            <div className="w-32 h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
-            <div className="w-48 h-4 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-      ))}
-    </div>
-
-    {/* Change Password Section */}
-    <div className="space-y-6">
-      <div>
-        <div className="w-40 h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
-        <div className="w-72 h-4 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i}>
-            <div className="w-32 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-            <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-end space-x-3">
-        <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
-        <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-    </div>
-
-    <div className="flex justify-end">
-      <div className="w-28 h-10 bg-gray-200 rounded animate-pulse"></div>
-    </div>
-  </div>
-);
+import { validateField } from "@/utils/fieldValidation";
+import { PageSkeleton } from "@/components/SkeletonLoader";
+import CustomToggle from "@/components/CustomToggle";
 
 export default function AdminSettings() {
-  const { theme, setTheme } = useTheme();
-  const { userInfo, loading } = useAuth();
-  const router = useRouter();
+  const { userInfo, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
+  const { theme, setTheme, toggleTheme } = useTheme();
 
-  // Sync securitySettings.darkMode with actual theme
-  useEffect(() => {
-    setSecuritySettings((prev) => ({
-      ...prev,
-      darkMode: theme === "dark",
-    }));
-  }, [theme]);
+  const router = useRouter();
 
-  // Handle theme change from security settings
-  const handleThemeToggle = (checked: boolean) => {
-    const newTheme = checked ? "dark" : "light";
-    setTheme(newTheme);
-  };
 
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
 
@@ -157,19 +43,19 @@ export default function AdminSettings() {
 
   // Profile form state
   const [profileData, setProfileData] = useState({
-    fullName: userInfo?.display_name || "n/a",
-    adminId: userInfo?.uid || "n/a",
-    role: userInfo?.role || "n/a",
-    email: userInfo?.email || "n/a",
-    mobileNumber: userInfo?.phone_number || "n/a",
-    department: "IT & Administration",
-    accessLevel: "Full Access",
-    bio: "System administrator with full access to all healthcare management system features and user management capabilities.",
-    firstName: userInfo?.first_name || "n/a",
-    lastName: userInfo?.last_name || "n/a",
-    address: userInfo?.address || "n/a",
-    location: userInfo?.location || "n/a",
-    dateOfBirth: userInfo?.date_of_birth || "n/a",
+    fullName: userInfo?.display_name || "-",
+    adminId: userInfo?.uid || "-",
+    role: userInfo?.role || "-",
+    email: userInfo?.email || "-",
+    mobileNumber: userInfo?.phone_number || "-",
+    department: "",
+    accessLevel: "",
+    bio: "",
+    firstName: userInfo?.first_name || "-",
+    lastName: userInfo?.last_name || "-",
+    address: userInfo?.address || "-",
+    location: userInfo?.location || "-",
+    dateOfBirth: userInfo?.date_of_birth || "-",
     isActive: userInfo?.isActive || false,
   });
 
@@ -193,21 +79,29 @@ export default function AdminSettings() {
     }
   }, [userInfo]);
 
+  // Validation functions
+
   // Update profile data when form fields change
   const handleProfileDataChange = (field: string, value: string) => {
+    // Clear error for this field when user starts typing
+    if (profileErrors[field]) {
+      setProfileErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+
     setProfileData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Mark that changes have been made
+    setProfileChanges(true);
   };
 
-  // Authentication check
-  useEffect(() => {
-    if (!userInfo || userInfo.role !== "ADMIN") {
-      router.push("/");
-      return;
-    }
-  }, [userInfo, router]);
+  // Authentication is handled by ProtectedRoute in the admin layout
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -219,9 +113,13 @@ export default function AdminSettings() {
 
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
-    sessionTimeout: "15",
-    darkMode: false,
+    sessionTimeout: "40",
   });
+
+  // Session timeout state
+  const [sessionTimeoutId, setSessionTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [timeUntilLogout, setTimeUntilLogout] = useState<number>(0);
+  const [isSessionWarning, setIsSessionWarning] = useState(false);
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -230,6 +128,121 @@ export default function AdminSettings() {
     confirmPassword: "",
   });
 
+  // Profile validation state
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [profileChanges, setProfileChanges] = useState(false);
+
+  // Session timeout functions
+  const startSessionTimeout = () => {
+    // Clear existing timeout
+    if (sessionTimeoutId) {
+      clearTimeout(sessionTimeoutId);
+    }
+
+    const timeoutMinutes = parseInt(securitySettings.sessionTimeout);
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+
+    // Set warning 2 minutes before logout
+    const warningTime = timeoutMs - (2 * 60 * 1000);
+
+    // Start countdown for warning
+    const warningTimeoutId = setTimeout(() => {
+      setIsSessionWarning(true);
+      setTimeUntilLogout(120); // 2 minutes in seconds
+
+      // Start countdown timer
+      const countdownInterval = setInterval(() => {
+        setTimeUntilLogout(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+    }, warningTime);
+
+    // Set actual logout timeout
+    const logoutTimeoutId = setTimeout(() => {
+      handleSessionTimeout();
+    }, timeoutMs);
+
+    setSessionTimeoutId(logoutTimeoutId);
+  };
+
+  const resetSessionTimeout = () => {
+    if (sessionTimeoutId) {
+      clearTimeout(sessionTimeoutId);
+    }
+    setIsSessionWarning(false);
+    setTimeUntilLogout(0);
+    startSessionTimeout();
+  };
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Redirect to home page
+      router.push("/");
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
+
+  const handleSessionTimeout = () => {
+    toast.error("Session expired due to inactivity. You will be logged out.");
+    // Clear user session and redirect to login
+    setTimeout(() => {
+      handleSignOut();
+    }, 2000);
+  };
+
+  const extendSession = () => {
+    toast.success("Session extended successfully!");
+    resetSessionTimeout();
+  };
+
+  // Initialize session timeout when component mounts
+  useEffect(() => {
+    startSessionTimeout();
+
+    // Cleanup on unmount
+    return () => {
+      if (sessionTimeoutId) {
+        clearTimeout(sessionTimeoutId);
+      }
+    };
+  }, []);
+
+  // Reset session timeout on user activity
+  useEffect(() => {
+    const handleUserActivity = () => {
+      resetSessionTimeout();
+    };
+
+    // Add event listeners for user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, true);
+    });
+
+    // Cleanup event listeners
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity, true);
+      });
+    };
+  }, [securitySettings.sessionTimeout]);
+
+  // Update session timeout when settings change
+  useEffect(() => {
+    if (securitySettings.sessionTimeout) {
+      resetSessionTimeout();
+    }
+  }, [securitySettings.sessionTimeout]);
+
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -237,34 +250,55 @@ export default function AdminSettings() {
       const tempUrl = URL.createObjectURL(file);
       setProfileImage(tempUrl);
 
-      // In a real app, you would upload this file to Firebase Storage
-      // and then update the user's profile with the new photo URL
-      console.log("Profile image selected:", file.name);
-
       // Clean up the temporary URL when component unmounts
       return () => URL.revokeObjectURL(tempUrl);
     }
   };
 
   const handleProfileSave = async () => {
+    // Validate all fields
+    const errors: Record<string, string> = {};
+    const requiredFields = ['fullName', 'email', 'mobileNumber', 'firstName', 'lastName', 'address', 'location'];
+
+    requiredFields.forEach(field => {
+      const error = validateField(field, profileData[field as keyof typeof profileData] as string);
+      if (error) {
+        errors[field] = error;
+      }
+    });
+
+    // If there are validation errors, set them and return
+    if (Object.keys(errors).length > 0) {
+      setProfileErrors(errors);
+      toast.error("Please fix the validation errors before saving.");
+      return;
+    }
+
+    setIsProfileSaving(true);
+    setProfileErrors({});
+
     try {
       // Simulate API call to update profile
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Update profile data (in real app, this would call Firebase)
-      console.log("Profile saved:", profileData);
+      // Update profile data (in real app, this would call Firebase) 
       toast.success("Profile updated successfully!");
-    } catch {
+      setProfileChanges(false);
+    } catch (error) {
       toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setIsProfileSaving(false);
     }
   };
+
+
 
   const handleNotificationSave = async () => {
     try {
       // Simulate API call to update notification preferences
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("Notification preferences saved:", notificationPrefs);
+
       toast.success("Notification preferences updated successfully!");
     } catch {
       toast.error(
@@ -277,14 +311,6 @@ export default function AdminSettings() {
     try {
       // Simulate API call to update security settings
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Update securitySettings.darkMode to match current theme
-      setSecuritySettings((prev) => ({
-        ...prev,
-        darkMode: theme === "dark",
-      }));
-
-      console.log("Security settings saved:", securitySettings);
       toast.success("Security settings updated successfully!");
     } catch {
       toast.error("Failed to update security settings. Please try again.");
@@ -296,8 +322,6 @@ export default function AdminSettings() {
       alert("New passwords don't match!");
       return;
     }
-    console.log("Password updated");
-    // Add toast notification here
   };
 
   const tabs = [
@@ -318,25 +342,6 @@ export default function AdminSettings() {
     },
   ];
 
-  // Tab Skeleton Component
-  const TabSkeleton = () => (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 px-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="py-4 px-1">
-              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-          ))}
-        </nav>
-      </div>
-      <div className="p-6">
-        {activeTab === "profile" && <ProfileSkeleton />}
-        {activeTab === "notifications" && <NotificationSkeleton />}
-        {activeTab === "security" && <SecuritySkeleton />}
-      </div>
-    </div>
-  );
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -378,7 +383,7 @@ export default function AdminSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -386,8 +391,15 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("fullName", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.fullName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your full name"
                 />
+                {profileErrors.fullName && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.fullName}</p>
+                )}
               </div>
 
               <div>
@@ -426,7 +438,7 @@ export default function AdminSettings() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -434,13 +446,20 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("email", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.email
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your email address"
                 />
+                {profileErrors.email && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.email}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number
+                  Mobile Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -448,8 +467,15 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("mobileNumber", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.mobileNumber
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your mobile number"
                 />
+                {profileErrors.mobileNumber && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.mobileNumber}</p>
+                )}
               </div>
 
               <div>
@@ -494,7 +520,7 @@ export default function AdminSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  First Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -502,13 +528,20 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("firstName", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.firstName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your first name"
                 />
+                {profileErrors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.firstName}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  Last Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -516,13 +549,20 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("lastName", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.lastName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your last name"
                 />
+                {profileErrors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.lastName}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
+                  Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -530,13 +570,20 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("address", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.address
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your address"
                 />
+                {profileErrors.address && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.address}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
+                  Location <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -544,8 +591,15 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("location", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.location
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
+                  placeholder="Enter your location"
                 />
+                {profileErrors.location && (
+                  <p className="text-red-500 text-sm mt-1">{profileErrors.location}</p>
+                )}
               </div>
 
               <div>
@@ -560,11 +614,11 @@ export default function AdminSettings() {
                         ? new Date(profileData.dateOfBirth).toLocaleDateString()
                         : typeof profileData.dateOfBirth === "object" &&
                           "seconds" in profileData.dateOfBirth
-                        ? new Date(
+                          ? new Date(
                             profileData.dateOfBirth.seconds * 1000
                           ).toLocaleDateString()
-                        : "n/a"
-                      : "n/a"
+                          : ""
+                      : ""
                   }
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
@@ -577,11 +631,10 @@ export default function AdminSettings() {
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                      profileData.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}>
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -636,12 +689,13 @@ export default function AdminSettings() {
                 <div className="flex-shrink-0">
                   <ToggleSwitch
                     checked={notificationPrefs.newUserRegistrations}
-                    onChange={(checked) =>
+                    onChange={(checked) => {
+                      console.log("Admin notification toggle:", { checked, current: notificationPrefs.newUserRegistrations });
                       setNotificationPrefs({
                         ...notificationPrefs,
                         newUserRegistrations: checked,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </div>
               </div>
@@ -748,10 +802,15 @@ export default function AdminSettings() {
                   <p className="text-sm text-gray-600">
                     Auto-logout after inactivity
                   </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current timeout: {securitySettings.sessionTimeout} minutes
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
                     type="number"
+                    min="5"
+                    max="120"
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
                       setSecuritySettings({
@@ -779,7 +838,13 @@ export default function AdminSettings() {
                 <div className="flex-shrink-0">
                   <ToggleSwitch
                     checked={theme === "dark"}
-                    onChange={handleThemeToggle}
+                    onChange={(checked) => {
+                      if (checked) {
+                        setTheme("dark");
+                      } else {
+                        setTheme("light");
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -883,25 +948,7 @@ export default function AdminSettings() {
 
   // Show loading state while user data is being fetched
   if (loading) {
-    return (
-      <div>
-        {/* Breadcrumb */}
-        <Breadcrumb
-          items={[{ label: "Admin", href: "/admin" }, { label: "Settings" }]}
-        />
-
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-          <p className="text-gray-600">
-            Manage your admin account preferences and security settings
-          </p>
-        </div>
-
-        {/* Loading Skeleton */}
-        <TabSkeleton />
-      </div>
-    );
+    return <PageSkeleton activeTab={activeTab} />;
   }
 
   return (
@@ -927,11 +974,10 @@ export default function AdminSettings() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-[#22c55e] text-[#22c55e]"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}>
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
+                  ? "border-[#22c55e] text-[#22c55e]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}>
                 {tab.icon}
                 <span>{tab.label}</span>
               </button>

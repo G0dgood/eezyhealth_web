@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { BadgeProvider } from "@/contexts/BadgeContext";
 import { Toaster } from "sonner";
 import NewProvider from "./utils/provider";
 import { ReduxProvider } from "@/providers/ReduxProvider";
@@ -27,15 +28,17 @@ export default function RootLayout({
           <AuthProvider>
             <ReduxProvider>
               <ThemeProvider>
-                <NotificationProvider>
-                  {children}
-                  <Toaster
-                    position="top-right"
-                    richColors
-                    closeButton
-                    duration={4000}
-                  />
-                </NotificationProvider>
+                <BadgeProvider>
+                  <NotificationProvider>
+                    {children}
+                    <Toaster
+                      position="top-right"
+                      richColors
+                      closeButton
+                      duration={4000}
+                    />
+                  </NotificationProvider>
+                </BadgeProvider>
               </ThemeProvider>
             </ReduxProvider>
           </AuthProvider>

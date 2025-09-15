@@ -100,7 +100,17 @@ export default function DoctorAppointmentsPage() {
   ): DoctorAppointment[] => {
     if (!bookings || bookings.length === 0) return [];
 
-    return bookings.map((booking) => {
+    return bookings.map((booking, index) => {
+      // Debug: Log booking structure to understand the ID field
+      if (index === 0) {
+        console.log("Sample booking structure:", booking);
+        console.log("Available ID fields:", {
+          id: booking.id,
+          bookingId: booking.bookingId,
+          documentId: booking.documentId,
+          uid: booking.uid
+        });
+      }
       // Handle Firestore timestamp conversion
       let appointmentDate: string;
       if (
@@ -119,7 +129,7 @@ export default function DoctorAppointmentsPage() {
       }
 
       return {
-        id: String(booking.bookingId || ""),
+        id: String(booking.id || booking.bookingId || booking.documentId || booking.uid || `booking-${index}`),
         patientName: String(booking.patientName || "Unknown Patient"),
         date: appointmentDate,
         time: convertSlotToTime(String(booking.slot || "")),
@@ -365,11 +375,10 @@ export default function DoctorAppointmentsPage() {
 
                         {actionMenuOpen === appointment.id && (
                           <div
-                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${
-                              menuPosition === "top"
+                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${menuPosition === "top"
                                 ? "bottom-full mb-2"
                                 : "top-full mt-2"
-                            }`}>
+                              }`}>
                             <div className="py-1">
                               <button
                                 onClick={() => handleViewDetails(appointment)}
@@ -447,11 +456,10 @@ export default function DoctorAppointmentsPage() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === page
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
                             ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
                             : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-                        }`}>
+                          }`}>
                         {page}
                       </button>
                     )
@@ -503,10 +511,10 @@ export default function DoctorAppointmentsPage() {
         appointmentDetails={
           selectedAppointment
             ? {
-                patientName: selectedAppointment.patientName,
-                date: selectedAppointment.date,
-                time: selectedAppointment.time,
-              }
+              patientName: selectedAppointment.patientName,
+              date: selectedAppointment.date,
+              time: selectedAppointment.time,
+            }
             : undefined
         }
       />

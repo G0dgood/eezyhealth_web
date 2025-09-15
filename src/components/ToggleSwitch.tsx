@@ -35,22 +35,19 @@ export default function ToggleSwitch({
 
   return (
     <label
-      className={`relative inline-flex items-center cursor-pointer ${
-        disabled ? "opacity-50 cursor-not-allowed" : ""
-      } ${className}`}>
+      className={`relative inline-flex items-center cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : ""
+        } ${className}`}>
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
-        className="sr-only"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
       />
       <div
-        className={`${
-          sizeClasses[size]
-        } rounded-full transition-colors flex items-center ${
-          checked ? "bg-[#44CE2D]" : "bg-gray-300"
-        } ${disabled ? "cursor-not-allowed" : ""}`}>
+        className={`${sizeClasses[size]
+          } rounded-full transition-colors flex items-center px-0.5 ${checked ? "bg-[#44CE2D]" : "bg-gray-300"
+          } ${disabled ? "cursor-not-allowed" : ""}`}>
         <div
           className={`${circleSizeClasses[size]} bg-white rounded-full transition-transform transform shadow-sm ${translateClasses[size]}`}></div>
       </div>

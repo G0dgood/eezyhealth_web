@@ -11,6 +11,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Skeleton } from "@/components/ui/skeleton";
+import CustomToggle from "@/components/CustomToggle";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
@@ -44,13 +45,6 @@ export default function DoctorSettings() {
 
     return () => clearTimeout(timer);
   }, []);
-  // Sync securitySettings.darkMode with actual theme
-  useEffect(() => {
-    setSecuritySettings((prev) => ({
-      ...prev,
-      darkMode: theme === "dark",
-    }));
-  }, [theme]);
 
   // Handle theme change from security settings
   const handleThemeToggle = (checked: boolean) => {
@@ -121,7 +115,6 @@ export default function DoctorSettings() {
   // Security settings state
   const [securitySettings, setSecuritySettings] = useState({
     sessionTimeout: "15",
-    darkMode: false,
   });
 
   // Password change state
@@ -183,11 +176,6 @@ export default function DoctorSettings() {
       // Simulate API call to update security settings
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Update securitySettings.darkMode to match current theme
-      setSecuritySettings((prev) => ({
-        ...prev,
-        darkMode: theme === "dark",
-      }));
 
       console.log("Security settings saved:", securitySettings);
       toast.success("Security settings updated successfully!");
@@ -501,10 +489,10 @@ export default function DoctorSettings() {
                         ? new Date(profileData.dateOfBirth).toLocaleDateString()
                         : typeof profileData.dateOfBirth === "object" &&
                           "seconds" in profileData.dateOfBirth
-                        ? new Date(
+                          ? new Date(
                             profileData.dateOfBirth.seconds * 1000
                           ).toLocaleDateString()
-                        : "n/a"
+                          : "n/a"
                       : "n/a"
                   }
                   disabled
@@ -518,11 +506,10 @@ export default function DoctorSettings() {
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                      profileData.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}>
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -565,11 +552,12 @@ export default function DoctorSettings() {
                 <div className="flex-shrink-0">
                   <ToggleSwitch
                     checked={notificationPrefs.newPatientBookings}
-                    onChange={(checked) =>
+                    onChange={(checked) => {
+                      console.log("Doctor notification toggle:", { checked, current: notificationPrefs.newPatientBookings });
                       updateNotificationPrefs({
                         newPatientBookings: checked,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </div>
               </div>
@@ -654,10 +642,14 @@ export default function DoctorSettings() {
                   </p>
                 </div>
                 <div className="flex-shrink-0">
-                  <ToggleSwitch
+                  <CustomToggle
                     checked={theme === "dark"}
                     onChange={handleThemeToggle}
                   />
+                  {/* <ToggleSwitch
+                    checked={theme === "dark"}
+                    onChange={handleThemeToggle}
+                  /> */}
                 </div>
               </div>
             </div>
@@ -773,11 +765,10 @@ export default function DoctorSettings() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? "border-[#44CE2D] text-[#44CE2D]"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}>
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                  ? "border-[#44CE2D] text-[#44CE2D]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}>
                 {tab.icon}
                 <span>{tab.label}</span>
               </button>

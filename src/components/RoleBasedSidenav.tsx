@@ -1,45 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useBadges, getBadgeCount } from "@/contexts/BadgeContext";
 import {
-  Grid3X3,
-  Users,
-  Calendar,
-  CalendarX,
-  Cross,
-  Stethoscope,
-  User,
-  CreditCard,
-  Upload,
-  Settings,
-  Activity,
-  FileText,
-  Shield,
-  BarChart3,
-  Database,
-  Bell,
   X,
-  ChevronDown,
-  Home,
-  CalendarCheck,
-  MessageSquare,
-  Clock,
-  XCircle,
-  Award,
+  ChevronDown
 } from "lucide-react";
 import Image from "next/image";
-
-interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  href?: string;
-  count?: number;
-  subItems?: NavItem[];
-  roles?: string[];
-}
+import { getNavigationItems, NavItem } from "@/utils/navigationItems";
 
 interface RoleBasedSidenavProps {
   userRole: "NURSE" | "DOCTOR" | "ADMIN";
@@ -56,6 +26,7 @@ export default function RoleBasedSidenav({
   const router = useRouter();
   const pathname = usePathname();
   const { theme } = useTheme();
+  const { badgeCounts, loading: badgesLoading } = useBadges();
 
   const toggleExpanded = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -67,6 +38,13 @@ export default function RoleBasedSidenav({
     setExpandedItems(newExpanded);
   };
 
+  // Auto-expand dropdown when on sub-pages
+  useEffect(() => {
+    if (userRole === "ADMIN" && pathname.startsWith("/admin/users")) {
+      setExpandedItems(prev => new Set(prev).add("users"));
+    }
+  }, [pathname, userRole]);
+
   const handleNavigation = (href?: string) => {
     if (href) {
       router.push(href);
@@ -77,174 +55,7 @@ export default function RoleBasedSidenav({
     }
   };
 
-  // Define navigation items for each role
-  const getNavItems = (role: string): NavItem[] => {
-    const baseItems: NavItem[] = [
-      {
-        id: "dashboard",
-        label: "Dashboard",
-        icon: <Grid3X3 className="w-5 h-5" />,
-        href: `/${role.toLowerCase()}`,
-        roles: ["NURSE", "DOCTOR", "ADMIN"],
-      },
-    ];
-
-    if (role === "NURSE") {
-      return [
-        ...baseItems,
-        {
-          id: "patients",
-          label: "Patients",
-          icon: <Users className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/patients`,
-        },
-        {
-          id: "bookings",
-          label: "Bookings",
-          icon: <Calendar className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/bookings`,
-        },
-        {
-          id: "booking-cancellation",
-          label: "Booking Cancellation",
-          icon: <CalendarX className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/booking-cancellation`,
-        },
-        {
-          id: "payment",
-          label: "Payment",
-          icon: <CreditCard className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/payment`,
-        },
-        {
-          id: "settings",
-          label: "Settings",
-          icon: <Settings className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/settings`,
-        },
-      ];
-    } else if (role === "DOCTOR") {
-      return [
-        ...baseItems,
-        {
-          id: "appointments",
-          label: "Appointment",
-          icon: <Calendar className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/appointments`,
-        },
-        {
-          id: "bookings",
-          label: "Bookings",
-          icon: <Calendar className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/bookings`,
-        },
-        {
-          id: "message",
-          label: "Message",
-          icon: <Bell className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/message`,
-        },
-        {
-          id: "availability",
-          label: "Availability",
-          icon: <Activity className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/availability`,
-        },
-        {
-          id: "booking-cancellation",
-          label: "Booking Cancellation",
-          icon: <CalendarX className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/booking-cancellation`,
-        },
-        {
-          id: "payment",
-          label: "Payment",
-          icon: <CreditCard className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/payment`,
-        },
-        {
-          id: "settings",
-          label: "Settings",
-          icon: <Settings className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/settings`,
-        },
-      ];
-    } else if (role === "ADMIN") {
-      return [
-        ...baseItems,
-        {
-          id: "users",
-          label: "Users",
-          icon: <Users className="w-5 h-5" />,
-          subItems: [
-            {
-              id: "all-users",
-              label: "All Users",
-              icon: <Users className="w-4 h-4" />,
-              href: `/${role.toLowerCase()}/users`,
-              count: 89,
-            },
-            {
-              id: "doctors",
-              label: "Doctors",
-              icon: <Stethoscope className="w-4 h-4" />,
-              href: `/${role.toLowerCase()}/users/doctors`,
-              count: 24,
-            },
-          ],
-        },
-        {
-          id: "bookings",
-          label: "Bookings",
-          icon: <Calendar className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/bookings`,
-          count: 89,
-        },
-        {
-          id: "booking-cancellation",
-          label: "Booking Cancellation",
-          icon: <CalendarX className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/booking-cancellation`,
-          count: 12,
-        },
-        {
-          id: "specialization",
-          label: "Specialization",
-          icon: <Shield className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/specialization`,
-        },
-        {
-          id: "doctor-month",
-          label: "Doctor of the Month",
-          icon: <BarChart3 className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/doctor-month`,
-        },
-        {
-          id: "payment",
-          label: "Payment",
-          icon: <CreditCard className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/payment`,
-          count: 234,
-        },
-        {
-          id: "document",
-          label: "Document",
-          icon: <Upload className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/document`,
-        },
-        {
-          id: "settings",
-          label: "Settings",
-          icon: <Settings className="w-5 h-5" />,
-          href: `/${role.toLowerCase()}/settings`,
-        },
-      ];
-    }
-
-    return baseItems;
-  };
-
-  const navItems = getNavItems(userRole);
+  const navItems = getNavigationItems(userRole);
 
   const isActive = (href?: string) => {
     if (!href) return false;
@@ -252,6 +63,17 @@ export default function RoleBasedSidenav({
     // For Dashboard, only show active if we're exactly on the dashboard page
     if (href === "/nurse" || href === "/admin" || href === "/doctor") {
       return pathname === href;
+    }
+
+    // For exact matches, use exact comparison
+    if (pathname === href) {
+      return true;
+    }
+
+    // For admin users pages, be more specific
+    if (href === "/admin/users") {
+      // Only active if we're exactly on /admin/users, not on sub-pages
+      return pathname === "/admin/users";
     }
 
     // For other items, check if current path starts with the href
@@ -270,7 +92,7 @@ export default function RoleBasedSidenav({
             }`}
           style={{
             color: isItemActive ? "white" : "var(--foreground)",
-            backgroundColor: isItemActive ? "#22c55e" : "transparent",
+            backgroundColor: isItemActive ? "#44CE2D" : "transparent",
           }}
           onMouseEnter={(e) => {
             if (!isItemActive) {
@@ -316,15 +138,17 @@ export default function RoleBasedSidenav({
               }}
             />
           )}
-          {!hasSubItems && item?.count && (
+          {!hasSubItems && (item?.count || item?.dynamicCount) && (
             <span
-              className={`p-1 text-xs rounded flex items-center justify-center transition-all duration-200 ${isItemActive ? "bg-white text-green-500" : ""
+              className={`p-1 text-xs rounded flex items-center justify-center transition-all duration-200 ${isItemActive ? "bg-white text-[#44CE2D]" : ""
                 }`}
               style={{
                 backgroundColor: isItemActive ? "white" : "var(--muted)",
-                color: isItemActive ? "#22c55e" : "var(--muted-foreground)",
+                color: isItemActive ? "#44CE2D" : "var(--muted-foreground)",
               }}>
-              {item?.count}
+              {item?.dynamicCount
+                ? getBadgeCount(badgeCounts, item.id)
+                : item?.count || 0}
             </span>
           )}
         </div>
@@ -338,14 +162,14 @@ export default function RoleBasedSidenav({
               return (
                 <div
                   key={subItem.id}
-                  className={`px-4 py-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${isSubItemActive ? "bg-green-500 text-white shadow-md" : ""
+                  className={`px-4 py-2 rounded-lg flex items-center justify-between transition-all duration-200 ease-in-out cursor-pointer group ${isSubItemActive ? "bg-[#44CE2D] text-white shadow-md" : ""
                     }`}
                   style={{
                     color: isSubItemActive
                       ? "white"
                       : "var(--muted-foreground)",
                     backgroundColor: isSubItemActive
-                      ? "#22c55e"
+                      ? "#44CE2D"
                       : "transparent",
                   }}
                   onMouseEnter={(e) => {
@@ -381,19 +205,21 @@ export default function RoleBasedSidenav({
                       {subItem.label}
                     </span>
                   </div>
-                  {subItem.count && (
+                  {(subItem.count || subItem.dynamicCount) && (
                     <span
-                      className={`w-5 h-5 text-xs rounded-full flex items-center justify-center transition-all duration-200 ${isSubItemActive ? "bg-white text-green-500" : ""
+                      className={`w-5 h-5 text-xs rounded-full flex items-center justify-center transition-all duration-200 ${isSubItemActive ? "bg-white text-[#44CE2D]" : ""
                         }`}
                       style={{
                         backgroundColor: isSubItemActive
                           ? "white"
                           : "var(--muted)",
                         color: isSubItemActive
-                          ? "#22c55e"
+                          ? "#44CE2D"
                           : "var(--muted-foreground)",
                       }}>
-                      {subItem.count}
+                      {subItem.dynamicCount
+                        ? getBadgeCount(badgeCounts, item.id, subItem.id)
+                        : subItem.count || 0}
                     </span>
                   )}
                 </div>
