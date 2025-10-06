@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useGetUsersQuery, useUpdateUserMutation } from "@/store/api";
-import { User, Mail, Eye, Edit, Trash2 } from "lucide-react";
+import { useGetFirebaseUsersQuery } from "@/store/api";
+import { Mail, Eye, Edit, Trash2 } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import { toast } from "sonner";
@@ -54,10 +54,15 @@ export default function AdminUsersPage() {
 
   const itemsPerPage = 10;
 
-  // Fetch all users using RTK Query
-  const { data: users, isLoading, error, refetch } = useGetUsersQuery({});
+  // ✅ Use the correct Firebase query
+  const {
+    data: usersData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetFirebaseUsersQuery({});
 
-  // Handle errors and success with Sonner toast
+  // Handle errors
   useEffect(() => {
     if (error) {
       toast.error("Failed to load users", {
@@ -67,29 +72,67 @@ export default function AdminUsersPage() {
           label: "Retry",
           onClick: () => refetch(),
         },
+        duration: 8000,
       });
     }
-  }, [error, users, isLoading, refetch]);
+  }, [error, refetch]);
 
-  // Handle different possible data structures
-  const usersData = users?.users || (Array.isArray(users) ? users : []);
+  // ✅ Handle Firebase users structure safely
+  const dataSource: UserData[] = Array.isArray(usersData)
+    ? usersData.map((user: any) => ({
+        uid: user.uid || user.id || "",
+        email: user.email || "",
+        display_name: user.display_name || "",
+        role: (user.role || "PATIENT").toUpperCase(),
+        phone_number: user.phone_number || "",
+        address: user.address || "",
+        location: user.location || "",
+        date_of_birth: user.date_of_birth || "",
+        isActive: user.isActive ?? false,
+        createdTime: user.createdTime || "",
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        password: user.password || "",
+        confirmPassword: user.confirmPassword || "",
+        photo_url: user.photo_url || "",
+      }))
+    : [];
 
-  const filteredUsers = usersData.filter((user: UserData) => {
-    const matchesSearch =
-      user?.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter users
+  const filteredUsers =
+    dataSource?.filter((user: UserData) => {
+      const matchesSearch =
+        (user.display_name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        ) ||
+        (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (user.first_name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        ) ||
+        (user.last_name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        );
 
-    const matchesRole = selectedRole === "all" || user?.role === selectedRole;
+      const matchesRole = selectedRole === "all" || user.role === selectedRole;
 
-    return matchesSearch && matchesRole;
-  });
+      return matchesSearch && matchesRole;
+    }) || [];
 
-  const totalPages = Math.ceil(filteredUsers?.length / itemsPerPage);
-  const paginatedUsers = filteredUsers?.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    return filteredUsers.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredUsers, currentPage, itemsPerPage]);
 
+  // console.log("Filtered Users Length:", filteredUsers?.length);
+  // console.log("Total Pages:", totalPages);
+  // console.log("Users Data:", usersData, "Length:", usersData.length);
+  // console.log("Raw Users Data:", users);
+
+  // Modal handlers
   const handleViewUser = (user: UserData) => {
     setSelectedUser(user);
     setIsDetailsModalOpen(true);
@@ -107,12 +150,11 @@ export default function AdminUsersPage() {
 
   const handleUpdateUser = async (updatedData: Partial<UserData>) => {
     if (!selectedUser) return;
-
     setIsUpdating(true);
     try {
       await updateUserByUid(selectedUser.uid, updatedData);
       toast.success("User updated successfully!");
-      refetch(); // Refresh the data
+      refetch();
     } catch (error) {
       toast.error("Failed to update user. Please try again.");
       console.error("Error updating user:", error);
@@ -123,12 +165,11 @@ export default function AdminUsersPage() {
 
   const handleConfirmDelete = async () => {
     if (!selectedUser) return;
-
     setIsDeleting(true);
     try {
       await deleteUser(selectedUser.uid);
       toast.success("User deleted successfully!");
-      refetch(); // Refresh the data
+      refetch();
     } catch (error) {
       toast.error("Failed to delete user. Please try again.");
       console.error("Error deleting user:", error);
@@ -141,7 +182,7 @@ export default function AdminUsersPage() {
     <div>
       <Title title="User Management" />
 
-      {/* Search and Filter Bar */}
+      {/* Search and Filters */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <SearchInput
@@ -195,7 +236,7 @@ export default function AdminUsersPage() {
         />
       ) : (
         <div
-          className="rounded-lg  border overflow-hidden"
+          className="rounded-lg border overflow-hidden"
           style={{
             backgroundColor: "var(--card)",
             borderColor: "var(--border)",
@@ -215,201 +256,130 @@ export default function AdminUsersPage() {
                 }}
               >
                 <tr>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    USER
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    ROLE
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    CONTACT
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    STATUS
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    JOINED
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    style={{
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    ACTIONS
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                className="divide-y divide-[var(--border)]"
-                style={{
-                  backgroundColor: "var(--card)",
-                  borderTopColor: "var(--border)",
-                }}
-              >
-                {paginatedUsers?.length === 0 ||
-                paginatedUsers?.length === undefined ? (
-                  <NoRecordFound colSpan={6} />
-                ) : (
-                  paginatedUsers?.map((user: UserData) => (
-                    <tr
-                      key={user.uid}
-                      className="transition-colors duration-200"
+                  {[
+                    "USER",
+                    "ROLE",
+                    "CONTACT",
+                    "STATUS",
+                    "JOINED",
+                    "ACTIONS",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                       style={{
-                        backgroundColor: "var(--card)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "var(--muted)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "var(--card)";
+                        color: "var(--muted-foreground)",
                       }}
                     >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {paginatedUsers.length === 0 ? (
+                  <NoRecordFound colSpan={6} />
+                ) : (
+                  paginatedUsers.map((user) => (
+                    <tr key={user.uid} className="hover:bg-[var(--muted)]">
+                      {/* USER */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            {user?.photo_url ? (
+                            {user.photo_url ? (
                               <img
                                 src={user.photo_url}
-                                alt={`${user.display_name || "User"} profile`}
+                                alt={user.display_name || "User"}
                                 className="h-10 w-10 rounded-full object-cover"
                               />
                             ) : (
                               <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
                                 <span className="text-sm font-medium">
                                   {(
-                                    (user.display_name as string) ||
-                                    (user.first_name as string) ||
-                                    (user.last_name as string)
+                                    user.display_name ||
+                                    user.first_name ||
+                                    user.last_name ||
+                                    "U"
                                   )
-                                    ?.charAt(0)
-                                    ?.toUpperCase() || "P"}
+                                    .charAt(0)
+                                    .toUpperCase()}
                                 </span>
                               </div>
                             )}
                           </div>
-
-                          {/* <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                              <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                            </div>
-                          </div> */}
                           <div className="ml-4">
-                            <div
-                              className="text-sm font-medium"
-                              style={{
-                                color: "var(--card-foreground)",
-                              }}
-                            >
-                              {user?.display_name ||
-                                `${user?.first_name || ""} ${
-                                  user?.last_name || ""
+                            <div className="text-sm font-medium">
+                              {user.display_name ||
+                                `${user.first_name || ""} ${
+                                  user.last_name || ""
                                 }`.trim() ||
                                 "N/A"}
                             </div>
-                            <div
-                              className="text-sm"
-                              style={{
-                                color: "var(--muted-foreground)",
-                              }}
-                            >
-                              ID: {user?.uid?.slice(0, 8)}...
+                            <div className="text-sm text-gray-500">
+                              ID: {user.uid?.slice(0, 8)}...
                             </div>
                           </div>
                         </div>
                       </td>
+
+                      {/* ROLE */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getRoleBadge(user?.role)}>
-                          {user?.role}
+                        <span
+                          className={getRoleBadge(user.role?.toUpperCase())}
+                        >
+                          {user.role?.toUpperCase() || "N/A"}
                         </span>
                       </td>
+
+                      {/* CONTACT */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div
-                          className="text-sm"
-                          style={{
-                            color: "var(--card-foreground)",
-                          }}
-                        >
+                        <div className="text-sm flex flex-col">
                           <div className="flex items-center">
-                            <Mail
-                              className="h-4 w-4 mr-2"
-                              style={{
-                                color: "var(--muted-foreground)",
-                              }}
-                            />
-                            {user?.email}
+                            <Mail className="h-4 w-4 mr-2" />
+                            {user.email}
                           </div>
-                          {user?.phone_number && (
-                            <div
-                              className="text-sm mt-1"
-                              style={{
-                                color: "var(--muted-foreground)",
-                              }}
-                            >
-                              {user?.phone_number}
+                          {user.phone_number && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              {user.phone_number}
                             </div>
                           )}
                         </div>
                       </td>
+
+                      {/* STATUS */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={getStatusBadge(user?.isActive || false)}
+                          className={getStatusBadge(user.isActive || false)}
                         >
-                          {user?.isActive ? "Active" : "Inactive"}
+                          {user.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
+
+                      {/* JOINED */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div
-                          className="text-sm"
-                          style={{
-                            color: "var(--muted-foreground)",
-                          }}
-                        >
-                          {formatDate(user?.createdTime)}
+                        <div className="text-sm text-gray-500">
+                          {formatDate(user.createdTime)}
                         </div>
                       </td>
+
+                      {/* ACTIONS */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleViewUser(user)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                            className="text-blue-600 hover:text-blue-800"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
+                            className="text-green-600 hover:text-green-800"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user)}
-                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                            className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -427,34 +397,14 @@ export default function AdminUsersPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
-          <div
-            className="text-sm"
-            style={{
-              color: "var(--muted-foreground)",
-            }}
-          >
+          <div className="text-sm text-gray-500">
             Page {currentPage} of {totalPages} • {filteredUsers.length} users
           </div>
           <div className="flex space-x-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              style={{
-                backgroundColor: "var(--card)",
-                borderColor: "var(--border)",
-                color: "var(--card-foreground)",
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = "var(--muted)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = "var(--card)";
-                }
-              }}
+              className="px-4 py-2 border rounded-lg disabled:opacity-50"
             >
               Previous
             </button>
@@ -463,21 +413,7 @@ export default function AdminUsersPage() {
                 setCurrentPage(Math.min(totalPages, currentPage + 1))
               }
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              style={{
-                backgroundColor: "var(--primary)",
-                color: "var(--primary-foreground)",
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = "#3bb025";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = "var(--primary)";
-                }
-              }}
+              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg disabled:opacity-50"
             >
               Next
             </button>
@@ -485,7 +421,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* User Details Modal */}
+      {/* Modals */}
       <UserDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => {
@@ -495,7 +431,6 @@ export default function AdminUsersPage() {
         user={selectedUser}
       />
 
-      {/* User Edit Modal */}
       <UserEditModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -507,7 +442,6 @@ export default function AdminUsersPage() {
         isUpdating={isUpdating}
       />
 
-      {/* Delete User Confirmation Modal */}
       <DeleteUserModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
