@@ -159,7 +159,8 @@ export default function AdminUsersPage() {
               backgroundColor: "var(--card)",
               borderColor: "var(--border)",
               color: "var(--card-foreground)",
-            }}>
+            }}
+          >
             <option value="all">All Roles</option>
             <option value="ADMIN">Admin</option>
             <option value="DOCTOR">Doctor</option>
@@ -171,7 +172,8 @@ export default function AdminUsersPage() {
               toast.info("Refreshing users...");
               refetch();
             }}
-            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors duration-200">
+            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors duration-200"
+          >
             Refresh
           </button>
         </div>
@@ -197,59 +199,68 @@ export default function AdminUsersPage() {
           style={{
             backgroundColor: "var(--card)",
             borderColor: "var(--border)",
-          }}>
+          }}
+        >
           <div className="overflow-x-auto">
             <table
               className="w-full"
               style={{
                 color: "var(--card-foreground)",
-              }}>
+              }}
+            >
               <thead
                 style={{
                   backgroundColor: "var(--muted)",
                   borderBottomColor: "var(--border)",
-                }}>
+                }}
+              >
                 <tr>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     USER
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     ROLE
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     CONTACT
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     STATUS
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     JOINED
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                     style={{
                       color: "var(--muted-foreground)",
-                    }}>
+                    }}
+                  >
                     ACTIONS
                   </th>
                 </tr>
@@ -259,7 +270,8 @@ export default function AdminUsersPage() {
                 style={{
                   backgroundColor: "var(--card)",
                   borderTopColor: "var(--border)",
-                }}>
+                }}
+              >
                 {paginatedUsers?.length === 0 ||
                 paginatedUsers?.length === undefined ? (
                   <NoRecordFound colSpan={6} />
@@ -276,20 +288,44 @@ export default function AdminUsersPage() {
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "var(--card)";
-                      }}>
+                      }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
+                            {user?.photo_url ? (
+                              <img
+                                src={user.photo_url}
+                                alt={`${user.display_name || "User"} profile`}
+                                className="h-10 w-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
+                                <span className="text-sm font-medium">
+                                  {(
+                                    (user.display_name as string) ||
+                                    (user.first_name as string) ||
+                                    (user.last_name as string)
+                                  )
+                                    ?.charAt(0)
+                                    ?.toUpperCase() || "P"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
                               <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                             </div>
-                          </div>
+                          </div> */}
                           <div className="ml-4">
                             <div
                               className="text-sm font-medium"
                               style={{
                                 color: "var(--card-foreground)",
-                              }}>
+                              }}
+                            >
                               {user?.display_name ||
                                 `${user?.first_name || ""} ${
                                   user?.last_name || ""
@@ -300,7 +336,8 @@ export default function AdminUsersPage() {
                               className="text-sm"
                               style={{
                                 color: "var(--muted-foreground)",
-                              }}>
+                              }}
+                            >
                               ID: {user?.uid?.slice(0, 8)}...
                             </div>
                           </div>
@@ -316,7 +353,8 @@ export default function AdminUsersPage() {
                           className="text-sm"
                           style={{
                             color: "var(--card-foreground)",
-                          }}>
+                          }}
+                        >
                           <div className="flex items-center">
                             <Mail
                               className="h-4 w-4 mr-2"
@@ -331,7 +369,8 @@ export default function AdminUsersPage() {
                               className="text-sm mt-1"
                               style={{
                                 color: "var(--muted-foreground)",
-                              }}>
+                              }}
+                            >
                               {user?.phone_number}
                             </div>
                           )}
@@ -339,7 +378,8 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={getStatusBadge(user?.isActive || false)}>
+                          className={getStatusBadge(user?.isActive || false)}
+                        >
                           {user?.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
@@ -348,7 +388,8 @@ export default function AdminUsersPage() {
                           className="text-sm"
                           style={{
                             color: "var(--muted-foreground)",
-                          }}>
+                          }}
+                        >
                           {formatDate(user?.createdTime)}
                         </div>
                       </td>
@@ -356,17 +397,20 @@ export default function AdminUsersPage() {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleViewUser(user)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
+                            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
+                          >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user)}
-                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -387,7 +431,8 @@ export default function AdminUsersPage() {
             className="text-sm"
             style={{
               color: "var(--muted-foreground)",
-            }}>
+            }}
+          >
             Page {currentPage} of {totalPages} • {filteredUsers.length} users
           </div>
           <div className="flex space-x-2">
@@ -409,7 +454,8 @@ export default function AdminUsersPage() {
                 if (!e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = "var(--card)";
                 }
-              }}>
+              }}
+            >
               Previous
             </button>
             <button
@@ -431,7 +477,8 @@ export default function AdminUsersPage() {
                 if (!e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = "var(--primary)";
                 }
-              }}>
+              }}
+            >
               Next
             </button>
           </div>
