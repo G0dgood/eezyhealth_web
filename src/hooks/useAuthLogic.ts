@@ -17,11 +17,11 @@ export const useAuthLogic = () => {
   }, [title]);
 
   useEffect(() => {
-    // This will run when the page first loads and whenever the title changes
+    // This will run when the page first loads
     if (window.location.pathname === "/") {
       setTitle("eezy Health | Login");
     }
-  }, [title]);
+  }, []); // Only run once on mount
 
   useEffect(() => {
     // Check if user is already logged in

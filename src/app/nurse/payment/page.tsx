@@ -34,10 +34,23 @@ export default function NursePaymentPage() {
 
   // RTK hooks
   const {
-    data: payments = [],
+    data: paymentsData,
     isLoading,
     error,
   } = useGetPaymentsQuery({ limit: 50 });
+
+  // Ensure payments is always an array (same logic as NursePaymentWidget)
+  let payments: unknown[] = [];
+  if (Array.isArray(paymentsData)) {
+    payments = paymentsData;
+  } else if (
+    paymentsData &&
+    typeof paymentsData === "object" &&
+    "data" in paymentsData &&
+    Array.isArray((paymentsData as { data: unknown }).data)
+  ) {
+    payments = (paymentsData as { data: unknown[] }).data;
+  }
 
   // Show error toast when there's an error
   useEffect(() => {
@@ -50,9 +63,9 @@ export default function NursePaymentPage() {
     }
   }, [error]);
 
-  // Filter payments based on search query
-  const filteredPayments = payments.filter(
-    (payment: Record<string, unknown> & { id: string }) => {
+  // Filter payments based on search query (updated to match payment data structure)
+  const filteredPayments = (payments || []).filter(
+    (payment: any) => {
       const searchLower = searchQuery.toLowerCase();
 
       // Helper function to safely convert to string and search
@@ -66,10 +79,13 @@ export default function NursePaymentPage() {
       };
 
       return (
-        safeSearch(payment?.description) ||
+        safeSearch(payment?.patientName) ||
         safeSearch(payment?.paymentMethod) ||
+        safeSearch(payment?.paymentStatus) ||
         safeSearch(payment?.status) ||
-        safeSearch(payment?.transactionId)
+        safeSearch(payment?.amount) ||
+        safeSearch(payment?.paymentReference?.reference) ||
+        safeSearch(payment?.transactionId?.reference)
       );
     }
   );
@@ -82,11 +98,13 @@ export default function NursePaymentPage() {
     startIndex + itemsPerPage
   );
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (payment: any) => {
     const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+    const status = payment?.paymentStatus || payment?.status;
 
     switch (status) {
       case "completed":
+      case "success":
         return `${baseClasses} bg-green-100 text-green-800`;
       case "pending":
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
@@ -99,11 +117,36 @@ export default function NursePaymentPage() {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
+  const getStatusText = (payment: any) => {
+    const status = payment?.paymentStatus || payment?.status;
+    switch (status) {
+      case "completed":
+      case "success":
+        return "Completed";
+      case "pending":
+        return "Pending";
+      case "failed":
+        return "Failed";
+      default:
+        return status || "Unknown";
+    }
+  };
+
+  const formatCurrency = (amount: number | string, currency: string = "NGN") => {
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    return `₦${numAmount?.toFixed(2) || "0.00"}`;
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Helper function to safely render payment field values
@@ -147,7 +190,7 @@ export default function NursePaymentPage() {
               columns={5}
               rows={5}
               headerLabels={[
-                "Transaction",
+                "Patient",
                 "Amount",
                 "Method",
                 "Status",
@@ -160,7 +203,7 @@ export default function NursePaymentPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th> Transaction </th>
+                      <th> Patient </th>
                       <th> Amount </th>
                       <th> Method </th>
                       <th> Status </th>
@@ -169,64 +212,42 @@ export default function NursePaymentPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedPayments?.length === 0 ||
-                    paginatedPayments?.length === undefined ? (
+                      paginatedPayments?.length === undefined ? (
                       <NoRecordFound colSpan={5} />
                     ) : (
                       paginatedPayments?.map(
-                        (payment: Record<string, unknown> & { id: string }) => (
-                          <tr key={payment.id} className="hover:bg-gray-50">
+                        (payment: any) => (
+                          <tr key={payment?.id || payment?.transactionId?.reference} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
                                 <div>
-                                  <div className="text-sm text-gray-500">
-                                    {safeRenderField(
-                                      payment.description,
-                                      "Payment transaction"
-                                    )}
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {payment?.patientName || payment?.patient_name || "Unknown Patient"}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Ref: {payment?.paymentReference?.reference || payment?.transactionId?.reference || payment?.id?.slice(0, 8) || "N/A"}
                                   </div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">
-                                {formatCurrency(
-                                  typeof payment?.amount === "number"
-                                    ? payment?.amount
-                                    : 0,
-                                  typeof payment?.currency === "string"
-                                    ? payment?.currency
-                                    : "₦"
-                                )}
+                                {formatCurrency(payment?.amount, payment?.currency)}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-900">
-                                {safeRenderField(payment.paymentMethod, "")}
+                                {payment?.paymentMethod || payment?.payment_method || "Card Payment"}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={getStatusBadge(
-                                  typeof payment.status === "string"
-                                    ? payment.status
-                                    : "unknown"
-                                )}>
-                                {safeRenderField(payment.status, "Unknown")}
+                              <span className={getStatusBadge(payment)}>
+                                {getStatusText(payment)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.createdAt &&
-                              typeof payment.createdAt === "string"
-                                ? new Date(
-                                    payment.createdAt
-                                  ).toLocaleDateString()
-                                : payment.createdAt &&
-                                  typeof payment.createdAt === "object"
-                                ? new Date(
-                                    JSON.stringify(payment.createdAt)
-                                  ).toLocaleDateString()
-                                : "-"}
+                              {formatDate(payment?.createdAt || payment?.paymentDate)}
                             </td>
                           </tr>
                         )
@@ -248,11 +269,10 @@ export default function NursePaymentPage() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === 1
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}>
+                    }`}>
                   Previous
                 </button>
                 <button
@@ -260,11 +280,10 @@ export default function NursePaymentPage() {
                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === totalPages
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 text-white hover:bg-green-600"
-                  }`}>
+                    }`}>
                   Next
                 </button>
               </div>

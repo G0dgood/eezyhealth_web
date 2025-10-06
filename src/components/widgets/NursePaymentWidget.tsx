@@ -31,25 +31,26 @@ const NursePaymentWidget: React.FC = () => {
   // Get recent payments (last 5) - nurses can view all payments for transparency
   const recentPayments = [...payments]
     .sort((a: any, b: any) => {
-      const dateA = new Date(a.createdTime || 0).getTime();
-      const dateB = new Date(b.createdTime || 0).getTime();
+      const dateA = new Date(a.createdAt || a.paymentDate || 0).getTime();
+      const dateB = new Date(b.createdAt || b.paymentDate || 0).getTime();
       return dateB - dateA;
     })
     .slice(0, 5);
 
   // Calculate payment statistics
-  const totalRevenue = payments
-    .filter((payment: any) => payment.status === "completed")
-    .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+  const totalRevenue = (payments || [])
+    .filter((payment: any) => payment?.paymentStatus === "completed" || payment?.status === "success")
+    .reduce((sum: number, payment: any) => sum + (Number(payment?.amount) || 0), 0);
 
-  const completedPayments = payments.filter(
-    (payment: any) => payment.status === "completed"
-  ).length;
+  const completedPayments = (payments || [])
+    .filter((payment: any) => payment?.paymentStatus === "completed" || payment?.status === "success")
+    .length;
 
-  const pendingPayments = payments.filter(
-    (payment: any) => payment.status === "pending"
-  ).length;
+  const pendingPayments = (payments || [])
+    .filter((payment: any) => payment?.paymentStatus === "pending" || payment?.status === "pending")
+    .length;
 
+<<<<<<< HEAD
   const todayPayments = payments.filter((payment: any) => {
     if (!payment.createdTime) return false;
     const paymentDate = new Date(payment.createdTime);
@@ -59,6 +60,17 @@ const NursePaymentWidget: React.FC = () => {
       payment.status === "completed"
     );
   }).length;
+=======
+  const todayPayments = (payments || [])
+    .filter((payment: any) => {
+      const paymentDate = payment?.createdAt || payment?.paymentDate;
+      if (!paymentDate) return false;
+      const date = new Date(paymentDate);
+      const today = new Date();
+      return date.toDateString() === today.toDateString() && (payment.paymentStatus === "completed" || payment?.status === "success");
+    })
+    .length;
+>>>>>>> 89f0a139df38701f1880c1b66937c5ae24dbf593
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "N/A";
@@ -71,9 +83,11 @@ const NursePaymentWidget: React.FC = () => {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (payment: any) => {
+    const status = payment?.paymentStatus || payment?.status;
     switch (status) {
       case "completed":
+      case "success":
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
@@ -84,9 +98,11 @@ const NursePaymentWidget: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (payment: any) => {
+    const status = payment?.paymentStatus || payment?.status;
     switch (status) {
       case "completed":
+      case "success":
         return <CheckCircle size={14} className="text-green-600" />;
       case "pending":
         return <Clock size={14} className="text-yellow-600" />;
@@ -94,6 +110,21 @@ const NursePaymentWidget: React.FC = () => {
         return <Clock size={14} className="text-red-600" />;
       default:
         return <Clock size={14} className="text-gray-600" />;
+    }
+  };
+
+  const getStatusText = (payment: any) => {
+    const status = payment?.paymentStatus || payment?.status;
+    switch (status) {
+      case "completed":
+      case "success":
+        return "Completed";
+      case "pending":
+        return "Pending";
+      case "failed":
+        return "Failed";
+      default:
+        return status || "Unknown";
     }
   };
 
@@ -112,7 +143,7 @@ const NursePaymentWidget: React.FC = () => {
     );
   }
 
-  if (recentPayments.length === 0) {
+  if (recentPayments?.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex flex-col items-center justify-center py-8">
@@ -178,11 +209,16 @@ const NursePaymentWidget: React.FC = () => {
 
       {/* Recent Payments List */}
       <div className="space-y-4">
-        {recentPayments.map((payment: any) => (
+        {recentPayments?.map((payment: any) => (
           <div
+<<<<<<< HEAD
             key={payment.id}
             className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
           >
+=======
+            key={payment?.id}
+            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+>>>>>>> 89f0a139df38701f1880c1b66937c5ae24dbf593
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -190,50 +226,68 @@ const NursePaymentWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
+<<<<<<< HEAD
                     ₦{payment?.amount?.toFixed(2) || "0.00"}
                   </h4>
                   <p className="text-sm text-gray-600">
                     {payment?.patient_name || "Unknown Patient"}
+=======
+                    ₦{(typeof payment?.amount === 'number' ? payment?.amount : parseFloat(payment?.amount) || 0).toFixed(2)}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {payment?.patientName || payment?.patient_name || "Unknown Patient"}
+>>>>>>> 89f0a139df38701f1880c1b66937c5ae24dbf593
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span
+<<<<<<< HEAD
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     payment.status
                   )}`}
                 >
                   {payment.status}
+=======
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(payment)}`}>
+                  {getStatusText(payment)}
+>>>>>>> 89f0a139df38701f1880c1b66937c5ae24dbf593
                 </span>
-                {getStatusIcon(payment.status)}
+                {getStatusIcon(payment)}
               </div>
             </div>
 
             <div className="space-y-2">
-              {payment.doctor_name && (
+              {payment?.doctor_name && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">👨‍⚕️</span>
-                  <span>{payment.doctor_name}</span>
+                  <span>{payment?.doctor_name}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">💳</span>
-                <span>{payment.payment_method || "Card Payment"}</span>
+                <span>{payment?.paymentMethod || payment?.payment_method || "Card Payment"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">📅</span>
-                <span>{formatDate(payment.createdTime)}</span>
+                <span>{formatDate(payment?.createdAt || payment?.paymentDate || payment?.createdTime)}</span>
               </div>
+              {payment?.bookingDate && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-xs">📋</span>
+                  <span>Appointment: {formatDate(payment?.bookingDate)}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <CreditCard size={14} />
-                <span>Payment ID: {payment.id?.slice(0, 8) || "N/A"}...</span>
+                <span>Ref: {payment?.paymentReference?.reference || payment?.transactionId?.reference || payment?.id?.slice(0, 8) || "N/A"}...</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <Users size={12} />
-                <span>Clinic View</span>
+                <span>{payment?.currency || "NGN"}</span>
               </div>
             </div>
           </div>
