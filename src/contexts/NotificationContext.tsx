@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import { useAuth } from "./AuthContext";
 import {
@@ -27,11 +28,11 @@ interface Notification {
   timestamp: string;
   isRead: boolean;
   category:
-    | "newPatientBooking"
-    | "appointmentReminder"
-    | "patientMessage"
-    | "cancellation"
-    | "general";
+  | "newPatientBooking"
+  | "appointmentReminder"
+  | "patientMessage"
+  | "cancellation"
+  | "general";
   data?: Record<string, unknown>; // Additional data for the notification
 }
 
@@ -75,6 +76,13 @@ export function NotificationProvider({
       patientMessages: true,
     });
 
+  // Memoize notificationPrefs to prevent infinite re-renders
+  const memoizedNotificationPrefs = useMemo(() => notificationPrefs, [
+    notificationPrefs.newPatientBookings,
+    notificationPrefs.appointmentReminders,
+    notificationPrefs.patientMessages,
+  ]);
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Firebase integration for real-time notifications
@@ -88,7 +96,7 @@ export function NotificationProvider({
     const unsubscribes: (() => void)[] = [];
 
     // 1. NEW PATIENT BOOKINGS - Listen for new appointments
-    if (notificationPrefs.newPatientBookings) {
+    if (memoizedNotificationPrefs.newPatientBookings) {
       const newBookingsQuery = query(
         collection(db, "Bookings"),
         where("doctorId", "==", doctorId),
@@ -116,11 +124,10 @@ export function NotificationProvider({
                   id: `new_booking_${bookingId}`,
                   type: "info",
                   title: "New Patient Booking",
-                  description: `${
-                    bookingData.patientName || "A patient"
-                  } booked an appointment for ${formatDate(
-                    bookingData.bookingDate
-                  )} at ${bookingData.slot || bookingData.timeSlot}`,
+                  description: `${bookingData.patientName || "A patient"
+                    } booked an appointment for ${formatDate(
+                      bookingData.bookingDate
+                    )} at ${bookingData.slot || bookingData.timeSlot}`,
                   timestamp: formatTimestamp(bookingData.createdAt),
                   isRead: false,
                   category: "newPatientBooking",
@@ -147,7 +154,7 @@ export function NotificationProvider({
     }
 
     // 2. APPOINTMENT REMINDERS - Check for upcoming appointments
-    if (notificationPrefs.appointmentReminders) {
+    if (memoizedNotificationPrefs.appointmentReminders) {
       const now = new Date();
       const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
@@ -181,9 +188,8 @@ export function NotificationProvider({
                   id: `reminder_${appointmentId}`,
                   type: "warning",
                   title: "Upcoming Appointment Reminder",
-                  description: `You have an appointment with ${
-                    appointmentData.patientName || "a patient"
-                  } in ${Math.round(hoursUntilAppointment * 60)} minutes`,
+                  description: `You have an appointment with ${appointmentData.patientName || "a patient"
+                    } in ${Math.round(hoursUntilAppointment * 60)} minutes`,
                   timestamp: formatTimestamp(now.toISOString()),
                   isRead: false,
                   category: "appointmentReminder",
@@ -223,7 +229,7 @@ export function NotificationProvider({
     }
 
     // 3. PATIENT MESSAGES - Listen for new messages (if you have a messages collection)
-    if (notificationPrefs.patientMessages) {
+    if (memoizedNotificationPrefs.patientMessages) {
       // This would depend on your message system structure
       // For now, we'll create a placeholder that could be connected to your messaging system
       const messagesQuery = query(
@@ -254,12 +260,11 @@ export function NotificationProvider({
                   id: `message_${messageId}`,
                   type: "info",
                   title: "New Patient Message",
-                  description: `${
-                    messageData.patientName || "A patient"
-                  } sent you a message: "${messageData.content?.substring(
-                    0,
-                    50
-                  )}${messageData.content?.length > 50 ? "..." : ""}"`,
+                  description: `${messageData.patientName || "A patient"
+                    } sent you a message: "${messageData.content?.substring(
+                      0,
+                      50
+                    )}${messageData.content?.length > 50 ? "..." : ""}"`,
                   timestamp: formatTimestamp(messageData.timestamp),
                   isRead: false,
                   category: "patientMessage",
@@ -311,12 +316,10 @@ export function NotificationProvider({
               id: `cancellation_${cancellationId}`,
               type: "warning",
               title: "Appointment Cancellation Request",
-              description: `${
-                cancellationData.patientName || "A patient"
-              } requested to cancel their appointment. Reason: ${
-                cancellationData.cancellationRequest?.reasonForCancellation ||
+              description: `${cancellationData.patientName || "A patient"
+                } requested to cancel their appointment. Reason: ${cancellationData.cancellationRequest?.reasonForCancellation ||
                 "No reason provided"
-              }`,
+                }`,
               timestamp: formatTimestamp(
                 cancellationData.cancellationRequest?.requestedAt
               ),
@@ -348,7 +351,7 @@ export function NotificationProvider({
     return () => {
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [user?.uid, notificationPrefs]);
+  }, [user?.uid, memoizedNotificationPrefs]);
 
   // Helper function to format Firebase timestamps
   const formatTimestamp = (
@@ -370,12 +373,10 @@ export function NotificationProvider({
       if (diffInMinutes < 60)
         return `${diffInMinutes} min${diffInMinutes > 1 ? "s" : ""} ago`;
       if (diffInMinutes < 1440)
-        return `${Math.floor(diffInMinutes / 60)} hour${
-          Math.floor(diffInMinutes / 60) > 1 ? "s" : ""
+        return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) > 1 ? "s" : ""
+          } ago`;
+      return `${Math.floor(diffInMinutes / 1440)} day${Math.floor(diffInMinutes / 1440) > 1 ? "s" : ""
         } ago`;
-      return `${Math.floor(diffInMinutes / 1440)} day${
-        Math.floor(diffInMinutes / 1440) > 1 ? "s" : ""
-      } ago`;
     }
 
     return "Just now";

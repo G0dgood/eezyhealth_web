@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { serializeFirebaseData } from "@/lib/firebase-rtk";
@@ -46,7 +46,7 @@ export const useBookingsByDoctorId = (doctorId: string | null): UseBookingsByDoc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!doctorId) {
       setData(null);
       setError(null);
@@ -108,12 +108,11 @@ export const useBookingsByDoctorId = (doctorId: string | null): UseBookingsByDoc
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [doctorId]);
 
   useEffect(() => {
     fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doctorId]);
+  }, [fetchBookings]);
 
   const refetch = async () => {
     await fetchBookings();

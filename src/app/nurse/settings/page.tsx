@@ -58,7 +58,7 @@ export default function NurseSettingsPage() {
   // Initialize profile data with user information
   useEffect(() => {
     if (userInfo) {
-      setProfileData({
+      const newProfileData = {
         fullName: String(userInfo.display_name || userInfo.first_name || ""),
         medicalLicense: String(userInfo.medical_license || ""),
         specialization: String(userInfo.specialization || ""),
@@ -67,15 +67,22 @@ export default function NurseSettingsPage() {
         yearsOfExperience: String(userInfo.experience_yrs || ""),
         hospitalClinic: String(userInfo.hospital || ""),
         bio: String(userInfo.about || ""),
+      };
+
+      // Only update if data has actually changed
+      setProfileData((prev) => {
+        const hasChanged = Object.keys(newProfileData).some(
+          key => prev[key as keyof typeof prev] !== newProfileData[key as keyof typeof newProfileData]
+        );
+        return hasChanged ? newProfileData : prev;
       });
 
       // Set profile image if available
       if (userInfo.photo_url || userInfo.image) {
-        setProfileImage(
-          String(
-            userInfo.photo_url || userInfo.image || "/api/placeholder/120/120"
-          )
+        const newImageUrl = String(
+          userInfo.photo_url || userInfo.image || "/api/placeholder/120/120"
         );
+        setProfileImage((prev) => prev !== newImageUrl ? newImageUrl : prev);
       }
 
       // Initialize notification preferences if available
@@ -83,10 +90,16 @@ export default function NurseSettingsPage() {
         userInfo.notification_preferences &&
         typeof userInfo.notification_preferences === "object"
       ) {
-        setNotificationPrefs((prev) => ({
-          ...prev,
-          ...(userInfo.notification_preferences as Record<string, unknown>),
-        }));
+        setNotificationPrefs((prev) => {
+          const newPrefs = {
+            ...prev,
+            ...(userInfo.notification_preferences as Record<string, unknown>),
+          };
+          const hasChanged = Object.keys(newPrefs).some(
+            key => prev[key as keyof typeof prev] !== newPrefs[key as keyof typeof newPrefs]
+          );
+          return hasChanged ? newPrefs : prev;
+        });
       }
 
       // Initialize security settings if available
@@ -98,10 +111,16 @@ export default function NurseSettingsPage() {
           string,
           unknown
         >;
-        setSecuritySettings((prev) => ({
-          ...prev,
-          ...securityData,
-        }));
+        setSecuritySettings((prev) => {
+          const newSettings = {
+            ...prev,
+            ...securityData,
+          };
+          const hasChanged = Object.keys(newSettings).some(
+            key => prev[key as keyof typeof prev] !== newSettings[key as keyof typeof newSettings]
+          );
+          return hasChanged ? newSettings : prev;
+        });
 
         // Set theme preference if available in security settings
         if (
@@ -162,7 +181,6 @@ export default function NurseSettingsPage() {
 
       toast.success("Profile updated successfully!");
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast.error("Failed to update profile. Please try again.");
     }
   };

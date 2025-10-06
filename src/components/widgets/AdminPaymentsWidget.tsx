@@ -42,7 +42,7 @@ const AdminPaymentsWidget: React.FC = () => {
   // Calculate payment statistics
   const totalRevenue = payments
     .filter((payment: PaymentData) => payment.status === "completed")
-    .reduce((sum: number, payment: PaymentData) => sum + payment.amount, 0);
+    .reduce((sum: number, payment: PaymentData) => sum + Number(payment.amount || 0), 0);
 
   const completedPayments = payments.filter(
     (payment: PaymentData) => payment.status === "completed"
@@ -187,7 +187,7 @@ const AdminPaymentsWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    ₦{payment.amount.toFixed(2)}
+                    ₦{Number(payment.amount || 0).toFixed(2)}
                   </h4>
                   <p className="text-sm text-gray-600">
                     {payment.patient_name || "Unknown Patient"}

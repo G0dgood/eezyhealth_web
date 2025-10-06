@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -198,12 +198,12 @@ export default function DoctorAvailabilityPage() {
     (doctorDetails as DoctorProfile)?.availability || {};
 
   // Apply migration to convert 30-minute slots to 1-hour slots
-  const migratedAvailability = migrateAvailabilityToHourly(
+  const migratedAvailability = useMemo(() => migrateAvailabilityToHourly(
     rawDoctorAvailability
-  );
+  ), [rawDoctorAvailability]);
 
   // Clean invalid keys from availability data
-  const doctorAvailability = cleanAvailability(migratedAvailability, timeSlots);
+  const doctorAvailability = useMemo(() => cleanAvailability(migratedAvailability, timeSlots), [migratedAvailability, timeSlots]);
 
   // Debug logging
   console.log("doctorDetails---", doctorDetails);
@@ -654,8 +654,8 @@ export default function DoctorAvailabilityPage() {
                           const slotKey = timeSlotToKey(timeSlot);
                           const isExistingSlot = Boolean(
                             doctorAvailability &&
-                              doctorAvailability[day?.dayName] &&
-                              doctorAvailability[day?.dayName][slotKey]
+                            doctorAvailability[day?.dayName] &&
+                            doctorAvailability[day?.dayName][slotKey]
                           );
                           const isSelectedSlot =
                             selectedSlots[day?.dayName] &&

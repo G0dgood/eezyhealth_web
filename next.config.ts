@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    // Allow local file URLs for mobile app compatibility
+    unoptimized: true,
+    domains: [],
   },
   async rewrites() {
     return [

@@ -26,7 +26,7 @@ const PaymentWidget: React.FC = () => {
 
   // Filter payments for this doctor (mock filtering - in real app, you'd filter by doctor_id)
   const doctorPayments = payments.filter((payment: any) =>
-    payment.doctor_id === user?.uid || payment.doctor_name?.includes("Dr.")
+    payment.doctor_id === user?.uid || payment?.doctor_name?.includes("Dr.")
   );
 
   // Get recent payments (last 5)
