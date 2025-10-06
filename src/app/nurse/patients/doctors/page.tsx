@@ -146,7 +146,8 @@ export default function NursesDoctorsPage() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+        >
           Retry
         </button>
       </div>
@@ -159,7 +160,8 @@ export default function NursesDoctorsPage() {
         <div className="flex items-center space-x-4 mb-4">
           <Link
             href="/nurse/patients"
-            className="text-gray-600 hover:text-gray-900 transition-colors">
+            className="text-gray-600 hover:text-gray-900 transition-colors"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -186,11 +188,13 @@ export default function NursesDoctorsPage() {
           {topDoctors.map((doctor, index) => (
             <div
               key={doctor.id}
-              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200`}>
+              className={`${topDoctorColors[index]} rounded-lg p-6 relative overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200`}
+            >
               {/* Top Doctor Banner */}
               <div
                 className={`${topDoctorMainColors[index]} absolute top-[110px] left-[-30px] text-[#fff] px-3 py-1 w-[200px] text-xs font-bold transform -rotate-45 origin-top-left text-center font-inter text-[12px] leading-[15px]  
-         tracking-[0.5px]`}>
+         tracking-[0.5px]`}
+              >
                 Top Doctor
               </div>
 
@@ -198,8 +202,8 @@ export default function NursesDoctorsPage() {
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-white">
                   <Image
                     src={
-                      doctor.photo_url ||
-                      doctor.image ||
+                      doctor?.photo_url ||
+                      doctor?.image ||
                       "/api/placeholder/120/120"
                     }
                     alt={doctor.display_name || "Doctor"}
@@ -257,7 +261,8 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}>
+                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}
+                  >
                     Book Appointment
                   </button>
                 </div>
@@ -274,16 +279,17 @@ export default function NursesDoctorsPage() {
           {regularDoctors?.map((doctor: Doctor) => (
             <div
               key={doctor.id}
-              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200">
+              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
+            >
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
                   <Image
                     src={
-                      doctor.photo_url ||
-                      doctor.image ||
+                      doctor?.photo_url ||
+                      doctor?.image ||
                       "/api/placeholder/120/120"
                     }
-                    alt={doctor.display_name || "Doctor"}
+                    alt={doctor?.display_name || "Doctor"}
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
@@ -344,7 +350,8 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer">
+                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                  >
                     Book Appointment
                   </button>
                 </div>

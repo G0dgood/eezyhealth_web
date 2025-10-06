@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { CreditCard, DollarSign, TrendingUp, Clock, CheckCircle, Users } from "lucide-react";
+import {
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Users,
+} from "lucide-react";
 import { useGetPaymentsQuery } from "@/store/api";
 
 const NursePaymentWidget: React.FC = () => {
@@ -47,7 +54,10 @@ const NursePaymentWidget: React.FC = () => {
     if (!payment.createdTime) return false;
     const paymentDate = new Date(payment.createdTime);
     const today = new Date();
-    return paymentDate.toDateString() === today.toDateString() && payment.status === "completed";
+    return (
+      paymentDate.toDateString() === today.toDateString() &&
+      payment.status === "completed"
+    );
   }).length;
 
   const formatDate = (dateString: string | undefined) => {
@@ -113,7 +123,8 @@ const NursePaymentWidget: React.FC = () => {
             No Payments Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
-            No payment records found yet. Payments will appear here once they are processed.
+            No payment records found yet. Payments will appear here once they
+            are processed.
           </p>
         </div>
       </div>
@@ -129,7 +140,9 @@ const NursePaymentWidget: React.FC = () => {
             <CreditCard className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Payment Overview</h3>
+            <h3 className="text-xl font-bold text-gray-900">
+              Payment Overview
+            </h3>
             <p className="text-sm text-gray-500">Clinic payment status</p>
           </div>
         </div>
@@ -144,15 +157,21 @@ const NursePaymentWidget: React.FC = () => {
           <div className="text-xs text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{completedPayments}</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {completedPayments}
+          </div>
           <div className="text-xs text-gray-600">Completed</div>
         </div>
         <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">{pendingPayments}</div>
+          <div className="text-2xl font-bold text-yellow-600">
+            {pendingPayments}
+          </div>
           <div className="text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">{todayPayments}</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {todayPayments}
+          </div>
           <div className="text-xs text-gray-600">Today</div>
         </div>
       </div>
@@ -162,7 +181,8 @@ const NursePaymentWidget: React.FC = () => {
         {recentPayments.map((payment: any) => (
           <div
             key={payment.id}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -170,10 +190,10 @@ const NursePaymentWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    ₦{payment.amount?.toFixed(2) || "0.00"}
+                    ₦{payment?.amount?.toFixed(2) || "0.00"}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {payment.patient_name || "Unknown Patient"}
+                    {payment?.patient_name || "Unknown Patient"}
                   </p>
                 </div>
               </div>
@@ -181,7 +201,8 @@ const NursePaymentWidget: React.FC = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     payment.status
-                  )}`}>
+                  )}`}
+                >
                   {payment.status}
                 </span>
                 {getStatusIcon(payment.status)}
@@ -228,7 +249,9 @@ const NursePaymentWidget: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Completed: {completedPayments}</span>
+              <span className="text-gray-600">
+                Completed: {completedPayments}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>

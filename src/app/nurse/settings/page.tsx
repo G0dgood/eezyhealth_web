@@ -367,7 +367,8 @@ export default function NurseSettingsPage() {
                       specialization: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer"
+                >
                   <option value="Cardiology">Cardiology</option>
                   <option value="Dermatology">Dermatology</option>
                   <option value="Neurology">Neurology</option>
@@ -469,7 +470,8 @@ export default function NurseSettingsPage() {
               <button
                 onClick={handleProfileSave}
                 disabled={isUpdating}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isUpdating ? "Saving..." : "Save"}
               </button>
             </div>
@@ -503,15 +505,19 @@ export default function NurseSettingsPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${notificationPrefs.newAppointments
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                      }`}>
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      notificationPrefs.newAppointments
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    }`}
+                  >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${notificationPrefs.newAppointments
-                        ? "translate-x-5"
-                        : "translate-x-0"
-                        }`}></div>
+                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                        notificationPrefs.newAppointments
+                          ? "translate-x-5"
+                          : "translate-x-0"
+                      }`}
+                    ></div>
                   </div>
                 </label>
               </div>
@@ -539,15 +545,19 @@ export default function NurseSettingsPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${notificationPrefs.patientReschedulings
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                      }`}>
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      notificationPrefs.patientReschedulings
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    }`}
+                  >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${notificationPrefs.patientReschedulings
-                        ? "translate-x-5"
-                        : "translate-x-0"
-                        }`}></div>
+                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                        notificationPrefs.patientReschedulings
+                          ? "translate-x-5"
+                          : "translate-x-0"
+                      }`}
+                    ></div>
                   </div>
                 </label>
               </div>
@@ -574,15 +584,19 @@ export default function NurseSettingsPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${notificationPrefs.accountUpdates
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                      }`}>
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      notificationPrefs.accountUpdates
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    }`}
+                  >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${notificationPrefs.accountUpdates
-                        ? "translate-x-5"
-                        : "translate-x-0"
-                        }`}></div>
+                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                        notificationPrefs.accountUpdates
+                          ? "translate-x-5"
+                          : "translate-x-0"
+                      }`}
+                    ></div>
                   </div>
                 </label>
               </div>
@@ -611,15 +625,19 @@ export default function NurseSettingsPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${notificationPrefs.appointmentUpdates
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                      }`}>
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      notificationPrefs.appointmentUpdates
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    }`}
+                  >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${notificationPrefs.appointmentUpdates
-                        ? "translate-x-5"
-                        : "translate-x-0"
-                        }`}></div>
+                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                        notificationPrefs.appointmentUpdates
+                          ? "translate-x-5"
+                          : "translate-x-0"
+                      }`}
+                    ></div>
                   </div>
                 </label>
               </div>
@@ -647,15 +665,19 @@ export default function NurseSettingsPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-11 h-6 rounded-full transition-colors ${notificationPrefs.appointmentCancellations
-                      ? "bg-green-500"
-                      : "bg-gray-300"
-                      }`}>
+                    className={`w-11 h-6 rounded-full transition-colors ${
+                      notificationPrefs.appointmentCancellations
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    }`}
+                  >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${notificationPrefs.appointmentCancellations
-                        ? "translate-x-5"
-                        : "translate-x-0"
-                        }`}></div>
+                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                        notificationPrefs.appointmentCancellations
+                          ? "translate-x-5"
+                          : "translate-x-0"
+                      }`}
+                    ></div>
                   </div>
                 </label>
               </div>
@@ -666,7 +688,8 @@ export default function NurseSettingsPage() {
               <button
                 onClick={handleNotificationSave}
                 disabled={isUpdating}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isUpdating ? "Saving..." : "Save Preferences"}
               </button>
             </div>
@@ -700,8 +723,9 @@ export default function NurseSettingsPage() {
                 <div className="flex items-end justify-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Sun
-                      className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
-                        }`}
+                      className={`w-4 h-4 ${
+                        theme === "light" ? "text-yellow-500" : "text-gray-400"
+                      }`}
                     />
                     <span className="text-sm text-gray-600">Light</span>
                   </div>
@@ -713,17 +737,22 @@ export default function NurseSettingsPage() {
                       className="sr-only"
                     />
                     <div
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${theme === "dark" ? "bg-green-500" : "bg-gray-300"
-                        }`}>
+                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    >
                       <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${theme === "dark" ? "translate-x-5" : "translate-x-0.5"
-                          }`}></div>
+                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      ></div>
                     </div>
                   </label>
                   <div className="flex items-center space-x-2">
                     <Moon
-                      className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
-                        }`}
+                      className={`w-4 h-4 ${
+                        theme === "dark" ? "text-blue-500" : "text-gray-400"
+                      }`}
                     />
                     <span className="text-sm text-gray-600">Dark</span>
                   </div>
@@ -830,7 +859,8 @@ export default function NurseSettingsPage() {
                 <button
                   onClick={handlePasswordUpdate}
                   disabled={isUpdating}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isUpdating ? "Updating..." : "Update Password"}
                 </button>
               </div>
@@ -841,7 +871,8 @@ export default function NurseSettingsPage() {
               <button
                 onClick={handleSecuritySave}
                 disabled={isUpdating}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isUpdating ? "Saving..." : "Save Settings"}
               </button>
             </div>
@@ -876,10 +907,12 @@ export default function NurseSettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}>
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
                 {tab.icon}
                 <span>{tab.label}</span>
               </button>
