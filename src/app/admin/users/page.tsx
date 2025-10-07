@@ -127,11 +127,6 @@ export default function AdminUsersPage() {
     );
   }, [filteredUsers, currentPage, itemsPerPage]);
 
-  // console.log("Filtered Users Length:", filteredUsers?.length);
-  // console.log("Total Pages:", totalPages);
-  // console.log("Users Data:", usersData, "Length:", usersData.length);
-  // console.log("Raw Users Data:", users);
-
   // Modal handlers
   const handleViewUser = (user: UserData) => {
     setSelectedUser(user);

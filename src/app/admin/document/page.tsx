@@ -1,19 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
-
-interface DoctorUpload {
-  id: string;
-  doctorName: string;
-  specialty: string;
-  uploadDate: string;
-  status: "pending" | "approved" | "rejected";
-  documents: Document[];
-}
+import { useGetUploadsQuery } from "@/store/api";
+import FormattedDate from "@/utils/FormattedDate";
 
 interface Document {
   id: string;
@@ -22,256 +15,74 @@ interface Document {
   type: string;
 }
 
-const mockData: DoctorUpload[] = [
-  {
-    id: "1",
-    doctorName: "Dr. Tunde Simeon",
-    specialty: "Cardiologist",
-    uploadDate: "2 January 2025",
-    status: "pending",
-    documents: [
-      {
-        id: "1",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "2",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      { id: "3", name: "Medical Licenses.pdf", size: "200 KB", type: "pdf" },
-      {
-        id: "4",
-        name: "Professional Membership.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "2",
-    doctorName: "Dr. Ernest Simeon",
-    specialty: "Dermatologist",
-    uploadDate: "2 January 2025",
-    status: "rejected",
-    documents: [
-      {
-        id: "5",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "6",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "3",
-    doctorName: "Dr. Godwin Simeon",
-    specialty: "Pediatrician",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "7",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "8",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "4",
-    doctorName: "Dr. Daniel Simeon",
-    specialty: "Cardiologist",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "9",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "10",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "5",
-    doctorName: "Dr. Seun Simeon",
-    specialty: "Dermatologist",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "11",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "12",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "6",
-    doctorName: "Dr. Abbey Simeon",
-    specialty: "Pediatrician",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "13",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "14",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "7",
-    doctorName: "Dr. Wale Simeon",
-    specialty: "Cardiologist",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "15",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "16",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "8",
-    doctorName: "Dr. Pelumi Simeon",
-    specialty: "Dermatologist",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "17",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "18",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "9",
-    doctorName: "Dr. Happiness Simeon",
-    specialty: "Pediatrician",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "19",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "20",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-  {
-    id: "10",
-    doctorName: "Dr. Jane Simeon",
-    specialty: "Cardiologist",
-    uploadDate: "2 January 2025",
-    status: "approved",
-    documents: [
-      {
-        id: "21",
-        name: "Medical Certification.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-      {
-        id: "22",
-        name: "Malpractice Insurance.pdf",
-        size: "200 KB",
-        type: "pdf",
-      },
-    ],
-  },
-];
+interface DoctorUpload {
+  id: string;
+  doctorName: string;
+  specialty: string;
+  uploadDate: string;
+  status: "pending" | "approved" | "rejected";
+  name: string;
+  description: string;
+  doctorId: string;
+  specialization: string;
+  downloadUrl: string;
+}
 
+interface Upload {
+  doctorId: string;
+  id: string;
+  name: string;
+  description: string;
+  specialization: string;
+  downloadUrl: string;
+  uploadDate: any;
+  status: "pending" | "approved" | "rejected";
+  comment?: string;
+  reviewedBy?: string;
+  reviewedAt?: any;
+}
 export default function DocumentPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUpload, setSelectedUpload] = useState<DoctorUpload | null>(
-    null
-  );
+  const [selectedUpload, setSelectedUpload] = useState<Upload | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(mockData.length / itemsPerPage);
 
-  const filteredData = mockData.filter((upload) =>
-    upload.doctorName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch uploads from RTK Query
+  const {
+    data: uploads = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useGetUploadsQuery({});
+
+  const safeUploadTwo = uploads?.uploads;
+
+  // Filter uploads based on search term
+  const filteredData = useMemo(() => {
+    const safeUploads = Array.isArray(safeUploadTwo) ? safeUploadTwo : [];
+    if (safeUploadTwo?.length === 0) return [];
+    return safeUploads?.filter((upload: Upload) =>
+      upload?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [safeUploadTwo, searchTerm]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage) || 1;
+  // console.log("Fetched uploads:", uploads);
 
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const handleReviewDocument = (upload: DoctorUpload) => {
+  const handleAction = (upload: Upload) => {
     setSelectedUpload(upload);
     setIsReviewModalOpen(true);
   };
 
-  const handleViewDocument = (upload: DoctorUpload) => {
-    setSelectedUpload(upload);
-    setIsReviewModalOpen(true);
-  };
-
+  // Status helpers
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
@@ -286,45 +97,54 @@ export default function DocumentPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
-
+    const base = "px-3 py-1 rounded-full text-xs font-medium";
     switch (status) {
       case "pending":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+        return `${base} bg-yellow-100 text-yellow-800`;
       case "approved":
-        return `${baseClasses} bg-green-100 text-green-800`;
+        return `${base} bg-green-100 text-green-800`;
       case "rejected":
-        return `${baseClasses} bg-red-100 text-red-800`;
+        return `${base} bg-red-100 text-red-800`;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        return `${base} bg-gray-100 text-gray-800`;
     }
   };
 
   const getActionText = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Review Document";
-      case "approved":
-      case "rejected":
-        return "View";
-      default:
-        return "View";
-    }
+    if (status === "pending") return "Review Document";
+    return "View";
   };
 
-  const handleAction = (upload: DoctorUpload) => {
-    if (upload.status === "pending") {
-      handleReviewDocument(upload);
-    } else {
-      handleViewDocument(upload);
-    }
-  };
+  // Loading and Error states
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-lg" style={{ color: "var(--card-foreground)" }}>
+          Loading uploads...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen space-y-4">
+        <div className="text-lg text-red-600">Error fetching uploads.</div>
+        <button
+          onClick={() => refetch()}
+          className="px-4 py-2 rounded-lg bg-[#44CE2D] text-white hover:bg-[#3bb025] transition"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
       <Title title="Uploads" />
 
-      {/* Search Bar */}
+      {/* Search */}
       <div className="mb-6">
         <SearchInput
           value={searchTerm}
@@ -335,184 +155,138 @@ export default function DocumentPage() {
 
       {/* Table */}
       <div
-        className="rounded-lg  border overflow-hidden"
+        className="rounded-lg border overflow-hidden"
         style={{
           backgroundColor: "var(--card)",
           borderColor: "var(--border)",
-        }}>
+        }}
+      >
         <div className="overflow-x-auto">
           <table
             className="w-full"
             style={{
               color: "var(--card-foreground)",
-            }}>
+            }}
+          >
             <thead
               style={{
                 backgroundColor: "var(--muted)",
                 borderBottomColor: "var(--border)",
-              }}>
+              }}
+            >
               <tr>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}>
-                  DOCTOR
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}>
-                  SPECIALTY
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}>
-                  UPLOAD DATE
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}>
-                  STATUS
-                </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                  style={{
-                    color: "var(--muted-foreground)",
-                  }}>
-                  ACTION
-                </th>
+                {["Doctor", "Specialty", "Upload Date", "Status", "Action"].map(
+                  (header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                      style={{
+                        color: "var(--muted-foreground)",
+                      }}
+                    >
+                      {header}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
-            <tbody
-              className="divide-y divide-[var(--border)]"
-              style={{
-                backgroundColor: "var(--card)",
-                borderTopColor: "var(--border)",
-              }}>
-              {paginatedData.map((upload) => (
-                <tr
-                  key={upload.id}
-                  className="transition-colors duration-200"
-                  style={{
-                    backgroundColor: "var(--card)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--muted)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--card)";
-                  }}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div
-                      className="text-sm font-medium"
-                      style={{
-                        color: "var(--card-foreground)",
-                      }}>
-                      {upload.doctorName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div
-                      className="text-sm"
-                      style={{
-                        color: "var(--muted-foreground)",
-                      }}>
-                      {upload.specialty}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div
-                      className="text-sm"
-                      style={{
-                        color: "var(--muted-foreground)",
-                      }}>
-                      {upload.uploadDate}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(upload.status)}
-                      <span className={getStatusBadge(upload.status)}>
-                        {upload.status.charAt(0).toUpperCase() +
-                          upload.status.slice(1)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleAction(upload)}
-                      className="text-[#44CE2D] hover:text-[#3bb025] text-sm font-medium cursor-pointer transition-colors duration-200">
-                      {getActionText(upload.status)}
-                    </button>
+
+            <tbody className="divide-y divide-[var(--border)]">
+              {paginatedData.length > 0 ? (
+                paginatedData.map((upload: Upload) => (
+                  <tr
+                    key={upload.id}
+                    className="transition-colors duration-200"
+                    style={{ backgroundColor: "var(--card)" }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "var(--muted)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "var(--card)")
+                    }
+                  >
+                    <td className="px-6 py-4 text-sm font-medium">
+                      {upload.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {upload.specialization || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <FormattedDate timestamp={upload?.uploadDate} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(upload.status)}
+                        <span className={getStatusBadge(upload.status)}>
+                          {upload.status.charAt(0).toUpperCase() +
+                            upload.status.slice(1)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleAction(upload)}
+                        className="text-[#44CE2D] hover:text-[#3bb025] text-sm font-medium transition-colors"
+                      >
+                        {getActionText(upload.status)}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-sm"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    No uploads found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between">
-        <div
-          className="text-sm"
-          style={{
-            color: "var(--muted-foreground)",
-          }}>
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      {filteredData.length > 0 && (
+        <div className="mt-6 flex items-center justify-between">
+          <div
+            className="text-sm"
             style={{
-              backgroundColor: "var(--card)",
-              borderColor: "var(--border)",
-              color: "var(--card-foreground)",
+              color: "var(--muted-foreground)",
             }}
-            onMouseEnter={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = "var(--muted)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = "var(--card)";
-              }
-            }}>
-            Previous
-          </button>
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            style={{
-              backgroundColor: "var(--primary)",
-              color: "var(--primary-foreground)",
-            }}
-            onMouseEnter={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = "#3bb025";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = "var(--primary)";
-              }
-            }}>
-            Next
-          </button>
+          >
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-medium rounded-lg border disabled:opacity-50 transition-colors"
+              style={{
+                backgroundColor: "var(--card)",
+                borderColor: "var(--border)",
+                color: "var(--card-foreground)",
+              }}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 transition-colors"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Document Review Modal */}
       {selectedUpload && (

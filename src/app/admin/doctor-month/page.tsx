@@ -615,7 +615,7 @@ const AdminDoctorOfMonthPage = () => {
       {/* Top Performers and Past Winners Grid */}
       <div className="flex flex-col gap-6">
         {/* Top Performers This Month */}
-        <div className="lg:col-span-1">
+        {/* <div className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
               Top Performers This Month
@@ -691,11 +691,11 @@ const AdminDoctorOfMonthPage = () => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Past Doctors of The Month Table */}
         <div className="lg:col-span-2">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mt-8">
             Past Doctors of The Month
           </h3>
 
@@ -732,7 +732,8 @@ const AdminDoctorOfMonthPage = () => {
                     pastDoctors.map((doctor, index) => (
                       <tr
                         key={doctor.id || index}
-                        className="hover:bg-gray-50 transition-colors">
+                        className="hover:bg-gray-50 transition-colors"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-3">
                             <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
@@ -775,7 +776,8 @@ const AdminDoctorOfMonthPage = () => {
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors">
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors"
+                  >
                     Previous
                   </button>
                   <button
@@ -783,7 +785,8 @@ const AdminDoctorOfMonthPage = () => {
                       setCurrentPage(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     Next
                   </button>
                 </div>
