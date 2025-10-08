@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { X, Eye } from "lucide-react";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  serverTimestamp,
+  collection,
+  where,
+  getDocs,
+  query,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import FormattedDate from "@/utils/FormattedDate";
@@ -46,15 +54,30 @@ export default function DocumentReviewModal({
 
     setIsSubmitting(true);
     try {
-      const uploadRef = doc(db, "uploads", upload.doctorId);
-      await updateDoc(uploadRef, {
-        status: newStatus,
-        comment: reviewComment.trim(),
-        reviewedBy: currentReviewer,
-        reviewedAt: serverTimestamp(),
+      // Query the uploads collection for the matching doctorId
+      const uploadsRef = collection(db, "uploads");
+      const q = query(uploadsRef, where("doctorId", "==", upload.doctorId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        toast.error("No document found for this doctor.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update all matching documents
+      const updatePromises = querySnapshot.docs.map(async (docSnap) => {
+        await updateDoc(docSnap.ref, {
+          status: newStatus,
+          comment: reviewComment.trim(),
+          reviewedBy: currentReviewer,
+          reviewedAt: serverTimestamp(),
+        });
       });
 
-      toast.success(`Document ${newStatus} successfully.`);
+      await Promise.all(updatePromises);
+
+      toast.success(`Document(s) ${newStatus} successfully.`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       onClose();
     } catch (error) {
@@ -64,6 +87,8 @@ export default function DocumentReviewModal({
       setIsSubmitting(false);
     }
   };
+
+  console.log("updateStatus", updateStatus);
 
   const handleApprove = () => updateStatus("approved");
   const handleReject = () => updateStatus("rejected");
