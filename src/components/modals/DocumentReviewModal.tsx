@@ -1,22 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { X, Eye } from "lucide-react";
-import {
-  doc,
-  updateDoc,
-  serverTimestamp,
-  collection,
-  where,
-  getDocs,
-  query,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useState, useEffect } from "react";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
 import FormattedDate from "@/utils/FormattedDate";
 import Modal from "./Modal";
+import { SVGLoader } from "../SVGLoader";
+import { useUpdateUploadStatusMutation } from "@/store/api";
 
 interface Upload {
+  id: string;
   doctorId: string;
   name: string;
   description: string;
@@ -43,7 +36,14 @@ export default function DocumentReviewModal({
   currentReviewer = "Admin",
 }: DocumentReviewModalProps) {
   const [reviewComment, setReviewComment] = useState(upload.comment || "");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionType, setActionType] = useState<"approved" | "rejected" | null>(null);
+  const [updateUploadStatus, { isLoading: isSubmitting }] = useUpdateUploadStatusMutation();
+
+  // Reset comment when upload changes
+  useEffect(() => {
+    setReviewComment(upload.comment || "");
+    setActionType(null);
+  }, [upload]);
 
   /** ─── Update document status ─── */
   const updateStatus = async (newStatus: "approved" | "rejected") => {
@@ -52,43 +52,43 @@ export default function DocumentReviewModal({
       return;
     }
 
-    setIsSubmitting(true);
+    // Prevent updating to the same status
+    if (upload.status === newStatus) {
+      toast.info(`Document is already ${newStatus}.`);
+      return;
+    }
+
+    setActionType(newStatus);
+
     try {
-      // Query the uploads collection for the matching doctorId
-      const uploadsRef = collection(db, "uploads");
-      const q = query(uploadsRef, where("doctorId", "==", upload.doctorId));
-      const querySnapshot = await getDocs(q);
+      const result = await updateUploadStatus({
+        uploadId: upload.id,
+        doctorId: upload.doctorId,
+        name: upload.name,
+        downloadUrl: upload.downloadUrl,
+        status: newStatus,
+        comment: reviewComment,
+        reviewedBy: currentReviewer,
+      }).unwrap();
 
-      if (querySnapshot.empty) {
-        toast.error("No document found for this doctor.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Update all matching documents
-      const updatePromises = querySnapshot.docs.map(async (docSnap) => {
-        await updateDoc(docSnap.ref, {
-          status: newStatus,
-          comment: reviewComment.trim(),
-          reviewedBy: currentReviewer,
-          reviewedAt: serverTimestamp(),
-        });
-      });
-
-      await Promise.all(updatePromises);
-
-      toast.success(`Document(s) ${newStatus} successfully.`);
+      toast.success(result?.message || `Document ${newStatus} successfully.`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating document status:", error);
-      toast.error("Failed to update document. Please try again.");
+
+      // More specific error messages
+      if (error?.status === "NOT_FOUND") {
+        toast.error("Document not found. It may have been deleted.");
+      } else if (error?.status === "permission-denied") {
+        toast.error("Permission denied. You don't have access to update this document.");
+      } else {
+        toast.error(error?.error || "Failed to update document. Please try again.");
+      }
     } finally {
-      setIsSubmitting(false);
+      setActionType(null);
     }
   };
-
-  console.log("updateStatus", updateStatus);
 
   const handleApprove = () => updateStatus("approved");
   const handleReject = () => updateStatus("rejected");
@@ -108,19 +108,18 @@ export default function DocumentReviewModal({
           <p>
             <strong>Description:</strong> {upload.description || "N/A"}
           </p>
-          <p>
+          {/* <p>
             <strong>Specialization:</strong> {upload.specialization || "N/A"}
-          </p>
+          </p> */}
           <p>
             <strong>Status:</strong>{" "}
             <span
-              className={`px-2 py-1 rounded text-white text-xs ${
-                upload.status === "approved"
-                  ? "bg-green-600"
-                  : upload.status === "rejected"
+              className={`px-2 py-1 rounded text-white text-xs ${upload.status === "approved"
+                ? "bg-green-600"
+                : upload.status === "rejected"
                   ? "bg-red-600"
                   : "bg-yellow-500"
-              }`}
+                }`}
             >
               {upload.status.toUpperCase()}
             </span>
@@ -165,25 +164,7 @@ export default function DocumentReviewModal({
           />
         </div>
 
-        {/* Action Buttons */}
-        {!isReadOnly && (
-          <div className="flex space-x-3 pt-4">
-            <button
-              onClick={handleReject}
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? "Processing..." : "Reject"}
-            </button>
-            <button
-              onClick={handleApprove}
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? "Processing..." : "Approve"}
-            </button>
-          </div>
-        )}
+
 
         {/* Read-only details */}
         {isReadOnly && (
@@ -216,6 +197,34 @@ export default function DocumentReviewModal({
             </div>
           </div>
         )}
+
+        {/* Action Buttons */}
+        {/* {!isReadOnly && ( */}
+        <div className="flex space-x-3 pt-4">
+          <button
+            onClick={handleReject}
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center"
+          >
+            {isSubmitting && actionType === "rejected" ? (
+              <SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
+            ) : (
+              "Reject"
+            )}
+          </button>
+          <button
+            onClick={handleApprove}
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center"
+          >
+            {isSubmitting && actionType === "approved" ? (
+              <SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
+            ) : (
+              "Approve"
+            )}
+          </button>
+        </div>
+        {/* )} */}
       </div>
     </Modal>
   );

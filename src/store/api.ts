@@ -957,6 +957,79 @@ export const api = createApi({
       providesTags: ["Upload"],
     }),
 
+    updateUploadStatus: builder.mutation({
+      async queryFn({ uploadId, doctorId, name, downloadUrl, status, comment, reviewedBy }) {
+        try {
+          const { doc, updateDoc, serverTimestamp, collection, query, where, getDocs } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+
+          // Try to update by ID first
+          if (uploadId && uploadId.trim() !== "") {
+            try {
+              const docRef = doc(db, "uploads", uploadId);
+
+              await updateDoc(docRef, {
+                status,
+                comment: comment.trim(),
+                reviewedBy,
+                reviewedAt: serverTimestamp(),
+              });
+
+              return { data: { success: true, message: `Document ${status} successfully.` } };
+            } catch (idError: any) {
+              console.warn("Failed to update by ID, trying query method:", idError);
+            }
+          }
+
+          // Fallback: Query by doctorId and name (or other unique combination)
+          const uploadsRef = collection(db, "uploads");
+          const q = query(
+            uploadsRef,
+            where("doctorId", "==", doctorId),
+            where("name", "==", name),
+            where("downloadUrl", "==", downloadUrl)
+          );
+
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+            return {
+              error: {
+                status: "NOT_FOUND",
+                error: "Document not found in database.",
+              },
+            };
+          }
+
+          if (querySnapshot.size > 1) {
+            console.warn("Multiple matching documents found, updating the first one");
+          }
+
+          // Update the first (or only) matching document
+          const docToUpdate = querySnapshot.docs[0];
+
+          await updateDoc(docToUpdate.ref, {
+            status,
+            comment: comment.trim(),
+            reviewedBy,
+            reviewedAt: serverTimestamp(),
+          });
+
+          return { data: { success: true, message: `Document ${status} successfully.` } };
+        } catch (error: any) {
+          console.error("Error updating document status:", error);
+          
+          return {
+            error: {
+              status: error?.code || "CUSTOM_ERROR",
+              error: error?.message || "Failed to update document",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Upload"],
+    }),
+
     // ===== ADMIN DASHBOARD =====
     getAdminDashboard: builder.query({
       query: (params) => ({
@@ -1298,6 +1371,7 @@ export const {
 
   // Document & Upload Management
   useGetUploadsQuery,
+  useUpdateUploadStatusMutation,
 
   // Admin Dashboard
   useGetAdminDashboardQuery,

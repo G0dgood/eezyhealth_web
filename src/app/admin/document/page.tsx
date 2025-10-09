@@ -7,6 +7,7 @@ import SearchInput from "@/components/SearchInput";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
 import { useGetUploadsQuery } from "@/store/api";
 import FormattedDate from "@/utils/FormattedDate";
+import DocumentTableSkeleton from "@/components/skeletons/DocumentTableSkeleton";
 
 interface Document {
   id: string;
@@ -117,13 +118,7 @@ export default function DocumentPage() {
 
   // Loading and Error states
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-lg" style={{ color: "var(--card-foreground)" }}>
-          Loading uploads...
-        </div>
-      </div>
-    );
+    return <DocumentTableSkeleton />;
   }
 
   if (isError) {
