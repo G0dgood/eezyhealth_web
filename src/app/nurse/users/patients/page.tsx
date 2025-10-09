@@ -304,7 +304,8 @@ export default function NurseUsersPatientsPage() {
       render: (value: string | number, row: PatientSearchResult) => (
         <Link
           href={`/nurse/users/patients/${row.id}`}
-          className="text-[#44CE2D] font-medium hover:text-[#3bb025] cursor-pointer">
+          className="text-[#44CE2D] font-medium hover:text-[#3bb025] cursor-pointer"
+        >
           {String(value)}
         </Link>
       ),
@@ -339,19 +340,22 @@ export default function NurseUsersPatientsPage() {
         <div className="flex space-x-2">
           <Link
             href={`/nurse/users/patients/${row.id}`}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center space-x-1 cursor-pointer">
+            className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center space-x-1 cursor-pointer"
+          >
             <Eye className="w-3 h-3" />
             <span>View</span>
           </Link>
           <button
             onClick={() => openEditPatientModal(row)}
-            className="text-[#44CE2D] hover:text-[#3bb025] font-medium text-sm flex items-center space-x-1 cursor-pointer">
+            className="text-[#44CE2D] hover:text-[#3bb025] font-medium text-sm flex items-center space-x-1 cursor-pointer"
+          >
             <Edit className="w-3 h-3" />
             <span>Edit</span>
           </button>
           <button
             onClick={() => openDeletePatientModal(row)}
-            className="text-red-600 hover:text-red-700 font-medium text-sm flex items-center space-x-1 cursor-pointer">
+            className="text-red-600 hover:text-red-700 font-medium text-sm flex items-center space-x-1 cursor-pointer"
+          >
             <Trash2 className="w-3 h-3" />
             <span>Delete</span>
           </button>
@@ -392,7 +396,8 @@ export default function NurseUsersPatientsPage() {
         <div className="flex items-center space-x-4 mb-4">
           <Link
             href="/nurse"
-            className="text-gray-600 hover:text-gray-800 cursor-pointer">
+            className="text-gray-600 hover:text-gray-800 cursor-pointer"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <Title title="Patient Management" />
@@ -413,12 +418,14 @@ export default function NurseUsersPatientsPage() {
             </div>
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+            >
               Search
             </button>
             <button
               onClick={() => setIsFilterModalOpen(true)}
-              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
+              className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+            >
               <Filter className="w-4 h-4" />
               <span>Filters</span>
             </button>
@@ -426,7 +433,8 @@ export default function NurseUsersPatientsPage() {
 
           <button
             onClick={openAddPatientModal}
-            className="ml-4 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center space-x-2 cursor-pointer">
+            className="ml-4 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center space-x-2 cursor-pointer"
+          >
             <Plus className="w-4 h-4" />
             <span>Add New Patient</span>
           </button>
@@ -460,7 +468,8 @@ export default function NurseUsersPatientsPage() {
           resetForm();
         }}
         title={isEditPatientModalOpen ? "Edit Patient" : "Add New Patient"}
-        size="lg">
+        size="lg"
+      >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <FormInput
@@ -601,12 +610,14 @@ export default function NurseUsersPatientsPage() {
                 setIsEditPatientModalOpen(false);
                 resetForm();
               }}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               Cancel
             </button>
             <button
               onClick={handleSavePatient}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
+              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer"
+            >
               {isEditPatientModalOpen ? "Update" : "Save"}
             </button>
           </div>
@@ -621,7 +632,8 @@ export default function NurseUsersPatientsPage() {
           setSelectedPatient(null);
         }}
         title="Delete Patient"
-        size="md">
+        size="md"
+      >
         <div className="space-y-4">
           <p className="text-gray-600">
             Are you sure you want to delete{" "}
@@ -636,12 +648,14 @@ export default function NurseUsersPatientsPage() {
                 setIsDeletePatientModalOpen(false);
                 setSelectedPatient(null);
               }}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               Cancel
             </button>
             <button
               onClick={handleDeletePatient}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer">
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+            >
               Delete
             </button>
           </div>
@@ -653,7 +667,8 @@ export default function NurseUsersPatientsPage() {
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         title="Filter Patients"
-        size="md">
+        size="md"
+      >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <FormSelect
@@ -695,12 +710,14 @@ export default function NurseUsersPatientsPage() {
           <div className="flex justify-end space-x-3 pt-4">
             <button
               onClick={clearFilters}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               Clear All
             </button>
             <button
               onClick={() => applyFilters(filters)}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer">
+              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors cursor-pointer"
+            >
               Apply Filters
             </button>
           </div>

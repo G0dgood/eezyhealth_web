@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { CreditCard, DollarSign, TrendingUp, Clock, CheckCircle, Users } from "lucide-react";
+import {
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Users,
+} from "lucide-react";
 import { useGetPaymentsQuery } from "@/store/api";
 
 const NursePaymentWidget: React.FC = () => {
@@ -32,26 +39,35 @@ const NursePaymentWidget: React.FC = () => {
 
   // Calculate payment statistics
   const totalRevenue = (payments || [])
-    .filter((payment: any) => payment?.paymentStatus === "completed" || payment?.status === "success")
-    .reduce((sum: number, payment: any) => sum + (Number(payment?.amount) || 0), 0);
+    .filter(
+      (payment: any) =>
+        payment?.paymentStatus === "completed" || payment?.status === "success"
+    )
+    .reduce(
+      (sum: number, payment: any) => sum + (Number(payment?.amount) || 0),
+      0
+    );
 
-  const completedPayments = (payments || [])
-    .filter((payment: any) => payment?.paymentStatus === "completed" || payment?.status === "success")
-    .length;
+  const completedPayments = (payments || []).filter(
+    (payment: any) =>
+      payment?.paymentStatus === "completed" || payment?.status === "success"
+  ).length;
 
-  const pendingPayments = (payments || [])
-    .filter((payment: any) => payment?.paymentStatus === "pending" || payment?.status === "pending")
-    .length;
+  const pendingPayments = (payments || []).filter(
+    (payment: any) =>
+      payment?.paymentStatus === "pending" || payment?.status === "pending"
+  ).length;
 
-  const todayPayments = (payments || [])
-    .filter((payment: any) => {
-      const paymentDate = payment?.createdAt || payment?.paymentDate;
-      if (!paymentDate) return false;
-      const date = new Date(paymentDate);
-      const today = new Date();
-      return date.toDateString() === today.toDateString() && (payment.paymentStatus === "completed" || payment?.status === "success");
-    })
-    .length;
+  const todayPayments = (payments || []).filter((payment: any) => {
+    const paymentDate = payment?.createdAt || payment?.paymentDate;
+    if (!paymentDate) return false;
+    const date = new Date(paymentDate);
+    const today = new Date();
+    return (
+      date.toDateString() === today.toDateString() &&
+      (payment.paymentStatus === "completed" || payment?.status === "success")
+    );
+  }).length;
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "N/A";
@@ -135,7 +151,8 @@ const NursePaymentWidget: React.FC = () => {
             No Payments Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
-            No payment records found yet. Payments will appear here once they are processed.
+            No payment records found yet. Payments will appear here once they
+            are processed.
           </p>
         </div>
       </div>
@@ -151,7 +168,9 @@ const NursePaymentWidget: React.FC = () => {
             <CreditCard className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Payment Overview</h3>
+            <h3 className="text-xl font-bold text-gray-900">
+              Payment Overview
+            </h3>
             <p className="text-sm text-gray-500">Clinic payment status</p>
           </div>
         </div>
@@ -166,15 +185,21 @@ const NursePaymentWidget: React.FC = () => {
           <div className="text-xs text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{completedPayments}</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {completedPayments}
+          </div>
           <div className="text-xs text-gray-600">Completed</div>
         </div>
         <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">{pendingPayments}</div>
+          <div className="text-2xl font-bold text-yellow-600">
+            {pendingPayments}
+          </div>
           <div className="text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">{todayPayments}</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {todayPayments}
+          </div>
           <div className="text-xs text-gray-600">Today</div>
         </div>
       </div>
@@ -184,7 +209,8 @@ const NursePaymentWidget: React.FC = () => {
         {recentPayments?.map((payment: any) => (
           <div
             key={payment?.id}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -192,16 +218,25 @@ const NursePaymentWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    ₦{(typeof payment?.amount === 'number' ? payment?.amount : parseFloat(payment?.amount) || 0).toFixed(2)}
+                    ₦
+                    {(typeof payment?.amount === "number"
+                      ? payment?.amount
+                      : parseFloat(payment?.amount) || 0
+                    ).toFixed(2)}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {payment?.patientName || payment?.patient_name || "Unknown Patient"}
+                    {payment?.patientName ||
+                      payment?.patient_name ||
+                      "Unknown Patient"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(payment)}`}>
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                    payment
+                  )}`}
+                >
                   {getStatusText(payment)}
                 </span>
                 {getStatusIcon(payment)}
@@ -217,11 +252,21 @@ const NursePaymentWidget: React.FC = () => {
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">💳</span>
-                <span>{payment?.paymentMethod || payment?.payment_method || "Card Payment"}</span>
+                <span>
+                  {payment?.paymentMethod ||
+                    payment?.payment_method ||
+                    "Card Payment"}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">📅</span>
-                <span>{formatDate(payment?.createdAt || payment?.paymentDate || payment?.createdTime)}</span>
+                <span>
+                  {formatDate(
+                    payment?.createdAt ||
+                      payment?.paymentDate ||
+                      payment?.createdTime
+                  )}
+                </span>
               </div>
               {payment?.bookingDate && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -234,7 +279,14 @@ const NursePaymentWidget: React.FC = () => {
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <CreditCard size={14} />
-                <span>Ref: {payment?.paymentReference?.reference || payment?.transactionId?.reference || payment?.id?.slice(0, 8) || "N/A"}...</span>
+                <span>
+                  Ref:{" "}
+                  {payment?.paymentReference?.reference ||
+                    payment?.transactionId?.reference ||
+                    payment?.id?.slice(0, 8) ||
+                    "N/A"}
+                  ...
+                </span>
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <Users size={12} />
@@ -254,7 +306,9 @@ const NursePaymentWidget: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Completed: {completedPayments}</span>
+              <span className="text-gray-600">
+                Completed: {completedPayments}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>

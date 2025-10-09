@@ -15,12 +15,16 @@ interface PaymentData {
 }
 
 const AdminPaymentsWidget: React.FC = () => {
-  const { data: paymentsData, isLoading, error } = useGetPaymentsQuery({ limit: 100 });
+  const {
+    data: paymentsData,
+    isLoading,
+    error,
+  } = useGetPaymentsQuery({ limit: 100 });
 
   // Ensure payments is always an array
   let payments: PaymentData[] = [];
   if (Array.isArray(paymentsData)) {
-    payments = paymentsData as PaymentData[];
+    payments = paymentsData as unknown as PaymentData[];
   } else if (
     paymentsData &&
     typeof paymentsData === "object" &&
@@ -42,7 +46,10 @@ const AdminPaymentsWidget: React.FC = () => {
   // Calculate payment statistics
   const totalRevenue = payments
     .filter((payment: PaymentData) => payment.status === "completed")
-    .reduce((sum: number, payment: PaymentData) => sum + Number(payment.amount || 0), 0);
+    .reduce(
+      (sum: number, payment: PaymentData) => sum + Number(payment.amount || 0),
+      0
+    );
 
   const completedPayments = payments.filter(
     (payment: PaymentData) => payment.status === "completed"
@@ -56,7 +63,8 @@ const AdminPaymentsWidget: React.FC = () => {
     (payment: PaymentData) => payment.status === "failed"
   ).length;
 
-  const averagePayment = completedPayments > 0 ? totalRevenue / completedPayments : 0;
+  const averagePayment =
+    completedPayments > 0 ? totalRevenue / completedPayments : 0;
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "N/A";
@@ -130,7 +138,8 @@ const AdminPaymentsWidget: React.FC = () => {
             No Payments Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
-            No payment records found yet. Payments will appear here once they are processed.
+            No payment records found yet. Payments will appear here once they
+            are processed.
           </p>
         </div>
       </div>
@@ -161,15 +170,21 @@ const AdminPaymentsWidget: React.FC = () => {
           <div className="text-xs text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{completedPayments}</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {completedPayments}
+          </div>
           <div className="text-xs text-gray-600">Completed</div>
         </div>
         <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">{pendingPayments}</div>
+          <div className="text-2xl font-bold text-yellow-600">
+            {pendingPayments}
+          </div>
           <div className="text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-3 bg-red-50 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">{failedPayments}</div>
+          <div className="text-2xl font-bold text-red-600">
+            {failedPayments}
+          </div>
           <div className="text-xs text-gray-600">Failed</div>
         </div>
       </div>
@@ -179,7 +194,8 @@ const AdminPaymentsWidget: React.FC = () => {
         {recentPayments.map((payment: PaymentData, index: number) => (
           <div
             key={payment.id || `payment-${index}`}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -198,7 +214,8 @@ const AdminPaymentsWidget: React.FC = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     payment.status
-                  )}`}>
+                  )}`}
+                >
                   {payment.status}
                 </span>
                 {getStatusIcon(payment.status)}
@@ -225,7 +242,10 @@ const AdminPaymentsWidget: React.FC = () => {
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <CreditCard size={14} />
-                <span>Payment ID: {payment.id ? payment.id.slice(0, 8) + '...' : 'N/A'}</span>
+                <span>
+                  Payment ID:{" "}
+                  {payment.id ? payment.id.slice(0, 8) + "..." : "N/A"}
+                </span>
               </div>
             </div>
           </div>
@@ -241,7 +261,9 @@ const AdminPaymentsWidget: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Completed: {completedPayments}</span>
+              <span className="text-gray-600">
+                Completed: {completedPayments}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>

@@ -109,12 +109,14 @@ export default function NursePatientsPage() {
                   toast.info("Search cleared");
                 }}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                title="Clear search">
+                title="Clear search"
+              >
                 <svg
                   className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -129,7 +131,8 @@ export default function NursePatientsPage() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsAddPatientModalOpen(true)}
-              className="btn-primary-green px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer">
+              className="btn-primary-green px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer"
+            >
               <Plus className="w-4 h-4" />
               <span>Add New Patient</span>
             </button>
@@ -294,12 +297,14 @@ export default function NursePatientsPage() {
                                     }`
                                   )
                                 }
-                                className="link-green flex items-center space-x-1">
+                                className="link-green flex items-center space-x-1"
+                              >
                                 <svg
                                   className="w-4 h-4"
                                   fill="none"
                                   stroke="currentColor"
-                                  viewBox="0 0 24 24">
+                                  viewBox="0 0 24 24"
+                                >
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -325,12 +330,14 @@ export default function NursePatientsPage() {
                                     }`
                                   )
                                 }
-                                className="link-green flex items-center space-x-1">
+                                className="link-green flex items-center space-x-1"
+                              >
                                 <svg
                                   className="w-4 h-4"
                                   fill="none"
                                   stroke="currentColor"
-                                  viewBox="0 0 24 24">
+                                  viewBox="0 0 24 24"
+                                >
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -363,7 +370,8 @@ export default function NursePatientsPage() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Previous
               </button>
               <button
@@ -371,7 +379,8 @@ export default function NursePatientsPage() {
                   setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Next
               </button>
             </div>
