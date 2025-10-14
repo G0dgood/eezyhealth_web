@@ -5,12 +5,19 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
+import {
+  User,
+  Bell,
+  Shield,
+  Camera,
+  UserCircle,
+  Sun,
+  Moon,
+} from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { validateField } from "@/utils/fieldValidation";
 import { PageSkeleton } from "@/components/SkeletonLoader";
-import CustomToggle from "@/components/CustomToggle";
 
 export default function AdminSettings() {
   const { userInfo, loading, signOut } = useAuth();
@@ -18,7 +25,6 @@ export default function AdminSettings() {
   const { theme, setTheme, toggleTheme } = useTheme();
 
   const router = useRouter();
-
 
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
 
@@ -85,7 +91,7 @@ export default function AdminSettings() {
   const handleProfileDataChange = (field: string, value: string) => {
     // Clear error for this field when user starts typing
     if (profileErrors[field]) {
-      setProfileErrors(prev => {
+      setProfileErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -117,7 +123,8 @@ export default function AdminSettings() {
   });
 
   // Session timeout state
-  const [sessionTimeoutId, setSessionTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [sessionTimeoutId, setSessionTimeoutId] =
+    useState<NodeJS.Timeout | null>(null);
   const [timeUntilLogout, setTimeUntilLogout] = useState<number>(0);
   const [isSessionWarning, setIsSessionWarning] = useState(false);
 
@@ -129,7 +136,9 @@ export default function AdminSettings() {
   });
 
   // Profile validation state
-  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>(
+    {}
+  );
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [profileChanges, setProfileChanges] = useState(false);
 
@@ -144,7 +153,7 @@ export default function AdminSettings() {
     const timeoutMs = timeoutMinutes * 60 * 1000;
 
     // Set warning 2 minutes before logout
-    const warningTime = timeoutMs - (2 * 60 * 1000);
+    const warningTime = timeoutMs - 2 * 60 * 1000;
 
     // Start countdown for warning
     const warningTimeoutId = setTimeout(() => {
@@ -153,7 +162,7 @@ export default function AdminSettings() {
 
       // Start countdown timer
       const countdownInterval = setInterval(() => {
-        setTimeUntilLogout(prev => {
+        setTimeUntilLogout((prev) => {
           if (prev <= 1) {
             clearInterval(countdownInterval);
             return 0;
@@ -161,7 +170,6 @@ export default function AdminSettings() {
           return prev - 1;
         });
       }, 1000);
-
     }, warningTime);
 
     // Set actual logout timeout
@@ -222,15 +230,22 @@ export default function AdminSettings() {
     };
 
     // Add event listeners for user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleUserActivity, true);
     });
 
     // Cleanup event listeners
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleUserActivity, true);
       });
     };
@@ -258,10 +273,21 @@ export default function AdminSettings() {
   const handleProfileSave = async () => {
     // Validate all fields
     const errors: Record<string, string> = {};
-    const requiredFields = ['fullName', 'email', 'mobileNumber', 'firstName', 'lastName', 'address', 'location'];
+    const requiredFields = [
+      "fullName",
+      "email",
+      "mobileNumber",
+      "firstName",
+      "lastName",
+      "address",
+      "location",
+    ];
 
-    requiredFields.forEach(field => {
-      const error = validateField(field, profileData[field as keyof typeof profileData] as string);
+    requiredFields.forEach((field) => {
+      const error = validateField(
+        field,
+        profileData[field as keyof typeof profileData] as string
+      );
       if (error) {
         errors[field] = error;
       }
@@ -281,7 +307,7 @@ export default function AdminSettings() {
       // Simulate API call to update profile
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Update profile data (in real app, this would call Firebase) 
+      // Update profile data (in real app, this would call Firebase)
       toast.success("Profile updated successfully!");
       setProfileChanges(false);
     } catch (error) {
@@ -291,13 +317,10 @@ export default function AdminSettings() {
     }
   };
 
-
-
   const handleNotificationSave = async () => {
     try {
       // Simulate API call to update notification preferences
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
 
       toast.success("Notification preferences updated successfully!");
     } catch {
@@ -341,7 +364,6 @@ export default function AdminSettings() {
       icon: <Shield className="w-5 h-5" />,
     },
   ];
-
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -391,14 +413,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("fullName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.fullName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.fullName
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your full name"
                 />
                 {profileErrors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.fullName}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.fullName}
+                  </p>
                 )}
               </div>
 
@@ -425,7 +450,8 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("role", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
+                >
                   <option value="System Administrator">
                     System Administrator
                   </option>
@@ -446,14 +472,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("email", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.email
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.email
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your email address"
                 />
                 {profileErrors.email && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.email}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.email}
+                  </p>
                 )}
               </div>
 
@@ -467,14 +496,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("mobileNumber", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.mobileNumber
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.mobileNumber
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your mobile number"
                 />
                 {profileErrors.mobileNumber && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.mobileNumber}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.mobileNumber}
+                  </p>
                 )}
               </div>
 
@@ -487,7 +519,8 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("department", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
+                >
                   <option value="IT & Administration">
                     IT & Administration
                   </option>
@@ -507,7 +540,8 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("accessLevel", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
+                >
                   <option value="Full Access">Full Access</option>
                   <option value="Limited Access">Limited Access</option>
                   <option value="Read Only">Read Only</option>
@@ -528,14 +562,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("firstName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.firstName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.firstName
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your first name"
                 />
                 {profileErrors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.firstName}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.firstName}
+                  </p>
                 )}
               </div>
 
@@ -549,14 +586,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("lastName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.lastName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.lastName
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your last name"
                 />
                 {profileErrors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.lastName}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.lastName}
+                  </p>
                 )}
               </div>
 
@@ -570,14 +610,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("address", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.address
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.address
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your address"
                 />
                 {profileErrors.address && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.address}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.address}
+                  </p>
                 )}
               </div>
 
@@ -591,14 +634,17 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("location", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.location
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    profileErrors.location
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                  }`}
                   placeholder="Enter your location"
                 />
                 {profileErrors.location && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.location}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {profileErrors.location}
+                  </p>
                 )}
               </div>
 
@@ -614,10 +660,10 @@ export default function AdminSettings() {
                         ? new Date(profileData.dateOfBirth).toLocaleDateString()
                         : typeof profileData.dateOfBirth === "object" &&
                           "seconds" in profileData.dateOfBirth
-                          ? new Date(
+                        ? new Date(
                             profileData.dateOfBirth.seconds * 1000
                           ).toLocaleDateString()
-                          : ""
+                        : ""
                       : ""
                   }
                   disabled
@@ -631,10 +677,12 @@ export default function AdminSettings() {
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}>
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                      profileData.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -665,7 +713,8 @@ export default function AdminSettings() {
               </button>
               <button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+              >
                 Save
               </button>
             </div>
@@ -690,7 +739,10 @@ export default function AdminSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newUserRegistrations}
                     onChange={(checked) => {
-                      console.log("Admin notification toggle:", { checked, current: notificationPrefs.newUserRegistrations });
+                      console.log("Admin notification toggle:", {
+                        checked,
+                        current: notificationPrefs.newUserRegistrations,
+                      });
                       setNotificationPrefs({
                         ...notificationPrefs,
                         newUserRegistrations: checked,
@@ -774,7 +826,8 @@ export default function AdminSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleNotificationSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+              >
                 Save Preference
               </button>
             </div>
@@ -825,7 +878,7 @@ export default function AdminSettings() {
               </div>
 
               {/* Dark Mode */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
+              {/* <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Dark Mode</h4>
                   <p className="text-sm text-gray-600">
@@ -846,6 +899,55 @@ export default function AdminSettings() {
                       }
                     }}
                   />
+                </div>
+              </div> */}
+
+              {/* Theme Preference */}
+              <div className="flex items-center justify-between py-4 border-b border-gray-200">
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">
+                    Theme Preference
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Choose between light and dark mode
+                  </p>
+                </div>
+                <div className="flex items-end justify-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Sun
+                      className={`w-4 h-4 ${
+                        theme === "light" ? "text-yellow-500" : "text-gray-400"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-600">Light</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={theme === "dark"}
+                      onChange={() => toggleTheme()}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
+                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      ></div>
+                    </div>
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <Moon
+                      className={`w-4 h-4 ${
+                        theme === "dark" ? "text-blue-500" : "text-gray-400"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-600">Dark</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -924,7 +1026,8 @@ export default function AdminSettings() {
                 </button>
                 <button
                   onClick={handlePasswordUpdate}
-                  className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                  className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+                >
                   Update Password
                 </button>
               </div>
@@ -934,7 +1037,8 @@ export default function AdminSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSecuritySave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+              >
                 Save Settings
               </button>
             </div>
@@ -974,10 +1078,12 @@ export default function AdminSettings() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
-                  ? "border-[#22c55e] text-[#22c55e]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}>
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? "border-[#22c55e] text-[#22c55e]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
                 {tab.icon}
                 <span>{tab.label}</span>
               </button>
