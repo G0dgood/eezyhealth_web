@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   useGetFirebasePatientsQuery,
   useGetFirebaseDoctorsQuery,
+  useGetFirebaseNurseProfilesQuery,
   useGetFirebaseBookingsQuery,
   useGetBookingCancellationsQuery,
   useGetPaymentsQuery,
@@ -66,25 +67,25 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     data: patientsData, 
     isLoading: patientsLoading, 
     error: patientsError 
-  } = useGetFirebasePatientsQuery();
+  } = useGetFirebasePatientsQuery({});
   
   const { 
     data: doctorsData, 
     isLoading: doctorsLoading, 
     error: doctorsError 
-  } = useGetFirebaseDoctorsQuery();
+  } = useGetFirebaseDoctorsQuery({});
   
   const { 
     data: bookingsData, 
     isLoading: bookingsLoading, 
     error: bookingsError 
-  } = useGetFirebaseBookingsQuery();
+  } = useGetFirebaseBookingsQuery({});
   
   const { 
     data: cancellationsData, 
     isLoading: cancellationsLoading, 
     error: cancellationsError 
-  } = useGetBookingCancellationsQuery();
+  } = useGetBookingCancellationsQuery({});
   
   const { 
     data: paymentsData, 
@@ -96,7 +97,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     data: nursesData, 
     isLoading: nursesLoading, 
     error: nursesError 
-  } = useGetUsersByRoleQuery('NURSE');
+  } = useGetFirebaseNurseProfilesQuery({});
 
   // Calculate badge counts from real data
   useEffect(() => {
@@ -105,7 +106,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
         // Calculate user counts
         const allUsers = (patientsData?.length || 0) + (doctorsData?.length || 0) + (nursesData?.length || 0);
         const doctors = doctorsData?.length || 0;
-        const nurses = nursesData?.length || 0;
+        const nurses = Array.isArray(nursesData) ? nursesData.length : 0;
         
         // Calculate booking counts
         const totalBookings = bookingsData?.length || 0;

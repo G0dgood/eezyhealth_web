@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Heart } from "lucide-react";
+import {   Eye, EyeOff } from "lucide-react";
 import { SVGLoader } from "@/components/SVGLoader";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
 import Image from "next/image";
@@ -172,29 +172,39 @@ export default function HomePage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${
-                      errors.email
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.email
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300 hover:border-[#22c55e]"
-                    }`}
+                      }`}
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
 
-                <div>
+                <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${
-                      errors.password
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.password
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300 hover:border-[#22c55e]"
-                    }`}
+                      }`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.password}

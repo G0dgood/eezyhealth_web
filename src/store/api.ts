@@ -23,7 +23,10 @@ export const api = createApi({
     "Payment",
     "User",
     "Doctor",
+    "Nurse",
     "Upload",
+    "AuditLog",
+    "Notification",
     "Survey",
     "BookingCancellation",
     "DoctorOfTheMonth",
@@ -482,6 +485,317 @@ export const api = createApi({
       invalidatesTags: (result, error, { doctorId }) => [
         { type: "Doctor", id: doctorId },
       ],
+    }),
+
+    // Firebase-powered nurse profiles query
+    getFirebaseNurseProfiles: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import(
+            "@/lib/firebase-rtk"
+          );
+
+          // Get nurse profiles from Firebase users collection where role is NURSE
+          let nursesData;
+          try {
+            nursesData = await createFirebaseQuery("users", [
+              firebaseConstraints.where("role", "==", "NURSE"),
+              firebaseConstraints.orderBy("createdTime", "desc"),
+            ]);
+          } catch (error) {
+            // If ordering fails, get nurses without ordering
+            nursesData = await createFirebaseQuery("users", [
+              firebaseConstraints.where("role", "==", "NURSE"),
+            ]);
+          }
+
+          return { data: nursesData };
+        } catch (error) {
+          console.error("Error fetching Firebase nurse profiles:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["Nurse"],
+    }),
+
+
+    // Doctor data verification
+    verifyDoctorData: builder.query({
+      async queryFn(doctorId: string) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import("@/lib/firebase-rtk");
+
+          const verification = {
+            profile: false,
+            appointments: false,
+            documents: false,
+            availability: false,
+            analytics: false,
+            notifications: false,
+          };
+
+          try {
+            // Check profile accessibility
+            const profile = await createFirebaseQuery("users", [
+              firebaseConstraints.where("uid", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.profile = profile.length > 0;
+
+            // Check appointments accessibility
+            const appointments = await createFirebaseQuery("bookings", [
+              firebaseConstraints.where("doctorId", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.appointments = true; // If query succeeds, data is accessible
+
+            // Check documents accessibility
+            const documents = await createFirebaseQuery("uploads", [
+              firebaseConstraints.where("doctorId", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.documents = true;
+
+            // Check availability accessibility
+            const availability = await createFirebaseQuery("doctorAvailability", [
+              firebaseConstraints.where("doctorId", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.availability = true;
+
+            // Check analytics accessibility
+            const analytics = await createFirebaseQuery("analytics", [
+              firebaseConstraints.where("doctorId", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.analytics = true;
+
+            // Check notifications accessibility
+            const notifications = await createFirebaseQuery("notifications", [
+              firebaseConstraints.where("doctorId", "==", doctorId),
+              firebaseConstraints.limit(1),
+            ]);
+            verification.notifications = true;
+
+          } catch (error) {
+            console.error("Error during data verification:", error);
+          }
+
+          const isFullyAccessible = Object.values(verification).every(Boolean);
+
+          return { 
+            data: { 
+              doctorId,
+              verification,
+              isFullyAccessible,
+              timestamp: new Date().toISOString(),
+            } 
+          };
+        } catch (error) {
+          console.error("Error verifying doctor data:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["Doctor"],
+    }),
+
+    // Get audit logs
+    getAuditLogs: builder.query({
+      async queryFn({ doctorId, action, limit = 50 }) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import("@/lib/firebase-rtk");
+
+          let queryConstraints = [];
+          
+          if (doctorId) {
+            queryConstraints.push(firebaseConstraints.where("targetId", "==", doctorId));
+          }
+          
+          if (action) {
+            queryConstraints.push(firebaseConstraints.where("action", "==", action));
+          }
+          
+          queryConstraints.push(firebaseConstraints.orderBy("timestamp", "desc"));
+          queryConstraints.push(firebaseConstraints.limit(limit));
+
+          const auditLogs = await createFirebaseQuery("auditLogs", queryConstraints);
+
+          return { data: auditLogs };
+        } catch (error) {
+          console.error("Error fetching audit logs:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["AuditLog"],
+    }),
+
+    // Bulk doctor operations
+    bulkUpdateDoctorStatus: builder.mutation({
+      async queryFn({ doctorIds, status, reason, performedBy }) {
+        try {
+          const { updateFirebaseDocument, createFirebaseDocument } = await import("@/lib/firebase-rtk");
+
+          const results = [];
+          
+          for (const doctorId of doctorIds) {
+            try {
+              await updateFirebaseDocument("users", doctorId, {
+                isActive: status === "active",
+                ...(status === "inactive" ? {
+                  deactivatedAt: new Date().toISOString(),
+                  deactivationReason: reason,
+                  deactivatedBy: performedBy,
+                } : {
+                  reactivatedAt: new Date().toISOString(),
+                  reactivatedBy: performedBy,
+                  deactivatedAt: "",
+                  deactivationReason: "",
+                }),
+                updatedAt: new Date().toISOString(),
+              });
+
+              // Create audit log for each doctor
+              await createFirebaseDocument("auditLogs", {
+                action: status === "active" ? "doctor_reactivated" : "doctor_deactivated",
+                targetId: doctorId,
+                performedBy: performedBy,
+                reason: reason || "",
+                timestamp: new Date().toISOString(),
+                details: {
+                  bulkOperation: true,
+                  totalDoctors: doctorIds.length,
+                },
+              });
+
+              results.push({ doctorId, success: true });
+            } catch (error) {
+              results.push({ doctorId, success: false, error: error.message });
+            }
+          }
+
+          return { data: { results, totalProcessed: doctorIds.length } };
+        } catch (error) {
+          console.error("Error in bulk doctor status update:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Doctor"],
+    }),
+
+    // Export doctor data
+    exportDoctorData: builder.query({
+      async queryFn(doctorId: string) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import("@/lib/firebase-rtk");
+
+          // Get all doctor-related data
+          const [profile, appointments, documents, availability, analytics] = await Promise.all([
+            createFirebaseQuery("users", [firebaseConstraints.where("uid", "==", doctorId)]),
+            createFirebaseQuery("bookings", [firebaseConstraints.where("doctorId", "==", doctorId)]),
+            createFirebaseQuery("uploads", [firebaseConstraints.where("doctorId", "==", doctorId)]),
+            createFirebaseQuery("doctorAvailability", [firebaseConstraints.where("doctorId", "==", doctorId)]),
+            createFirebaseQuery("analytics", [firebaseConstraints.where("doctorId", "==", doctorId)]),
+          ]);
+
+          const exportData = {
+            doctorId,
+            profile: profile[0] || null,
+            appointments: appointments || [],
+            documents: documents || [],
+            availability: availability || [],
+            analytics: analytics || [],
+            exportedAt: new Date().toISOString(),
+            exportType: "doctor_data_export",
+          };
+
+          return { data: exportData };
+        } catch (error) {
+          console.error("Error exporting doctor data:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["Doctor"],
+    }),
+
+    // Send notification to patients
+    sendPatientNotification: builder.mutation({
+      async queryFn({ patientIds, title, message, type = "info", relatedData = {} }) {
+        try {
+          console.log("Sending notifications to patients:", { patientIds, title, message, type });
+          
+          const { createFirebaseDocument } = await import("@/lib/firebase-rtk");
+
+          const notifications = [];
+          
+          for (const patientId of patientIds) {
+            const notificationData = {
+              userId: patientId,
+              title,
+              message,
+              type,
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              relatedData,
+            };
+
+            console.log("Creating notification for patient:", patientId);
+            const createdNotification = await createFirebaseDocument("notifications", notificationData);
+            console.log("Created notification:", createdNotification);
+            
+            notifications.push({
+              id: createdNotification.id,
+              ...notificationData
+            });
+          }
+
+          console.log("Successfully sent notifications:", notifications);
+          return { data: { notifications, totalSent: patientIds.length } };
+        } catch (error) {
+          console.error("Error sending patient notifications:", error);
+          console.error("Error details:", {
+            message: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+            patientIds,
+            title,
+            message
+          });
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Notification"],
     }),
 
     // Firebase-powered doctor of the month query
@@ -1334,6 +1648,12 @@ export const {
   useGetFirebaseDoctorsQuery,
   useGetFirebaseDoctorProfilesQuery,
   useGetFirebaseDoctorProfileByIdQuery,
+  useGetFirebaseNurseProfilesQuery,
+  useVerifyDoctorDataQuery,
+  useGetAuditLogsQuery,
+  useBulkUpdateDoctorStatusMutation,
+  useExportDoctorDataQuery,
+  useSendPatientNotificationMutation,
   useGetFirebaseDoctorOfTheMonthQuery,
   useGetFirebaseBookingsQuery,
 

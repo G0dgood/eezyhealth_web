@@ -9,6 +9,8 @@ interface UserData {
   role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
   first_name?: string;
   last_name?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 interface DeleteUserModalProps {

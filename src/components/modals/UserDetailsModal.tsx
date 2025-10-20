@@ -16,6 +16,8 @@ interface UserData {
   first_name?: string;
   last_name?: string;
   photo_url?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 interface UserDetailsModalProps {
@@ -94,7 +96,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               <Shield className="h-5 w-5 mr-2" />
               Basic Information
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Role
@@ -139,7 +141,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               <Mail className="h-5 w-5 mr-2" />
               Contact Information
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -181,6 +183,43 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Deactivation Information - Only show if user is inactive */}
+        {user.isActive === false && (user.deactivatedAt || user.deactivationReason) && (
+          <div className="space-y-4 pt-6 border-t border-red-200 bg-red-50 p-4 rounded-lg">
+            <h3 className="text-lg font-medium text-red-800 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-red-600" />
+              Account Deactivation Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {user.deactivatedAt && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Deactivated At
+                  </label>
+                  <p className="text-gray-900 flex items-center">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {formatDate(user.deactivatedAt)}
+                  </p>
+                </div>
+              )}
+
+              {user.deactivationReason && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Deactivation Reason
+                  </label>
+                  <div className="bg-white p-3 rounded-md border border-red-200">
+                    <p className="text-gray-900 text-sm leading-relaxed">
+                      {user.deactivationReason}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end pt-4 border-t border-gray-200">

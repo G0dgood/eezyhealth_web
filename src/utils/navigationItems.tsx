@@ -144,6 +144,12 @@ export const getNavItems = (role: string): NavItem[] => {
             href: `/${role.toLowerCase()}/users/nurses`,
             dynamicCount: true,
           },
+          {
+            id: "doctor-account-management",
+            label: "Doctor Account Management",
+            icon: <Shield className="w-4 h-4" />,
+            href: `/${role.toLowerCase()}/doctors/account-management`,
+          },
         ],
       },
       {

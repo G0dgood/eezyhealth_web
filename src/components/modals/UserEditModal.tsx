@@ -17,6 +17,8 @@ interface UserData {
   first_name?: string;
   last_name?: string;
   photo_url?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 interface UserEditModalProps {
@@ -50,6 +52,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         date_of_birth: user.date_of_birth || "",
         isActive: user.isActive,
         email: user.email,
+        deactivatedAt: user.deactivatedAt || "",
+        deactivationReason: user.deactivationReason || "",
       });
       setErrors({});
     }
@@ -72,13 +76,18 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       newErrors.phone_number = "Phone number is invalid";
     }
 
+    // Validate deactivation reason when user is being deactivated
+    if (formData.isActive === false && !formData.deactivationReason?.trim()) {
+      newErrors.deactivationReason = "Deactivation reason is required when deactivating a user";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -94,7 +103,23 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+
+      // If user is being reactivated (isActive changes to true), clear deactivation fields
+      if (field === "isActive" && value === true) {
+        newData.deactivatedAt = "";
+        newData.deactivationReason = "";
+      }
+
+      // If user is being deactivated (isActive changes to false), set deactivatedAt to current timestamp
+      if (field === "isActive" && value === false && !prev.deactivatedAt) {
+        newData.deactivatedAt = new Date().toISOString();
+      }
+
+      return newData;
+    });
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
@@ -137,7 +162,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               <Shield className="h-5 w-5 mr-2" />
               Basic Information
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Display Name
@@ -146,9 +171,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                 type="text"
                 value={formData.display_name || ""}
                 onChange={(e) => handleInputChange("display_name", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.display_name ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.display_name ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Display Name"
               />
               {errors.display_name && (
@@ -199,15 +223,22 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                Account Status
               </label>
               <select
                 value={formData.isActive ? "true" : "false"}
                 onChange={(e) => handleInputChange("isActive", e.target.value === "true")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${formData.isActive === false ? "border-red-300 bg-red-50" : "border-gray-300"
+                  }`}>
                 <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="false">Deactivated</option>
               </select>
+              {formData.isActive === false && (
+                <p className="text-red-600 text-xs mt-1 flex items-center">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Deactivating will require a reason below
+                </p>
+              )}
             </div>
 
             <div>
@@ -229,7 +260,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               <Mail className="h-5 w-5 mr-2" />
               Contact Information
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email *
@@ -238,9 +269,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.email ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Email"
                 required
               />
@@ -257,9 +287,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                 type="tel"
                 value={formData.phone_number || ""}
                 onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.phone_number ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.phone_number ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Phone Number"
               />
               {errors.phone_number && (
@@ -294,6 +323,52 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Deactivation Information - Only show if user is inactive */}
+        {formData.isActive === false && (
+          <div className="space-y-4 pt-6 border-t border-red-200 bg-red-50 p-4 rounded-lg">
+            <h3 className="text-lg font-medium text-red-800 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-red-600" />
+              Account Deactivation
+            </h3>
+            <p className="text-sm text-red-700 bg-red-100 p-3 rounded-md">
+              <strong>Important:</strong> You are deactivating this user account. Please provide a clear reason for this action as it will be recorded in the system audit trail.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Deactivated At
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.deactivatedAt ? new Date(formData.deactivatedAt).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => handleInputChange("deactivatedAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                  placeholder="Deactivation Date"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Deactivation Reason *
+                </label>
+                <textarea
+                  value={formData.deactivationReason || ""}
+                  onChange={(e) => handleInputChange("deactivationReason", e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.deactivationReason ? "border-red-500" : "border-gray-300"
+                    }`}
+                  placeholder="Please provide a reason for deactivating this user account..."
+                  rows={3}
+                  required
+                />
+                {errors.deactivationReason && (
+                  <p className="text-red-500 text-sm mt-1">{errors.deactivationReason}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">

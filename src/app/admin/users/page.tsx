@@ -35,6 +35,8 @@ interface UserData {
   password?: string;
   confirmPassword?: string;
   photo_url?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 export default function AdminUsersPage() {
@@ -80,22 +82,24 @@ export default function AdminUsersPage() {
   // ✅ Handle Firebase users structure safely
   const dataSource: UserData[] = Array.isArray(usersData)
     ? usersData.map((user: any) => ({
-        uid: user.uid || user.id || "",
-        email: user.email || "",
-        display_name: user.display_name || "",
-        role: (user.role || "PATIENT").toUpperCase(),
-        phone_number: user.phone_number || "",
-        address: user.address || "",
-        location: user.location || "",
-        date_of_birth: user.date_of_birth || "",
-        isActive: user.isActive ?? false,
-        createdTime: user.createdTime || "",
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        password: user.password || "",
-        confirmPassword: user.confirmPassword || "",
-        photo_url: user.photo_url || "",
-      }))
+      uid: user.uid || user.id || "",
+      email: user.email || "",
+      display_name: user.display_name || "",
+      role: (user.role || "PATIENT").toUpperCase(),
+      phone_number: user.phone_number || "",
+      address: user.address || "",
+      location: user.location || "",
+      date_of_birth: user.date_of_birth || "",
+      isActive: user.isActive ?? false,
+      createdTime: user.createdTime || "",
+      first_name: user.first_name || "",
+      last_name: user.last_name || "",
+      password: user.password || "",
+      confirmPassword: user.confirmPassword || "",
+      photo_url: user.photo_url || "",
+      deactivatedAt: user.deactivatedAt || "",
+      deactivationReason: user.deactivationReason || "",
+    }))
     : [];
 
   // Filter users
@@ -305,9 +309,8 @@ export default function AdminUsersPage() {
                           <div className="ml-4">
                             <div className="text-sm font-medium">
                               {user.display_name ||
-                                `${user.first_name || ""} ${
-                                  user.last_name || ""
-                                }`.trim() ||
+                                `${user.first_name || ""} ${user.last_name || ""
+                                  }`.trim() ||
                                 "N/A"}
                             </div>
                             <div className="text-sm text-gray-500">
