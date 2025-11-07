@@ -1,15 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { User, Bell, Shield, Camera, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
+import { Toggle } from "@/components/Toggle";
 import { useUserInfo } from "@/hooks/useUserInfo";
 import { useUpdateUserMutation } from "@/store/api";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function NurseSettingsPage() {
+  const router = useRouter();
+  const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const notificationContext = useNotifications();
+
   const [activeTab, setActiveTab] = useState("profile");
   const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
 
@@ -18,9 +27,6 @@ export default function NurseSettingsPage() {
 
   // RTK Query mutation for updating user
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-
-  // Theme context
-  const { theme, toggleTheme } = useTheme();
 
   // Profile form state - initialize with user data
   const [profileData, setProfileData] = useState({
@@ -54,6 +60,49 @@ export default function NurseSettingsPage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Session timeout tracking
+  useEffect(() => {
+    const timeoutMinutes = parseInt(securitySettings.sessionTimeout);
+    if (!timeoutMinutes || timeoutMinutes <= 0) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        // Auto-logout user
+        try {
+          await signOut();
+          toast.warning("Session expired due to inactivity");
+          router.push("/login");
+        } catch (error) {
+          console.error("Error during auto-logout:", error);
+          // Fallback: manually clear and redirect
+          localStorage.removeItem("token");
+          localStorage.removeItem("userInfo-eezy-health");
+          window.location.href = "/login";
+        }
+      }, timeoutMinutes * 60 * 1000);
+    };
+
+    // Set initial timeout
+    resetTimeout();
+
+    // Reset timeout on user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach((event) => {
+      document.addEventListener(event, resetTimeout, true);
+    });
+
+    // Cleanup
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((event) => {
+        document.removeEventListener(event, resetTimeout, true);
+      });
+    };
+  }, [securitySettings.sessionTimeout, signOut, router]);
 
   // Initialize profile data with user information
   useEffect(() => {
@@ -208,6 +257,15 @@ export default function NurseSettingsPage() {
         "userInfo-eezy-health",
         JSON.stringify(updatedUserInfo)
       );
+
+      // Sync with NotificationContext if available
+      if (notificationContext?.updateNotificationPrefs) {
+        await notificationContext.updateNotificationPrefs({
+          newPatientBookings: notificationPrefs.newAppointments,
+          appointmentReminders: notificationPrefs.patientReschedulings,
+          patientMessages: notificationPrefs.appointmentUpdates,
+        });
+      }
 
       toast.success("Notification preferences updated successfully!");
     } catch (error) {
@@ -507,37 +565,18 @@ export default function NurseSettingsPage() {
                     New Appointments
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Get notified immediately when a new appointment is booked.
+                    Get notified when a new patient books an appointment.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.newAppointments}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        newAppointments: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.newAppointments
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.newAppointments
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.newAppointments}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      newAppointments: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Patient Reschedulings */}
@@ -550,34 +589,15 @@ export default function NurseSettingsPage() {
                     Get notified when a patient changes their appointment time.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.patientReschedulings}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        patientReschedulings: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.patientReschedulings
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.patientReschedulings
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.patientReschedulings}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      patientReschedulings: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Account Updates */}
@@ -589,34 +609,15 @@ export default function NurseSettingsPage() {
                     password changes, profile updates).
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.accountUpdates}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        accountUpdates: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.accountUpdates
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.accountUpdates
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.accountUpdates}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      accountUpdates: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Appointment Updates */}
@@ -627,37 +628,18 @@ export default function NurseSettingsPage() {
                   </h3>
                   <p className="text-sm text-gray-600">
                     Get alerts for modifications made to existing appointments
-                    by staff.
+                    by patient.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.appointmentUpdates}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        appointmentUpdates: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.appointmentUpdates
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.appointmentUpdates
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.appointmentUpdates}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      appointmentUpdates: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Appointment Cancellations */}
@@ -670,34 +652,15 @@ export default function NurseSettingsPage() {
                     Receive confirmations of your appointment cancellations.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.appointmentCancellations}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        appointmentCancellations: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.appointmentCancellations
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.appointmentCancellations
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.appointmentCancellations}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      appointmentCancellations: checked,
+                    })
+                  }
+                />
               </div>
             </div>
 
@@ -741,36 +704,19 @@ export default function NurseSettingsPage() {
                 <div className="flex items-end justify-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Sun
-                      className={`w-4 h-4 ${
-                        theme === "light" ? "text-yellow-500" : "text-gray-400"
-                      }`}
+                      className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
+                        }`}
                     />
                     <span className="text-sm text-gray-600">Light</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={theme === "dark"}
-                      onChange={() => toggleTheme()}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
-                        }`}
-                      ></div>
-                    </div>
-                  </label>
+                  <Toggle
+                    checked={theme === "dark"}
+                    onChange={() => toggleTheme()}
+                  />
                   <div className="flex items-center space-x-2">
                     <Moon
-                      className={`w-4 h-4 ${
-                        theme === "dark" ? "text-blue-500" : "text-gray-400"
-                      }`}
+                      className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
+                        }`}
                     />
                     <span className="text-sm text-gray-600">Dark</span>
                   </div>
@@ -925,11 +871,10 @@ export default function NurseSettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
+                  ? "border-green-500 text-green-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>

@@ -150,12 +150,12 @@ export const fetchUserData = async (uid: string) => {
 // Fetch all users from Realtime Database
 export const fetchAllUsers = async () => {
   try {
-    console.log('Attempting to fetch users from Realtime Database...');
+    
     const usersRef = ref(realtimeDb, 'users');
-    console.log('Database reference created:', usersRef.toString());
+ 
     
     const snapshot = await get(usersRef);
-    console.log('Snapshot received:', snapshot.exists() ? 'Data exists' : 'No data');
+ 
     
     if (snapshot.exists()) {
       const usersData = snapshot.val(); 

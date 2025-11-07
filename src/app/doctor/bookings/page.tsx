@@ -83,7 +83,12 @@ export default function DoctorBookingsPage() {
 
       const dayName = getDayName(currentDate);
       const dayNumber = currentDate.getDate();
-      const dateString = currentDate.toISOString().split("T")[0];
+
+      // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
 
       // Filter bookings for this specific date
       const dayBookings: Booking[] = [];
@@ -104,7 +109,12 @@ export default function DoctorBookingsPage() {
                 nanoseconds: number;
               };
               const date = new Date(timestamp.seconds * 1000);
-              bookingDate = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
+              // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const dayStr = String(date.getDate()).padStart(2, '0');
+              bookingDate = `${year}-${month}-${dayStr}`; // Format as YYYY-MM-DD
             } else {
               bookingDate = String(
                 bookingObj.bookingDate || bookingObj.date || ""
@@ -118,12 +128,12 @@ export default function DoctorBookingsPage() {
                 patientName:
                   String(bookingObj.patientName || "") ||
                   (typeof bookingObj.patient === "object" &&
-                  bookingObj.patient !== null &&
-                  "name" in bookingObj.patient
+                    bookingObj.patient !== null &&
+                    "name" in bookingObj.patient
                     ? String(
-                        (bookingObj.patient as Record<string, unknown>).name ||
-                          ""
-                      )
+                      (bookingObj.patient as Record<string, unknown>).name ||
+                      ""
+                    )
                     : "") ||
                   "Unknown Patient",
                 date: dateString,
@@ -157,26 +167,26 @@ export default function DoctorBookingsPage() {
                 patientAge:
                   Number(bookingObj.patientAge) ||
                   (typeof bookingObj.patient === "object" &&
-                  bookingObj.patient !== null &&
-                  "age" in bookingObj.patient
+                    bookingObj.patient !== null &&
+                    "age" in bookingObj.patient
                     ? Number(
-                        (bookingObj.patient as Record<string, unknown>).age
-                      ) || 0
+                      (bookingObj.patient as Record<string, unknown>).age
+                    ) || 0
                     : 0),
                 reason: String(
                   bookingObj.reason ||
-                    bookingObj.description ||
-                    "No reason provided"
+                  bookingObj.description ||
+                  "No reason provided"
                 ),
                 contactNumber:
                   String(bookingObj.contactNumber || "") ||
                   (typeof bookingObj.patient === "object" &&
-                  bookingObj.patient !== null &&
-                  "phone" in bookingObj.patient
+                    bookingObj.patient !== null &&
+                    "phone" in bookingObj.patient
                     ? String(
-                        (bookingObj.patient as Record<string, unknown>).phone ||
-                          ""
-                      )
+                      (bookingObj.patient as Record<string, unknown>).phone ||
+                      ""
+                    )
                     : "") ||
                   "No contact",
               };
@@ -422,11 +432,10 @@ export default function DoctorBookingsPage() {
                     return (
                       <div
                         key={`${day.date}-${time.key}`}
-                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
-                          booking
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
                             ? "cursor-pointer hover:scale-105 transition-transform"
                             : ""
-                        }`}>
+                          }`}>
                         {booking && (
                           <div
                             onClick={() => handleBookingClick(booking)}

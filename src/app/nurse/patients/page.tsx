@@ -128,7 +128,7 @@ export default function NursePatientsPage() {
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsAddPatientModalOpen(true)}
               className="btn-primary-green px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer"
@@ -136,7 +136,7 @@ export default function NursePatientsPage() {
               <Plus className="w-4 h-4" />
               <span>Add New Patient</span>
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export default function NursePatientsPage() {
               </thead>
               <tbody>
                 {filteredPatients?.length === 0 ||
-                filteredPatients?.length === undefined ? (
+                  filteredPatients?.length === undefined ? (
                   <NoRecordFound colSpan={6} />
                 ) : (
                   filteredPatients?.map(
@@ -285,15 +285,14 @@ export default function NursePatientsPage() {
                               <Link
                                 href={`/nurse/patients/appointments?patient=${encodeURIComponent(
                                   (patient?.display_name as string) ||
-                                    (patient?.name as string) ||
-                                    patient?.id
+                                  (patient?.name as string) ||
+                                  patient?.id
                                 )}&patientId=${patient?.uid || patient?.id}`}
                                 onClick={() =>
                                   toast.info(
-                                    `Viewing appointments for ${
-                                      (patient?.display_name as string) ||
-                                      (patient.name as string) ||
-                                      "patient"
+                                    `Viewing appointments for ${(patient?.display_name as string) ||
+                                    (patient.name as string) ||
+                                    "patient"
                                     }`
                                   )
                                 }
@@ -318,15 +317,14 @@ export default function NursePatientsPage() {
                               <Link
                                 href={`/nurse/patients/doctors?patient=${encodeURIComponent(
                                   (patient?.display_name as string) ||
-                                    (patient?.name as string) ||
-                                    patient?.id
+                                  (patient?.name as string) ||
+                                  patient?.id
                                 )}&patientId=${patient?.uid || patient.id}`}
                                 onClick={() =>
                                   toast.info(
-                                    `Selecting doctor for ${
-                                      (patient?.display_name as string) ||
-                                      (patient?.name as string) ||
-                                      "patient"
+                                    `Selecting doctor for ${(patient?.display_name as string) ||
+                                    (patient?.name as string) ||
+                                    "patient"
                                     }`
                                   )
                                 }

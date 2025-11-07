@@ -9,7 +9,10 @@ import {
   User,
   Calendar,
 } from "lucide-react";
-import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/api";
+import {
+  useGetBookingCancellationsQuery,
+  useGetBookingCancellationsByDoctorIdQuery
+} from "@/store/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { getCancellationStatusBadge } from "@/components/Options";
@@ -27,7 +30,7 @@ interface CancellationRequest {
   bookingChannel?: string;
   bookingStatus?: string;
   bookingId?: string;
-  cancellationRequest: {
+  cancellationRequest?: {
     reasonForCancellation?: string;
     reason?: string; // fallback
     status: string;
@@ -46,54 +49,48 @@ interface CancellationRequest {
 }
 
 const BookingCancellationWidget: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userInfo } = useAuth();
   const doctorId = user?.uid;
+  const userRole = userInfo?.role;
 
-  // Fetch cancellation requests using RTK Query
-  const {
-    data: cancellationsData,
-    isLoading,
-    error,
-  } = useGetBookingCancellationsByDoctorIdQuery(
-    { doctorId: doctorId || "" },
-    {
-      skip: !doctorId,
-    }
-  );
+  // Fetch cancellation requests using RTK Query based on user role
+  // For nurses: use useGetBookingCancellationsQuery (all cancellations)
+  // For doctors: use useGetBookingCancellationsByDoctorIdQuery (doctor-specific)
+  const { data: allCancellationsData, isLoading: isLoadingAll, error: errorAll } =
+    useGetBookingCancellationsQuery({}, { skip: userRole !== "NURSE" && userRole !== "ADMIN" });
+
+  const { data: doctorCancellationsData, isLoading: isLoadingDoctor, error: errorDoctor } =
+    useGetBookingCancellationsByDoctorIdQuery(
+      { doctorId: doctorId || "" },
+      { skip: !doctorId || (userRole === "NURSE" || userRole === "ADMIN") }
+    );
+
+  // Choose the appropriate data based on role
+  const isLoading = userRole === "NURSE" || userRole === "ADMIN" ? isLoadingAll : isLoadingDoctor;
+  const error = userRole === "NURSE" || userRole === "ADMIN" ? errorAll : errorDoctor;
+  const cancellationsData = userRole === "NURSE" || userRole === "ADMIN" ? allCancellationsData : doctorCancellationsData;
 
   const cancellations: CancellationRequest[] =
     (cancellationsData as unknown as CancellationRequest[]) || [];
 
-  // Debug logging
-  console.log("BookingCancellationWidget - doctorId:", doctorId);
-  console.log("BookingCancellationWidget - isLoading:", isLoading);
-  console.log("BookingCancellationWidget - error:", error);
-  console.log(
-    "BookingCancellationWidget - cancellationsData:",
-    cancellationsData
-  );
-  console.log("BookingCancellationWidget - cancellations:", cancellations);
-  console.log(
-    "BookingCancellationWidget - cancellations length:",
-    cancellations.length
-  );
 
   // Calculate statistics from cancellation data
   const totalCancellations = cancellations.length;
   const pendingCancellations = cancellations.filter(
     (cancellation: CancellationRequest) =>
-      cancellation.cancellationRequest?.status?.toLowerCase() === "pending"
+      cancellation.bookingStatus?.toLowerCase() === "pending"
   ).length;
 
   const approvedCancellations = cancellations.filter(
     (cancellation: CancellationRequest) =>
-      cancellation.cancellationRequest?.status?.toLowerCase() === "approved"
+      cancellation.bookingStatus?.toLowerCase() === "approved" ||
+      cancellation.bookingStatus?.toLowerCase() === "cancelled"
   ).length;
 
   const rejectedCancellations = cancellations.filter(
     (cancellation: CancellationRequest) =>
-      cancellation.cancellationRequest?.status?.toLowerCase() === "rejected" ||
-      cancellation.cancellationRequest?.status?.toLowerCase() === "denied"
+      cancellation.bookingStatus?.toLowerCase() === "rejected" ||
+      cancellation.bookingStatus?.toLowerCase() === "denied"
   ).length;
 
   // Get recent cancellations (last 5)
@@ -103,14 +100,14 @@ const BookingCancellationWidget: React.FC = () => {
         typeof a.bookingDate === "string"
           ? new Date(a.bookingDate).getTime()
           : typeof a.bookingDate === "object" && "seconds" in a.bookingDate
-          ? a.bookingDate.seconds * 1000
-          : new Date(a.bookingDate as string).getTime();
+            ? a.bookingDate.seconds * 1000
+            : new Date(a.bookingDate as string).getTime();
       const dateB =
         typeof b.bookingDate === "string"
           ? new Date(b.bookingDate).getTime()
           : typeof b.bookingDate === "object" && "seconds" in b.bookingDate
-          ? b.bookingDate.seconds * 1000
-          : new Date(b.bookingDate as string).getTime();
+            ? b.bookingDate.seconds * 1000
+            : new Date(b.bookingDate as string).getTime();
       return dateB - dateA;
     })
     .slice(0, 5);
@@ -136,8 +133,7 @@ const BookingCancellationWidget: React.FC = () => {
   }
 
   if (error && !cancellationsData) {
-    console.log("BookingCancellationWidget error:", error);
-    console.log("BookingCancellationWidget data:", cancellationsData);
+
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
         Failed to load cancellation requests. Please try again later.
@@ -147,11 +143,7 @@ const BookingCancellationWidget: React.FC = () => {
   }
 
   if (!hasData && !isLoading) {
-    console.log("BookingCancellationWidget - No data state:", {
-      hasData,
-      isLoading,
-      cancellations,
-    });
+
     return (
       <div className="w-full flex flex-col items-center justify-center h-96 p-6">
         <div className="w-64 h-32 mb-6 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -171,10 +163,7 @@ const BookingCancellationWidget: React.FC = () => {
 
   // Show data even if there's an error, as long as we have data
   if (error && cancellationsData && cancellationsData.length > 0) {
-    console.log("BookingCancellationWidget - Showing data despite error:", {
-      error,
-      cancellationsData,
-    });
+
   }
 
   const statsData = [
@@ -352,8 +341,8 @@ const BookingCancellationWidget: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {getCancellationStatusBadge(
                     cancellation.cancellationRequest?.status ||
-                      cancellation.status ||
-                      "pending"
+                    cancellation.status ||
+                    "pending"
                   )}
                 </div>
               </div>

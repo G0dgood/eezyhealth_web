@@ -1,18 +1,10 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Create context for edit mode
-const EditModeContext = createContext<{
-  isEditing: boolean;
-  setIsEditing: (editing: boolean) => void;
-}>({
-  isEditing: false,
-  setIsEditing: () => { },
-});
+import { EditModeContext } from "@/contexts/EditModeContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -63,5 +55,4 @@ function NurseLayout({ children }: LayoutProps) {
   );
 }
 
-export { EditModeContext };
 export default NurseLayout;

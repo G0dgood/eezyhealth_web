@@ -119,7 +119,7 @@ export default function BookAppointmentPage() {
   const handleDoctorSelect = (doctorId: string) => {
     setSelectedDoctor(doctorId);
     // Here you can navigate to the actual booking page or open a booking modal
-    console.log("Selected doctor:", doctorId);
+
   };
 
   return (
@@ -156,11 +156,10 @@ export default function BookAppointmentPage() {
         {availableDoctors.map((doctor) => (
           <div
             key={doctor.id}
-            className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
-              selectedDoctor === doctor.id
+            className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${selectedDoctor === doctor.id
                 ? "border-green-500 ring-2 ring-green-200"
                 : "border-gray-200 hover:border-green-300"
-            }`}
+              }`}
             onClick={() => handleDoctorSelect(doctor.id)}>
             {/* Doctor Header */}
             <div className="p-4 sm:p-6 border-b border-gray-100">
@@ -184,11 +183,10 @@ export default function BookAppointmentPage() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                            i < Math.floor(doctor.rating)
+                          className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(doctor.rating)
                               ? "text-yellow-400 fill-current"
                               : "text-gray-300"
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>

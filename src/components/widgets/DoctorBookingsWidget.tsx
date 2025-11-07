@@ -64,12 +64,7 @@ const DoctorBookingsWidget: React.FC = () => {
     id: booking.id || `booking-${Math.random()}`,
   }));
 
-  // Debug logging
-  console.log("DoctorBookingsWidget - doctorId:", doctorId);
-  console.log("DoctorBookingsWidget - isLoading:", isLoading);
-  console.log("DoctorBookingsWidget - error:", error);
-  console.log("DoctorBookingsWidget - bookingsData:", bookingsData);
-  console.log("DoctorBookingsWidget - bookings:", bookings);
+
 
   // Calculate statistics
   const totalBookings = bookings.length;
@@ -177,8 +172,8 @@ const DoctorBookingsWidget: React.FC = () => {
       typeof bookingDate === "string"
         ? new Date(bookingDate)
         : typeof bookingDate === "object" && "seconds" in bookingDate
-        ? new Date(bookingDate.seconds * 1000)
-        : new Date(bookingDate as string);
+          ? new Date(bookingDate.seconds * 1000)
+          : new Date(bookingDate as string);
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -292,8 +287,6 @@ const DoctorBookingsWidget: React.FC = () => {
   }
 
   if (error && !bookingsData) {
-    console.log("DoctorBookingsWidget error:", error);
-    console.log("DoctorBookingsWidget data:", bookingsData);
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
         Failed to load bookings. Please try again later.
@@ -304,10 +297,7 @@ const DoctorBookingsWidget: React.FC = () => {
 
   // Show data even if there's an error, as long as we have data
   if (error && bookingsData && bookingsData.length > 0) {
-    console.log("DoctorBookingsWidget - Showing data despite error:", {
-      error,
-      bookingsData,
-    });
+
   }
 
   return (

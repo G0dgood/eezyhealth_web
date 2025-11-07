@@ -135,7 +135,7 @@ export default function Header({
 
           {/* User Dropdown Menu */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-2xl py-1 z-[9999] border border-gray-200 backdrop-blur-sm">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-2xl  z-[9999] border border-gray-200 backdrop-blur-sm">
               <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100 bg-white">
                 <p className="font-medium">
                   {authUserInfo?.displayName || user?.displayName || userRole}

@@ -17,6 +17,9 @@ import {
   orderBy,
   limit,
   Timestamp,
+  doc,
+  updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -84,6 +87,47 @@ export function NotificationProvider({
   ]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  // Load notification preferences from Firebase on mount
+  useEffect(() => {
+    const loadNotificationPrefs = async () => {
+      if (!user?.uid) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const firebasePrefs = userData.notification_preferences;
+
+          if (firebasePrefs) {
+            setNotificationPrefs({
+              newPatientBookings:
+                firebasePrefs.newPatientBookings !== undefined
+                  ? firebasePrefs.newPatientBookings
+                  : true,
+              appointmentReminders:
+                firebasePrefs.appointmentReminders !== undefined
+                  ? firebasePrefs.appointmentReminders
+                  : true,
+              patientMessages:
+                firebasePrefs.patientMessages !== undefined
+                  ? firebasePrefs.patientMessages
+                  : true,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error loading notification preferences:", error);
+      }
+    };
+
+    loadNotificationPrefs();
+  }, [user?.uid]);
 
   // Firebase integration for real-time notifications
   useEffect(() => {
@@ -404,10 +448,42 @@ export function NotificationProvider({
 
   // Function to update notification preferences
   const updateNotificationPrefs = useCallback(
-    (prefs: Partial<NotificationPreferences>) => {
+    async (prefs: Partial<NotificationPreferences>) => {
+      // Update local state
       setNotificationPrefs((prev) => ({ ...prev, ...prefs }));
+
+      // Save to Firebase if user is logged in
+      if (user?.uid) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            // Get current notification preferences
+            const currentData = userDoc.data();
+            const currentPrefs = currentData.notification_preferences || {
+              newPatientBookings: true,
+              appointmentReminders: true,
+              patientMessages: true,
+            };
+
+            // Update with new preferences
+            const updatedPrefs = { ...currentPrefs, ...prefs };
+
+            // Save to Firebase
+            await updateDoc(userRef, {
+              notification_preferences: updatedPrefs,
+              updatedAt: Timestamp.now(),
+            });
+
+          
+          }
+        } catch (error) {
+          console.error("Error saving notification preferences to Firebase:", error);
+        }
+      }
     },
-    []
+    [user?.uid]
   );
 
   const addNotification = useCallback(

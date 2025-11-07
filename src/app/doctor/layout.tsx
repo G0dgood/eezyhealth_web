@@ -1,19 +1,11 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Create context for edit mode
-const EditModeContext = createContext<{
-  isEditing: boolean;
-  setIsEditing: (editing: boolean) => void;
-}>({
-  isEditing: false,
-  setIsEditing: () => {},
-});
+import { EditModeContext } from "@/contexts/EditModeContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,9 +30,8 @@ function DoctorLayout({ children }: LayoutProps) {
   };
 
   // Create the exact same transition classes for both elements
-  const transitionClasses = `transition-all duration-300 ease-in-out ${
-    isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
-  } lg:translate-x-0`;
+  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
+    } lg:translate-x-0`;
 
   // Check if we're on the message page
   const isMessagePage = pathname === "/doctor/message";
@@ -73,5 +64,4 @@ function DoctorLayout({ children }: LayoutProps) {
   );
 }
 
-export { EditModeContext };
 export default DoctorLayout;

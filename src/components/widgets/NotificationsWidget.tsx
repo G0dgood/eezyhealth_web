@@ -23,9 +23,7 @@ const NotificationsWidget: React.FC = () => {
     removeNotification,
   } = useNotifications();
 
-  // Debug logging
-  console.log("NotificationsWidget - notifications:", notifications);
-  console.log("NotificationsWidget - unreadCount:", unreadCount);
+
 
   // Calculate statistics
   const totalNotifications = notifications.length;
@@ -228,9 +226,8 @@ const NotificationsWidget: React.FC = () => {
           recentNotifications.map((notification) => (
             <div
               key={notification.id}
-              className={`border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors ${
-                !notification.isRead ? "bg-blue-50 border-blue-200" : ""
-              }`}>
+              className={`border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-blue-50 border-blue-200" : ""
+                }`}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -308,14 +305,14 @@ const NotificationsWidget: React.FC = () => {
             </div>
             {(notificationsByType.warning > 0 ||
               notificationsByType.error > 0) && (
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                <span className="text-gray-600">
-                  Alerts:{" "}
-                  {notificationsByType.warning + notificationsByType.error}
-                </span>
-              </div>
-            )}
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                  <span className="text-gray-600">
+                    Alerts:{" "}
+                    {notificationsByType.warning + notificationsByType.error}
+                  </span>
+                </div>
+              )}
           </div>
         </div>
       </div>

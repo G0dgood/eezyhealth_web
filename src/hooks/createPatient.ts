@@ -49,14 +49,5 @@ export const createPatient = async (patientData: CreatePatientData) => {
   }
 };
 
-// Usage example:
-// createPatient({
-//   name: "John Doe",
-//   email: "john@example.com",
-//   phone: "+1234567890",
-//   dateOfBirth: "1990-01-01",
-//   gender: "male"
-// })
-//   .then(patient => console.log('Patient created:', patient))
-//   .catch(error => console.error('Error:', error));
+ 
 

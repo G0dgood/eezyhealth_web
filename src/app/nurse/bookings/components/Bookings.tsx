@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronLeft,
@@ -13,11 +13,13 @@ import {
   MessageCircle,
   X,
 } from "lucide-react";
-import Breadcrumb from "@/components/Breadcrumb";
-import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
-import { monthNames, timeSlots } from "@/components/Options";
+import { getBookingColor, getChannelIcon, monthNames, timeSlots } from "@/components/Options";
+import { useGetBookingsQuery } from "@/store/api";
+import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
+import { showError, showNetworkError } from "@/utils/toast";
+import { toast } from "sonner";
 
 interface Booking {
   id: string;
@@ -40,295 +42,7 @@ interface DayBooking {
 }
 
 export default function Bookings() {
-  const [currentMonth, setCurrentMonth] = useState("September, 2023");
-  const [currentWeekStart, setCurrentWeekStart] = useState(
-    new Date(2023, 8, 1)
-  ); // Sep 1, 2023
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Sample booking data
-  const [weekBookings, setWeekBookings] = useState<DayBooking[]>([
-    {
-      date: "2023-09-01",
-      dayName: "FRI",
-      dayNumber: "1st",
-      bookings: [
-        {
-          id: "BK-001",
-          patientName: "Sarah Johnson",
-          date: "2023-09-01",
-          time: "09:00 AM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "videoCall",
-          patientAge: 28,
-          reason: "Follow-up consultation for anxiety management",
-          contactNumber: "+234 801 234 5678",
-        },
-        {
-          id: "BK-002",
-          patientName: "Michael Chen",
-          date: "2023-09-01",
-          time: "02:00 PM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "chat",
-          patientAge: 35,
-          reason: "Initial consultation for stress-related issues",
-          contactNumber: "+234 802 345 6789",
-        },
-      ],
-    },
-    {
-      date: "2023-09-02",
-      dayName: "SAT",
-      dayNumber: "2nd",
-      bookings: [
-        {
-          id: "BK-003",
-          patientName: "Emily Davis",
-          date: "2023-09-02",
-          time: "10:00 AM",
-          type: "Physical Booking",
-          status: "confirmed",
-          channel: "physical",
-          patientAge: 42,
-          reason: "Physical examination and consultation",
-          contactNumber: "+234 803 456 7890",
-        },
-      ],
-    },
-    {
-      date: "2023-09-03",
-      dayName: "SUN",
-      dayNumber: "3rd",
-      bookings: [
-        {
-          id: "BK-004",
-          patientName: "David Wilson",
-          date: "2023-09-03",
-          time: "11:00 AM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "voiceCall",
-          patientAge: 29,
-          reason: "Weekly therapy session",
-          contactNumber: "+234 804 567 8901",
-        },
-      ],
-    },
-    {
-      date: "2023-09-04",
-      dayName: "MON",
-      dayNumber: "4th",
-      bookings: [
-        {
-          id: "BK-005",
-          patientName: "Lisa Anderson",
-          date: "2023-09-04",
-          time: "09:00 AM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "videoCall",
-          patientAge: 31,
-          reason: "Depression management consultation",
-          contactNumber: "+234 805 678 9012",
-        },
-        {
-          id: "BK-006",
-          patientName: "Robert Taylor",
-          date: "2023-09-04",
-          time: "03:00 PM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "chat",
-          patientAge: 38,
-          reason: "Anxiety assessment and treatment plan",
-          contactNumber: "+234 806 789 0123",
-        },
-      ],
-    },
-    {
-      date: "2023-09-05",
-      dayName: "TUE",
-      dayNumber: "5th",
-      bookings: [
-        {
-          id: "BK-007",
-          patientName: "Jennifer Brown",
-          date: "2023-09-05",
-          time: "10:00 AM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "videoCall",
-          patientAge: 26,
-          reason: "Trauma therapy session",
-          contactNumber: "+234 807 890 1234",
-        },
-        {
-          id: "BK-008",
-          patientName: "Thomas Garcia",
-          date: "2023-09-05",
-          time: "04:00 PM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "voiceCall",
-          patientAge: 45,
-          reason: "Stress management consultation",
-          contactNumber: "+234 808 901 2345",
-        },
-      ],
-    },
-    {
-      date: "2023-09-06",
-      dayName: "WED",
-      dayNumber: "6th",
-      bookings: [
-        {
-          id: "BK-009",
-          patientName: "Amanda Martinez",
-          date: "2023-09-06",
-          time: "11:00 AM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "chat",
-          patientAge: 33,
-          reason: "Relationship counseling session",
-          contactNumber: "+234 809 012 3456",
-        },
-      ],
-    },
-    {
-      date: "2023-09-07",
-      dayName: "THU",
-      dayNumber: "7th",
-      bookings: [
-        {
-          id: "BK-010",
-          patientName: "Christopher Lee",
-          date: "2023-09-07",
-          time: "02:00 PM",
-          type: "Online Booking",
-          status: "confirmed",
-          channel: "videoCall",
-          patientAge: 27,
-          reason: "ADHD assessment and management",
-          contactNumber: "+234 810 123 4567",
-        },
-      ],
-    },
-  ]);
-
-  // const timeSlots = [
-  //   "12:00 AM",
-  //   "12:30 AM",
-  //   "01:00 AM",
-  //   "01:30 AM",
-  //   "02:00 AM",
-  //   "02:30 AM",
-  //   "03:00 AM",
-  //   "03:30 AM",
-  //   "04:00 AM",
-  //   "04:30 AM",
-  //   "05:00 AM",
-  //   "05:30 AM",
-  //   "06:00 AM",
-  //   "06:30 AM",
-  //   "07:00 AM",
-  //   "07:30 AM",
-  //   "08:00 AM",
-  //   "08:30 AM",
-  //   "09:00 AM",
-  //   "09:30 AM",
-  //   "10:00 AM",
-  //   "10:30 AM",
-  //   "11:00 AM",
-  //   "11:30 AM",
-  //   "12:00 PM",
-  //   "12:30 PM",
-  //   "01:00 PM",
-  //   "01:30 PM",
-  //   "02:00 PM",
-  //   "02:30 PM",
-  //   "03:00 PM",
-  //   "03:30 PM",
-  //   "04:00 PM",
-  //   "04:30 PM",
-  //   "05:00 PM",
-  //   "05:30 PM",
-  //   "06:00 PM",
-  //   "06:30 PM",
-  //   "07:00 PM",
-  //   "07:30 PM",
-  //   "08:00 PM",
-  //   "08:30 PM",
-  //   "09:00 PM",
-  //   "09:30 PM",
-  //   "10:00 PM",
-  //   "10:30 PM",
-  //   "11:00 PM",
-  //   "11:30 PM",
-  // ];
-
-  const navigateWeek = (direction: "prev" | "next") => {
-    const newWeekStart = new Date(currentWeekStart);
-
-    if (direction === "prev") {
-      newWeekStart.setDate(newWeekStart.getDate() - 7);
-    } else {
-      newWeekStart.setDate(newWeekStart.getDate() + 7);
-    }
-
-    setCurrentWeekStart(newWeekStart);
-
-    // Update the month display
-    // const monthNames = [
-    //   "January",
-    //   "February",
-    //   "March",
-    //   "April",
-    //   "May",
-    //   "June",
-    //   "July",
-    //   "August",
-    //   "September",
-    //   "October",
-    //   "November",
-    //   "December",
-    // ];
-    const month = monthNames[newWeekStart.getMonth()];
-    const year = newWeekStart.getFullYear();
-    setCurrentMonth(`${month}, ${year}`);
-
-    // Generate new week data (you would typically fetch this from API)
-    generateWeekBookings(newWeekStart);
-  };
-
-  const generateWeekBookings = (weekStart: Date) => {
-    // This would typically fetch data from an API
-    // For now, we'll just update the dates
-    const newWeekBookings = weekBookings.map((day, index) => {
-      const currentDate = new Date(weekStart);
-      currentDate.setDate(weekStart.getDate() + index);
-
-      const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-      const dayName = dayNames[currentDate.getDay()];
-      const dayNumber = currentDate.getDate();
-
-      return {
-        ...day,
-        date: currentDate.toISOString().split("T")[0],
-        dayName,
-        dayNumber: `${dayNumber}${getDaySuffix(dayNumber)}`,
-      };
-    });
-
-    setWeekBookings(newWeekBookings);
-  };
-
+  // Helper function for day suffix
   const getDaySuffix = (day: number) => {
     if (day >= 11 && day <= 13) return "th";
     switch (day % 10) {
@@ -343,35 +57,242 @@ export default function Bookings() {
     }
   };
 
-  const getBookingColor = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-        return "bg-green-500";
-      case "chat":
-        return "bg-blue-500";
-      case "voiceCall":
-        return "bg-purple-500";
-      case "physical":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-500";
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const today = new Date();
+    const month = monthNames[today.getMonth()];
+    const year = today.getFullYear();
+    return `${month}, ${year}`;
+  });
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    return startOfWeek;
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
+
+  // Handle error state
+  useEffect(() => {
+    if (error) {
+      console.error("Bookings API Error:", error);
+
+      // Show appropriate error message
+      if ('status' in error) {
+        if (error.status === 'FETCH_ERROR' || error.status === 'TIMEOUT_ERROR') {
+          showNetworkError();
+        } else if (error.status === 'PARSING_ERROR') {
+          showError("Data Error", "Failed to parse booking data. Please try again.");
+        } else if (error.status === 'CUSTOM_ERROR') {
+          showError("Booking Error", "Unable to load bookings. Please try again.");
+        } else {
+          showError("Booking Error", "Something went wrong while loading bookings.");
+        }
+      } else {
+        showError("Booking Error", "Unable to load bookings. Please try again.");
+      }
     }
+  }, [error]);
+
+  // Retry function for failed requests
+  const handleRetry = () => {
+
+    refetch();
   };
 
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-        return <Video className="w-3 h-3" />;
-      case "chat":
-        return <MessageCircle className="w-3 h-3" />;
-      case "voiceCall":
-        return <Phone className="w-3 h-3" />;
-      case "physical":
-        return <User className="w-3 h-3" />;
-      default:
-        return <Calendar className="w-3 h-3" />;
+  // Convert raw booking data to standard format
+  const standardizedBookings = useMemo(() => {
+    if (!bookings?.bookings) return [];
+    return convertBookingsToStandardFormat(bookings.bookings);
+  }, [bookings?.bookings]);
+
+
+
+  // Convert standardized bookings to the sample data format
+  const convertedWeekBookings = useMemo(() => {
+    if (!standardizedBookings || standardizedBookings.length === 0) return [];
+
+    // Group bookings by date
+    const bookingsByDate = standardizedBookings.reduce((acc, booking) => {
+      const bookingDate = new Date(booking.bookingDate._seconds * 1000);
+
+      // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
+      const year = bookingDate.getFullYear();
+      const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
+      const day = String(bookingDate.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+
+      // Convert slot to time format (e.g., "morning_6am" -> "06:00 AM")
+      const slotToTime = (slot: string): string => {
+        const slotLower = slot.toLowerCase();
+        // Extract hour and period
+        const hourMatch = slotLower.match(/(\d+)(am|pm)/);
+        if (!hourMatch) return "06:00 AM";
+
+        const hour = parseInt(hourMatch[1]);
+        const period = hourMatch[2].toUpperCase();
+
+        // Format as HH:MM PM/AM
+        const hourFormatted = hour.toString().padStart(2, '0');
+        return `${hourFormatted}:00 ${period}`;
+      };
+
+      // Map booking channel to standardized channel values
+      const mapChannel = (channel: string): "videoCall" | "chat" | "voiceCall" | "physical" => {
+        const channelLower = channel.toLowerCase();
+
+
+        if (channelLower.includes('video') || channelLower.includes('videocall')) {
+
+          return "videoCall";
+        }
+        if (channelLower.includes('chat')) {
+
+          return "chat";
+        }
+        if (channelLower.includes('voice') || channelLower.includes('voicecall') || channelLower.includes('call')) {
+
+          return "voiceCall";
+        }
+        if (channelLower.includes('physical') || channelLower.includes('in-person')) {
+
+          return "physical";
+        }
+        // Default fallback
+
+        return "videoCall";
+      };
+
+      // Convert to the exact sample format
+      acc[dateKey].push({
+        id: booking.bookingId,
+        patientName: booking.patientName,
+        date: dateKey,
+        time: slotToTime(booking.slot),
+        type: booking.bookingChannel === "Chat" ? "Online Booking" : "Physical Booking",
+        status: booking.bookingStatus.toLowerCase() as "confirmed" | "pending" | "cancelled",
+        channel: mapChannel(booking.bookingChannel),
+        patientAge: 0, // Default value
+        reason: "Consultation", // Default value
+        contactNumber: "+234 000 000 0000", // Default value
+      });
+
+      return acc;
+    }, {} as Record<string, Booking[]>);
+
+    // Convert to DayBooking format
+    return Object.entries(bookingsByDate).map(([date, bookings]) => {
+      // Parse the date string (YYYY-MM-DD) to get day name and number
+      const [year, month, day] = date.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+      const dayName = dayNames[dateObj.getDay()];
+      const dayNumber = day;
+
+      return {
+        date,
+        dayName,
+        dayNumber: `${dayNumber}${getDaySuffix(dayNumber)}`,
+        bookings,
+      };
+    });
+  }, [standardizedBookings]);
+
+
+
+
+
+  // Week bookings state - populated from converted data
+  const [weekBookings, setWeekBookings] = useState<DayBooking[]>([]);
+
+  // Generate initial week structure
+  useEffect(() => {
+    generateWeekBookings(currentWeekStart);
+  }, []);
+
+  // Update weekBookings when converted data is available
+  useEffect(() => {
+    // Always generate week structure, regardless of whether there are bookings
+    generateWeekBookings(currentWeekStart);
+  }, [convertedWeekBookings, currentWeekStart]);
+
+
+  const navigateWeek = (direction: "prev" | "next") => {
+    const newWeekStart = new Date(currentWeekStart);
+
+    if (direction === "prev") {
+      newWeekStart.setDate(newWeekStart.getDate() - 7);
+    } else {
+      newWeekStart.setDate(newWeekStart.getDate() + 7);
     }
+
+    setCurrentWeekStart(newWeekStart);
+
+
+    const month = monthNames[newWeekStart.getMonth()];
+    const year = newWeekStart.getFullYear();
+    setCurrentMonth(`${month}, ${year}`);
+
+    // Generate new week data (you would typically fetch this from API)
+    generateWeekBookings(newWeekStart);
   };
+
+  const generateWeekBookings = (weekStart: Date) => {
+
+    // Always generate a full week structure (7 days)
+    const newWeekBookings: DayBooking[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(weekStart);
+      currentDate.setDate(weekStart.getDate() + i);
+
+      const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+      const dayName = dayNames[currentDate.getDay()];
+      const dayNumber = currentDate.getDate();
+
+      // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+
+      // Find bookings for this specific date
+      const dayBookings = convertedWeekBookings?.find(dayBooking =>
+        dayBooking.date === dateKey
+      )?.bookings || [];
+
+
+
+      newWeekBookings.push({
+        date: dateKey,
+        dayName,
+        dayNumber: `${dayNumber}${getDaySuffix(dayNumber)}`,
+        bookings: dayBookings || [],
+      });
+    }
+
+
+    // Debug: Log bookings for each day
+    newWeekBookings.forEach(day => {
+      if (day.bookings.length > 0) {
+
+        day.bookings.forEach(booking => {
+
+        });
+      }
+    });
+    setWeekBookings(newWeekBookings);
+  };
+
+
+
+
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -386,7 +307,6 @@ export default function Bookings() {
   // Simulate loading for demonstration
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
     }, 2000); // Show skeleton for 2 seconds
 
     return () => clearTimeout(timer);
@@ -427,6 +347,9 @@ export default function Bookings() {
     return timeSlots[timeIndex + 1].from;
   };
 
+
+
+
   return (
     <div>
       {/* Search and Navigation */}
@@ -445,8 +368,9 @@ export default function Bookings() {
         </div>
       )}
 
+
       {/* Calendar Grid */}
-      {!isLoading && (
+      {!isLoading && !error && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Calendar Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -477,20 +401,6 @@ export default function Bookings() {
                   startOfWeek.setDate(today.getDate() - today.getDay());
                   setCurrentWeekStart(startOfWeek);
                   generateWeekBookings(startOfWeek);
-                  // const monthNames = [
-                  //   "January",
-                  //   "February",
-                  //   "March",
-                  //   "April",
-                  //   "May",
-                  //   "June",
-                  //   "July",
-                  //   "August",
-                  //   "September",
-                  //   "October",
-                  //   "November",
-                  //   "December",
-                  // ];
                   const month = monthNames[today.getMonth()];
                   const year = today.getFullYear();
                   setCurrentMonth(`${month}, ${year}`);
@@ -546,11 +456,10 @@ export default function Bookings() {
                     return (
                       <div
                         key={`${day.date}-${timeSlot.key}`}
-                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
-                          booking
-                            ? "cursor-pointer hover:scale-105 transition-transform"
-                            : ""
-                        }`}>
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
+                          ? "cursor-pointer hover:scale-105 transition-transform"
+                          : ""
+                          }`}>
                         {booking && (
                           <div
                             onClick={() => handleBookingClick(booking)}

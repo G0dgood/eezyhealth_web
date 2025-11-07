@@ -16,11 +16,9 @@ export const deleteUser = async (uid: string): Promise<void> => {
     // Delete the user document
     querySnapshot.forEach(async (docSnapshot) => {
       const userDocRef = doc(db, 'users', docSnapshot.id);
-      await deleteDoc(userDocRef);
-      console.log(`User ${uid} deleted successfully`);
+      await deleteDoc(userDocRef); 
     });
-  } catch (error) {
-    console.error('Error deleting user:', error);
+  } catch (error) { 
     throw error;
   }
 };

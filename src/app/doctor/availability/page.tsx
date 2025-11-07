@@ -98,7 +98,7 @@ export default function DoctorAvailabilityPage() {
     skip: !doctorId,
   });
 
-  console.log("doctorDetails---", doctorDetails);
+ 
 
   const [saveAvailability, { isLoading: isSaving }] =
     useSaveDoctorAvailabilityMutation();
@@ -205,16 +205,7 @@ export default function DoctorAvailabilityPage() {
   // Clean invalid keys from availability data
   const doctorAvailability = useMemo(() => cleanAvailability(migratedAvailability, timeSlots), [migratedAvailability, timeSlots]);
 
-  // Debug logging
-  console.log("doctorDetails---", doctorDetails);
-  console.log("rawDoctorAvailability---", rawDoctorAvailability);
-  console.log("migratedAvailability---", migratedAvailability);
-  console.log("doctorAvailability (cleaned)---", doctorAvailability);
-  console.log("selectedSlots (current state)---", selectedSlots);
-  console.log(
-    "hasInitializedAvailability---",
-    hasInitializedAvailability.current
-  );
+  
 
   // Check if we have any existing availability
   const hasExistingAvailability =
@@ -240,10 +231,7 @@ export default function DoctorAvailabilityPage() {
       );
 
       if (Object.keys(cleanedAvailability).length > 0) {
-        console.log(
-          "Initializing selectedSlots with existing availability:",
-          cleanedAvailability
-        );
+         
         setSelectedSlots(cleanedAvailability);
         hasInitializedAvailability.current = true;
       }
@@ -257,10 +245,7 @@ export default function DoctorAvailabilityPage() {
       Object.keys(doctorAvailability).length > 0 &&
       !hasInitializedAvailability.current
     ) {
-      console.log(
-        "Secondary initialization with doctorAvailability:",
-        doctorAvailability
-      );
+      
       setSelectedSlots(doctorAvailability);
       hasInitializedAvailability.current = true;
     }
@@ -299,12 +284,7 @@ export default function DoctorAvailabilityPage() {
       const timeSlot = timeSlots[slotIndex];
       const slotKey = timeSlotToKey(timeSlot);
 
-      console.log(`Toggling slot: ${dayName} - ${slotKey}`, {
-        currentSelectedSlots: prevSlots,
-        daySlots,
-        slotKey,
-        timeSlotKey: timeSlot.key,
-      });
+      
 
       // Check if the slot is currently selected in the UI state
       const isCurrentlySelected = daySlots[slotKey];
@@ -317,12 +297,11 @@ export default function DoctorAvailabilityPage() {
         // If there are no more slots for this day, remove the day entirely
         if (Object.keys(newDaySlots).length === 0) {
           const newPrevSlots = { ...prevSlots };
-          delete newPrevSlots[dayName];
-          console.log("Removed entire day:", dayName);
+          delete newPrevSlots[dayName]; 
           return newPrevSlots;
         }
 
-        console.log("Removed slot:", slotKey, "from day:", dayName);
+         
         return {
           ...prevSlots,
           [dayName]: newDaySlots,
@@ -336,7 +315,7 @@ export default function DoctorAvailabilityPage() {
             [slotKey]: "available", // Mark it as available
           },
         };
-        console.log("Added slot:", slotKey, "to day:", dayName);
+       
         return newSlots;
       }
     });
@@ -376,10 +355,7 @@ export default function DoctorAvailabilityPage() {
     try {
       // Merge existing availability with new selections
       const mergedAvailability = { ...doctorAvailability, ...selectedSlots };
-
-      console.log("Saving merged availability:", mergedAvailability);
-      console.log("Existing availability:", doctorAvailability);
-      console.log("New selections:", selectedSlots);
+ 
 
       await saveAvailability({
         doctorId,
@@ -663,34 +639,12 @@ export default function DoctorAvailabilityPage() {
 
                           // Debug logging for specific slots
                           if (day?.dayName === "Thursday" && slotIndex === 2) {
-                            console.log("Thursday slot 2 debug:", {
-                              dayName: day?.dayName,
-                              slotIndex,
-                              timeSlot,
-                              slotKey,
-                              doctorAvailabilityForDay:
-                                doctorAvailability[day?.dayName],
-                              isExistingSlot,
-                              availableSlots: Object.keys(
-                                doctorAvailability[day?.dayName] || {}
-                              ),
-                            });
+                           
                           }
 
                           // Debug logging for slot 3 (should match early_morning_3am)
                           if (day?.dayName === "Thursday" && slotIndex === 3) {
-                            console.log("Thursday slot 3 debug:", {
-                              dayName: day?.dayName,
-                              slotIndex,
-                              timeSlot,
-                              slotKey,
-                              doctorAvailabilityForDay:
-                                doctorAvailability[day?.dayName],
-                              isExistingSlot,
-                              availableSlots: Object.keys(
-                                doctorAvailability[day?.dayName] || {}
-                              ),
-                            });
+                            
                           }
 
                           const slotStyle = getSlotStyle(

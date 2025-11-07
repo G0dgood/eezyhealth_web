@@ -148,7 +148,7 @@ const DoctorDashboard = () => {
         (w) => w.id === confirmModal.widgetId
       );
       if (widgetToRemove) {
-        console.log("User confirmed removal");
+
         setWidgets((prev) => {
           const newWidgets = prev.filter((w) => w.id !== confirmModal.widgetId);
           return newWidgets;
@@ -221,7 +221,7 @@ const DoctorDashboard = () => {
     const handleRemoveClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Remove button clicked for widget:", id);
+
       onRemove(id);
     };
 

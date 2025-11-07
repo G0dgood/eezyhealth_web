@@ -30,9 +30,7 @@ export const getCancellationRequest = async () => {
 
 // Usage example:
 getCancellationRequest()
-  .then(data => {
-    console.log('Pending cancellation requests:', data);
+  .then(data => { 
   })
-  .catch(error => {
-    console.error('Error fetching bookings collection:', error);
+  .catch(error => { 
   });

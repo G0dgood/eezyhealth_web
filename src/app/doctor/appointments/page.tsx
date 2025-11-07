@@ -80,17 +80,14 @@ export default function DoctorAppointmentsPage() {
     time: string;
     reason: string;
   }) => {
-    console.log("Adding appointment:", appointmentData);
     // TODO: Implement appointment creation
   };
 
   const handleConsultationNote = (note: string) => {
-    console.log("Adding consultation note:", note);
     // TODO: Implement consultation note addition
   };
 
   const handleCancelAppointment = (reason: string) => {
-    console.log("Canceling appointment:", reason);
     // TODO: Implement appointment cancellation
   };
 
@@ -103,13 +100,7 @@ export default function DoctorAppointmentsPage() {
     return bookings.map((booking, index) => {
       // Debug: Log booking structure to understand the ID field
       if (index === 0) {
-        console.log("Sample booking structure:", booking);
-        console.log("Available ID fields:", {
-          id: booking.id,
-          bookingId: booking.bookingId,
-          documentId: booking.documentId,
-          uid: booking.uid
-        });
+
       }
       // Handle Firestore timestamp conversion
       let appointmentDate: string;
@@ -258,7 +249,6 @@ export default function DoctorAppointmentsPage() {
     date: string;
     time: string;
   }) => {
-    console.log("Rescheduling appointment:", rescheduleData);
     // TODO: Implement appointment rescheduling
   };
 
@@ -376,8 +366,8 @@ export default function DoctorAppointmentsPage() {
                         {actionMenuOpen === appointment.id && (
                           <div
                             className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${menuPosition === "top"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
+                              ? "bottom-full mb-2"
+                              : "top-full mt-2"
                               }`}>
                             <div className="py-1">
                               <button
@@ -457,8 +447,8 @@ export default function DoctorAppointmentsPage() {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                            ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
-                            : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                          ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
+                          : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
                           }`}>
                         {page}
                       </button>

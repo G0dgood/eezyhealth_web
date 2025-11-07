@@ -47,7 +47,7 @@ export default function AdminPatientsPage() {
 
   // Use Firebase data if available, otherwise fall back to mock data
   const dataSource = (firebasePatients as unknown as Patient[]) ?? [];
-  console.log("dataSource---", dataSource);
+  
   const itemsPerPage = 8;
   const totalPages = Math.ceil((dataSource?.length ?? 0) / itemsPerPage);
 

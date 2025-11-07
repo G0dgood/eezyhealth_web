@@ -120,12 +120,6 @@ const AvailabilityWidget: React.FC = () => {
             <p className="text-sm text-gray-500">Manage your working hours</p>
           </div>
         </div>
-        <button
-          onClick={() => setIsAddingSlot(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
-          <Plus size={16} />
-          Add Slot
-        </button>
       </div>
 
       {/* Stats Summary */}

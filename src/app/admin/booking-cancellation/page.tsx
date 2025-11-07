@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
+import CancellationDetailsModal from "@/components/modals/CancellationDetailsModal";
 
 import {
   useGetBookingCancellationsQuery,
@@ -45,9 +46,7 @@ export default function AdminBookingCancellationPage() {
       const doctorName = cancellation.doctorName as string;
       const patientName = cancellation.patientName as string;
       const userId = cancellation.userId as string;
-      const status = (
-        cancellation.cancellationRequest as Record<string, unknown>
-      )?.status as string;
+      const status = cancellation.bookingStatus as string;
 
       return (
         doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -146,14 +145,7 @@ export default function AdminBookingCancellationPage() {
         </div>
 
         {/* Refresh Button */}
-        <button
-          onClick={() => {
-            toast.info("Refreshing cancellations...");
-            refetch();
-          }}
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
-          <span>Refresh</span>
-        </button>
+
       </div>
 
       {/* Cancellations Table */}
@@ -188,7 +180,7 @@ export default function AdminBookingCancellationPage() {
               </thead>
               <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
                 {paginatedData?.length === 0 ||
-                paginatedData?.length === undefined ? (
+                  paginatedData?.length === undefined ? (
                   <NoRecordFound colSpan={6} />
                 ) : (
                   paginatedData.map(
@@ -218,29 +210,15 @@ export default function AdminBookingCancellationPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              (
-                                cancellation.cancellationRequest as Record<
-                                  string,
-                                  unknown
-                                >
-                              )?.status === "approved"
+                            className={`px-2 py-1 text-xs rounded-full ${(cancellation.bookingStatus as string)?.toLowerCase() === "cancelled"
+                              ? "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20"
+                              : (cancellation.bookingStatus as string)?.toLowerCase() === "approved"
                                 ? "bg-green-100 text-green-800"
-                                : (
-                                    cancellation.cancellationRequest as Record<
-                                      string,
-                                      unknown
-                                    >
-                                  )?.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
-                            }`}>
-                            {((
-                              cancellation.cancellationRequest as Record<
-                                string,
-                                unknown
-                              >
-                            )?.status as string) || "Unknown"}
+                                : (cancellation.bookingStatus as string)?.toLowerCase() === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                              }`}>
+                            {(cancellation.bookingStatus as string) || "-"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -339,93 +317,13 @@ export default function AdminBookingCancellationPage() {
         onClose={() => setIsCancelModalOpen(false)}
         title=""
         size="md">
-        {selectedBooking && (
-          <div className="space-y-4">
-            {/* Modal content matching the design */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Doctor
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.doctorName || "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Patient Name
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.patientName || "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  User ID
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.userId || "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Booking Date
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking?.bookingDate
-                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
-                    : "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cancellation Status
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.cancellationRequest?.status || "Unknown"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hospital
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.hospital || "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Specialization
-                </label>
-                <p className="text-gray-900">
-                  {selectedBooking.specialization || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex justify-between pt-4 border-t border-gray-200">
-              <button
-                onClick={() =>
-                  selectedBooking?.id &&
-                  handleApproveCancellation(selectedBooking.id)
-                }
-                disabled={isResponding || !selectedBooking?.id}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                {isResponding ? "Approving..." : "Approve"}
-              </button>
-              <button
-                onClick={() =>
-                  selectedBooking?.id &&
-                  handleRejectCancellation(selectedBooking.id)
-                }
-                disabled={isResponding || !selectedBooking?.id}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                {isResponding ? "Rejecting..." : "Reject"}
-              </button>
-            </div>
-          </div>
-        )}
+        <CancellationDetailsModal
+          booking={selectedBooking}
+          isResponding={isResponding}
+          onApprove={handleApproveCancellation}
+          onReject={handleRejectCancellation}
+          showActions={true}
+        />
       </Modal>
     </div>
   );

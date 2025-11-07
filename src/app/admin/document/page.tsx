@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -8,39 +8,30 @@ import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
 import { useGetUploadsQuery } from "@/store/api";
 import FormattedDate from "@/utils/FormattedDate";
 import DocumentTableSkeleton from "@/components/skeletons/DocumentTableSkeleton";
+import { toast } from "sonner";
 
-interface Document {
-  id: string;
-  name: string;
-  size: string;
-  type: string;
-}
-
-interface DoctorUpload {
-  id: string;
-  doctorName: string;
-  specialty: string;
-  uploadDate: string;
-  status: "pending" | "approved" | "rejected";
-  name: string;
-  description: string;
-  doctorId: string;
-  specialization: string;
-  downloadUrl: string;
-}
+// Removed unused interfaces - using comprehensive Upload interface below
 
 interface Upload {
-  doctorId: string;
   id: string;
-  name: string;
-  description: string;
-  specialization: string;
-  downloadUrl: string;
-  uploadDate: any;
-  status: "pending" | "approved" | "rejected";
+  doctorId?: string;
+  name?: string;
+  description?: string;
+  specialization?: string;
+  downloadUrl?: string;
+  uploadDate?: any;
+  status?: "pending" | "approved" | "rejected";
   comment?: string;
   reviewedBy?: string;
   reviewedAt?: any;
+  // Additional fields for user data compatibility
+  display_name?: string;
+  location?: string;
+  uid?: string;
+  email?: string;
+  createdTime?: any;
+  fileName?: string;
+  mimeType?: string;
 }
 export default function DocumentPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,26 +43,52 @@ export default function DocumentPage() {
 
   // Fetch uploads from RTK Query
   const {
-    data: uploads = [],
+    data: uploads,
     isLoading,
     isError,
     refetch,
   } = useGetUploadsQuery({});
 
-  const safeUploadTwo = uploads?.uploads;
+
+
+  // Handle error with Sonner toast
+  useEffect(() => {
+    if (isError) {
+      toast.error("Error fetching uploads", {
+        description: "Failed to load document uploads. Please try again.",
+        action: {
+          label: "Retry",
+          onClick: () => refetch(),
+        },
+        duration: 5000,
+      });
+    }
+  }, [isError, refetch]);
+
+  // Safely extract uploads data
+  const safeUploadTwo = (uploads && 'uploads' in uploads) ? uploads.uploads : [];
 
   // Filter uploads based on search term
   const filteredData = useMemo(() => {
     const safeUploads = Array.isArray(safeUploadTwo) ? safeUploadTwo : [];
-    if (safeUploadTwo?.length === 0) return [];
-    return safeUploads?.filter((upload: Upload) =>
-      upload?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (safeUploads.length === 0) return [];
+
+    // If no search term, return all uploads
+    if (!searchTerm.trim()) return safeUploads;
+
+    const query = searchTerm.toLowerCase();
+    return safeUploads.filter((upload: Upload) => {
+      const nameMatch = (upload?.name ?? upload?.display_name ?? "").toLowerCase().includes(query);
+      const descMatch = (upload?.description ?? "").toLowerCase().includes(query);
+      const specMatch = (upload?.specialization ?? upload?.location ?? "").toLowerCase().includes(query);
+      const doctorMatch = (upload?.doctorId ?? upload?.uid ?? "").toLowerCase().includes(query);
+      const emailMatch = (upload?.email ?? "").toLowerCase().includes(query);
+      return nameMatch || descMatch || specMatch || doctorMatch || emailMatch;
+    });
   }, [safeUploadTwo, searchTerm]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredData?.length / itemsPerPage) || 1;
-  // console.log("Fetched uploads:", uploads);
 
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -84,7 +101,7 @@ export default function DocumentPage() {
   };
 
   // Status helpers
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status?: string) => {
     switch (status) {
       case "pending":
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -97,7 +114,7 @@ export default function DocumentPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
     const base = "px-3 py-1 rounded-full text-xs font-medium";
     switch (status) {
       case "pending":
@@ -111,29 +128,18 @@ export default function DocumentPage() {
     }
   };
 
-  const getActionText = (status: string) => {
+  const getActionText = (status?: string) => {
     if (status === "pending") return "Review Document";
     return "View";
   };
 
-  // Loading and Error states
+  // Loading state
   if (isLoading) {
     return <DocumentTableSkeleton />;
   }
 
-  if (isError) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen space-y-4">
-        <div className="text-lg text-red-600">Error fetching uploads.</div>
-        <button
-          onClick={() => refetch()}
-          className="px-4 py-2 rounded-lg bg-[#44CE2D] text-white hover:bg-[#3bb025] transition"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+
+
 
   return (
     <div>
@@ -201,20 +207,22 @@ export default function DocumentPage() {
                     }
                   >
                     <td className="px-6 py-4 text-sm font-medium">
-                      {upload.name}
+                      {upload.name || upload.display_name || "Unknown Document"}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {upload.specialization || "—"}
+                      {upload.specialization || upload.location || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <FormattedDate timestamp={upload?.uploadDate} />
+                      <FormattedDate timestamp={upload?.uploadDate || upload?.createdTime} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(upload.status)}
                         <span className={getStatusBadge(upload.status)}>
-                          {upload.status.charAt(0).toUpperCase() +
-                            upload.status.slice(1)}
+                          {(upload.status ?? "unknown")
+                            .charAt(0)
+                            .toUpperCase() +
+                            (upload.status ?? "unknown").slice(1)}
                         </span>
                       </div>
                     </td>
@@ -290,6 +298,8 @@ export default function DocumentPage() {
           onClose={() => {
             setIsReviewModalOpen(false);
             setSelectedUpload(null);
+            // Refetch data after modal closes to get updated statuses
+            refetch();
           }}
           upload={selectedUpload}
         />

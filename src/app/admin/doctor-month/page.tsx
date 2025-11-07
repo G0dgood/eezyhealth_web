@@ -344,9 +344,7 @@ const AdminDoctorOfMonthPage = () => {
           topPerformers.length > 0 &&
           !currentDoctorOfMonth
         ) {
-          console.log(
-            "No Doctor of The Month found for current month. Auto-creating..."
-          );
+
           setIsAutoCreating(true);
           showInfo(
             "Auto-creating Doctor of The Month",
@@ -364,9 +362,7 @@ const AdminDoctorOfMonthPage = () => {
 
             if (success) {
               await triggerDoctorOfMonth(topPerformer.id).unwrap();
-              console.log(
-                `Automatically created ${topPerformer.name} as Doctor of The Month for ${currentMonth}`
-              );
+
               showSuccess(
                 `${topPerformer.name} has been automatically selected as Doctor of The Month!`
               );
@@ -472,7 +468,7 @@ const AdminDoctorOfMonthPage = () => {
       if (success) {
         // Trigger RTK Query mutation for additional processing
         await triggerDoctorOfMonth(doctorId).unwrap();
-        console.log("Doctor of The Month selection completed successfully");
+
 
         // Refetch all data
         refetchDoctorOfMonth();
@@ -507,9 +503,7 @@ const AdminDoctorOfMonthPage = () => {
 
         if (success) {
           await triggerDoctorOfMonth(topPerformer.id).unwrap();
-          console.log(
-            `Automatically selected ${topPerformer.name} as Doctor of The Month`
-          );
+
 
           // Refetch all data
           refetchDoctorOfMonth();
@@ -582,16 +576,16 @@ const AdminDoctorOfMonthPage = () => {
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
-                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
-                : currentLeader?.name || "No data available"}
+                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
+                  : currentLeader?.name || "No data available"}
             </p>
             <p className="text-white/80 text-sm">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
-                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
+                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
                     ?.specialty
-                : currentLeader?.specialty || "No data available"}
+                  : currentLeader?.specialty || "No data available"}
             </p>
             {isAutoCreating && (
               <p className="text-white/60 text-xs italic">
@@ -605,9 +599,9 @@ const AdminDoctorOfMonthPage = () => {
             {isLoadingDoctorOfMonth || isAutoCreating
               ? "..."
               : currentDoctorOfMonth
-              ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
+                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
                 0
-              : currentLeader?.performanceScore?.toFixed(1) || 0}
+                : currentLeader?.performanceScore?.toFixed(1) || 0}
           </p>
         </div>
       </div>
@@ -726,7 +720,7 @@ const AdminDoctorOfMonthPage = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {pastDoctors?.length === 0 ||
-                  pastDoctors?.length === undefined ? (
+                    pastDoctors?.length === undefined ? (
                     <NoRecordFound colSpan={6} />
                   ) : (
                     pastDoctors.map((doctor, index) => (

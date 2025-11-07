@@ -94,16 +94,16 @@ export default function DoctorMessagePage() {
   // Get unique patients based on userId, ensuring no duplicates
   const uniquePatients: BookingData[] = bookingsData
     ? [
-        ...new Map(
-          bookingsData
-            .filter((item: BookingData) => item?.userId)
-            .map((item: BookingData) => [item.userId, item])
-        ).values(),
-      ]
+      ...new Map(
+        bookingsData
+          .filter((item: BookingData) => item?.userId)
+          .map((item: BookingData) => [item.userId, item])
+      ).values(),
+    ]
     : [];
   const chatGroups = groupChatsByCategory(uniquePatients);
 
-  // console.log("chatGroups-----", chatGroups);
+
 
   // Sample conversation data
   const conversations: Conversation[] = [
@@ -244,7 +244,7 @@ export default function DoctorMessagePage() {
   const handleSendMessage = () => {
     if (messageInput.trim()) {
       // Here you would typically send the message to the backend
-      console.log("Sending message:", messageInput);
+
       setMessageInput("");
     }
   };
@@ -284,9 +284,8 @@ export default function DoctorMessagePage() {
             <div
               key={`patient-${patient.userId}-${i}`}
               onClick={() => setSelectedConversation(`patient-${i}`)}
-              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedConversation === `patient-${i}` ? "bg-blue-50" : ""
-              }`}>
+              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation === `patient-${i}` ? "bg-blue-50" : ""
+                }`}>
               <div className="flex items-start gap-3">
                 <div className="relative">
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg">
@@ -354,17 +353,15 @@ export default function DoctorMessagePage() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${
-                    message.sender === "doctor"
+                  className={`flex ${message.sender === "doctor"
                       ? "justify-end"
                       : "justify-start"
-                  }`}>
+                    }`}>
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.sender === "doctor"
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === "doctor"
                         ? "bg-[#44CE2D] text-white"
                         : "bg-gray-100 text-gray-900"
-                    }`}>
+                      }`}>
                     {message.hasAttachment ? (
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4" />
@@ -389,11 +386,10 @@ export default function DoctorMessagePage() {
                       <p className="text-sm">{message.content}</p>
                     )}
                     <p
-                      className={`text-xs mt-1 ${
-                        message.sender === "doctor"
+                      className={`text-xs mt-1 ${message.sender === "doctor"
                           ? "text-white opacity-75"
                           : "text-gray-500"
-                      }`}>
+                        }`}>
                       {message.timestamp}
                     </p>
                   </div>

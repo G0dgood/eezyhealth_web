@@ -137,13 +137,7 @@ export default function DoctorBookingPage({
 
   const handleContinue = () => {
     // Handle booking continuation
-    console.log("Booking details:", {
-      doctor: doctor.name,
-      date: selectedDate?.toLocaleDateString(),
-      time: selectedTime,
-      channel: selectedChannel,
-      reason: consultationReason,
-    });
+
   };
 
   const calendarDays = getDaysInMonth(currentMonth);
@@ -288,13 +282,12 @@ export default function DoctorBookingPage({
                   <button
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                      dayData.selected
+                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${dayData.selected
                         ? "bg-green-500 text-white"
                         : dayData.currentMonth
-                        ? "hover:bg-gray-100 text-gray-900"
-                        : "text-gray-400"
-                    }`}>
+                          ? "hover:bg-gray-100 text-gray-900"
+                          : "text-gray-400"
+                      }`}>
                     {dayData.day}
                   </button>
                 ))}
@@ -312,11 +305,10 @@ export default function DoctorBookingPage({
                 <button
                   key={time}
                   onClick={() => setSelectedTime(time)}
-                  className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${
-                    selectedTime === time
+                  className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${selectedTime === time
                       ? "bg-green-500 text-white border-green-500"
                       : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}>
+                    }`}>
                   {time}
                 </button>
               ))}

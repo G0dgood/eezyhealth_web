@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { Toggle } from "@/components/Toggle";
 import { validateField } from "@/utils/fieldValidation";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 
@@ -413,11 +414,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("fullName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.fullName
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.fullName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your full name"
                 />
                 {profileErrors.fullName && (
@@ -472,11 +472,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("email", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.email
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.email
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your email address"
                 />
                 {profileErrors.email && (
@@ -496,11 +495,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("mobileNumber", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.mobileNumber
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.mobileNumber
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your mobile number"
                 />
                 {profileErrors.mobileNumber && (
@@ -562,11 +560,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("firstName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.firstName
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.firstName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your first name"
                 />
                 {profileErrors.firstName && (
@@ -586,11 +583,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("lastName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.lastName
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.lastName
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your last name"
                 />
                 {profileErrors.lastName && (
@@ -610,11 +606,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("address", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.address
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.address
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your address"
                 />
                 {profileErrors.address && (
@@ -634,11 +629,10 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     handleProfileDataChange("location", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                    profileErrors.location
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.location
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
+                    }`}
                   placeholder="Enter your location"
                 />
                 {profileErrors.location && (
@@ -660,10 +654,10 @@ export default function AdminSettings() {
                         ? new Date(profileData.dateOfBirth).toLocaleDateString()
                         : typeof profileData.dateOfBirth === "object" &&
                           "seconds" in profileData.dateOfBirth
-                        ? new Date(
+                          ? new Date(
                             profileData.dateOfBirth.seconds * 1000
                           ).toLocaleDateString()
-                        : ""
+                          : ""
                       : ""
                   }
                   disabled
@@ -677,11 +671,10 @@ export default function AdminSettings() {
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                      profileData.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
@@ -739,10 +732,7 @@ export default function AdminSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newUserRegistrations}
                     onChange={(checked) => {
-                      console.log("Admin notification toggle:", {
-                        checked,
-                        current: notificationPrefs.newUserRegistrations,
-                      });
+
                       setNotificationPrefs({
                         ...notificationPrefs,
                         newUserRegistrations: checked,
@@ -915,36 +905,19 @@ export default function AdminSettings() {
                 <div className="flex items-end justify-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Sun
-                      className={`w-4 h-4 ${
-                        theme === "light" ? "text-yellow-500" : "text-gray-400"
-                      }`}
+                      className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
+                        }`}
                     />
                     <span className="text-sm text-gray-600">Light</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={theme === "dark"}
-                      onChange={() => toggleTheme()}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
-                        }`}
-                      ></div>
-                    </div>
-                  </label>
+                  <Toggle
+                    checked={theme === "dark"}
+                    onChange={() => toggleTheme()}
+                  />
                   <div className="flex items-center space-x-2">
                     <Moon
-                      className={`w-4 h-4 ${
-                        theme === "dark" ? "text-blue-500" : "text-gray-400"
-                      }`}
+                      className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
+                        }`}
                     />
                     <span className="text-sm text-gray-600">Dark</span>
                   </div>
@@ -1078,11 +1051,10 @@ export default function AdminSettings() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-[#22c55e] text-[#22c55e]"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
+                  ? "border-[#22c55e] text-[#22c55e]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>

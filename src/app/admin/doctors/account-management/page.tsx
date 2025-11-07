@@ -90,7 +90,7 @@ const DoctorAccountManagementPage = () => {
 	const filteredDoctors = React.useMemo(() => {
 		if (!doctorsData) return [];
 
-		return doctorsData.filter((doctor: DoctorData) => {
+		return (doctorsData as unknown as DoctorData[]).filter((doctor: DoctorData) => {
 			const matchesSearch = !searchTerm ||
 				doctor.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,27 +143,27 @@ const DoctorAccountManagementPage = () => {
 
 	// Handle data export
 	const handleDataExport = async (doctorId: string) => {
-		setSelectedDoctor(doctorsData?.find((d: DoctorData) => d.uid === doctorId) || null);
+		setSelectedDoctor((doctorsData as unknown as DoctorData[])?.find((d: DoctorData) => d.uid === doctorId) || null);
 		setShowDataExport(true);
 		await refetchExport();
 	};
 
 	// Handle data verification
 	const handleDataVerification = async (doctorId: string) => {
-		setSelectedDoctor(doctorsData?.find((d: DoctorData) => d.uid === doctorId) || null);
+		setSelectedDoctor((doctorsData as unknown as DoctorData[])?.find((d: DoctorData) => d.uid === doctorId) || null);
 		await refetchVerification();
 	};
 
 	// Handle notification system
 	const handleOpenNotificationSystem = (doctorId: string) => {
-		const doctor = doctorsData?.find((d: DoctorData) => d.uid === doctorId);
+		const doctor = (doctorsData as unknown as DoctorData[])?.find((d: DoctorData) => d.uid === doctorId);
 		setSelectedDoctorForNotification(doctor || null);
 		setShowNotificationSystem(true);
 	};
 
 	// Handle email notification
 	const handleOpenEmailNotification = (doctorId: string, actionType?: "deactivated" | "reactivated") => {
-		const doctor = doctorsData?.find((d: DoctorData) => d.uid === doctorId);
+		const doctor = (doctorsData as unknown as DoctorData[])?.find((d: DoctorData) => d.uid === doctorId);
 		setSelectedDoctorForNotification(doctor || null);
 		setShowEmailNotification(true);
 	};
@@ -278,7 +278,7 @@ const DoctorAccountManagementPage = () => {
 							<div className="ml-4">
 								<p className="text-sm font-medium text-gray-600">Active Doctors</p>
 								<p className="text-2xl font-bold text-gray-900">
-									{doctorsData?.filter((d: DoctorData) => d.isActive).length || 0}
+									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => d.isActive).length || 0}
 								</p>
 							</div>
 						</div>
@@ -290,7 +290,7 @@ const DoctorAccountManagementPage = () => {
 							<div className="ml-4">
 								<p className="text-sm font-medium text-gray-600">Inactive Doctors</p>
 								<p className="text-2xl font-bold text-gray-900">
-									{doctorsData?.filter((d: DoctorData) => !d.isActive).length || 0}
+									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => !d.isActive).length || 0}
 								</p>
 							</div>
 						</div>
@@ -682,7 +682,7 @@ const DoctorAccountManagementPage = () => {
 									</tr>
 								</thead>
 								<tbody className="bg-white divide-y divide-gray-200">
-									{auditLogs?.map((log: AuditLog) => (
+									{(auditLogs as unknown as AuditLog[])?.map((log: AuditLog) => (
 										<tr key={log.id}>
 											<td className="px-6 py-4 whitespace-nowrap">
 												{getActionBadge(log.action)}

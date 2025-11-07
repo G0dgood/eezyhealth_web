@@ -1,8 +1,6 @@
 "use client";
-
-import Link from "next/link";
 import { useState } from "react";
-import {   Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { SVGLoader } from "@/components/SVGLoader";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
 import Image from "next/image";
@@ -71,37 +69,8 @@ export default function HomePage() {
       <div className="relative z-10 flex justify-between items-center p-6">
         {/* Left - Logo */}
         <Image src="/logowhite.svg" alt="Logo" width={200} height={200} />
-        {/* <div className="text-white text-2xl font-bold">eezyhealth</div> */}
 
-        {/* Right - Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
-          <Link
-            href="#"
-            className="text-white hover:text-gray-200 transition-colors">
-            Features
-          </Link>
-          <Link
-            href="#"
-            className="text-white hover:text-gray-200 transition-colors">
-            Pricing
-          </Link>
-          <Link
-            href="#"
-            className="text-white hover:text-gray-200 transition-colors">
-            Use cases
-          </Link>
-          <Link
-            href="#"
-            className="text-white hover:text-gray-200 transition-colors">
-            Resources
-          </Link>
-          {/* <button className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-gray-900 transition-colors">
-            Log in
-          </button> */}
-          {/* <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
-            Sign up
-          </button> */}
-        </div>
+
       </div>
 
       {/* Main Content */}
@@ -173,8 +142,8 @@ export default function HomePage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.email
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300 hover:border-[#22c55e]"
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300 hover:border-[#22c55e]"
                       }`}
                   />
                   {errors.email && (
@@ -189,8 +158,8 @@ export default function HomePage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.password
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300 hover:border-[#22c55e]"
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300 hover:border-[#22c55e]"
                       }`}
                   />
                   <button

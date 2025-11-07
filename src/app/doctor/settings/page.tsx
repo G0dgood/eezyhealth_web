@@ -133,7 +133,7 @@ export default function DoctorSettings() {
 
       // In a real app, you would upload this file to Firebase Storage
       // and then update the user's profile with the new photo URL
-      console.log("Profile image selected:", file.name);
+
 
       // Clean up the temporary URL when component unmounts
       return () => URL.revokeObjectURL(tempUrl);
@@ -146,7 +146,7 @@ export default function DoctorSettings() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Update profile data (in real app, this would call Firebase)
-      console.log("Profile saved:", profileData);
+
       toast.success("Profile updated successfully!");
     } catch (error) {
       toast.error("Failed to update profile. Please try again.");
@@ -158,7 +158,7 @@ export default function DoctorSettings() {
       // Simulate API call to update notification preferences
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("Notification preferences saved:", notificationPrefs);
+
       toast.success("Notification preferences updated successfully!");
     } catch (error) {
       if (error instanceof Error) {
@@ -177,7 +177,7 @@ export default function DoctorSettings() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
 
-      console.log("Security settings saved:", securitySettings);
+
       toast.success("Security settings updated successfully!");
     } catch (error) {
       toast.error("Failed to update security settings. Please try again.");
@@ -194,7 +194,7 @@ export default function DoctorSettings() {
       // Simulate API call to update password
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("Password updated");
+
       toast.success("Password updated successfully!");
 
       // Clear password fields
@@ -553,7 +553,7 @@ export default function DoctorSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newPatientBookings}
                     onChange={(checked) => {
-                      console.log("Doctor notification toggle:", { checked, current: notificationPrefs.newPatientBookings });
+
                       updateNotificationPrefs({
                         newPatientBookings: checked,
                       });

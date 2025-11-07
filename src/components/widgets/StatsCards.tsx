@@ -23,16 +23,17 @@ const StatsCards: React.FC = () => {
 
   // Ensure bookings is always an array
   let bookings: unknown[] = [];
-  if (Array.isArray(bookingsData?.bookings)) {
-    bookings = bookingsData.bookings;
-  } else if (Array.isArray(bookingsData)) {
-    bookings = bookingsData;
+  const bookingsDataTyped = bookingsData as any;
+  if (Array.isArray(bookingsDataTyped?.bookings)) {
+    bookings = bookingsDataTyped.bookings;
+  } else if (Array.isArray(bookingsDataTyped)) {
+    bookings = bookingsDataTyped;
   } else if (
-    bookingsData &&
-    typeof bookingsData === "object" &&
-    Array.isArray(bookingsData.data)
+    bookingsDataTyped &&
+    typeof bookingsDataTyped === "object" &&
+    Array.isArray(bookingsDataTyped.data)
   ) {
-    bookings = bookingsData.data;
+    bookings = bookingsDataTyped.data;
   }
 
   // Calculate statistics

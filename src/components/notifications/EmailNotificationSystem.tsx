@@ -267,7 +267,7 @@ EezyHealth Security Team
 			}
 
 			// TODO: Implement actual email sending API call
-			console.log("Sending email:", emailData);
+
 
 			setEmailSent(true);
 			setTimeout(() => {

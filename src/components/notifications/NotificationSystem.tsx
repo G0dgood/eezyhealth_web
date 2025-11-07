@@ -28,12 +28,32 @@ interface NotificationTemplate {
 	category: "appointment" | "payment" | "doctor_status" | "general";
 }
 
+interface Booking {
+	id: string;
+	doctorId: string;
+	patientId: string;
+	appointmentDate?: string;
+	appointmentTime?: string;
+	status?: string;
+	createdAt?: string;
+	updatedAt?: string;
+	[key: string]: unknown; // Allow for additional Firebase fields
+}
+
 interface Patient {
-	uid: string;
+	id: string; // Firebase document ID
+	uid?: string; // User UID field (may be present in some documents)
 	display_name?: string;
 	first_name?: string;
 	last_name?: string;
 	email: string;
+	role?: string;
+	phone_number?: string;
+	address?: string;
+	location?: string;
+	date_of_birth?: string;
+	isActive?: boolean;
+	createdTime?: string;
 }
 
 interface NotificationSystemProps {
@@ -65,19 +85,36 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 			(booking: any) => booking.doctorId === doctorId
 		);
 
-		const uniquePatients = new Set();
+		const uniquePatients = new Set<string>();
 		doctorBookings.forEach((booking: any) => {
 			if (booking.patientId) {
 				uniquePatients.add(booking.patientId);
 			}
 		});
 
-		return Array.from(uniquePatients) as string[];
+		return Array.from(uniquePatients);
 	}, [doctorId, bookingsData]);
 
 	// Get all patients for dropdown
 	const allPatients: Patient[] = React.useMemo(() => {
-		return allPatientsData || [];
+		if (!allPatientsData) return [];
+
+		// Transform Firebase data to match Patient interface
+		return allPatientsData.map((patientData: any) => ({
+			id: patientData.id,
+			uid: patientData.uid || patientData.id, // Use uid if available, fallback to id
+			display_name: patientData.display_name,
+			first_name: patientData.first_name,
+			last_name: patientData.last_name,
+			email: patientData.email,
+			role: patientData.role,
+			phone_number: patientData.phone_number,
+			address: patientData.address,
+			location: patientData.location,
+			date_of_birth: patientData.date_of_birth,
+			isActive: patientData.isActive,
+			createdTime: patientData.createdTime
+		}));
 	}, [allPatientsData]);
 
 	// Notification templates
@@ -241,9 +278,9 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 	};
 
 	const getPatientDisplayName = (patientId: string) => {
-		const patient = allPatients.find(p => p.uid === patientId);
+		const patient = allPatients.find(p => p.id === patientId || p.uid === patientId);
 		if (patient) {
-			return patient.display_name || `${patient.first_name} ${patient.last_name}` || patient.email;
+			return patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email;
 		}
 		return patientId;
 	};
@@ -386,8 +423,8 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 								>
 									{allPatients.length > 0 ? (
 										allPatients.map((patient) => (
-											<option key={patient.uid} value={patient.uid}>
-												{patient.display_name || `${patient.first_name} ${patient.last_name}` || patient.email} ({patient.email})
+											<option key={patient.id} value={patient.id}>
+												{patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} ({patient.email})
 											</option>
 										))
 									) : (
@@ -411,10 +448,10 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 									>
 										<option value="">Select a patient to add...</option>
 										{allPatients
-											.filter(patient => !selectedPatients.includes(patient.uid))
+											.filter(patient => !selectedPatients.includes(patient.id))
 											.map((patient) => (
-												<option key={patient.uid} value={patient.uid}>
-													{patient.display_name || `${patient.first_name} ${patient.last_name}` || patient.email} ({patient.email})
+												<option key={patient.id} value={patient.id}>
+													{patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} ({patient.email})
 												</option>
 											))
 										}
