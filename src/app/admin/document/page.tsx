@@ -42,14 +42,7 @@ export default function DocumentPage() {
   const itemsPerPage = 10;
 
   // Fetch uploads from RTK Query
-  const {
-    data: uploads,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetUploadsQuery({});
-
-
+  const { data: uploads, isLoading, isError, refetch } = useGetUploadsQuery({});
 
   // Handle error with Sonner toast
   useEffect(() => {
@@ -66,7 +59,7 @@ export default function DocumentPage() {
   }, [isError, refetch]);
 
   // Safely extract uploads data
-  const safeUploadTwo = (uploads && 'uploads' in uploads) ? uploads.uploads : [];
+  const safeUploadTwo = uploads && "uploads" in uploads ? uploads.uploads : [];
 
   // Filter uploads based on search term
   const filteredData = useMemo(() => {
@@ -78,10 +71,18 @@ export default function DocumentPage() {
 
     const query = searchTerm.toLowerCase();
     return safeUploads.filter((upload: Upload) => {
-      const nameMatch = (upload?.name ?? upload?.display_name ?? "").toLowerCase().includes(query);
-      const descMatch = (upload?.description ?? "").toLowerCase().includes(query);
-      const specMatch = (upload?.specialization ?? upload?.location ?? "").toLowerCase().includes(query);
-      const doctorMatch = (upload?.doctorId ?? upload?.uid ?? "").toLowerCase().includes(query);
+      const nameMatch = (upload?.name ?? upload?.display_name ?? "")
+        .toLowerCase()
+        .includes(query);
+      const descMatch = (upload?.description ?? "")
+        .toLowerCase()
+        .includes(query);
+      const specMatch = (upload?.specialization ?? upload?.location ?? "")
+        .toLowerCase()
+        .includes(query);
+      const doctorMatch = (upload?.doctorId ?? upload?.uid ?? "")
+        .toLowerCase()
+        .includes(query);
       const emailMatch = (upload?.email ?? "").toLowerCase().includes(query);
       return nameMatch || descMatch || specMatch || doctorMatch || emailMatch;
     });
@@ -94,6 +95,8 @@ export default function DocumentPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  console.log("Paginated Data:", paginatedData);
 
   const handleAction = (upload: Upload) => {
     setSelectedUpload(upload);
@@ -137,9 +140,6 @@ export default function DocumentPage() {
   if (isLoading) {
     return <DocumentTableSkeleton />;
   }
-
-
-
 
   return (
     <div>
@@ -207,13 +207,15 @@ export default function DocumentPage() {
                     }
                   >
                     <td className="px-6 py-4 text-sm font-medium">
-                      {upload.name || upload.display_name || "Unknown Document"}
+                      {upload.name || upload.display_name || "Unknown Doctor"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {upload.specialization || upload.location || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <FormattedDate timestamp={upload?.uploadDate || upload?.createdTime} />
+                      <FormattedDate
+                        timestamp={upload?.uploadDate || upload?.createdTime}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">

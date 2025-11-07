@@ -66,21 +66,26 @@ export default function Header({
         backgroundColor: "var(--accent-white)",
         borderColor: "var(--border)",
         color: "var(--foreground)",
-      }}>
+      }}
+    >
       <div className="flex items-center space-x-4">
         {/* Mobile Menu Toggle Button */}
         <button
           onClick={onMobileMenuToggle}
           className="lg:hidden p-2 cursor-pointer transition-colors duration-200"
-          style={{ color: "var(--muted-foreground)" }}>
+          style={{ color: "var(--muted-foreground)" }}
+        >
           <Menu className="w-6 h-6" />
         </button>
 
         <div className="flex items-center space-x-2">
           <span
             className="text-lg font-medium"
-            style={{ color: "var(--foreground)" }}>
-            {userInfo ? `${userRole} ${userInfo?.first_name || ""} ${userInfo?.last_name || ""}` : "Hello"}
+            style={{ color: "var(--foreground)" }}
+          >
+            {userInfo
+              ? `${userRole} ${userInfo?.display_name || ""} `
+              : "Hello"}
           </span>
         </div>
       </div>
@@ -90,7 +95,8 @@ export default function Header({
           onClick={onEditClick}
           className="rounded bg-white flex items-center justify-center p-2 hover:bg-gray-50 transition-colors cursor-pointer"
           aria-label="Edit dashboard layout"
-          title="Edit dashboard layout">
+          title="Edit dashboard layout"
+        >
           <Edit size={20} />
         </button>
         <NotificationBell />
@@ -98,10 +104,12 @@ export default function Header({
         <div className="relative" ref={userMenuRef}>
           <div
             className="flex items-center space-x-3 cursor-pointer"
-            onClick={() => setShowUserMenu(!showUserMenu)}>
+            onClick={() => setShowUserMenu(!showUserMenu)}
+          >
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
-              style={{ backgroundColor: "var(--muted)" }}>
+              style={{ backgroundColor: "var(--muted)" }}
+            >
               {authUserInfo?.photoURL || user?.photoURL ? (
                 <Image
                   src={authUserInfo?.photoURL || user?.photoURL || ""}
@@ -111,7 +119,8 @@ export default function Header({
               ) : (
                 <span
                   className="text-sm font-medium"
-                  style={{ color: "var(--foreground)" }}>
+                  style={{ color: "var(--foreground)" }}
+                >
                   {authUserInfo?.displayName?.charAt(0) ||
                     user?.displayName?.charAt(0) ||
                     userRole?.charAt(0)}
@@ -122,12 +131,14 @@ export default function Header({
             <div className="hidden sm:block">
               <p
                 className="text-sm font-medium"
-                style={{ color: "var(--foreground)" }}>
+                style={{ color: "var(--foreground)" }}
+              >
                 {authUserInfo?.displayName || user?.displayName || userRole}
               </p>
               <p
                 className="text-xs"
-                style={{ color: "var(--muted-foreground)" }}>
+                style={{ color: "var(--muted-foreground)" }}
+              >
                 {authUserInfo?.email || user?.email || "User"}
               </p>
             </div>
@@ -146,7 +157,8 @@ export default function Header({
               </div>
               <button
                 onClick={handleSignOut}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 bg-white cursor-pointer">
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 bg-white cursor-pointer"
+              >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
               </button>

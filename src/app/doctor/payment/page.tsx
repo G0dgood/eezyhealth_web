@@ -90,7 +90,8 @@ export default function DoctorPaymentPage() {
             Error loading payments. Please try again.
             <button
               onClick={() => refetch()}
-              className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
               Retry
             </button>
           </div>
@@ -137,11 +138,14 @@ export default function DoctorPaymentPage() {
         className={`px-2 py-1 text-xs font-medium rounded-full ${
           statusClasses[status as keyof typeof statusClasses] ||
           "bg-gray-100 text-gray-800"
-        }`}>
+        }`}
+      >
         {status}
       </span>
     );
   };
+
+  console.log("Filtered Payments:", payments);
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {
@@ -194,7 +198,8 @@ export default function DoctorPaymentPage() {
                 paymentStatus: e.target.value as DoctorPaymentStatus | "",
               })
             }
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]">
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
+          >
             <option value="">All Statuses</option>
             <option value="Completed">Completed</option>
             <option value="Pending">Pending</option>
@@ -247,7 +252,7 @@ export default function DoctorPaymentPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-[var(--foreground)]">
-                        ₦{payment.amount.toFixed(2)}
+                        ₦{payment?.amount}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
