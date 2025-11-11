@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Calendar, Clock, Users, AlertCircle, CheckCircle, Stethoscope } from "lucide-react";
 import { useGetBookingsQuery } from "@/store/api";
+import { convertBookingsToStandardFormat, StandardBookingData } from "@/utils/bookingDataConverter";
 
 interface BookingData {
   id: string;
@@ -19,33 +20,64 @@ interface BookingData {
 const NurseBookingsWidget: React.FC = () => {
   const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
 
-  // Ensure bookings is always an array
-  let bookings: BookingData[] = [];
-  if (Array.isArray(bookingsData?.bookings)) {
-    bookings = bookingsData.bookings;
-  } else if (Array.isArray(bookingsData)) {
-    bookings = bookingsData;
-  } else if (
-    bookingsData &&
-    typeof bookingsData === "object" &&
-    Array.isArray(bookingsData.data)
-  ) {
-    bookings = bookingsData.data;
-  }
+  const standardizedBookings = useMemo(() => {
+    const rawBookings = Array.isArray(bookingsData?.bookings)
+      ? bookingsData.bookings
+      : Array.isArray(bookingsData)
+      ? bookingsData
+      : bookingsData && typeof bookingsData === "object" && Array.isArray((bookingsData as Record<string, unknown>).data)
+      ? (bookingsData as { data: StandardBookingData[] }).data
+      : [];
 
-  // Get today's appointments for nurses
-  const todayAppointments = bookings.filter((booking: BookingData) => {
-    if (!booking.appointment_date) return false;
-    const appointmentDate = new Date(booking.appointment_date);
+    try {
+      return convertBookingsToStandardFormat(
+        rawBookings as unknown as Parameters<typeof convertBookingsToStandardFormat>[0]
+      );
+    } catch {
+      return [];
+    }
+  }, [bookingsData]);
+
+  const slotToTime = (slot: string): string => {
+    if (!slot) return "N/A";
+    const slotLower = slot.toLowerCase();
+    const match = slotLower.match(/(\d{1,2})(?:[:.]?(\d{2}))?(am|pm)/);
+    if (!match) return slot.replace(/_/g, " ");
+    const hour = parseInt(match[1], 10);
+    const minutes = match[2] ? match[2] : "00";
+    const period = match[3]?.toUpperCase() ?? "AM";
+    return `${hour.toString().padStart(2, "0")}:${minutes} ${period}`;
+  };
+
+  const todayAppointments = useMemo(() => {
     const today = new Date();
-    return appointmentDate.toDateString() === today.toDateString();
-  });
+    const todayString = today.toLocaleDateString("en-CA");
+
+    return standardizedBookings
+      .filter((booking) => {
+        if (!booking?.bookingDate?._seconds) return false;
+        const bookingDate = new Date(booking.bookingDate._seconds * 1000);
+        return bookingDate.toLocaleDateString("en-CA") === todayString;
+      })
+      .map((booking) => {
+        const raw = booking as unknown as BookingData & StandardBookingData & { vital_signs?: unknown; reason?: string };
+        return {
+          id: booking.bookingId,
+          patientName: booking.patientName,
+          doctorName: booking.doctorName,
+          appointmentTime: slotToTime(booking.slot),
+          status: booking.bookingStatus?.toLowerCase?.() ?? "pending",
+          vitalSigns: raw.vital_signs,
+          reason: raw.reason || booking.comments?.[0],
+        };
+      });
+  }, [standardizedBookings]);
 
   // Get recent appointments (last 5)
   const recentAppointments = [...todayAppointments]
-    .sort((a: BookingData, b: BookingData) => {
-      const timeA = a.appointment_time || "00:00";
-      const timeB = b.appointment_time || "00:00";
+    .sort((a, b) => {
+      const timeA = a.appointmentTime || "00:00";
+      const timeB = b.appointmentTime || "00:00";
       return timeA.localeCompare(timeB);
     })
     .slice(0, 5);
@@ -53,14 +85,16 @@ const NurseBookingsWidget: React.FC = () => {
   // Calculate statistics
   const totalToday = todayAppointments.length;
   const pendingVitals = todayAppointments.filter(
-    (booking: BookingData) => !booking.vital_signs
+    (booking) => !booking.vitalSigns
   ).length;
   const completedVitals = todayAppointments.filter(
-    (booking: BookingData) => booking.vital_signs
+    (booking) => booking.vitalSigns
   ).length;
   const urgentCases = todayAppointments.filter(
-    (booking: BookingData) => booking.reason?.toLowerCase().includes("urgent") ||
-      booking.reason?.toLowerCase().includes("emergency")
+    (booking) =>
+      typeof booking.reason === "string" &&
+      (booking.reason.toLowerCase().includes("urgent") ||
+        booking.reason.toLowerCase().includes("emergency"))
   ).length;
 
   const formatTime = (timeString: string | undefined) => {
@@ -179,10 +213,10 @@ const NurseBookingsWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    {appointment.patient_name || "Unknown Patient"}
+                    {appointment.patientName || appointment.patient_name || "Unknown Patient"}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {appointment.doctor_name || "Unknown Doctor"}
+                    {appointment.doctorName || appointment.doctor_name || "Unknown Doctor"}
                   </p>
                 </div>
               </div>
@@ -190,30 +224,46 @@ const NurseBookingsWidget: React.FC = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     appointment.status,
-                    !!appointment.vital_signs
+                    !!(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || !!appointment.vital_signs
                   )}`}>
-                  {appointment.vital_signs ? "Vitals Done" : "Pending Vitals"}
+                  {(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || appointment.vital_signs
+                    ? "Vitals Done"
+                    : "Pending Vitals"}
                 </span>
-                {getPriorityIcon(appointment.reason)}
+                {getPriorityIcon(
+                  (appointment as unknown as { reason?: string }).reason ||
+                    (appointment as unknown as { comments?: unknown[] }).comments?.[0] as string | undefined
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              {appointment.appointment_time && (
+              {(appointment as unknown as { appointmentTime?: string }).appointmentTime ||
+              appointment.appointment_time ? (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">🕐</span>
-                  <span>{formatTime(appointment.appointment_time)}</span>
+                  <span>
+                    {formatTime(
+                      (appointment as unknown as { appointmentTime?: string }).appointmentTime ||
+                        appointment.appointment_time
+                    )}
+                  </span>
                 </div>
-              )}
-              {appointment.reason && (
+              ) : null}
+              {((appointment as unknown as { reason?: string }).reason ||
+                (appointment as unknown as { comments?: unknown[] }).comments?.[0]) && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">📋</span>
-                  <span>{appointment.reason}</span>
+                  <span>
+                    {(appointment as unknown as { reason?: string }).reason ||
+                      ((appointment as unknown as { comments?: unknown[] }).comments?.[0] as string) ||
+                      "Consultation"}
+                  </span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">👨‍⚕️</span>
-                <span>Dr. {appointment.doctor_name || "Unknown"}</span>
+                <span>Dr. {appointment.doctorName || appointment.doctor_name || "Unknown"}</span>
               </div>
             </div>
 
@@ -223,7 +273,9 @@ const NurseBookingsWidget: React.FC = () => {
                 <span>Appointment ID: {appointment.id ? appointment.id.slice(0, 8) + '...' : 'N/A'}</span>
               </div>
               <button className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-xs">
-                {appointment.vital_signs ? "View Vitals" : "Take Vitals"}
+                {(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || appointment.vital_signs
+                  ? "View Vitals"
+                  : "Take Vitals"}
               </button>
             </div>
           </div>
