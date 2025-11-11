@@ -49,50 +49,128 @@ const NurseBookingsWidget: React.FC = () => {
     return `${hour.toString().padStart(2, "0")}:${minutes} ${period}`;
   };
 
-  const todayAppointments = useMemo(() => {
-    const today = new Date();
-    const todayString = today.toLocaleDateString("en-CA");
+  const parseBookingDate = (
+    bookingDate:
+      | { _seconds?: number; seconds?: number; toDate?: () => Date }
+      | string
+      | undefined
+  ) => {
+    if (!bookingDate) return null;
+    if (typeof bookingDate === "string") {
+      const parsed = new Date(bookingDate);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    if (typeof bookingDate === "object") {
+      if (typeof bookingDate._seconds === "number") {
+        return new Date(bookingDate._seconds * 1000);
+      }
+      if (typeof bookingDate.seconds === "number") {
+        return new Date(bookingDate.seconds * 1000);
+      }
+      if (typeof bookingDate.toDate === "function") {
+        return bookingDate.toDate();
+      }
+    }
+    return null;
+  };
+
+  const slotToDateTime = (date: Date | null, slot: string) => {
+    if (!date) return null;
+    const slotLower = slot?.toLowerCase?.() ?? "";
+    const match = slotLower.match(/(\d{1,2})(?:[:.]?(\d{2}))?(am|pm)/);
+    const appointmentDate = new Date(date);
+    if (!match) {
+      appointmentDate.setHours(0, 0, 0, 0);
+      return appointmentDate;
+    }
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const period = match[3];
+    if (period === "pm" && hours !== 12) {
+      hours += 12;
+    }
+    if (period === "am" && hours === 12) {
+      hours = 0;
+    }
+    appointmentDate.setHours(hours, minutes, 0, 0);
+    return appointmentDate;
+  };
+
+  const upcomingAppointments = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
     return standardizedBookings
-      .filter((booking) => {
-        if (!booking?.bookingDate?._seconds) return false;
-        const bookingDate = new Date(booking.bookingDate._seconds * 1000);
-        return bookingDate.toLocaleDateString("en-CA") === todayString;
-      })
       .map((booking) => {
-        const raw = booking as unknown as BookingData & StandardBookingData & { vital_signs?: unknown; reason?: string };
+        const appointmentDate = parseBookingDate(
+          booking.bookingDate as unknown as
+            | { _seconds?: number; seconds?: number }
+            | string
+        );
+        const appointmentDateTime = slotToDateTime(
+          appointmentDate,
+          booking.slot
+        );
+        if (!appointmentDate || !appointmentDateTime) {
+          return null;
+        }
+        const raw = booking as unknown as BookingData &
+          StandardBookingData & {
+            vital_signs?: unknown;
+            reason?: string;
+          };
+        const derivedReason =
+          typeof raw.reason === "string"
+            ? raw.reason
+            : typeof booking.comments?.[0] === "string"
+            ? (booking.comments?.[0] as string)
+            : undefined;
+        const hasVitals = Boolean(raw.vital_signs);
         return {
           id: booking.bookingId,
           patientName: booking.patientName,
           doctorName: booking.doctorName,
           appointmentTime: slotToTime(booking.slot),
+          appointmentDate,
+          appointmentDateTime,
           status: booking.bookingStatus?.toLowerCase?.() ?? "pending",
-          vitalSigns: raw.vital_signs,
-          reason: raw.reason || booking.comments?.[0],
+          hasVitals,
+          reason: derivedReason,
         };
-      });
+      })
+      .filter(
+        (
+          booking
+        ): booking is {
+          id: string;
+          patientName: string;
+          doctorName: string;
+          appointmentTime: string;
+          appointmentDate: Date;
+          appointmentDateTime: Date;
+          status: string;
+          hasVitals: boolean;
+          reason?: string;
+        } => Boolean(booking && booking.appointmentDateTime)
+      )
+      .filter((booking) => booking.appointmentDateTime >= todayStart)
+      .sort(
+        (a, b) => a.appointmentDateTime.getTime() - b.appointmentDateTime.getTime()
+      );
   }, [standardizedBookings]);
 
-  // Get recent appointments (last 5)
-  const recentAppointments = [...todayAppointments]
-    .sort((a, b) => {
-      const timeA = a.appointmentTime || "00:00";
-      const timeB = b.appointmentTime || "00:00";
-      return timeA.localeCompare(timeB);
-    })
-    .slice(0, 5);
+  const displayAppointments = upcomingAppointments.slice(0, 5);
 
-  // Calculate statistics
-  const totalToday = todayAppointments.length;
-  const pendingVitals = todayAppointments.filter(
-    (booking) => !booking.vitalSigns
+  const totalUpcoming = upcomingAppointments.length;
+  const pendingVitals = upcomingAppointments.filter(
+    (booking) => !booking.hasVitals
   ).length;
-  const completedVitals = todayAppointments.filter(
-    (booking) => booking.vitalSigns
+  const completedVitals = upcomingAppointments.filter(
+    (booking) => booking.hasVitals
   ).length;
-  const urgentCases = todayAppointments.filter(
+  const urgentCases = upcomingAppointments.filter(
     (booking) =>
-      typeof booking.reason === "string" &&
+      booking.reason &&
       (booking.reason.toLowerCase().includes("urgent") ||
         booking.reason.toLowerCase().includes("emergency"))
   ).length;
@@ -147,7 +225,7 @@ const NurseBookingsWidget: React.FC = () => {
     );
   }
 
-  if (recentAppointments.length === 0) {
+  if (displayAppointments.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex flex-col items-center justify-center py-8">
@@ -155,10 +233,10 @@ const NurseBookingsWidget: React.FC = () => {
             <Calendar className="text-gray-400" size={32} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No Appointments Today
+            No Upcoming Appointments
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
-            No appointments scheduled for today. Check back later for updates.
+            No appointments scheduled yet. Check back later for updates.
           </p>
         </div>
       </div>
@@ -174,8 +252,8 @@ const NurseBookingsWidget: React.FC = () => {
             <Calendar className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Today's Appointments</h3>
-            <p className="text-sm text-gray-500">Patient care schedule</p>
+            <h3 className="text-xl font-bold text-gray-900">Upcoming Appointments</h3>
+            <p className="text-sm text-gray-500">Next patient care schedule</p>
           </div>
         </div>
       </div>
@@ -183,8 +261,8 @@ const NurseBookingsWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{totalToday}</div>
-          <div className="text-xs text-gray-600">Total Today</div>
+          <div className="text-2xl font-bold text-blue-600">{totalUpcoming}</div>
+          <div className="text-xs text-gray-600">Total Upcoming</div>
         </div>
         <div className="text-center p-3 bg-green-50 rounded-lg">
           <div className="text-2xl font-bold text-green-600">{completedVitals}</div>
@@ -202,7 +280,7 @@ const NurseBookingsWidget: React.FC = () => {
 
       {/* Appointments List */}
       <div className="space-y-4">
-        {recentAppointments.map((appointment: BookingData, index: number) => (
+        {displayAppointments.map((appointment, index: number) => (
           <div
             key={appointment.id || `appointment-${index}`}
             className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -213,10 +291,10 @@ const NurseBookingsWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    {appointment.patientName || appointment.patient_name || "Unknown Patient"}
+                    {appointment.patientName || "Unknown Patient"}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {appointment.doctorName || appointment.doctor_name || "Unknown Doctor"}
+                    {appointment.doctorName || "Unknown Doctor"}
                   </p>
                 </div>
               </div>
@@ -224,46 +302,40 @@ const NurseBookingsWidget: React.FC = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     appointment.status,
-                    !!(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || !!appointment.vital_signs
+                    appointment.hasVitals
                   )}`}>
-                  {(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || appointment.vital_signs
+                  {appointment.hasVitals
                     ? "Vitals Done"
                     : "Pending Vitals"}
                 </span>
                 {getPriorityIcon(
-                  (appointment as unknown as { reason?: string }).reason ||
-                    (appointment as unknown as { comments?: unknown[] }).comments?.[0] as string | undefined
+                  appointment.reason
                 )}
               </div>
             </div>
 
             <div className="space-y-2">
-              {(appointment as unknown as { appointmentTime?: string }).appointmentTime ||
-              appointment.appointment_time ? (
+              {appointment.appointmentTime ? (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">🕐</span>
                   <span>
                     {formatTime(
-                      (appointment as unknown as { appointmentTime?: string }).appointmentTime ||
-                        appointment.appointment_time
+                      appointment.appointmentTime
                     )}
                   </span>
                 </div>
               ) : null}
-              {((appointment as unknown as { reason?: string }).reason ||
-                (appointment as unknown as { comments?: unknown[] }).comments?.[0]) && (
+              {appointment.reason && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">📋</span>
                   <span>
-                    {(appointment as unknown as { reason?: string }).reason ||
-                      ((appointment as unknown as { comments?: unknown[] }).comments?.[0] as string) ||
-                      "Consultation"}
+                    {appointment.reason || "Consultation"}
                   </span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">👨‍⚕️</span>
-                <span>Dr. {appointment.doctorName || appointment.doctor_name || "Unknown"}</span>
+                <span>Dr. {appointment.doctorName || "Unknown"}</span>
               </div>
             </div>
 
@@ -273,7 +345,7 @@ const NurseBookingsWidget: React.FC = () => {
                 <span>Appointment ID: {appointment.id ? appointment.id.slice(0, 8) + '...' : 'N/A'}</span>
               </div>
               <button className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-xs">
-                {(appointment as unknown as { vitalSigns?: unknown }).vitalSigns || appointment.vital_signs
+                {appointment.hasVitals
                   ? "View Vitals"
                   : "Take Vitals"}
               </button>
@@ -285,7 +357,7 @@ const NurseBookingsWidget: React.FC = () => {
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Today's Schedule: {totalToday} appointments</span>
+          <span className="text-gray-600">Upcoming Schedule: {totalUpcoming} appointments</span>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
