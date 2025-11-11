@@ -14,6 +14,7 @@ interface DocItem {
   id: string;
   fileName?: string;
   name?: string;
+  doctorName?: string;
   description?: string;
   specialization?: string;
   mimeType?: string;
@@ -47,24 +48,31 @@ export default function DocumentReviewModal({
   upload,
   currentReviewer = "Admin",
 }: DocumentReviewModalProps) {
-  const [reviewComment, setReviewComment] = useState<string>(((upload as DocItem).comment) || "");
-  const [actionType, setActionType] = useState<"approved" | "rejected" | null>(null);
+  const [reviewComment, setReviewComment] = useState<string>(
+    (upload as DocItem).comment || ""
+  );
+  const [actionType, setActionType] = useState<"approved" | "rejected" | null>(
+    null
+  );
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const [docComments, setDocComments] = useState<Record<string, string>>({}); // Individual comments per document
   const [showGeneralInput, setShowGeneralInput] = useState<boolean>(false);
-  const [updateUploadStatus, { isLoading: isSubmitting }] = useUpdateUploadStatusMutation();
+  const [updateUploadStatus, { isLoading: isSubmitting }] =
+    useUpdateUploadStatusMutation();
 
   // Support aggregated payloads that contain a documents array
   const root = upload as Partial<AggregateUpload> & Partial<DocItem>;
-  const documents: DocItem[] = Array.isArray(root?.documents) ? root.documents : [upload as DocItem];
+  const documents: DocItem[] = Array.isArray(root?.documents)
+    ? root.documents
+    : [upload as DocItem];
   const doctorIdForDocs: string | undefined = root?.doctorId;
 
   // Get pending documents that can be selected
-  const pendingDocs = documents.filter(doc => doc.status === "pending");
+  const pendingDocs = documents.filter((doc) => doc.status === "pending");
 
   // Reset comment when upload changes
   useEffect(() => {
-    setReviewComment(((upload as DocItem)?.comment) || "");
+    setReviewComment((upload as DocItem)?.comment || "");
     setActionType(null);
   }, [upload]);
 
@@ -107,9 +115,13 @@ export default function DocumentReviewModal({
       if (error?.status === "NOT_FOUND") {
         toast.error("Document not found. It may have been deleted.");
       } else if (error?.status === "permission-denied") {
-        toast.error("Permission denied. You don't have access to update this document.");
+        toast.error(
+          "Permission denied. You don't have access to update this document."
+        );
       } else {
-        toast.error(error?.error || "Failed to update document. Please try again.");
+        toast.error(
+          error?.error || "Failed to update document. Please try again."
+        );
       }
     } finally {
       setActionType(null);
@@ -119,7 +131,8 @@ export default function DocumentReviewModal({
   const handleApprove = (doc: DocItem) => updateStatusFor(doc, "approved");
   const handleReject = (doc: DocItem) => updateStatusFor(doc, "rejected");
 
-  const isReadOnly = (doc?: DocItem) => (doc?.status ?? (root as DocItem)?.status) !== "pending";
+  const isReadOnly = (doc?: DocItem) =>
+    (doc?.status ?? (root as DocItem)?.status) !== "pending";
 
   // Toggle selection of a document
   const toggleSelection = (docId: string) => {
@@ -143,16 +156,16 @@ export default function DocumentReviewModal({
       setSelectedDocs(new Set());
       setShowGeneralInput(false);
     } else {
-      setSelectedDocs(new Set(pendingDocs.map(doc => doc.id)));
+      setSelectedDocs(new Set(pendingDocs.map((doc) => doc.id)));
       setShowGeneralInput(true);
     }
   };
 
   // Update individual document comment
   const updateDocComment = (docId: string, comment: string) => {
-    setDocComments(prev => ({
+    setDocComments((prev) => ({
       ...prev,
-      [docId]: comment
+      [docId]: comment,
     }));
   };
 
@@ -171,7 +184,9 @@ export default function DocumentReviewModal({
     setActionType("approved");
 
     try {
-      const selectedDocuments = documents.filter(doc => selectedDocs.has(doc.id));
+      const selectedDocuments = documents.filter((doc) =>
+        selectedDocs.has(doc.id)
+      );
 
       // Approve each selected document
       for (const doc of selectedDocuments) {
@@ -189,13 +204,17 @@ export default function DocumentReviewModal({
         }
       }
 
-      toast.success(`${selectedDocuments.length} document(s) approved successfully.`);
+      toast.success(
+        `${selectedDocuments.length} document(s) approved successfully.`
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setSelectedDocs(new Set());
       onClose();
     } catch (error: any) {
       console.error("Error approving documents:", error);
-      toast.error(error?.error || "Failed to approve documents. Please try again.");
+      toast.error(
+        error?.error || "Failed to approve documents. Please try again."
+      );
     } finally {
       setActionType(null);
     }
@@ -205,7 +224,7 @@ export default function DocumentReviewModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Review Documents (${documents.length})`}
+      title={`Review Documents (${documents.length}) for ${root.doctorName}`}
       size="xl"
     >
       {/* Scrollable Body with max height */}
@@ -217,7 +236,10 @@ export default function DocumentReviewModal({
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={selectedDocs.size === pendingDocs.length && pendingDocs.length > 0}
+                  checked={
+                    selectedDocs.size === pendingDocs.length &&
+                    pendingDocs.length > 0
+                  }
                   onChange={toggleSelectAll}
                   className="w-4 h-4 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
                 />
@@ -245,7 +267,10 @@ export default function DocumentReviewModal({
           )}
 
           {documents.map((doc, index) => (
-            <div key={doc.id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 hover:shadow-md transition-shadow">
+            <div
+              key={doc.id}
+              className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 hover:shadow-md transition-shadow"
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -275,15 +300,21 @@ export default function DocumentReviewModal({
 
                   <div className="grid grid-cols-2 gap-3 mt-3 ml-13">
                     <div className="text-sm">
-                      <span className="text-[var(--muted-foreground)]">Upload Date:</span>
+                      <span className="text-[var(--muted-foreground)]">
+                        Upload Date:
+                      </span>
                       <span className="text-[var(--foreground)] ml-2">
                         <FormattedDate timestamp={doc?.uploadDate} />
                       </span>
                     </div>
                     {doc.mimeType && (
                       <div className="text-sm">
-                        <span className="text-[var(--muted-foreground)]">Type:</span>
-                        <span className="text-[var(--foreground)] ml-2">{doc.mimeType}</span>
+                        <span className="text-[var(--muted-foreground)]">
+                          Type:
+                        </span>
+                        <span className="text-[var(--foreground)] ml-2">
+                          {doc.mimeType}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -305,12 +336,13 @@ export default function DocumentReviewModal({
 
                 <div className="ml-4">
                   <span
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${doc.status === "approved"
-                      ? "bg-green-100 text-green-800"
-                      : doc.status === "rejected"
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${
+                      doc.status === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : doc.status === "rejected"
                         ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
-                      }`}
+                    }`}
                   >
                     {(doc.status ?? "PENDING").toUpperCase()}
                   </span>
@@ -368,7 +400,9 @@ export default function DocumentReviewModal({
                   <p className="text-sm text-[var(--muted-foreground)] mb-1">
                     Review Comment:
                   </p>
-                  <p className="text-sm text-[var(--foreground)]">{doc.comment}</p>
+                  <p className="text-sm text-[var(--foreground)]">
+                    {doc.comment}
+                  </p>
                 </div>
               )}
             </div>
@@ -376,7 +410,9 @@ export default function DocumentReviewModal({
 
           {documents.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-[var(--muted-foreground)]">No documents to review.</p>
+              <p className="text-[var(--muted-foreground)]">
+                No documents to review.
+              </p>
             </div>
           )}
         </div>
@@ -399,7 +435,8 @@ export default function DocumentReviewModal({
                 className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] resize-none"
               />
               <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                This comment will be used for documents that don't have individual comments
+                This comment will be used for documents that don't have
+                individual comments
               </p>
             </div>
 
@@ -420,7 +457,9 @@ export default function DocumentReviewModal({
                   disabled={isSubmitting}
                   className="px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSubmitting ? "Processing..." : `Approve ${selectedDocs.size} Selected`}
+                  {isSubmitting
+                    ? "Processing..."
+                    : `Approve ${selectedDocs.size} Selected`}
                 </button>
               </div>
             </div>

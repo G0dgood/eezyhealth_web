@@ -15,7 +15,7 @@ import { toast } from "sonner";
 interface Upload {
   id: string;
   doctorId?: string;
-  name?: string;
+  doctorName?: string;
   description?: string;
   specialization?: string;
   downloadUrl?: string;
@@ -25,7 +25,6 @@ interface Upload {
   reviewedBy?: string;
   reviewedAt?: any;
   // Additional fields for user data compatibility
-  display_name?: string;
   location?: string;
   uid?: string;
   email?: string;
@@ -71,7 +70,7 @@ export default function DocumentPage() {
 
     const query = searchTerm.toLowerCase();
     return safeUploads.filter((upload: Upload) => {
-      const nameMatch = (upload?.name ?? upload?.display_name ?? "")
+      const nameMatch = (upload?.doctorName ?? "")
         .toLowerCase()
         .includes(query);
       const descMatch = (upload?.description ?? "")
@@ -176,19 +175,17 @@ export default function DocumentPage() {
               }}
             >
               <tr>
-                {["Doctor", "Specialty", "Upload Date", "Status", "Action"].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{
-                        color: "var(--muted-foreground)",
-                      }}
-                    >
-                      {header}
-                    </th>
-                  )
-                )}
+                {["Doctor", "Specialty", "Action"].map((header) => (
+                  <th
+                    key={header}
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                    style={{
+                      color: "var(--muted-foreground)",
+                    }}
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
 
@@ -207,12 +204,12 @@ export default function DocumentPage() {
                     }
                   >
                     <td className="px-6 py-4 text-sm font-medium">
-                      {upload.name || upload.display_name || "Unknown Doctor"}
+                      {upload.doctorName || "Unknown Doctor"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {upload.specialization || upload.location || "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm">
+                    {/* <td className="px-6 py-4 text-sm">
                       <FormattedDate
                         timestamp={upload?.uploadDate || upload?.createdTime}
                       />
@@ -227,7 +224,7 @@ export default function DocumentPage() {
                             (upload.status ?? "unknown").slice(1)}
                         </span>
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleAction(upload)}
