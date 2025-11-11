@@ -100,7 +100,6 @@ export default function DoctorAppointmentsPage() {
     return bookings.map((booking, index) => {
       // Debug: Log booking structure to understand the ID field
       if (index === 0) {
-
       }
       // Handle Firestore timestamp conversion
       let appointmentDate: string;
@@ -120,7 +119,13 @@ export default function DoctorAppointmentsPage() {
       }
 
       return {
-        id: String(booking.id || booking.bookingId || booking.documentId || booking.uid || `booking-${index}`),
+        id: String(
+          booking.id ||
+            booking.bookingId ||
+            booking.documentId ||
+            booking.uid ||
+            `booking-${index}`
+        ),
         patientName: String(booking.patientName || "Unknown Patient"),
         date: appointmentDate,
         time: convertSlotToTime(String(booking.slot || "")),
@@ -165,6 +170,12 @@ export default function DoctorAppointmentsPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
 
+  const statusDisplayMap: Record<AppointmentStatus, string> = {
+    pending: "Scheduled",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+
   const getStatusBadge = (status: AppointmentStatus) => {
     const statusClasses = {
       pending: "bg-orange-100 text-orange-800",
@@ -174,8 +185,9 @@ export default function DoctorAppointmentsPage() {
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status]}`}
+      >
+        {statusDisplayMap[status]}
       </span>
     );
   };
@@ -324,7 +336,8 @@ export default function DoctorAppointmentsPage() {
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-8 text-center text-sm text-[var(--muted-foreground)]">
+                      className="px-6 py-8 text-center text-sm text-[var(--muted-foreground)]"
+                    >
                       No appointments found
                     </td>
                   </tr>
@@ -332,7 +345,8 @@ export default function DoctorAppointmentsPage() {
                   currentAppointments.map((appointment) => (
                     <tr
                       key={appointment.id}
-                      className="hover:bg-[var(--muted)]">
+                      className="hover:bg-[var(--muted)]"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-[var(--foreground)]">
                           {appointment.patientName}
@@ -359,40 +373,47 @@ export default function DoctorAppointmentsPage() {
                           onClick={(e) =>
                             handleActionMenuToggle(appointment.id, e)
                           }
-                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        >
                           <MoreVertical className="w-4 h-4" />
                         </button>
 
                         {actionMenuOpen === appointment.id && (
                           <div
-                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${menuPosition === "top"
-                              ? "bottom-full mb-2"
-                              : "top-full mt-2"
-                              }`}>
+                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${
+                              menuPosition === "top"
+                                ? "bottom-full mb-2"
+                                : "top-full mt-2"
+                            }`}
+                          >
                             <div className="py-1">
                               <button
                                 onClick={() => handleViewDetails(appointment)}
-                                className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
+                              >
                                 View Details
                               </button>
                               {appointment.status === "completed" && (
                                 <button
                                   onClick={() => handleViewNote(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
+                                >
                                   View Note
                                 </button>
                               )}
                               {appointment.status === "pending" && (
                                 <button
                                   onClick={() => handleReschedule(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
+                                >
                                   Reschedule Appointment
                                 </button>
                               )}
                               {appointment.status === "pending" && (
                                 <button
                                   onClick={() => handleCancel(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
+                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
+                                >
                                   Cancel Appointment
                                 </button>
                               )}
@@ -415,7 +436,8 @@ export default function DoctorAppointmentsPage() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
                 Previous
               </button>
               <button
@@ -423,7 +445,8 @@ export default function DoctorAppointmentsPage() {
                   setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
                 Next
               </button>
             </div>
@@ -438,7 +461,8 @@ export default function DoctorAppointmentsPage() {
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
                     Previous
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -446,10 +470,12 @@ export default function DoctorAppointmentsPage() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                          ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
-                          : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-                          }`}>
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === page
+                            ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
+                            : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                        }`}
+                      >
                         {page}
                       </button>
                     )
@@ -459,7 +485,8 @@ export default function DoctorAppointmentsPage() {
                       setCurrentPage(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
                     Next
                   </button>
                 </nav>
@@ -501,10 +528,10 @@ export default function DoctorAppointmentsPage() {
         appointmentDetails={
           selectedAppointment
             ? {
-              patientName: selectedAppointment.patientName,
-              date: selectedAppointment.date,
-              time: selectedAppointment.time,
-            }
+                patientName: selectedAppointment.patientName,
+                date: selectedAppointment.date,
+                time: selectedAppointment.time,
+              }
             : undefined
         }
       />

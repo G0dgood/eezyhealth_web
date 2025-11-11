@@ -16,7 +16,7 @@ interface PaymentData {
   id: string;
   amount: number;
   currency: string;
-  status: "pending" | "completed" | "failed" | "cancelled";
+  paymentStatus: "pending" | "completed" | "failed" | "cancelled";
   paymentMethod: string;
   patientId?: string;
   doctorId?: string;
@@ -48,6 +48,7 @@ export default function AdminPaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   // RTK hooks
   const {
@@ -56,7 +57,7 @@ export default function AdminPaymentPage() {
     error,
   } = useGetPaymentsQuery({ limit: 50 });
 
-  // Filter payments based on search query
+  // Filter payments based on search query and status
   const filteredPayments = payments.filter(
     (payment: Record<string, unknown> & { id: string }) => {
       const searchLower = searchQuery.toLowerCase();
@@ -71,12 +72,18 @@ export default function AdminPaymentPage() {
         return false;
       };
 
-      return (
-        safeSearch(payment?.description) ||
+      const matchesSearch =
+        safeSearch(payment?.patientName) ||
+        safeSearch(payment?.doctorName) ||
         safeSearch(payment?.paymentMethod) ||
-        safeSearch(payment?.status) ||
-        safeSearch(payment?.transactionId)
-      );
+        safeSearch(payment?.transactionId);
+
+      const matchesStatus =
+        !selectedStatus ||
+        (typeof payment.status === "string" &&
+          payment.status === selectedStatus);
+
+      return matchesSearch && matchesStatus;
     }
   );
 
@@ -88,20 +95,41 @@ export default function AdminPaymentPage() {
     startIndex + itemsPerPage
   );
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+  const getStatusBadge = (paymentStatus: string) => {
+    const statusClasses = {
+      completed: "bg-green-100 text-green-800",
+      success: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      failed: "bg-red-100 text-red-800",
+      cancelled: "bg-gray-100 text-gray-800",
+    };
 
-    switch (status) {
-      case "completed":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "pending":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "failed":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      case "cancelled":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+    return (
+      <span
+        className={`px-2 py-1 text-xs font-medium rounded-full ${
+          statusClasses[paymentStatus as keyof typeof statusClasses] ||
+          "bg-gray-100 text-gray-800"
+        }`}
+      >
+        {paymentStatus}
+      </span>
+    );
+  };
+
+  const getPaymentMethodIcon = (method: string) => {
+    switch (method.toLowerCase()) {
+      case "paystack":
+        return <CreditCard className="w-4 h-4 text-blue-600" />;
+      case "credit card":
+        return <CreditCard className="w-4 h-4 text-blue-600" />;
+      case "bank transfer":
+        return <span className="text-green-600">₦</span>;
+      case "cash":
+        return <span className="text-green-600">₦</span>;
+      case "mobile money":
+        return <CreditCard className="w-4 h-4 text-purple-600" />;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        return <CreditCard className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -139,96 +167,125 @@ export default function AdminPaymentPage() {
           {isLoading ? (
             <PaymentSearchSkeleton />
           ) : (
-            <div className="mb-6">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search payments..."
-              />
+            <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 max-w-md">
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search payments..."
+                />
+              </div>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
+              >
+                <option value="">All Statuses</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
           )}
 
           {/* Payments Table */}
-
           {isLoading ? (
             <PaymentTableSkeleton />
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
+            <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-[var(--border)]">
+                  <thead className="bg-[var(--muted)]">
                     <tr>
-                      <th>Transaction</th>
+                      <th>Patient</th>
+                      <th>Doctor</th>
+                      <th>Service</th>
                       <th>Amount</th>
                       <th>Method</th>
                       <th>Status</th>
-                      <th>Date</th>
+                      <th>Transaction Id</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
                     {paginatedPayments?.length === 0 ||
                     paginatedPayments?.length === undefined ? (
-                      <NoRecordFound colSpan={5} />
+                      <NoRecordFound colSpan={7} />
                     ) : (
                       paginatedPayments?.map(
                         (payment: Record<string, unknown> & { id: string }) => (
-                          <tr key={payment.id} className="hover:bg-gray-50">
+                          <tr
+                            key={payment.id}
+                            className="hover:bg-[var(--muted)]"
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {/* {safeRenderField(payment.transactionId, payment.id.slice(0, 8))} */}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {/* {safeRenderField(payment.description, )} */}
-                                    Payment transaction
-                                  </div>
+                              <div>
+                                <div className="text-sm font-medium text-[var(--foreground)]">
+                                  {safeRenderField(
+                                    payment.patientName,
+                                    "Unknown Patient"
+                                  )}
+                                </div>
+                                <div className="text-sm text-[var(--muted-foreground)]">
+                                  ID: {payment.id}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {formatCurrency(
-                                  typeof payment.amount === "number"
-                                    ? payment.amount
-                                    : 0,
-                                  typeof payment.currency === "string"
-                                    ? payment.currency
-                                    : "USD"
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-[var(--foreground)]">
                                 {safeRenderField(
-                                  payment.paymentMethod,
-                                  "Unknown"
+                                  payment.doctorName,
+                                  "Unknown Doctor"
                                 )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={getStatusBadge(
-                                  typeof payment.status === "string"
-                                    ? payment.status
-                                    : "unknown"
-                                )}>
-                                {safeRenderField(payment.status, "Unknown")}
-                              </span>
+                              <div className="text-sm text-[var(--foreground)]">
+                                {safeRenderField(payment.slot, "N/A")}
+                              </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.createdAt &&
-                              typeof payment.createdAt === "string"
-                                ? new Date(
-                                    payment.createdAt
-                                  ).toLocaleDateString()
-                                : payment.createdAt &&
-                                  typeof payment.createdAt === "object"
-                                ? new Date(
-                                    JSON.stringify(payment.createdAt)
-                                  ).toLocaleDateString()
-                                : "N/A"}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-[var(--foreground)]">
+                                ₦{" "}
+                                {typeof payment.amount === "number"
+                                  ? formatCurrency(
+                                      payment.amount as number,
+                                      typeof payment.currency === "string"
+                                        ? payment.currency
+                                        : "NGN"
+                                    )
+                                  : safeRenderField(payment.amount, "N/A")}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                {getPaymentMethodIcon(
+                                  typeof payment.paymentMethod === "string"
+                                    ? payment.paymentMethod
+                                    : "Unknown"
+                                )}
+                                <span className="text-sm text-[var(--foreground)]">
+                                  {safeRenderField(
+                                    payment.paymentMethod,
+                                    "Unknown"
+                                  )}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {getStatusBadge(
+                                typeof payment.paymentStatus === "string"
+                                  ? payment.paymentStatus
+                                  : "unknown"
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-[var(--foreground)]">
+                                {safeRenderField(
+                                  payment.transactionId,
+                                  payment.id
+                                )}
+                              </div>
                             </td>
                           </tr>
                         )
@@ -254,7 +311,8 @@ export default function AdminPaymentPage() {
                     currentPage === 1
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}>
+                  }`}
+                >
                   Previous
                 </button>
                 <button
@@ -266,7 +324,8 @@ export default function AdminPaymentPage() {
                     currentPage === totalPages
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 text-white hover:bg-green-600"
-                  }`}>
+                  }`}
+                >
                   Next
                 </button>
               </div>

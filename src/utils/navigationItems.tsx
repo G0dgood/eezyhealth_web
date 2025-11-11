@@ -11,6 +11,7 @@ import {
   BarChart3,
   Bell,
   Activity,
+  MessageCircle,
 } from "lucide-react";
 
 export interface NavItem {
@@ -87,7 +88,7 @@ export const getNavItems = (role: string): NavItem[] => {
       {
         id: "message",
         label: "Message",
-        icon: <Bell className="w-5 h-5" />,
+        icon: <MessageCircle className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/message`,
       },
       {
@@ -204,7 +205,9 @@ export const getNavItems = (role: string): NavItem[] => {
 };
 
 // Helper function to get navigation items for a specific role
-export const getNavigationItems = (userRole: "NURSE" | "DOCTOR" | "ADMIN"): NavItem[] => {
+export const getNavigationItems = (
+  userRole: "NURSE" | "DOCTOR" | "ADMIN"
+): NavItem[] => {
   return getNavItems(userRole);
 };
 
@@ -214,13 +217,18 @@ export const getAvailableRoles = (): string[] => {
 };
 
 // Helper function to check if a role has access to a specific navigation item
-export const hasAccessToNavItem = (userRole: string, navItem: NavItem): boolean => {
+export const hasAccessToNavItem = (
+  userRole: string,
+  navItem: NavItem
+): boolean => {
   if (!navItem.roles) return true;
   return navItem.roles.includes(userRole);
 };
 
 // Helper function to get navigation items filtered by role access
-export const getFilteredNavItems = (userRole: "NURSE" | "DOCTOR" | "ADMIN"): NavItem[] => {
+export const getFilteredNavItems = (
+  userRole: "NURSE" | "DOCTOR" | "ADMIN"
+): NavItem[] => {
   const navItems = getNavItems(userRole);
-  return navItems.filter(item => hasAccessToNavItem(userRole, item));
+  return navItems.filter((item) => hasAccessToNavItem(userRole, item));
 };
