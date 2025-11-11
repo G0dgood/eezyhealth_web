@@ -51,24 +51,35 @@ interface CancellationRequest {
 const BookingCancellationWidget: React.FC = () => {
   const { user, userInfo } = useAuth();
   const doctorId = user?.uid;
-  const userRole = userInfo?.role;
+  const normalizedRole = (typeof userInfo?.role === "string"
+    ? userInfo?.role
+    : ""
+  ).toUpperCase();
+  const isNurseOrAdmin =
+    normalizedRole === "NURSE" || normalizedRole === "ADMIN";
 
   // Fetch cancellation requests using RTK Query based on user role
   // For nurses: use useGetBookingCancellationsQuery (all cancellations)
   // For doctors: use useGetBookingCancellationsByDoctorIdQuery (doctor-specific)
   const { data: allCancellationsData, isLoading: isLoadingAll, error: errorAll } =
-    useGetBookingCancellationsQuery({}, { skip: userRole !== "NURSE" && userRole !== "ADMIN" });
+    useGetBookingCancellationsQuery({}, { skip: !isNurseOrAdmin });
 
   const { data: doctorCancellationsData, isLoading: isLoadingDoctor, error: errorDoctor } =
     useGetBookingCancellationsByDoctorIdQuery(
       { doctorId: doctorId || "" },
-      { skip: !doctorId || (userRole === "NURSE" || userRole === "ADMIN") }
+      { skip: !doctorId || isNurseOrAdmin }
     );
 
   // Choose the appropriate data based on role
-  const isLoading = userRole === "NURSE" || userRole === "ADMIN" ? isLoadingAll : isLoadingDoctor;
-  const error = userRole === "NURSE" || userRole === "ADMIN" ? errorAll : errorDoctor;
-  const cancellationsData = userRole === "NURSE" || userRole === "ADMIN" ? allCancellationsData : doctorCancellationsData;
+  const isLoading = isNurseOrAdmin ? isLoadingAll : isLoadingDoctor;
+  const error = isNurseOrAdmin ? errorAll : errorDoctor;
+  const cancellationsData = isNurseOrAdmin
+    ? allCancellationsData
+    : doctorCancellationsData;
+  const viewAllHref =
+    normalizedRole === "DOCTOR"
+      ? "/doctor/booking-cancellation"
+      : "/nurse/booking-cancellation";
 
   const cancellations: CancellationRequest[] =
     (cancellationsData as unknown as CancellationRequest[]) || [];
@@ -256,7 +267,7 @@ const BookingCancellationWidget: React.FC = () => {
           </div>
         </div>
         <Link
-          href="/doctor/booking-cancellation"
+          href={viewAllHref}
           className="text-blue-600 text-sm font-medium hover:text-blue-700">
           View All
         </Link>
@@ -374,7 +385,7 @@ const BookingCancellationWidget: React.FC = () => {
                   </span>
                 </div>
                 <Link
-                  href="/doctor/booking-cancellation"
+                  href={viewAllHref}
                   className="text-blue-600 text-xs font-medium hover:text-blue-700">
                   View Details
                 </Link>
