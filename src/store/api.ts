@@ -1117,35 +1117,62 @@ export const api = createApi({
             "firebase/firestore"
           );
           const { db } = await import("@/lib/firebase");
+          const { serializeFirebaseData } = await import("@/lib/firebase-rtk");
 
-          // Query from Bookings collection where doctorId matches and status is cancelled
           const bookingsCollectionRef = collection(db, "Bookings");
-          const cancellationsQuery = query(
+          const statusVariants = ["cancelled", "Cancelled", "CANCELLED"];
+          const cancellationRequestStatuses = [
+            "pending",
+            "Pending",
+            "approved",
+            "Approved",
+            "rejected",
+            "Rejected",
+            "cancelled",
+            "Cancelled",
+            "denied",
+            "Denied",
+          ];
+
+          const combinedResults = new Map<string, Record<string, unknown>>();
+
+          const collectSnapshot = (snapshot: Awaited<ReturnType<typeof getDocs>>) => {
+            snapshot.forEach((docSnapshot) => {
+              if (combinedResults.has(docSnapshot.id)) return;
+              const serializedData = serializeFirebaseData(
+                docSnapshot.data()
+              ) as Record<string, unknown>;
+              combinedResults.set(docSnapshot.id, {
+                id: docSnapshot.id,
+                ...serializedData,
+              });
+            });
+          };
+
+          const bookingStatusQuery = query(
             bookingsCollectionRef,
             where("doctorId", "==", doctorId),
-            where("bookingStatus", "==", "cancelled")
+            where("bookingStatus", "in", statusVariants)
           );
+          const bookingStatusSnapshot = await getDocs(bookingStatusQuery);
+          collectSnapshot(bookingStatusSnapshot);
 
-          const snapshot = await getDocs(cancellationsQuery);
+          try {
+            const cancellationStatusQuery = query(
+              bookingsCollectionRef,
+              where("doctorId", "==", doctorId),
+              where("cancellationRequest.status", "in", cancellationRequestStatuses)
+            );
+            const cancellationStatusSnapshot = await getDocs(cancellationStatusQuery);
+            collectSnapshot(cancellationStatusSnapshot);
+          } catch (error) {
+            console.warn(
+              "Optional cancellationRequest.status query failed (possibly missing index):",
+              error
+            );
+          }
 
-          // Extract the data from the documents and convert Firestore Timestamps to ISO strings
-          const firebaseRtk = await import("@/lib/firebase-rtk");
-          const serializeFirebaseData = firebaseRtk.serializeFirebaseData;
-
-          const cancellationsData = snapshot.docs.map((doc) => {
-            const docData = doc.data();
-            const serializedData = serializeFirebaseData(docData) as Record<
-              string,
-              unknown
-            >;
-
-            return {
-              id: doc.id,
-              ...serializedData,
-            };
-          });
-
-          return { data: cancellationsData };
+          return { data: Array.from(combinedResults.values()) };
         } catch (error) {
           console.error(
             "Error fetching Firebase cancelled bookings by doctor ID:",

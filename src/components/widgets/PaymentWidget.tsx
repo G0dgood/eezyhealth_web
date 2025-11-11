@@ -3,68 +3,113 @@
 import React from "react";
 import { CreditCard, DollarSign, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsByDoctorIdQuery } from "@/store/api";
 
 const PaymentWidget: React.FC = () => {
   const { user } = useAuth();
+  const doctorId = user?.uid ?? "";
 
-  // Fetch payments data
-  const { data: paymentsData, isLoading } = useGetPaymentsQuery({ limit: 100 });
-
-  // Ensure payments is always an array
-  let payments: unknown[] = [];
-  if (Array.isArray(paymentsData)) {
-    payments = paymentsData;
-  } else if (
-    paymentsData &&
-    typeof paymentsData === "object" &&
-    "data" in paymentsData &&
-    Array.isArray((paymentsData as { data: unknown }).data)
-  ) {
-    payments = (paymentsData as { data: unknown[] }).data;
-  }
-
-  // Filter payments for this doctor (mock filtering - in real app, you'd filter by doctor_id)
-  const doctorPayments = payments.filter((payment: any) =>
-    payment.doctor_id === user?.uid || payment?.doctor_name?.includes("Dr.")
+  const {
+    data: paymentsData,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetPaymentsByDoctorIdQuery(
+    { doctorId },
+    { skip: !doctorId }
   );
 
-  // Get recent payments (last 5)
-  const recentPayments = [...doctorPayments]
-    .sort((a: any, b: any) => {
-      const dateA = new Date(a.createdTime || 0).getTime();
-      const dateB = new Date(b.createdTime || 0).getTime();
-      return dateB - dateA;
+  const payments = Array.isArray(paymentsData)
+    ? paymentsData
+    : Array.isArray((paymentsData as { data?: unknown[] })?.data)
+    ? ((paymentsData as { data?: unknown[] }).data as unknown[])
+    : [];
+
+  const toNumber = (value: unknown): number => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+      const parsed = parseFloat(value.replace(/[^0-9.-]+/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  };
+
+  const toDate = (value: unknown): Date | null => {
+    if (!value) return null;
+    if (typeof value === "string" || typeof value === "number") {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      ("seconds" in (value as { seconds?: number }) ||
+        "_seconds" in (value as { _seconds?: number }))
+    ) {
+      const seconds = (value as { seconds?: number }).seconds;
+      if (typeof seconds === "number") return new Date(seconds * 1000);
+      const altSeconds = (value as { _seconds?: number })._seconds;
+      if (typeof altSeconds === "number") return new Date(altSeconds * 1000);
+    }
+    return null;
+  };
+
+  const normalizedPayments = payments
+    .map((payment) => {
+      const record = payment as Record<string, unknown>;
+      const createdTime =
+        toDate(record.createdTime) ??
+        toDate(record.createdAt) ??
+        toDate(record.updatedAt);
+
+      return {
+        id: String(record.id ?? ""),
+        amount: toNumber(record.amount),
+        status: String(record.status ?? "pending").toLowerCase(),
+        paymentMethod: String(record.payment_method ?? record.paymentMethod ?? "Card Payment"),
+        patientName: String(record.patient_name ?? record.patientName ?? "Unknown Patient"),
+        createdTime,
+      };
+    })
+    .filter((payment) => payment.id);
+
+  const recentPayments = [...normalizedPayments]
+    .sort((a, b) => {
+      const timeA = a.createdTime?.getTime() ?? 0;
+      const timeB = b.createdTime?.getTime() ?? 0;
+      return timeB - timeA;
     })
     .slice(0, 5);
 
-  // Calculate payment statistics
-  const totalRevenue = doctorPayments
-    .filter((payment: any) => payment.status === "completed")
-    .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+  const totalRevenue = normalizedPayments
+    .filter((payment) => payment.status === "completed")
+    .reduce((sum, payment) => sum + payment.amount, 0);
 
-  const completedPayments = doctorPayments.filter(
-    (payment: any) => payment.status === "completed"
+  const completedPayments = normalizedPayments.filter(
+    (payment) => payment.status === "completed"
   ).length;
 
-  const pendingPayments = doctorPayments.filter(
-    (payment: any) => payment.status === "pending"
+  const pendingPayments = normalizedPayments.filter(
+    (payment) => payment.status === "pending"
   ).length;
 
-  const thisMonthRevenue = doctorPayments
-    .filter((payment: any) => {
+  const now = new Date();
+  const thisMonthRevenue = normalizedPayments
+    .filter((payment) => {
       if (!payment.createdTime) return false;
-      const paymentDate = new Date(payment.createdTime);
-      const now = new Date();
-      return paymentDate.getMonth() === now.getMonth() &&
-        paymentDate.getFullYear() === now.getFullYear() &&
-        payment.status === "completed";
+      return (
+        payment.createdTime.getMonth() === now.getMonth() &&
+        payment.createdTime.getFullYear() === now.getFullYear() &&
+        payment.status === "completed"
+      );
     })
-    .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+    .reduce((sum, payment) => sum + payment.amount, 0);
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
+  const formatDate = (dateInput: Date | string | undefined) => {
+    if (!dateInput) return "N/A";
+    const date =
+      dateInput instanceof Date ? dateInput : new Date(dateInput as string);
+    if (Number.isNaN(date.getTime())) return "N/A";
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -99,7 +144,20 @@ const PaymentWidget: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (!doctorId) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex flex-col items-center justify-center py-8">
+          <CreditCard className="text-gray-300 mb-3" size={36} />
+          <p className="text-sm text-gray-500 text-center">
+            Sign in as a doctor to view payment insights.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || isFetching) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="animate-pulse space-y-4">
@@ -110,6 +168,15 @@ const PaymentWidget: React.FC = () => {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
+        Failed to load payments. Please try again later.
+        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
       </div>
     );
   }
@@ -169,7 +236,7 @@ const PaymentWidget: React.FC = () => {
 
       {/* Recent Payments List */}
       <div className="space-y-4">
-        {recentPayments.map((payment: any) => (
+        {recentPayments.map((payment) => (
           <div
             key={payment.id}
             className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -180,10 +247,10 @@ const PaymentWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    ₦{payment.amount?.toFixed(2) || "0.00"}
+                    ₦{payment.amount.toFixed(2)}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {payment.patient_name || "Unknown Patient"}
+                    {payment.patientName}
                   </p>
                 </div>
               </div>
@@ -192,7 +259,7 @@ const PaymentWidget: React.FC = () => {
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                     payment.status
                   )}`}>
-                  {payment.status}
+                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                 </span>
                 {getStatusIcon(payment.status)}
               </div>
@@ -201,7 +268,7 @@ const PaymentWidget: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">💳</span>
-                <span>{payment.payment_method || "Card Payment"}</span>
+                <span>{payment.paymentMethod}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs">📅</span>
@@ -212,7 +279,9 @@ const PaymentWidget: React.FC = () => {
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <CreditCard size={14} />
-                <span>Payment ID: {payment.id?.slice(0, 8) || "N/A"}...</span>
+                <span>
+                  Payment ID: {payment.id ? `${payment.id.slice(0, 8)}...` : "N/A"}
+                </span>
               </div>
             </div>
           </div>
