@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
-import { useGetUploadsQuery } from "@/store/api";
+import { useGetUploadsQuery } from "@/store/uploadApi";
 import FormattedDate from "@/utils/FormattedDate";
 import DocumentTableSkeleton from "@/components/skeletons/DocumentTableSkeleton";
 import { toast } from "sonner";

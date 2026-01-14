@@ -10,7 +10,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBookingsByDoctorIdQuery } from "@/store/api";
+import { useGetBookingsByDoctorIdQuery } from "@/store/bookingApi";
 
 const StatsCards: React.FC = () => {
   const { user } = useAuth();

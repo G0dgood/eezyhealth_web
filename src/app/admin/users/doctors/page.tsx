@@ -12,7 +12,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import Image from "next/image";
-import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
+import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { NoRecordFound } from "@/components/Options";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 

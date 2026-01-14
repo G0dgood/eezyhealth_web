@@ -10,7 +10,7 @@ import {
   UserPlus,
   MoreVertical,
 } from "lucide-react";
-import { useGetUsersQuery } from "@/store/api";
+import { useGetUsersQuery } from "@/store/authApi";
 import Link from "next/link";
 
 interface UserData {

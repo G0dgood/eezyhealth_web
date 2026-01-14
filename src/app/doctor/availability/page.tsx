@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useGetDoctorAvailabilityQuery,
   useSaveDoctorAvailabilityMutation,
-} from "@/store/api";
+} from "@/store/doctorFirebaseApi";
 import { showSuccess, showError } from "@/utils/toast";
 import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";

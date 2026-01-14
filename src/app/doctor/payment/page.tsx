@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useGetPaymentsByDoctorIdQuery } from "@/store/api";
+import { useGetPaymentsByDoctorIdQuery } from "@/store/paymentApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { Download, CreditCard } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";

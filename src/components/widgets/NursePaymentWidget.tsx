@@ -9,7 +9,7 @@ import {
   CheckCircle,
   Users,
 } from "lucide-react";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 const NursePaymentWidget: React.FC = () => {
   // Fetch payments data

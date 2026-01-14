@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import FormattedDate from "@/utils/FormattedDate";
 import Modal from "./Modal";
 import { SVGLoader } from "../SVGLoader";
-import { useUpdateUploadStatusMutation } from "@/store/api";
+import { useUpdateUploadStatusMutation } from "@/store/uploadApi";
 
 type DocStatus = "pending" | "approved" | "rejected";
 

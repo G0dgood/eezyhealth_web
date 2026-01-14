@@ -14,7 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useSearchParams } from "next/navigation";
-import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/api";
+import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi";
 import { toast } from "sonner";
 import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";

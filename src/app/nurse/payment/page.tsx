@@ -8,7 +8,7 @@ import SearchInput from "@/components/SearchInput";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 import { toast } from "sonner";
 
 interface Payment {

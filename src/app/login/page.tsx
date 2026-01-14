@@ -15,6 +15,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       await signIn();
+      console.log("User signed in:", signIn);
       // Redirect to dashboard after successful login
       router.push("/dashboard");
     } catch (error) {

@@ -15,8 +15,13 @@ import {
 } from "lucide-react";
 import SearchInput from "@/components/SearchInput";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
-import { getBookingColor, getChannelIcon, monthNames, timeSlots } from "@/components/Options";
-import { useGetBookingsQuery } from "@/store/api";
+import {
+  getBookingColor,
+  getChannelIcon,
+  monthNames,
+  timeSlots,
+} from "@/components/Options";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
 import { showError, showNetworkError } from "@/utils/toast";
 import { toast } from "sonner";

@@ -7,7 +7,7 @@ import Title from "@/components/Title";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
+import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 import DoctorSkeletonLoader from "@/components/skeletons/DoctorSkeletonLoader";
 

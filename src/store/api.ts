@@ -1630,13 +1630,6 @@ export const api = createApi({
             firebaseConstraints.where("doctorId", "==", String(doctorId)),
           ]);
 
-          if (paymentsData.length === 0) {
-            return {
-              data: [],
-              message: "No Payment found for this user.",
-            };
-          }
-
           return { data: paymentsData };
         } catch (error) {
           console.error("Error fetching payments by doctor ID:", error);

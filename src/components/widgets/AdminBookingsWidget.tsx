@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Calendar, Clock, Users, AlertCircle, CheckCircle } from "lucide-react";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 
 interface BookingData {
   id: string;

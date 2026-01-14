@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 import FormattedDate from "@/utils/FormattedDate";
 
 interface Booking {

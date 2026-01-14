@@ -1,9 +1,15 @@
 "use client";
 
 import React from "react";
-import { CreditCard, DollarSign, TrendingUp, Clock, CheckCircle } from "lucide-react";
+import {
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetPaymentsByDoctorIdQuery } from "@/store/api";
+import { useGetPaymentsByDoctorIdQuery } from "@/store/paymentApi";
 
 const PaymentWidget: React.FC = () => {
   const { user } = useAuth();
@@ -19,11 +25,14 @@ const PaymentWidget: React.FC = () => {
     { skip: !doctorId }
   );
 
-  const payments = Array.isArray(paymentsData)
-    ? paymentsData
-    : Array.isArray((paymentsData as { data?: unknown[] })?.data)
-    ? ((paymentsData as { data?: unknown[] }).data as unknown[])
-    : [];
+  const payments =
+    Array.isArray(paymentsData)
+      ? paymentsData
+      : paymentsData &&
+        typeof paymentsData === "object" &&
+        Array.isArray((paymentsData as { data?: unknown[] }).data)
+      ? ((paymentsData as { data?: unknown[] }).data as unknown[])
+      : [];
 
   const toNumber = (value: unknown): number => {
     if (typeof value === "number") return value;
@@ -105,7 +114,7 @@ const PaymentWidget: React.FC = () => {
     })
     .reduce((sum, payment) => sum + payment.amount, 0);
 
-  const formatDate = (dateInput: Date | string | undefined) => {
+  const formatDate = (dateInput: Date | string | null | undefined) => {
     if (!dateInput) return "N/A";
     const date =
       dateInput instanceof Date ? dateInput : new Date(dateInput as string);

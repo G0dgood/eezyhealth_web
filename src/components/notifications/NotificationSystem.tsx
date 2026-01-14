@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-	useSendPatientNotificationMutation,
-	useGetFirebaseBookingsQuery,
-	useGetFirebasePatientsQuery
-} from "@/store/api";
+import { useSendPatientNotificationMutation } from "@/store/notificationApi";
+import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import {
 	Bell,
 	CheckCircle,

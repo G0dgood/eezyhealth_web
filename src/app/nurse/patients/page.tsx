@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import Breadcrumb from "@/components/Breadcrumb";
 import AddPatientModal from "@/components/modals/AddPatientModal";
 import Link from "next/link";
-import { useGetFirebasePatientsQuery } from "@/store/api";
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";

@@ -11,7 +11,7 @@ import {
   MessageSquare,
   Phone,
 } from "lucide-react";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 
 interface Booking {
   id: string;

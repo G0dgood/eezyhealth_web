@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create-admin-user": "node ./scripts/createAdminUser.mjs"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",
@@ -40,6 +41,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "firebase-admin": "^13.6.0",
     "firebase-tools": "^14.14.0",
     "tailwindcss": "^4",
     "typescript": "^5"

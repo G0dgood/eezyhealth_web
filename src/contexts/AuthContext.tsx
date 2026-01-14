@@ -65,6 +65,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log('AuthProvider user:--->', user)
+  console.log('AuthProvider userInfo:--->', userInfo)
+
+
+
   useEffect(() => {
     // Check localStorage for existing user info
     const storedUserInfo = localStorage.getItem("userInfo-eezy-health");

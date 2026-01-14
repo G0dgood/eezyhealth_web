@@ -9,9 +9,9 @@ import {
   TrendingDown,
   DollarSign,
 } from "lucide-react";
-import { useGetUsersQuery } from "@/store/api";
-import { useGetBookingsQuery } from "@/store/api";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetUsersQuery } from "@/store/authApi";
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 const AdminStatsCards: React.FC = () => {
   // Fetch data from admin pages

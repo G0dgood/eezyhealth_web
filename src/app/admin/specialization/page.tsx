@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { SVGLoader } from "@/components/SVGLoader";
 import { SpecializationSkeleton } from "@/components/ui/specialization-skeleton";
-import { useGetDoctorsBySpecializationCountQuery } from "@/store/api";
+import { useGetDoctorsBySpecializationCountQuery } from "@/store/doctorApi";
 
 interface Specialization {
   id: string;

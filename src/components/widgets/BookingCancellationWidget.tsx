@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import {
   useGetBookingCancellationsQuery,
-  useGetBookingCancellationsByDoctorIdQuery
-} from "@/store/api";
+  useGetBookingCancellationsByDoctorIdQuery,
+} from "@/store/bookingCancellationApi";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { getCancellationStatusBadge } from "@/components/Options";

@@ -6,7 +6,7 @@ import Title from "@/components/Title";
 import {
   useGetFirebaseDoctorOfTheMonthQuery,
   useTriggerDoctorOfTheMonthMutation,
-} from "@/store/api";
+} from "@/store/doctorOfMonthApi";
 import {
   collection,
   query,

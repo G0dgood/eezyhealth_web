@@ -10,7 +10,7 @@ import CancellationDetailsModal from "@/components/modals/CancellationDetailsMod
 import {
   useGetBookingCancellationsQuery,
   useRespondToCancellationRequestMutation,
-} from "@/store/api";
+} from "@/store/bookingCancellationApi";
 import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";

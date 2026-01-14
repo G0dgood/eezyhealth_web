@@ -10,7 +10,7 @@ import {
   PaymentHeaderSkeleton,
   PaymentSearchSkeleton,
 } from "@/components/ui/payment-header-skeleton";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 interface PaymentData {
   id: string;

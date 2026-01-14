@@ -59,11 +59,11 @@ export const useAuthLogic = () => {
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
 
       // Navigate based on role
-      if (userData.role === "ADMIN") {
+      if (userData.role === "admin") {
         router.push("/admin");
-      } else if (userData.role === "DOCTOR") {
+      } else if (userData.role === "doctor") {
         router.push("/doctor");
-      } else if (userData.role === "NURSE") {
+      } else if (userData.role === "nurse") {
         router.push("/nurse");
       } else {
         throw new Error("Invalid user role");
@@ -130,11 +130,11 @@ export const useAuthLogic = () => {
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
 
       // Navigate based on role
-      if (userData.role === "ADMIN") {
+      if (userData.role === "admin") {
         router.push("/admin");
-      } else if (userData.role === "DOCTOR") {
+      } else if (userData.role === "doctor") {
         router.push("/doctor");
-      } else if (userData.role === "NURSE") {
+      } else if (userData.role === "nurse") {
         router.push("/nurse");
       } else {
         throw new Error("Invalid user role");

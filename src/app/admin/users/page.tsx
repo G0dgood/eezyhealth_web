@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useGetFirebaseUsersQuery } from "@/store/api";
+import { useGetFirebaseUsersQuery } from "@/store/patientApi";
 import { Mail, Eye, Edit, Trash2 } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
 
   const itemsPerPage = 10;
 
-  // ✅ Use the correct Firebase query
+  // Use the correct Firebase query
   const {
     data: usersData,
     isLoading,
@@ -79,7 +79,9 @@ export default function AdminUsersPage() {
     }
   }, [error, refetch]);
 
-  // ✅ Handle Firebase users structure safely
+
+
+  // Handle Firebase users structure safely
   const dataSource: UserData[] = Array.isArray(usersData)
     ? usersData.map((user: any) => ({
       uid: user.uid || user.id || "",

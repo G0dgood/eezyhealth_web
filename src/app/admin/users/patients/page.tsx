@@ -12,7 +12,7 @@ import {
 import AddPatientModal from "@/components/modals/AddPatientModal";
 import Breadcrumb from "@/components/Breadcrumb";
 import Link from "next/link";
-import { useGetFirebasePatientsQuery } from "@/store/api";
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";

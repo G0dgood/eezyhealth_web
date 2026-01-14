@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CreditCard, TrendingUp, DollarSign, AlertCircle } from "lucide-react";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 interface PaymentData {
   id: string;

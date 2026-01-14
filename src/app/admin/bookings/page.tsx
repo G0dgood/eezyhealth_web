@@ -5,7 +5,7 @@ import { Filter } from "lucide-react";
 import Title from "@/components/Title";
 import FilterModal from "@/components/modals/FilterModal";
 import SearchInput from "@/components/SearchInput";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";

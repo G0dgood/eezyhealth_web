@@ -1,15 +1,15 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useGetFirebasePatientsQuery, useGetFirebaseUsersQuery } from "@/store/patientApi";
 import {
-  useGetFirebasePatientsQuery,
   useGetFirebaseDoctorsQuery,
   useGetFirebaseNurseProfilesQuery,
-  useGetFirebaseBookingsQuery,
-  useGetBookingCancellationsQuery,
-  useGetPaymentsQuery,
-  useGetUsersByRoleQuery
-} from "@/store/api";
+  useGetAuditLogsQuery,
+} from "@/store/doctorFirebaseApi";
+import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
+import { useGetBookingCancellationsQuery } from "@/store/bookingCancellationApi";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 interface BadgeCounts {
   // Users

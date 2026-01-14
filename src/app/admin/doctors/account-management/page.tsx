@@ -6,9 +6,9 @@ import {
 	useGetAuditLogsQuery,
 	useBulkUpdateDoctorStatusMutation,
 	useExportDoctorDataQuery,
-	useSendPatientNotificationMutation,
-	useVerifyDoctorDataQuery
-} from "@/store/api";
+	useVerifyDoctorDataQuery,
+} from "@/store/doctorFirebaseApi";
+import { useSendPatientNotificationMutation } from "@/store/notificationApi";
 import {
 	Shield,
 	Users,

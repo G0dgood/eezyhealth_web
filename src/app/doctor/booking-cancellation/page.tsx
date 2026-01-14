@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/api";
+import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/bookingCancellationApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Breadcrumb from "@/components/Breadcrumb";

@@ -7,7 +7,7 @@ import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Toggle } from "@/components/Toggle";
 import { useUserInfo } from "@/hooks/useUserInfo";
-import { useUpdateUserMutation } from "@/store/api";
+import { useUpdateUserMutation } from "@/store/authApi";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";

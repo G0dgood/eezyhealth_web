@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { toast } from "sonner";
-import { useCreateDoctorAppointmentMutation } from "@/store/api";
+import { useCreateDoctorAppointmentMutation } from "@/store/bookingApi";
 // import axios from "axios";
 import { formatTime } from "@/components/Options";
 import moment from "moment";

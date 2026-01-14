@@ -1,0 +1,140 @@
+import { api } from "./baseApi";
+
+export const paymentApi = api.injectEndpoints({
+  endpoints: (builder) => ({
+    // ===== PAYMENTS MANAGEMENT =====
+    getPayments: builder.query({
+      async queryFn({ limit: limitCount = 10 }) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import(
+            "@/lib/firebase-rtk"
+          );
+
+          const paymentsData = await createFirebaseQuery("payments", [
+            firebaseConstraints.limit(limitCount),
+          ]);
+
+          return { data: paymentsData };
+        } catch (error) {
+          console.error("Error fetching Firebase payments:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["Payment"],
+    }),
+
+    getPaymentsByDoctorId: builder.query({
+      async queryFn({ doctorId }) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import(
+            "@/lib/firebase-rtk"
+          );
+
+          const paymentsData = await createFirebaseQuery("payments", [
+            firebaseConstraints.where("doctorId", "==", String(doctorId)),
+          ]);
+
+          return { data: paymentsData };
+        } catch (error) {
+          console.error("Error fetching payments by doctor ID:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "An error occurred while retrieving Payment.",
+            },
+          };
+        }
+      },
+      providesTags: (_result, _error, { doctorId }) => [
+        { type: "Payment", id: doctorId },
+      ],
+    }),
+
+    createPayment: builder.mutation({
+      async queryFn(paymentData) {
+        try {
+          const { createFirebaseDocument } = await import("@/lib/firebase-rtk");
+
+          const result = await createFirebaseDocument("payments", paymentData);
+
+          return { data: result };
+        } catch (error) {
+          console.error("Error creating payment:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Payment"],
+    }),
+
+    updatePayment: builder.mutation({
+      async queryFn({ id, ...paymentData }) {
+        try {
+          const { updateFirebaseDocument } = await import("@/lib/firebase-rtk");
+          await updateFirebaseDocument("payments", id, paymentData);
+          return { data: { id, ...paymentData } };
+        } catch (error) {
+          console.error("Error updating payment:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Payment"],
+    }),
+
+    deletePayment: builder.mutation({
+      async queryFn(id) {
+        try {
+          const { deleteFirebaseDocument } = await import("@/lib/firebase-rtk");
+          await deleteFirebaseDocument("payments", id);
+          return { data: { id } };
+        } catch (error) {
+          console.error("Error deleting payment:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Payment"],
+    }),
+  }),
+});
+
+export const {
+  useGetPaymentsQuery,
+  useGetPaymentsByDoctorIdQuery,
+  useCreatePaymentMutation,
+  useUpdatePaymentMutation,
+  useDeletePaymentMutation,
+} = paymentApi;

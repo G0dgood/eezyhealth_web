@@ -1,9 +1,19 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Calendar, Clock, Users, AlertCircle, CheckCircle, Stethoscope } from "lucide-react";
-import { useGetBookingsQuery } from "@/store/api";
-import { convertBookingsToStandardFormat, StandardBookingData } from "@/utils/bookingDataConverter";
+import {
+  Calendar,
+  Clock,
+  Users,
+  AlertCircle,
+  CheckCircle,
+  Stethoscope,
+} from "lucide-react";
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import {
+  convertBookingsToStandardFormat,
+  StandardBookingData,
+} from "@/utils/bookingDataConverter";
 
 interface BookingData {
   id: string;
@@ -24,10 +34,10 @@ const NurseBookingsWidget: React.FC = () => {
     const rawBookings = Array.isArray(bookingsData?.bookings)
       ? bookingsData.bookings
       : Array.isArray(bookingsData)
-      ? bookingsData
-      : bookingsData && typeof bookingsData === "object" && Array.isArray((bookingsData as Record<string, unknown>).data)
-      ? (bookingsData as { data: StandardBookingData[] }).data
-      : [];
+        ? bookingsData
+        : bookingsData && typeof bookingsData === "object" && Array.isArray((bookingsData as Record<string, unknown>).data)
+          ? (bookingsData as { data: StandardBookingData[] }).data
+          : [];
 
     try {
       return convertBookingsToStandardFormat(
@@ -104,8 +114,8 @@ const NurseBookingsWidget: React.FC = () => {
       .map((booking) => {
         const appointmentDate = parseBookingDate(
           booking.bookingDate as unknown as
-            | { _seconds?: number; seconds?: number }
-            | string
+          | { _seconds?: number; seconds?: number }
+          | string
         );
         const appointmentDateTime = slotToDateTime(
           appointmentDate,
@@ -123,8 +133,8 @@ const NurseBookingsWidget: React.FC = () => {
           typeof raw.reason === "string"
             ? raw.reason
             : typeof booking.comments?.[0] === "string"
-            ? (booking.comments?.[0] as string)
-            : undefined;
+              ? (booking.comments?.[0] as string)
+              : undefined;
         const hasVitals = Boolean(raw.vital_signs);
         return {
           id: booking.bookingId,
@@ -135,7 +145,7 @@ const NurseBookingsWidget: React.FC = () => {
           appointmentDateTime,
           status: booking.bookingStatus?.toLowerCase?.() ?? "pending",
           hasVitals,
-          reason: derivedReason,
+          reason: derivedReason ?? "",
         };
       })
       .filter(
@@ -150,7 +160,7 @@ const NurseBookingsWidget: React.FC = () => {
           appointmentDateTime: Date;
           status: string;
           hasVitals: boolean;
-          reason?: string;
+          reason: string;
         } => Boolean(booking && booking.appointmentDateTime)
       )
       .filter((booking) => booking.appointmentDateTime >= todayStart)
