@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import Modal from "./Modal";
+import Textarea from "../Textarea";
 
 interface CancelAppointmentModalProps {
   isOpen: boolean;
@@ -65,12 +66,12 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reason for Cancellation (Optional)
           </label>
-          <textarea
+          <Textarea
             rows={3}
             placeholder="Enter reason for cancellation..."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] resize-none"
+            fullWidth
           />
         </div>
 

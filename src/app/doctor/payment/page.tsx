@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useGetPaymentsByDoctorIdQuery } from "@/store/paymentApi";
 import { useAuth } from "@/contexts/AuthContext";
+import Dropdown from "@/components/Dropdown";
 import { Download, CreditCard } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -190,22 +191,25 @@ export default function DoctorPaymentPage() {
         </div>
 
         <div className="flex gap-3">
-          <select
+          <Dropdown
             value={selectedFilters.paymentStatus}
-            onChange={(e) =>
+            onChange={(value) =>
               setSelectedFilters({
                 ...selectedFilters,
-                paymentStatus: e.target.value as DoctorPaymentStatus | "",
+                paymentStatus: value as DoctorPaymentStatus | "",
               })
             }
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-          >
-            <option value="">All Statuses</option>
-            <option value="Completed">Completed</option>
-            <option value="Pending">Pending</option>
-            <option value="Failed">Failed</option>
-            <option value="Refunded">Refunded</option>
-          </select>
+            options={[
+              { value: "", label: "All Statuses" },
+              { value: "Completed", label: "Completed" },
+              { value: "Pending", label: "Pending" },
+              { value: "Failed", label: "Failed" },
+              { value: "Refunded", label: "Refunded" },
+            ]}
+            placeholder="All Statuses"
+            className="w-40"
+            variant="default"
+          />
 
           <button className="flex items-center gap-2 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
             <Download className="w-4 h-4" />

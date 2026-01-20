@@ -74,13 +74,13 @@ const AdminStatsCards: React.FC = () => {
   // Calculate statistics
   const totalUsers = users.length;
   const totalDoctors = users.filter(
-    (user) => (user as { role: string }).role === "DOCTOR"
+    (user) => (user as { role: string }).role === "doctor"
   ).length;
   const totalNurses = users.filter(
-    (user) => (user as { role: string }).role === "NURSE"
+    (user) => (user as { role: string }).role === "nurse"
   ).length;
   const totalPatients = users.filter(
-    (user) => (user as { role: string }).role === "PATIENT"
+    (user) => (user as { role: string }).role === "patient"
   ).length;
   const totalBookings = bookings.length;
   const totalRevenue = payments

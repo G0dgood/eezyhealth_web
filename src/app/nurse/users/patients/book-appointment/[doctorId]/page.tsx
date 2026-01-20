@@ -5,6 +5,8 @@ import { ArrowLeft, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 
 export default function DoctorBookingPage({
   params,
@@ -229,17 +231,17 @@ export default function DoctorBookingPage({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Communication Channel
             </label>
-            <select
+            <Dropdown
               value={selectedChannel}
-              onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer">
-              <option value="">Select Channel</option>
-              {communicationChannels.map((channel) => (
-                <option key={channel} value={channel}>
-                  {channel}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSelectedChannel(value)}
+              options={communicationChannels.map((channel) => ({
+                value: channel,
+                label: channel,
+              }))}
+              placeholder="Select Channel"
+              className="w-full"
+              variant="default"
+            />
           </div>
 
           {/* Available Date */}
@@ -283,10 +285,10 @@ export default function DoctorBookingPage({
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
                     className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${dayData.selected
-                        ? "bg-green-500 text-white"
-                        : dayData.currentMonth
-                          ? "hover:bg-gray-100 text-gray-900"
-                          : "text-gray-400"
+                      ? "bg-green-500 text-white"
+                      : dayData.currentMonth
+                        ? "hover:bg-gray-100 text-gray-900"
+                        : "text-gray-400"
                       }`}>
                     {dayData.day}
                   </button>
@@ -306,8 +308,8 @@ export default function DoctorBookingPage({
                   key={time}
                   onClick={() => setSelectedTime(time)}
                   className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${selectedTime === time
-                      ? "bg-green-500 text-white border-green-500"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    ? "bg-green-500 text-white border-green-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                     }`}>
                   {time}
                 </button>
@@ -320,13 +322,13 @@ export default function DoctorBookingPage({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Reason for consultation
             </label>
-            <textarea
+            <Textarea
               value={consultationReason}
               onChange={(e) => setConsultationReason(e.target.value)}
               placeholder="Reason for consultation"
               rows={3}
               maxLength={200}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
             />
             <div className="text-right text-sm text-gray-500 mt-1">
               {consultationReason.length}/200

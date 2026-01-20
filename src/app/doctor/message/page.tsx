@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Send, MoreVertical, FileText } from "lucide-react";
+import Input from "@/components/Input";
 import { useAuth } from "@/contexts/AuthContext";
 import { showError } from "@/utils/toast";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
@@ -267,13 +268,14 @@ export default function DoctorMessagePage() {
         {/* Search Bar */}
         <div className="p-4 border-b border-gray-200">
           <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
+            <Input
               type="text"
               placeholder="Search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] text-sm"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              startIcon={<Search className="w-4 h-4 text-gray-400" />}
+              fullWidth
+              className="text-sm"
             />
           </div>
         </div>
@@ -354,13 +356,13 @@ export default function DoctorMessagePage() {
                 <div
                   key={message.id}
                   className={`flex ${message.sender === "doctor"
-                      ? "justify-end"
-                      : "justify-start"
+                    ? "justify-end"
+                    : "justify-start"
                     }`}>
                   <div
                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === "doctor"
-                        ? "bg-[#44CE2D] text-white"
-                        : "bg-gray-100 text-gray-900"
+                      ? "bg-[#44CE2D] text-white"
+                      : "bg-gray-100 text-gray-900"
                       }`}>
                     {message.hasAttachment ? (
                       <div className="flex items-center gap-2">
@@ -387,8 +389,8 @@ export default function DoctorMessagePage() {
                     )}
                     <p
                       className={`text-xs mt-1 ${message.sender === "doctor"
-                          ? "text-white opacity-75"
-                          : "text-gray-500"
+                        ? "text-white opacity-75"
+                        : "text-gray-500"
                         }`}>
                       {message.timestamp}
                     </p>
@@ -401,13 +403,13 @@ export default function DoctorMessagePage() {
             <div className="p-4 border-t border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Send a message"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
+                    fullWidth
                   />
                 </div>
                 <button className="p-2 text-gray-400 hover:text-gray-600">

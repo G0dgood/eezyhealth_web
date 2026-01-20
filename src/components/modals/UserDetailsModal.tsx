@@ -6,7 +6,7 @@ interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   address?: string;
   location?: string;
@@ -35,12 +35,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
   const getRoleBadge = (role: string) => {
     const roleColors = {
-      ADMIN: "bg-red-100 text-red-800",
-      DOCTOR: "bg-blue-100 text-blue-800",
-      NURSE: "bg-green-100 text-green-800",
-      PATIENT: "bg-gray-100 text-gray-800",
+      admin: "bg-red-100 text-red-800",
+      doctor: "bg-blue-100 text-blue-800",
+      nurse: "bg-green-100 text-green-800",
+      patient: "bg-gray-100 text-gray-800",
     };
-    return `px-2 py-1 text-xs rounded-full font-medium ${roleColors[role as keyof typeof roleColors] || roleColors.PATIENT}`;
+    return `px-2 py-1 text-xs rounded-full font-medium ${roleColors[role as keyof typeof roleColors] || roleColors.patient}`;
   };
 
   const getStatusBadge = (isActive: boolean) => {

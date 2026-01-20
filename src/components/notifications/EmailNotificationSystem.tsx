@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
 import {
 	Mail,
 	Send,
@@ -407,28 +409,24 @@ EezyHealth Security Team
 						{/* Custom Email Fields */}
 						<div className="space-y-4">
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Custom Subject (if not using template)
-								</label>
-								<input
+								<Input
+									label="Custom Subject (if not using template)"
 									type="text"
 									value={customSubject}
-									onChange={(e) => setCustomSubject(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomSubject(e.target.value)}
 									placeholder="Enter email subject..."
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									fullWidth
 								/>
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
-									Custom Content (if not using template)
-								</label>
-								<textarea
+								<Textarea
+									label="Custom Content (if not using template)"
 									value={customContent}
-									onChange={(e) => setCustomContent(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomContent(e.target.value)}
 									placeholder="Enter email content..."
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 									rows={8}
+									fullWidth
 								/>
 							</div>
 						</div>

@@ -58,7 +58,7 @@ export const patientApi = api.injectEndpoints({
           );
 
           const patientsData = await createFirebaseQuery("users", [
-            firebaseConstraints.where("role", "==", "PATIENT"),
+            firebaseConstraints.where("role", "==", "patient"),
           ]);
 
           return { data: patientsData };

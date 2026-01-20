@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { SVGLoader } from "@/components/SVGLoader";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
 import Image from "next/image";
+import Input from "@/components/Input";
 export default function HomePage() {
   // Use the authentication logic hook
   const {
@@ -20,7 +20,6 @@ export default function HomePage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
-  const [showPassword, setShowPassword] = useState(false);
 
   // Enhanced form handler with validation
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +54,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background - Healthcare/Doctor Images */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
@@ -66,15 +64,12 @@ export default function HomePage() {
       </div>
 
       {/* Header/Navigation Bar */}
-      <div className="relative z-10 flex justify-between items-center p-6">
-        {/* Left - Logo */}
-        <Image src="/logowhite.svg" alt="Logo" width={200} height={200} />
-
-
-      </div>
+      {/* <div className="relative z-10 flex justify-between items-center p-6"> 
+        <Image src="/logowhite.svg" alt="Logo" width={200} height={200} /> 
+      </div> */}
 
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center px-6">
+      <div className="relative z-10 flex items-center justify-center px-4">
         <div className="w-full mt-32 ml-12 flex items-center">
           {/* Left Side - Compact White Card (Like WeTransfer's consent dialog) */}
           <div className="w-full lg:w-2/5 flex justify-center lg:justify-start">
@@ -83,20 +78,20 @@ export default function HomePage() {
               {/* <div className="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center mb-6">
                 <Heart className="w-6 h-6 text-white" />
               </div> */}
-
+              <Image src="/logowhite.svg" alt="Logo" width={200} height={200} />
               {/* Main Text */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                You&apos;re almost there
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Login
               </h1>
 
               {/* Consent/Login Text */}
-              <p className="text-gray-700 mb-6 leading-relaxed">
+              <p className="text-gray-700 mb-6 leading-relaxed text-[12px]">
                 To continue, please sign in to your account or create a new one
                 to access our healthcare management system.
               </p>
 
               {/* Google Sign In Button */}
-              <button
+              {/* <button
                 type="button"
                 onClick={handleSignInWithGoogle}
                 disabled={isLoading}
@@ -120,9 +115,9 @@ export default function HomePage() {
                   />
                 </svg>
                 Sign in with Google
-              </button>
+              </button> */}
 
-              <div className="relative mb-4">
+              {/* <div className="relative mb-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
@@ -131,54 +126,33 @@ export default function HomePage() {
                     Or continue with
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <input
+                  <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.email
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300 hover:border-[#22c55e]"
-                      }`}
+                    variant={errors.email ? "error" : "default"}
+                    helperText={errors.email}
+                    fullWidth
                   />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                  )}
                 </div>
 
                 <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
+                  <Input
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 ${errors.password
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300 hover:border-[#22c55e]"
-                      }`}
+                    variant={errors.password ? "error" : "default"}
+                    helperText={errors.password}
+                    showPasswordToggle={true}
+                    fullWidth
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.password}
-                    </p>
-                  )}
                 </div>
 
                 <button

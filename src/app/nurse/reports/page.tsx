@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import DataTable from "@/components/DataTable";
+import Dropdown from "@/components/Dropdown";
 
 export default function NurseReportsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,11 +69,10 @@ export default function NurseReportsPage() {
         }
       ) => (
         <span
-          className={`px-2 py-1 text-xs rounded-full ${
-            value === "Generated"
+          className={`px-2 py-1 text-xs rounded-full ${value === "Generated"
               ? "bg-green-100 text-green-800"
               : "bg-yellow-100 text-yellow-800"
-          }`}>
+            }`}>
           {value}
         </span>
       ),
@@ -128,25 +128,22 @@ export default function NurseReportsPage() {
               <button
                 key={type.id}
                 onClick={() => setSelectedReport(type.id)}
-                className={`p-4 border-2 rounded-lg transition-colors ${
-                  selectedReport === type.id
+                className={`p-4 border-2 rounded-lg transition-colors ${selectedReport === type.id
                     ? "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
-                }`}>
+                  }`}>
                 <div className="text-center">
                   <Icon
-                    className={`w-8 h-8 mx-auto mb-2 ${
-                      selectedReport === type.id
+                    className={`w-8 h-8 mx-auto mb-2 ${selectedReport === type.id
                         ? "text-green-600"
                         : "text-gray-600"
-                    }`}
+                      }`}
                   />
                   <span
-                    className={`text-sm font-medium ${
-                      selectedReport === type.id
+                    className={`text-sm font-medium ${selectedReport === type.id
                         ? "text-green-700"
                         : "text-gray-700"
-                    }`}>
+                      }`}>
                     {type.label}
                   </span>
                 </div>
@@ -242,24 +239,34 @@ export default function NurseReportsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Report Type
             </label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-              <option>Select Report Type</option>
-              <option>Patient Care Summary</option>
-              <option>Vital Signs Report</option>
-              <option>Appointment Statistics</option>
-              <option>Performance Metrics</option>
-            </select>
+            <Dropdown
+              options={[
+                { value: "", label: "Select Report Type" },
+                { value: "Patient Care Summary", label: "Patient Care Summary" },
+                { value: "Vital Signs Report", label: "Vital Signs Report" },
+                { value: "Appointment Statistics", label: "Appointment Statistics" },
+                { value: "Performance Metrics", label: "Performance Metrics" },
+              ]}
+              placeholder="Select Report Type"
+              className="w-full"
+              variant="default"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date Range
             </label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-              <option>Last 7 days</option>
-              <option>Last 30 days</option>
-              <option>Last 3 months</option>
-              <option>Custom range</option>
-            </select>
+            <Dropdown
+              options={[
+                { value: "Last 7 days", label: "Last 7 days" },
+                { value: "Last 30 days", label: "Last 30 days" },
+                { value: "Last 3 months", label: "Last 3 months" },
+                { value: "Custom range", label: "Custom range" },
+              ]}
+              placeholder="Last 7 days"
+              className="w-full"
+              variant="default"
+            />
           </div>
           <div className="flex items-end">
             <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">

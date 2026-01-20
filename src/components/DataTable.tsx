@@ -48,14 +48,14 @@ export default function DataTable<T = unknown>({
                   <td
                     key={column.key}
                     className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
-                    {column.render
-                      ? column.render(
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          (row as Record<string, any>)[column.key],
-                          row
-                        )
-                      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (row as Record<string, any>)[column.key]}
+                    {(() => {
+                      const cell = (row as Record<string, unknown>)[column.key];
+                      const display =
+                        typeof cell === "number" ? cell : String(cell);
+                      return column.render
+                        ? column.render(display, row)
+                        : display;
+                    })()}
                   </td>
                 ))}
               </tr>

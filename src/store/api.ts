@@ -60,11 +60,66 @@ export const api = createApi({
     }),
 
     updateUser: builder.mutation({
-      query: ({ userId, ...userData }) => ({
-        url: "/updateUser",
-        method: "PUT",
-        body: { userId, ...userData },
-      }),
+      async queryFn({ userId, ...userData }) {
+        try {
+          const { updateFirebaseDocument, getFirebaseInstance } = await import(
+            "@/lib/firebase-rtk"
+          );
+          const { collection, query, where, getDocs, updateDoc } = await import(
+            "firebase/firestore"
+          );
+
+          // 1. Update users collection (Always)
+          await updateFirebaseDocument("users", userId, userData);
+
+          // 2. Handle Role Specific Updates
+          const db = getFirebaseInstance();
+          const role = userData.role;
+
+          if (role === "nurse") {
+            // Update nurseProfiles
+            const q = query(
+              collection(db, "nurseProfiles"),
+              where("nurseId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          } else if (role === "doctor") {
+            // Update doctorProfiles
+            const q = query(
+              collection(db, "doctorProfiles"),
+              where("doctorId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          }
+
+          return { data: { userId, ...userData } };
+        } catch (error) {
+          console.error("Error updating user profile (api.ts):", error);
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to update profile",
+            },
+          };
+        }
+      },
       invalidatesTags: (result, error, { userId }) => [
         { type: "User", id: userId },
       ],
@@ -493,17 +548,17 @@ export const api = createApi({
             "@/lib/firebase-rtk"
           );
 
-          // Get nurse profiles from Firebase users collection where role is NURSE
+          // Get nurse profiles from Firebase users collection where role is nurse
           let nursesData;
           try {
             nursesData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "NURSE"),
+              firebaseConstraints.where("role", "==", "nurse"),
               firebaseConstraints.orderBy("createdTime", "desc"),
             ]);
           } catch (error) {
             // If ordering fails, get nurses without ordering
             nursesData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "NURSE"),
+              firebaseConstraints.where("role", "==", "nurse"),
             ]);
           }
 

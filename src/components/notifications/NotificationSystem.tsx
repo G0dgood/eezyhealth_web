@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSendPatientNotificationMutation } from "@/store/notificationApi";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGetFirebasePatientsQuery } from "@/store/patientApi";
+import Textarea from "@/components/Textarea";
 import {
 	Bell,
 	CheckCircle,
@@ -17,6 +18,7 @@ import {
 	Plus
 } from "lucide-react";
 import { toast } from "sonner";
+import Dropdown from "@/components/Dropdown";
 
 interface NotificationTemplate {
 	id: string;
@@ -374,11 +376,11 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 								<label className="block text-sm font-medium text-gray-700 mb-2">
 									Custom Message
 								</label>
-								<textarea
+								<Textarea
 									value={customMessage}
 									onChange={(e) => setCustomMessage(e.target.value)}
 									placeholder="Enter your custom notification message..."
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									fullWidth
 									rows={4}
 								/>
 							</div>
@@ -409,28 +411,19 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 
 							{/* Multi-select dropdown */}
 							<div className="relative">
-								<select
-									multiple
-									value={selectedPatients}
-									onChange={(e) => {
-										const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-										setSelectedPatients(selectedOptions);
-									}}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
-									size={5}
-								>
-									{allPatients.length > 0 ? (
-										allPatients.map((patient) => (
-											<option key={patient.id} value={patient.id}>
-												{patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} ({patient.email})
-											</option>
-										))
-									) : (
-										<option disabled value="">
-											Loading patients...
-										</option>
-									)}
-								</select>
+								<Dropdown
+							multiple
+							value={selectedPatients}
+							onChange={(value) => setSelectedPatients(value as string[])}
+							options={allPatients.length > 0 ? allPatients.map((patient) => ({
+								value: patient.id,
+								label: `${patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} (${patient.email})`
+							})) : []}
+							placeholder={allPatients.length > 0 ? "Select patients..." : "Loading patients..."}
+							className="w-full"
+							variant="default"
+							disabled={allPatients.length === 0}
+						/>
 							</div>
 
 							{/* Add Patient Dropdown */}
@@ -439,21 +432,22 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 									Add Patient
 								</label>
 								<div className="flex gap-2">
-									<select
+									<Dropdown
 										value={selectedPatientToAdd}
-										onChange={(e) => setSelectedPatientToAdd(e.target.value)}
-										className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-									>
-										<option value="">Select a patient to add...</option>
-										{allPatients
-											.filter(patient => !selectedPatients.includes(patient.id))
-											.map((patient) => (
-												<option key={patient.id} value={patient.id}>
-													{patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} ({patient.email})
-												</option>
-											))
-										}
-									</select>
+										onChange={(value) => setSelectedPatientToAdd(value)}
+										options={[
+											{ value: "", label: "Select a patient to add..." },
+											...allPatients
+												.filter(patient => !selectedPatients.includes(patient.id))
+												.map((patient) => ({
+													value: patient.id,
+													label: `${patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} (${patient.email})`
+												}))
+										]}
+										placeholder="Select a patient to add..."
+										className="flex-1"
+										variant="default"
+									/>
 									<button
 										type="button"
 										onClick={handleAddPatient}

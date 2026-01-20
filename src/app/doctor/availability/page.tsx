@@ -13,6 +13,7 @@ import { showSuccess, showError } from "@/utils/toast";
 import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
+import Dropdown from "@/components/Dropdown";
 
 interface TimeSlot {
   time: string;
@@ -511,15 +512,19 @@ export default function DoctorAvailabilityPage() {
               <label className="text-sm font-medium text-gray-700">
                 Consultation duration:
               </label>
-              <select
+              <Dropdown
                 value={consultationDuration}
-                onChange={(e) => setConsultationDuration(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] bg-white">
-                <option value="15 minutes">15 minutes</option>
-                <option value="30 minutes">30 minutes</option>
-                <option value="45 minutes">45 minutes</option>
-                <option value="1 hour">1 hour</option>
-              </select>
+                onChange={(value) => setConsultationDuration(value)}
+                options={[
+                  { value: "15 minutes", label: "15 minutes" },
+                  { value: "30 minutes", label: "30 minutes" },
+                  { value: "45 minutes", label: "45 minutes" },
+                  { value: "1 hour", label: "1 hour" },
+                ]}
+                placeholder="Select Duration"
+                className="w-48"
+                variant="default"
+              />
             </div>
           </div>
 

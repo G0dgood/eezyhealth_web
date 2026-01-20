@@ -11,6 +11,7 @@ import {
   PaymentSearchSkeleton,
 } from "@/components/ui/payment-header-skeleton";
 import { useGetPaymentsQuery } from "@/store/paymentApi";
+import Dropdown from "@/components/Dropdown";
 
 interface PaymentData {
   id: string;
@@ -106,10 +107,9 @@ export default function AdminPaymentPage() {
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${
-          statusClasses[paymentStatus as keyof typeof statusClasses] ||
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[paymentStatus as keyof typeof statusClasses] ||
           "bg-gray-100 text-gray-800"
-        }`}
+          }`}
       >
         {paymentStatus}
       </span>
@@ -175,17 +175,20 @@ export default function AdminPaymentPage() {
                   placeholder="Search payments..."
                 />
               </div>
-              <select
+              <Dropdown
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-              >
-                <option value="">All Statuses</option>
-                <option value="completed">Completed</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+                onChange={(value) => setSelectedStatus(value)}
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "completed", label: "Completed" },
+                  { value: "pending", label: "Pending" },
+                  { value: "failed", label: "Failed" },
+                  { value: "cancelled", label: "Cancelled" },
+                ]}
+                placeholder="All Statuses"
+                className="w-40"
+                variant="default"
+              />
             </div>
           )}
 
@@ -209,7 +212,7 @@ export default function AdminPaymentPage() {
                   </thead>
                   <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
                     {paginatedPayments?.length === 0 ||
-                    paginatedPayments?.length === undefined ? (
+                      paginatedPayments?.length === undefined ? (
                       <NoRecordFound colSpan={7} />
                     ) : (
                       paginatedPayments?.map(
@@ -249,11 +252,11 @@ export default function AdminPaymentPage() {
                                 ₦{" "}
                                 {typeof payment.amount === "number"
                                   ? formatCurrency(
-                                      payment.amount as number,
-                                      typeof payment.currency === "string"
-                                        ? payment.currency
-                                        : "NGN"
-                                    )
+                                    payment.amount as number,
+                                    typeof payment.currency === "string"
+                                      ? payment.currency
+                                      : "NGN"
+                                  )
                                   : safeRenderField(payment.amount, "N/A")}
                               </div>
                             </td>
@@ -307,11 +310,10 @@ export default function AdminPaymentPage() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === 1
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   Previous
                 </button>
@@ -320,11 +322,10 @@ export default function AdminPaymentPage() {
                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === totalPages
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 text-white hover:bg-green-600"
-                  }`}
+                    }`}
                 >
                   Next
                 </button>

@@ -36,7 +36,7 @@ function AdminLayout({ children }: LayoutProps) {
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
         <div id="page-wrapper">
           <Header
-            userRole="ADMIN"
+            userRole="admin"
             notificationCount={3}
             onMobileMenuToggle={handleMobileMenuToggle}
             onEditClick={handleEditClick}
@@ -44,7 +44,7 @@ function AdminLayout({ children }: LayoutProps) {
             userInfo={userInfo}
           />
           <RoleBasedSidenav
-            userRole="ADMIN"
+            userRole="admin"
             isMobileOpen={isMobileSidenavOpen}
             onMobileClose={handleMobileSidenavClose}
           />

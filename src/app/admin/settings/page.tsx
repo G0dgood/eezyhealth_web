@@ -5,6 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
 import {
   User,
   Bell,
@@ -18,6 +19,9 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Toggle } from "@/components/Toggle";
 import { validateField } from "@/utils/fieldValidation";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 
 export default function AdminSettings() {
@@ -31,7 +35,7 @@ export default function AdminSettings() {
 
   // Function to check if image URL is valid for Next.js Image component
   const isValidImageUrl = (url: string) => {
-    if (!url) return false;
+    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
     // Check if it's a valid HTTP/HTTPS URL
     try {
       const urlObj = new URL(url);
@@ -387,7 +391,7 @@ export default function AdminSettings() {
                     <UserCircle className="w-24 h-24 text-gray-400" />
                   </div>
                 )}
-                <label className="absolute bottom-0 right-0 bg-[#22c55e] text-white p-2 rounded-full cursor-pointer hover:bg-[#1a9f4a] transition-colors">
+                <label className="absolute bottom-0 right-0 bg-[#22c55e] text-white p-2 rounded-full cursor-pointer hover:bg-[#16a34a] transition-colors">
                   <Camera className="w-4 h-4" />
                   <input
                     type="file"
@@ -405,39 +409,30 @@ export default function AdminSettings() {
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Full Name"
+                  required
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     handleProfileDataChange("fullName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.fullName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.fullName}
+                  helperText={profileErrors.fullName}
                   placeholder="Enter your full name"
+                  fullWidth
                 />
-                {profileErrors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.fullName}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Admin ID
-                </label>
-                <input
+                <Input
+                  label="Admin ID"
                   type="text"
                   value={profileData.adminId}
                   onChange={(e) =>
                     handleProfileDataChange("adminId", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
@@ -445,208 +440,169 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Role
                 </label>
-                <select
+                <Dropdown
                   value={profileData.role}
-                  onChange={(e) =>
-                    handleProfileDataChange("role", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("role", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
-                >
-                  <option value="System Administrator">
-                    System Administrator
-                  </option>
-                  <option value="IT Manager">IT Manager</option>
-                  <option value="Security Admin">Security Admin</option>
-                  <option value="User Manager">User Manager</option>
-                  <option value="Data Administrator">Data Administrator</option>
-                </select>
+                  options={[
+                    { value: "System Administrator", label: "System Administrator" },
+                    { value: "IT Manager", label: "IT Manager" },
+                    { value: "Security Admin", label: "Security Admin" },
+                    { value: "User Manager", label: "User Manager" },
+                    { value: "Data Administrator", label: "Data Administrator" },
+                  ]}
+                  placeholder="Select Role"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Email"
+                  required
                   type="email"
                   value={profileData.email}
                   onChange={(e) =>
                     handleProfileDataChange("email", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.email
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.email}
+                  helperText={profileErrors.email}
                   placeholder="Enter your email address"
+                  fullWidth
                 />
-                {profileErrors.email && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.email}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Mobile Number"
+                  required
                   type="tel"
                   value={profileData.mobileNumber}
                   onChange={(e) =>
                     handleProfileDataChange("mobileNumber", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.mobileNumber
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.mobileNumber}
+                  helperText={profileErrors.mobileNumber}
                   placeholder="Enter your mobile number"
+                  fullWidth
                 />
-                {profileErrors.mobileNumber && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.mobileNumber}
-                  </p>
-                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Department
                 </label>
-                <select
+                <Dropdown
                   value={profileData.department}
-                  onChange={(e) =>
-                    handleProfileDataChange("department", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("department", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
-                >
-                  <option value="IT & Administration">
-                    IT & Administration
-                  </option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Quality Assurance">Quality Assurance</option>
-                </select>
+                  options={[
+                    { value: "IT & Administration", label: "IT & Administration" },
+                    { value: "Human Resources", label: "Human Resources" },
+                    { value: "Finance", label: "Finance" },
+                    { value: "Operations", label: "Operations" },
+                    { value: "Quality Assurance", label: "Quality Assurance" },
+                  ]}
+                  placeholder="Select Department"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Access Level
                 </label>
-                <select
+                <Dropdown
                   value={profileData.accessLevel}
-                  onChange={(e) =>
-                    handleProfileDataChange("accessLevel", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("accessLevel", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer"
-                >
-                  <option value="Full Access">Full Access</option>
-                  <option value="Limited Access">Limited Access</option>
-                  <option value="Read Only">Read Only</option>
-                  <option value="User Management">User Management</option>
-                </select>
+                  options={[
+                    { value: "Full Access", label: "Full Access" },
+                    { value: "Limited Access", label: "Limited Access" },
+                    { value: "Read Only", label: "Read Only" },
+                    { value: "User Management", label: "User Management" },
+                  ]}
+                  placeholder="Select Access Level"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
             </div>
 
             {/* Additional Profile Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="First Name"
+                  required
                   type="text"
                   value={profileData.firstName}
                   onChange={(e) =>
                     handleProfileDataChange("firstName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.firstName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.firstName}
+                  helperText={profileErrors.firstName}
                   placeholder="Enter your first name"
+                  fullWidth
                 />
-                {profileErrors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.firstName}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Last Name"
+                  required
                   type="text"
                   value={profileData.lastName}
                   onChange={(e) =>
                     handleProfileDataChange("lastName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.lastName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.lastName}
+                  helperText={profileErrors.lastName}
                   placeholder="Enter your last name"
+                  fullWidth
                 />
-                {profileErrors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.lastName}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Address"
+                  required
                   type="text"
                   value={profileData.address}
                   onChange={(e) =>
                     handleProfileDataChange("address", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.address
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.address}
+                  helperText={profileErrors.address}
                   placeholder="Enter your address"
+                  fullWidth
                 />
-                {profileErrors.address && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.address}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Location"
+                  required
                   type="text"
                   value={profileData.location}
                   onChange={(e) =>
                     handleProfileDataChange("location", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.location
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.location}
+                  helperText={profileErrors.location}
                   placeholder="Enter your location"
+                  fullWidth
                 />
-                {profileErrors.location && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {profileErrors.location}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
-                </label>
-                <input
+                <Input
+                  label="Date of Birth"
                   type="text"
                   value={
                     profileData.dateOfBirth
@@ -661,7 +617,8 @@ export default function AdminSettings() {
                       : ""
                   }
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
               </div>
 
@@ -684,19 +641,14 @@ export default function AdminSettings() {
 
             {/* Bio Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your bio
-              </label>
-              <textarea
+              <Textarea
+                label="Your bio"
                 value={profileData.bio}
                 onChange={(e) => handleProfileDataChange("bio", e.target.value)}
                 rows={4}
                 maxLength={400}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 resize-none"
+                helperText={`${profileData?.bio?.length || 0} characters`}
               />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {profileData?.bio?.length} characters
-              </div>
             </div>
 
             {/* Action Buttons */}
@@ -850,10 +802,10 @@ export default function AdminSettings() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
+                  <Input
                     type="number"
-                    min="5"
-                    max="120"
+                    min={5}
+                    max={120}
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
                       setSecuritySettings({
@@ -861,7 +813,8 @@ export default function AdminSettings() {
                         sessionTimeout: e.target.value,
                       })
                     }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 text-center"
+                    className="w-20 text-center"
+                    fullWidth={false}
                   />
                   <span className="text-sm text-gray-600">minutes</span>
                 </div>
@@ -938,10 +891,8 @@ export default function AdminSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password
-                  </label>
-                  <input
+                  <Input
+                    label="Current Password"
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -951,15 +902,14 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Enter Current Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
-                  </label>
-                  <input
+                  <Input
+                    label="New Password"
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -969,15 +919,14 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
+                  <Input
+                    label="Confirm New Password"
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -987,10 +936,12 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Confirm New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
               </div>
+
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3">

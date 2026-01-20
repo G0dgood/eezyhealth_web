@@ -114,17 +114,12 @@ export default function Header({
                 <Image
                   src={authUserInfo?.photoURL || user?.photoURL || ""}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  {authUserInfo?.displayName?.charAt(0) ||
-                    user?.displayName?.charAt(0) ||
-                    userRole?.charAt(0)}
-                </span>
+                <User className="w-5 h-5 text-gray-500" />
               )}
             </div>
             {/* User info - Hidden on mobile */}

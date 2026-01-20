@@ -33,7 +33,7 @@ export default function LoginPage() {
           <div className="mx-auto h-20 w-20 bg-[#44CE2D] rounded-full flex items-center justify-center">
             <span className="text-white text-2xl font-bold">E</span>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-2xl font-extrabold text-gray-900">
             Welcome to EezyHealth
           </h2>
           <p className="mt-2 text-sm text-gray-600">

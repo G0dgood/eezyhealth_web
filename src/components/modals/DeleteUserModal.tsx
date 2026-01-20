@@ -6,7 +6,7 @@ interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: string;
   first_name?: string;
   last_name?: string;
   deactivatedAt?: string;

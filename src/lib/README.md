@@ -59,7 +59,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
   /{uid}
     email: string
     display_name: string
-    role: "ADMIN" | "DOCTOR" | "NURSE"
+    role: "admin" | "doctor" | "nurse"
     phone_number: string
     address: string
     location: string

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import Input from "@/components/Input";
 
 interface FilterData {
   status: "pending" | "completed" | "cancelled" | "";
@@ -72,37 +73,37 @@ export default function FilterModal({
             <h4 className="text-sm font-medium text-gray-900 mb-3">Status</h4>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="status"
                   value="pending"
                   checked={filters.status === "pending"}
                   onChange={() => handleStatusChange("pending")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Pending</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="status"
                   value="completed"
                   checked={filters.status === "completed"}
                   onChange={() => handleStatusChange("completed")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Completed</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="status"
                   value="cancelled"
                   checked={filters.status === "cancelled"}
                   onChange={() => handleStatusChange("cancelled")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Cancelled</span>
               </label>
@@ -114,37 +115,37 @@ export default function FilterModal({
             <h4 className="text-sm font-medium text-gray-900 mb-3">Channel</h4>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="channel"
                   value="chat"
                   checked={filters.channel === "chat"}
                   onChange={() => handleChannelChange("chat")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Chat</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="channel"
                   value="videoCall"
                   checked={filters.channel === "videoCall"}
                   onChange={() => handleChannelChange("videoCall")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Video Call</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
-                <input
+                <Input
                   type="radio"
                   name="channel"
                   value="voiceCall"
                   checked={filters.channel === "voiceCall"}
                   onChange={() => handleChannelChange("voiceCall")}
-                  className="w-4 h-4 text-[#44CE2D] border-gray-300 focus:ring-[#44CE2D]"
+                  fullWidth={false}
                 />
                 <span className="text-sm text-gray-700">Voice Call</span>
               </label>

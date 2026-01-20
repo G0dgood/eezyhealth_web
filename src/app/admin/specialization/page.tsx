@@ -5,6 +5,8 @@ import { Plus, MoreVertical, Shield, X, AlertCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import {
   getSpecializationCollection,
@@ -86,7 +88,6 @@ export default function AdminSpecializationPage() {
         setSpecializations(data);
       } catch (err) {
         setError("Failed to load specializations");
-        console.error("Error fetching specializations:", err);
       } finally {
         setIsLoading(false);
       }
@@ -179,7 +180,6 @@ export default function AdminSpecializationPage() {
         setError(null);
         toast.success("Specialization created successfully!");
       } catch (error) {
-        console.error("Error creating specialization:", error);
         setError("Failed to create specialization");
         toast.error("Failed to create specialization. Please try again.");
       } finally {
@@ -206,10 +206,10 @@ export default function AdminSpecializationPage() {
           prev?.map((spec) =>
             spec?.id === editingSpecialization?.id
               ? {
-                  ...spec,
-                  name: editingSpecialization?.name,
-                  description: editingSpecialization?.description,
-                }
+                ...spec,
+                name: editingSpecialization?.name,
+                description: editingSpecialization?.description,
+              }
               : spec
           )
         );
@@ -324,11 +324,10 @@ export default function AdminSpecializationPage() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}>
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}>
                   Previous
                 </button>
                 <button
@@ -336,11 +335,10 @@ export default function AdminSpecializationPage() {
                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                  }`}>
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-green-500 text-white hover:bg-green-600"
+                    }`}>
                   Next
                 </button>
               </div>
@@ -357,17 +355,15 @@ export default function AdminSpecializationPage() {
         size="md">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Specialty
-            </label>
-            <input
+            <Input
+              label="Specialty"
               type="text"
               placeholder="Specialty"
               value={newSpecialty.name}
               onChange={(e) =>
                 setNewSpecialty({ ...newSpecialty, name: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              fullWidth
             />
           </div>
 
@@ -375,7 +371,7 @@ export default function AdminSpecializationPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
+            <Textarea
               placeholder="Specialty Description"
               value={newSpecialty.description}
               onChange={(e) =>
@@ -385,7 +381,7 @@ export default function AdminSpecializationPage() {
                 })
               }
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
             />
           </div>
 
@@ -408,10 +404,8 @@ export default function AdminSpecializationPage() {
         size="md">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Specialty Name
-            </label>
-            <input
+            <Input
+              label="Specialty Name"
               type="text"
               placeholder="Specialty Name"
               value={editingSpecialization?.name || ""}
@@ -420,7 +414,7 @@ export default function AdminSpecializationPage() {
                   prev ? { ...prev, name: e.target.value } : null
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              fullWidth
             />
           </div>
 
@@ -428,7 +422,7 @@ export default function AdminSpecializationPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
+            <Textarea
               placeholder="Specialty Description"
               value={editingSpecialization?.description || ""}
               onChange={(e) =>
@@ -437,7 +431,7 @@ export default function AdminSpecializationPage() {
                 )
               }
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
             />
           </div>
 

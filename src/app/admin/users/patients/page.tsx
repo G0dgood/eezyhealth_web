@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import Input from "@/components/Input";
 import AddPatientModal from "@/components/modals/AddPatientModal";
 import Breadcrumb from "@/components/Breadcrumb";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export default function AdminPatientsPage() {
 
   // Use Firebase data if available, otherwise fall back to mock data
   const dataSource = (firebasePatients as unknown as Patient[]) ?? [];
-  
+
   const itemsPerPage = 8;
   const totalPages = Math.ceil((dataSource?.length ?? 0) / itemsPerPage);
 
@@ -120,13 +121,14 @@ export default function AdminPatientsPage() {
 
         <div className="flex items-center justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
+            <Input
               type="text"
               placeholder="Search patient"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent cursor-pointer"
+              startIcon={<Search className="w-5 h-5 text-gray-400" />}
+              fullWidth
+              className="cursor-pointer"
             />
           </div>
 

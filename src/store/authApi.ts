@@ -29,11 +29,141 @@ export const authApi = api.injectEndpoints({
     }),
 
     updateUser: builder.mutation({
-      query: ({ userId, ...userData }) => ({
-        url: "/updateUser",
-        method: "PUT",
-        body: { userId, ...userData },
-      }),
+      async queryFn({ userId, ...userData }) {
+        try {
+          const { updateFirebaseDocument, getFirebaseInstance } = await import(
+            "@/lib/firebase-rtk"
+          );
+          const { collection, query, where, getDocs, updateDoc } = await import(
+            "firebase/firestore"
+          );
+
+          // 1. Update users collection (Always)
+          await updateFirebaseDocument("users", userId, userData);
+
+          // 2. Handle Role Specific Updates
+          const db = getFirebaseInstance();
+          const role = userData.role;
+
+          if (role === "nurse") {
+            // Update nurseProfiles
+            const q = query(
+              collection(db, "nurseProfiles"),
+              where("nurseId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          } else if (role === "doctor") {
+            // Update doctorProfiles
+            const q = query(
+              collection(db, "doctorProfiles"),
+              where("doctorId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          }
+
+          return { data: { userId, ...userData } };
+        } catch (error) {
+          console.error("Error updating user profile:", error);
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error:
+                error instanceof Error ? error.message : "Failed to update profile",
+            },
+          };
+        }
+      },
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "User", id: userId },
+      ],
+    }),
+
+    updateUserProfile: builder.mutation({
+      async queryFn({ userId, ...userData }) {
+        try {
+          const { updateFirebaseDocument, getFirebaseInstance } = await import(
+            "@/lib/firebase-rtk"
+          );
+          const { collection, query, where, getDocs, updateDoc, doc, getDoc } = await import(
+            "firebase/firestore"
+          );
+
+          // 1. Update users collection (Always)
+          await updateFirebaseDocument("users", userId, userData);
+
+          // 2. Handle Role Specific Updates
+          const db = getFirebaseInstance();
+          let role = userData.role;
+
+          // If role is not provided, try to fetch it from the user document
+          if (!role) {
+            try {
+              const userDocRef = doc(db, "users", userId);
+              const userSnap = await getDoc(userDocRef);
+              if (userSnap.exists()) {
+                role = userSnap.data().role;
+              }
+            } catch (err) {
+              console.warn("Could not fetch user role for profile sync:", err);
+            }
+          }
+
+          if (role === "nurse") {
+            // Update nurseProfiles
+            const q = query(
+              collection(db, "nurseProfiles"),
+              where("nurseId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          } else if (role === "doctor") {
+            // Update doctorProfiles
+            const q = query(
+              collection(db, "doctorProfiles"),
+              where("doctorId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const updatePromises = querySnapshot.docs.map((doc) =>
+                updateDoc(doc.ref, userData)
+              );
+              await Promise.all(updatePromises);
+            }
+          }
+
+          return { data: { userId, ...userData } };
+        } catch (error) {
+          console.error("Error updating user profile:", error);
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error:
+                error instanceof Error ? error.message : "Failed to update profile",
+            },
+          };
+        }
+      },
       invalidatesTags: (result, error, { userId }) => [
         { type: "User", id: userId },
       ],
@@ -94,6 +224,7 @@ export const {
   useCreateUserMutation,
   useGetUserByIdQuery,
   useUpdateUserMutation,
+  useUpdateUserProfileMutation,
   useGetUsersQuery,
   useGetUsersByRoleQuery,
   useEmailVerificationMutation,

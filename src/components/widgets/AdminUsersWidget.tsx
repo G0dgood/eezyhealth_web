@@ -19,7 +19,7 @@ interface UserData {
   display_name?: string;
   first_name?: string;
   last_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   isActive?: boolean;
   createdTime?: string;
@@ -60,13 +60,13 @@ const AdminUsersWidget: React.FC = () => {
   // Calculate user statistics
   const totalUsers = users.length;
   const totalDoctors = users.filter(
-    (user: UserData) => user.role === "DOCTOR"
+    (user: UserData) => user.role === "doctor"
   ).length;
   const totalNurses = users.filter(
-    (user: UserData) => user.role === "NURSE"
+    (user: UserData) => user.role === "nurse"
   ).length;
   const totalPatients = users.filter(
-    (user: UserData) => user.role === "PATIENT"
+    (user: UserData) => user.role === "patient"
   ).length;
   const activeUsers = users.filter(
     (user: UserData) => user.isActive !== false
@@ -87,30 +87,32 @@ const AdminUsersWidget: React.FC = () => {
   };
 
   const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "DOCTOR":
-        return <Stethoscope size={16} className="text-green-600" />;
-      case "NURSE":
-        return <UserCheck size={16} className="text-blue-600" />;
-      case "ADMIN":
-        return <Shield size={16} className="text-purple-600" />;
-      case "PATIENT":
-        return <Users size={16} className="text-gray-600" />;
+    const normalizedRole = role.toLowerCase();
+    switch (normalizedRole) {
+      case "doctor":
+        return <Stethoscope size={16} className="text-blue-600" />;
+      case "nurse":
+        return <UserCheck size={16} className="text-green-600" />;
+      case "admin":
+        return <Shield size={16} className="text-red-600" />;
+      case "patient":
+        return <Users size={16} className="text-purple-600" />;
       default:
         return <Users size={16} className="text-gray-600" />;
     }
   };
 
   const getRoleColor = (role: string) => {
-    switch (role) {
-      case "DOCTOR":
-        return "bg-green-100 text-green-800";
-      case "NURSE":
+    const normalizedRole = role.toLowerCase();
+    switch (normalizedRole) {
+      case "admin":
+        return "bg-red-100 text-red-800";
+      case "doctor":
         return "bg-blue-100 text-blue-800";
-      case "ADMIN":
+      case "nurse":
+        return "bg-green-100 text-green-800";
+      case "patient":
         return "bg-purple-100 text-purple-800";
-      case "PATIENT":
-        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }

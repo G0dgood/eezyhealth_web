@@ -4,7 +4,7 @@ import { db } from "@/lib/firebase";
 export const getPatients = async () => {
   try {
 			const usersCollectionRef = collection(db, 'users'); 
-    const q = query(usersCollectionRef, where('role', '==', 'PATIENT'));
+    const q = query(usersCollectionRef, where('role', '==', 'patient'));
     const snapshot = await getDocs(q);
 			const patientsData = snapshot.docs.map(doc => doc.data());
 			

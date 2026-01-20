@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 import { useRouter } from "next/navigation";
-import { User, Bell, Shield, Camera, Moon, Sun } from "lucide-react";
+import { User, Bell, Shield, Camera, Moon, Sun, UserCircle } from "lucide-react";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Toggle } from "@/components/Toggle";
 import { useUserInfo } from "@/hooks/useUserInfo";
-import { useUpdateUserMutation } from "@/store/authApi";
+import { useUpdateUserMutation, useUpdateUserProfileMutation } from "@/store/authApi";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,11 +25,23 @@ export default function NurseSettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
 
+  // Function to check if image URL is valid for Next.js Image component
+  const isValidImageUrl = (url: string) => {
+    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
+    // Check if it's a valid HTTP/HTTPS URL
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
   // Get current user information
   const userInfo = useUserInfo();
 
   // RTK Query mutation for updating user
-  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
 
   // Profile form state - initialize with user data
   const [profileData, setProfileData] = useState({
@@ -104,6 +119,11 @@ export default function NurseSettingsPage() {
     };
   }, [securitySettings.sessionTimeout, signOut, router]);
 
+  // Refs to track last loaded data to prevent overwriting user edits
+  const lastLoadedProfileData = useRef<string>("");
+  const lastLoadedNotificationPrefs = useRef<string>("");
+  const lastLoadedSecuritySettings = useRef<string>("");
+
   // Initialize profile data with user information
   useEffect(() => {
     if (userInfo) {
@@ -118,13 +138,13 @@ export default function NurseSettingsPage() {
         bio: String(userInfo.about || ""),
       };
 
-      // Only update if data has actually changed
-      setProfileData((prev) => {
-        const hasChanged = Object.keys(newProfileData).some(
-          key => prev[key as keyof typeof prev] !== newProfileData[key as keyof typeof newProfileData]
-        );
-        return hasChanged ? newProfileData : prev;
-      });
+      const profileDataStr = JSON.stringify(newProfileData);
+      
+      // Only update if the SOURCE data is different from what we last loaded
+      if (profileDataStr !== lastLoadedProfileData.current) {
+        setProfileData(newProfileData);
+        lastLoadedProfileData.current = profileDataStr;
+      }
 
       // Set profile image if available
       if (userInfo.photo_url || userInfo.image) {
@@ -139,16 +159,22 @@ export default function NurseSettingsPage() {
         userInfo.notification_preferences &&
         typeof userInfo.notification_preferences === "object"
       ) {
-        setNotificationPrefs((prev) => {
-          const newPrefs = {
-            ...prev,
+        const newPrefs = {
+            ...notificationPrefs, // Keep existing defaults for missing keys
             ...(userInfo.notification_preferences as Record<string, unknown>),
-          };
-          const hasChanged = Object.keys(newPrefs).some(
-            key => prev[key as keyof typeof prev] !== newPrefs[key as keyof typeof newPrefs]
-          );
-          return hasChanged ? newPrefs : prev;
-        });
+        };
+        
+        // We need to compare only the parts that come from userInfo
+        const relevantPrefs = userInfo.notification_preferences as Record<string, unknown>;
+        const prefsStr = JSON.stringify(relevantPrefs);
+
+        if (prefsStr !== lastLoadedNotificationPrefs.current) {
+             setNotificationPrefs(prev => ({
+                 ...prev,
+                 ...relevantPrefs
+             }));
+             lastLoadedNotificationPrefs.current = prefsStr;
+        }
       }
 
       // Initialize security settings if available
@@ -160,16 +186,16 @@ export default function NurseSettingsPage() {
           string,
           unknown
         >;
-        setSecuritySettings((prev) => {
-          const newSettings = {
-            ...prev,
-            ...securityData,
-          };
-          const hasChanged = Object.keys(newSettings).some(
-            key => prev[key as keyof typeof prev] !== newSettings[key as keyof typeof newSettings]
-          );
-          return hasChanged ? newSettings : prev;
-        });
+        
+        const securityStr = JSON.stringify(securityData);
+        
+        if (securityStr !== lastLoadedSecuritySettings.current) {
+            setSecuritySettings(prev => ({
+                ...prev,
+                ...securityData
+            }));
+            lastLoadedSecuritySettings.current = securityStr;
+        }
 
         // Set theme preference if available in security settings
         if (
@@ -212,6 +238,7 @@ export default function NurseSettingsPage() {
         hospital: profileData.hospitalClinic,
         about: profileData.bio,
         photo_url: profileImage,
+        role: userInfo.role || "nurse",
         updatedAt: new Date().toISOString(),
       };
 
@@ -230,7 +257,8 @@ export default function NurseSettingsPage() {
 
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Failed to update profile. Please try again.");
+      console.error("Profile update error:", error);
+      toast.error(`Failed to update profile: ${(error as any)?.data?.error || (error as any)?.message || "Unknown error"}`);
     }
   };
 
@@ -376,13 +404,19 @@ export default function NurseSettingsPage() {
             {/* Profile Picture Section */}
             <div className="text-center">
               <div className="relative inline-block">
-                <Image
-                  src={profileImage}
-                  alt="Profile"
-                  width={128}
-                  height={128}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                />
+                {profileImage && isValidImageUrl(profileImage) ? (
+                  <Image
+                    src={profileImage}
+                    alt="Profile"
+                    width={128}
+                    height={128}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
+                    <UserCircle className="w-24 h-24 text-gray-400" />
+                  </div>
+                )}
                 <label className="absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition-colors">
                   <Camera className="w-4 h-4" />
                   <input
@@ -404,13 +438,13 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, fullName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
@@ -418,7 +452,7 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Medical License
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.medicalLicense}
                   onChange={(e) =>
@@ -427,7 +461,7 @@ export default function NurseSettingsPage() {
                       medicalLicense: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
@@ -435,35 +469,38 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Specialization
                 </label>
-                <select
+                <Dropdown
                   value={profileData.specialization}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setProfileData({
                       ...profileData,
-                      specialization: e.target.value,
+                      specialization: value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer"
-                >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                </select>
+                  options={[
+                    { value: "Cardiology", label: "Cardiology" },
+                    { value: "Dermatology", label: "Dermatology" },
+                    { value: "Neurology", label: "Neurology" },
+                    { value: "Pediatrics", label: "Pediatrics" },
+                    { value: "Orthopedics", label: "Orthopedics" },
+                  ]}
+                  placeholder="Select Specialization"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email
                 </label>
-                <input
+                <Input
                   type="email"
                   value={profileData.email}
                   onChange={(e) =>
                     setProfileData({ ...profileData, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
@@ -471,7 +508,7 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Mobile Number
                 </label>
-                <input
+                <Input
                   type="tel"
                   value={profileData.mobileNumber}
                   onChange={(e) =>
@@ -480,7 +517,7 @@ export default function NurseSettingsPage() {
                       mobileNumber: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
@@ -488,7 +525,7 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Years of Experience
                 </label>
-                <input
+                <Input
                   type="number"
                   value={profileData.yearsOfExperience}
                   onChange={(e) =>
@@ -497,7 +534,7 @@ export default function NurseSettingsPage() {
                       yearsOfExperience: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
@@ -505,7 +542,7 @@ export default function NurseSettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Hospital/Clinic
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.hospitalClinic}
                   onChange={(e) =>
@@ -514,7 +551,7 @@ export default function NurseSettingsPage() {
                       hospitalClinic: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
             </div>
@@ -524,14 +561,14 @@ export default function NurseSettingsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your bio
               </label>
-              <textarea
+              <Textarea
                 value={profileData?.bio}
                 onChange={(e) =>
                   setProfileData({ ...profileData, bio: e.target.value })
                 }
                 rows={4}
                 maxLength={400}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                fullWidth
               />
               <div className="text-right text-sm text-gray-500 mt-1">
                 {profileData?.bio?.length} characters
@@ -732,7 +769,7 @@ export default function NurseSettingsPage() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
+                  <Input
                     type="number"
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
@@ -741,7 +778,7 @@ export default function NurseSettingsPage() {
                         sessionTimeout: e.target.value,
                       })
                     }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
+                    className="w-20 text-center"
                   />
                   <span className="text-sm text-gray-600">minutes</span>
                 </div>
@@ -764,7 +801,7 @@ export default function NurseSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -774,7 +811,8 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
 
@@ -782,7 +820,7 @@ export default function NurseSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     New Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -792,7 +830,8 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
 
@@ -800,7 +839,7 @@ export default function NurseSettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm New Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -810,7 +849,8 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
               </div>

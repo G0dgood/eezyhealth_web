@@ -194,17 +194,17 @@ export const doctorFirebaseApi = api.injectEndpoints({
             "@/lib/firebase-rtk"
           );
 
-          // Get nurse profiles from Firebase users collection where role is NURSE
+          // Get nurse profiles from Firebase users collection where role is nurse
           let nursesData;
           try {
             nursesData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "NURSE"),
+              firebaseConstraints.where("role", "==", "nurse"),
               firebaseConstraints.orderBy("createdTime", "desc"),
             ]);
           } catch (error) {
             // If ordering fails, get nurses without ordering
             nursesData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "NURSE"),
+              firebaseConstraints.where("role", "==", "nurse"),
             ]);
           }
 
@@ -507,5 +507,4 @@ export const {
   useBulkUpdateDoctorStatusMutation,
   useExportDoctorDataQuery,
 } = doctorFirebaseApi;
-
 

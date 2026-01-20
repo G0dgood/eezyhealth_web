@@ -12,7 +12,7 @@ import Image from "next/image";
 import { getNavigationItems, NavItem } from "@/utils/navigationItems";
 
 interface RoleBasedSidenavProps {
-  userRole: "NURSE" | "DOCTOR" | "ADMIN";
+  userRole: "nurse" | "doctor" | "admin";
   isMobileOpen: boolean;
   onMobileClose: () => void;
 }
@@ -40,7 +40,7 @@ export default function RoleBasedSidenav({
 
   // Auto-expand dropdown when on sub-pages
   useEffect(() => {
-    if (userRole === "ADMIN" && pathname.startsWith("/admin/users")) {
+    if (userRole === "admin" && pathname.startsWith("/admin/users")) {
       setExpandedItems(prev => new Set(prev).add("users"));
     }
   }, [pathname, userRole]);

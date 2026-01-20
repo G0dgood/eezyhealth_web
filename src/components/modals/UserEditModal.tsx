@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, Calendar, Shield, Save, X } from "lucide-react";
 import Modal from "./Modal";
 import { toast } from "sonner";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 
 interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   address?: string;
   location?: string;
@@ -164,45 +167,37 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </h3>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Display Name
-              </label>
-              <input
+              <Input
+                label="Display Name"
                 type="text"
                 value={formData.display_name || ""}
                 onChange={(e) => handleInputChange("display_name", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.display_name ? "border-red-500" : "border-gray-300"
-                  }`}
+                variant={errors.display_name ? "error" : "default"}
+                helperText={errors.display_name}
                 placeholder="Display Name"
+                fullWidth
               />
-              {errors.display_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.display_name}</p>
-              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
+              <Input
+                label="First Name"
                 type="text"
                 value={formData.first_name || ""}
                 onChange={(e) => handleInputChange("first_name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="First Name"
+                fullWidth
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
+              <Input
+                label="Last Name"
                 type="text"
                 value={formData.last_name || ""}
                 onChange={(e) => handleInputChange("last_name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="Last Name"
+                fullWidth
               />
             </div>
 
@@ -210,29 +205,36 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Role
               </label>
-              <select
-                value={formData.role || "PATIENT"}
-                onChange={(e) => handleInputChange("role", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
-                <option value="PATIENT">Patient</option>
-                <option value="NURSE">Nurse</option>
-                <option value="DOCTOR">Doctor</option>
-                <option value="ADMIN">Admin</option>
-              </select>
+              <Dropdown
+                value={formData.role || "patient"}
+                onChange={(value) => handleInputChange("role", value)}
+                options={[
+                  { value: "patient", label: "Patient" },
+                  { value: "nurse", label: "Nurse" },
+                  { value: "doctor", label: "Doctor" },
+                  { value: "admin", label: "Admin" },
+                ]}
+                placeholder="Select Role"
+                className="w-full"
+                variant="default"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Account Status
               </label>
-              <select
+              <Dropdown
                 value={formData.isActive ? "true" : "false"}
-                onChange={(e) => handleInputChange("isActive", e.target.value === "true")}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${formData.isActive === false ? "border-red-300 bg-red-50" : "border-gray-300"
-                  }`}>
-                <option value="true">Active</option>
-                <option value="false">Deactivated</option>
-              </select>
+                onChange={(value) => handleInputChange("isActive", value === "true")}
+                options={[
+                  { value: "true", label: "Active" },
+                  { value: "false", label: "Deactivated" },
+                ]}
+                placeholder="Select Status"
+                className={`w-full ${formData.isActive === false ? "border-red-300 bg-red-50" : ""}`}
+                variant="default"
+              />
               {formData.isActive === false && (
                 <p className="text-red-600 text-xs mt-1 flex items-center">
                   <Shield className="h-3 w-3 mr-1" />
@@ -242,14 +244,12 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date of Birth
-              </label>
-              <input
+              <Input
+                label="Date of Birth"
                 type="date"
                 value={formData.date_of_birth || ""}
                 onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                fullWidth
               />
             </div>
           </div>
@@ -262,63 +262,53 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </h3>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
+              <Input
+                label="Email *"
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
+                variant={errors.email ? "error" : "default"}
+                helperText={errors.email}
                 placeholder="Email"
                 required
+                fullWidth
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              <input
+              <Input
+                label="Phone Number"
                 type="tel"
                 value={formData.phone_number || ""}
                 onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.phone_number ? "border-red-500" : "border-gray-300"
-                  }`}
+                variant={errors.phone_number ? "error" : "default"}
+                helperText={errors.phone_number}
                 placeholder="Phone Number"
+                fullWidth
               />
-              {errors.phone_number && (
-                <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
-              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Address
               </label>
-              <textarea
+              <Textarea
                 value={formData.address || ""}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="Address"
                 rows={3}
+                fullWidth
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
+              <Input
+                label="Location"
                 type="text"
                 value={formData.location || ""}
                 onChange={(e) => handleInputChange("location", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="City, Country"
+                fullWidth
               />
             </div>
           </div>
@@ -337,15 +327,13 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Deactivated At
-                </label>
-                <input
+                <Input
+                  label="Deactivated At"
                   type="datetime-local"
                   value={formData.deactivatedAt ? new Date(formData.deactivatedAt).toISOString().slice(0, 16) : ""}
                   onChange={(e) => handleInputChange("deactivatedAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                   placeholder="Deactivation Date"
+                  fullWidth
                 />
               </div>
 
@@ -353,15 +341,15 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Deactivation Reason *
                 </label>
-                <textarea
+                <Textarea
                   value={formData.deactivationReason || ""}
                   onChange={(e) => handleInputChange("deactivationReason", e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${errors.deactivationReason ? "border-red-500" : "border-gray-300"
-                    }`}
                   placeholder="Please provide a reason for deactivating this user account..."
                   rows={3}
+                  fullWidth
                   required
                 />
+
                 {errors.deactivationReason && (
                   <p className="text-red-500 text-sm mt-1">{errors.deactivationReason}</p>
                 )}

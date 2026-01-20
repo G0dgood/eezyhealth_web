@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Input from "@/components/Input";
 import {
   Activity,
   Plus,
@@ -81,13 +82,13 @@ export default function NurseVitalSignsPage() {
       {/* Search and Actions */}
       <div className="flex items-center justify-between mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
+          <Input
             type="text"
             placeholder="Search patient vitals..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            icon={<Search className="w-5 h-5 text-gray-400" />}
+            fullWidth
           />
         </div>
 

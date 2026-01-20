@@ -56,7 +56,7 @@ const BookingCancellationWidget: React.FC = () => {
     : ""
   ).toUpperCase();
   const isNurseOrAdmin =
-    normalizedRole === "NURSE" || normalizedRole === "ADMIN";
+    normalizedRole === "nurse" || normalizedRole === "admin";
 
   // Fetch cancellation requests using RTK Query based on user role
   // For nurses: use useGetBookingCancellationsQuery (all cancellations)
@@ -77,7 +77,7 @@ const BookingCancellationWidget: React.FC = () => {
     ? allCancellationsData
     : doctorCancellationsData;
   const viewAllHref =
-    normalizedRole === "DOCTOR"
+    normalizedRole === "doctor"
       ? "/doctor/booking-cancellation"
       : "/nurse/booking-cancellation";
 

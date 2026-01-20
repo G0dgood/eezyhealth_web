@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import Input from "@/components/Input";
 import Breadcrumb from "@/components/Breadcrumb";
 import AddPatientModal from "@/components/modals/AddPatientModal";
 import Link from "next/link";
@@ -94,13 +95,14 @@ export default function NursePatientsPage() {
 
         <div className="flex items-center justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
+            <Input
               type="text"
               placeholder="Search patient"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none cursor-pointer"
+              startIcon={<Search className="w-5 h-5 text-gray-400" />}
+              className="search-input cursor-pointer"
+              fullWidth
             />
             {searchTerm && (
               <button

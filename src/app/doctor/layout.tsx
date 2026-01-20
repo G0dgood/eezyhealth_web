@@ -1,11 +1,15 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditModeContext } from "@/contexts/EditModeContext";
+import Modal from "@/components/modals/Modal";
+import Button from "@/components/Button";
+import { ClipboardList, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,8 +18,59 @@ interface LayoutProps {
 function DoctorLayout({ children }: LayoutProps) {
   const [isMobileSidenavOpen, setIsMobileSidenavOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { user: authUser, userInfo, loading: authLoading, userInfoLoading } = useAuth();
+
   const pathname = usePathname();
-  const { userInfo } = useAuth();
+  const router = useRouter();
+  const [showProfileAlert, setShowProfileAlert] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    // Wait for auth loading to finish
+    if (authLoading) return;
+
+    // If not logged in, do nothing (ProtectedRoute will handle)
+    if (!authUser) return;
+
+    // Use userInfoLoading to determine if we are still syncing
+    if (userInfoLoading) {
+      const toastId = toast.loading("Syncing profile data...");
+      return () => {
+        toast.dismiss(toastId);
+      };
+    }
+
+    // If sync is done but userInfo is missing, it might be a fetch failure or new user
+    // We shouldn't block forever.
+
+    // If we have userInfo, we can proceed with checks
+    if (userInfo) {
+      setIsProfileLoaded(true);
+
+      // Don't show if dismissed or on settings page
+      if (isDismissed || pathname === '/doctor/settings') {
+        setShowProfileAlert(false);
+        return;
+      }
+
+      const user = userInfo as any;
+      // Check if profile is incomplete
+      const isProfileIncomplete = !user.specialization || !user.experience_yrs || !user.hospital || !user.about || !user.title || !user.gender || !user.license;
+
+      if (isProfileIncomplete) {
+        setShowProfileAlert(true);
+        toast.warning("Profile Incomplete", {
+          description: "Please complete your profile to receive patient appointments.",
+          action: {
+            label: "Update",
+            onClick: () => router.push("/doctor/settings"),
+          },
+          duration: 10000, // Show for longer
+        });
+      }
+    }
+  }, [userInfo, pathname, isDismissed, authLoading, router, authUser, userInfoLoading]);
 
   const handleMobileMenuToggle = () => {
     setIsMobileSidenavOpen(!isMobileSidenavOpen);
@@ -41,7 +96,7 @@ function DoctorLayout({ children }: LayoutProps) {
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
         <div id="page-wrapper">
           <Header
-            userRole="DOCTOR"
+            userRole="doctor"
             notificationCount={4}
             onMobileMenuToggle={handleMobileMenuToggle}
             onEditClick={handleEditClick}
@@ -49,7 +104,7 @@ function DoctorLayout({ children }: LayoutProps) {
             userInfo={userInfo}
           />
           <RoleBasedSidenav
-            userRole="DOCTOR"
+            userRole="doctor"
             isMobileOpen={isMobileSidenavOpen}
             onMobileClose={handleMobileSidenavClose}
           />
@@ -59,6 +114,98 @@ function DoctorLayout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
+
+        <Modal
+          isOpen={showProfileAlert}
+          onClose={() => {
+            setShowProfileAlert(false);
+            setIsDismissed(true);
+          }}
+          title="Action Required"
+        >
+          <div className="flex flex-col items-center justify-center p-6 space-y-6">
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-2 ring-4 ring-orange-50">
+              <ClipboardList size={32} />
+            </div>
+
+            <div className="text-center w-full space-y-2">
+              <h4 className="text-xl font-semibold text-gray-900">Profile Incomplete</h4>
+              <p className="text-gray-500 max-w-xs mx-auto text-sm">
+                To ensure you can receive patient appointments, please complete the following details:
+              </p>
+            </div>
+
+            <div className="w-full bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="space-y-3">
+                {!(userInfo as any)?.title && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Title (e.g. Dr.)</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.gender && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Gender</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.license && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Medical License</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.specialization && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Specialization</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.experience_yrs && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Years of Experience</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.hospital && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Hospital/Clinic</span>
+                  </div>
+                )}
+                {!(userInfo as any)?.about && (
+                  <div className="flex items-center text-sm text-gray-700">
+                    <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
+                    <span>Bio</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row w-full gap-3 pt-2">
+              <Button
+                variant="neutral"
+                fullWidth
+                onClick={() => {
+                  setShowProfileAlert(false);
+                  setIsDismissed(true);
+                }}
+              >
+                Remind Me Later
+              </Button>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  setShowProfileAlert(false);
+                  router.push("/doctor/settings");
+                }}
+              >
+                Complete Profile
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </EditModeContext.Provider>
     </ProtectedRoute>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, fetchUserData } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 
 export const useAuthLogic = () => {
   const router = useRouter();
+  const { setUserInfo } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,11 +35,11 @@ export const useAuthLogic = () => {
     if (userInfo) {
       const parsedUserInfo = JSON.parse(userInfo);
       // Redirect based on role
-      if (parsedUserInfo.role === "ADMIN") {
+      if (parsedUserInfo.role === "admin") {
         router.push("/admin");
-      } else if (parsedUserInfo.role === "DOCTOR") {
+      } else if (parsedUserInfo.role === "doctor") {
         router.push("/doctor");
-      } else if (parsedUserInfo.role === "NURSE") {
+      } else if (parsedUserInfo.role === "nurse") {
         router.push("/nurse");
       }
     }
@@ -57,6 +59,9 @@ export const useAuthLogic = () => {
 
       // Store user information locally
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
+
+      // Update global auth context
+      setUserInfo({ ...userData, uid: user.uid } as any);
 
       // Navigate based on role
       if (userData.role === "admin") {
@@ -128,6 +133,9 @@ export const useAuthLogic = () => {
 
       // Store user information locally
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
+
+      // Update global auth context
+      setUserInfo({ ...userData, uid: user.uid } as any);
 
       // Navigate based on role
       if (userData.role === "admin") {

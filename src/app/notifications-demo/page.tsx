@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useNotifications } from "@/contexts/NotificationContext";
+import Dropdown from "@/components/Dropdown";
 import { toast } from "sonner";
 import {
   Bell,
@@ -146,19 +147,23 @@ export default function NotificationsDemoPage() {
 
           <div className="flex items-center space-x-4 mb-4">
             <label className="text-sm font-medium text-gray-700">Type:</label>
-            <select
+            <Dropdown
               value={selectedType}
-              onChange={(e) =>
+              onChange={(value) =>
                 setSelectedType(
-                  e.target.value as "success" | "error" | "warning" | "info"
+                  value as "success" | "error" | "warning" | "info"
                 )
               }
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer">
-              <option value="success">Success</option>
-              <option value="error">Error</option>
-              <option value="warning">Warning</option>
-              <option value="info">Info</option>
-            </select>
+              options={[
+                { value: "success", label: "Success" },
+                { value: "error", label: "Error" },
+                { value: "warning", label: "Warning" },
+                { value: "info", label: "Info" },
+              ]}
+              placeholder="Select Type"
+              className="w-40"
+              variant="default"
+            />
           </div>
 
           <div className="flex space-x-3">
@@ -193,22 +198,20 @@ export default function NotificationsDemoPage() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 rounded-lg border ${
-                    notification.isRead
+                  className={`p-4 rounded-lg border ${notification.isRead
                       ? "bg-gray-50 border-gray-200"
                       : "bg-blue-50 border-blue-200"
-                  }`}>
+                    }`}>
                   <div className="flex items-start space-x-3">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        notification.type === "success"
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${notification.type === "success"
                           ? "bg-green-100"
                           : notification.type === "error"
-                          ? "bg-red-100"
-                          : notification.type === "warning"
-                          ? "bg-yellow-100"
-                          : "bg-blue-100"
-                      }`}>
+                            ? "bg-red-100"
+                            : notification.type === "warning"
+                              ? "bg-yellow-100"
+                              : "bg-blue-100"
+                        }`}>
                       {notification.type === "success" && (
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       )}
@@ -234,11 +237,10 @@ export default function NotificationsDemoPage() {
                           {notification.timestamp}
                         </span>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            notification.isRead
+                          className={`text-xs px-2 py-1 rounded-full ${notification.isRead
                               ? "bg-gray-200 text-gray-700"
                               : "bg-blue-200 text-blue-700"
-                          }`}>
+                            }`}>
                           {notification.isRead ? "Read" : "Unread"}
                         </span>
                       </div>

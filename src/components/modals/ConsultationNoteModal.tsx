@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
+import Textarea from "../Textarea";
 
 interface ConsultationNoteModalProps {
   isOpen: boolean;
@@ -26,15 +27,12 @@ const ConsultationNoteModal: React.FC<ConsultationNoteModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Add Consultation Note" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Consultation Note
-          </label>
-          <textarea
+          <Textarea
+            label="Consultation Note"
             rows={6}
             placeholder="Enter consultation note..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] resize-none"
             required
           />
         </div>

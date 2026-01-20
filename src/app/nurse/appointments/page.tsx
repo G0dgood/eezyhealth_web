@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Calendar, Filter, Plus, Search } from "lucide-react";
 import DataTable from "@/components/DataTable";
+import Input from "@/components/Input";
 
 export default function NurseAppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,14 +90,14 @@ export default function NurseAppointmentsPage() {
 
       {/* Search and Actions */}
       <div className="flex items-center justify-between mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
+        <div className="flex-1 max-w-md">
+          <Input
             type="text"
             placeholder="Search appointments..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            startIcon={<Search className="w-5 h-5 text-gray-400" />}
+            fullWidth
           />
         </div>
 

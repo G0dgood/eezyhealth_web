@@ -5,6 +5,8 @@ import { Eye, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import FormattedDate from "@/utils/FormattedDate";
 import Modal from "./Modal";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
 import { SVGLoader } from "../SVGLoader";
 import { useUpdateUploadStatusMutation } from "@/store/uploadApi";
 
@@ -234,14 +236,14 @@ export default function DocumentReviewModal({
           {pendingDocs.length > 0 && (
             <div className="flex items-center justify-between p-3 bg-[var(--muted)] rounded-lg mb-2">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input
+                <Input
                   type="checkbox"
                   checked={
                     selectedDocs.size === pendingDocs.length &&
                     pendingDocs.length > 0
                   }
                   onChange={toggleSelectAll}
-                  className="w-4 h-4 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                  fullWidth={false}
                 />
                 <span className="text-sm font-medium text-[var(--foreground)]">
                   Select All ({pendingDocs.length} pending)
@@ -276,11 +278,11 @@ export default function DocumentReviewModal({
                   <div className="flex items-center gap-3 mb-2">
                     {/* Checkbox for selection (only for pending docs) */}
                     {doc.status === "pending" && (
-                      <input
+                      <Input
                         type="checkbox"
                         checked={selectedDocs.has(doc.id)}
                         onChange={() => toggleSelection(doc.id)}
-                        className="w-4 h-4 text-[var(--primary)] rounded focus:ring-[var(--primary)]"
+                        fullWidth={false}
                       />
                     )}
                     <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center">
@@ -336,13 +338,12 @@ export default function DocumentReviewModal({
 
                 <div className="ml-4">
                   <span
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${
-                      doc.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : doc.status === "rejected"
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${doc.status === "approved"
+                      ? "bg-green-100 text-green-800"
+                      : doc.status === "rejected"
                         ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
-                    }`}
+                      }`}
                   >
                     {(doc.status ?? "PENDING").toUpperCase()}
                   </span>
@@ -355,13 +356,13 @@ export default function DocumentReviewModal({
                   <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
                     Review Comment for this Document
                   </label>
-                  <textarea
+                  <Textarea
                     value={docComments[doc.id] || ""}
-                    onChange={(e) => updateDocComment(doc.id, e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateDocComment(doc.id, e.target.value)}
                     placeholder="Enter comment for this document..."
                     disabled={isSubmitting}
                     rows={2}
-                    className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] resize-none"
+                    fullWidth
                   />
                 </div>
               )}
@@ -426,13 +427,13 @@ export default function DocumentReviewModal({
               <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
                 General Comment (applies to all selected documents)
               </label>
-              <textarea
+              <Textarea
                 value={reviewComment}
-                onChange={(e) => setReviewComment(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewComment(e.target.value)}
                 placeholder="Enter a general review comment that applies to all selected documents..."
                 disabled={isSubmitting}
                 rows={2}
-                className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)] disabled:bg-[var(--muted)] disabled:text-[var(--muted-foreground)] resize-none"
+                fullWidth
               />
               <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 This comment will be used for documents that don't have

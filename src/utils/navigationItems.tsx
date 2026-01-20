@@ -25,18 +25,20 @@ export interface NavItem {
   roles?: string[];
 }
 
-export const getNavItems = (role: string): NavItem[] => {
+export const getNavItems = (rawRole: string): NavItem[] => {
+  const role = rawRole.toLowerCase();
+
   const baseItems: NavItem[] = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: <Grid3X3 className="w-5 h-5" />,
       href: `/${role.toLowerCase()}`,
-      roles: ["NURSE", "DOCTOR", "ADMIN"],
+      roles: ["nurse", "doctor", "admin"],
     },
   ];
 
-  if (role === "NURSE") {
+  if (role === "nurse") {
     return [
       ...baseItems,
       {
@@ -70,7 +72,7 @@ export const getNavItems = (role: string): NavItem[] => {
         href: `/${role.toLowerCase()}/settings`,
       },
     ];
-  } else if (role === "DOCTOR") {
+  } else if (role === "doctor") {
     return [
       ...baseItems,
       {
@@ -116,7 +118,7 @@ export const getNavItems = (role: string): NavItem[] => {
         href: `/${role.toLowerCase()}/settings`,
       },
     ];
-  } else if (role === "ADMIN") {
+  } else if (role === "admin") {
     return [
       ...baseItems,
       {
@@ -206,14 +208,14 @@ export const getNavItems = (role: string): NavItem[] => {
 
 // Helper function to get navigation items for a specific role
 export const getNavigationItems = (
-  userRole: "NURSE" | "DOCTOR" | "ADMIN"
+  userRole: "nurse" | "doctor" | "admin"
 ): NavItem[] => {
   return getNavItems(userRole);
 };
 
 // Helper function to get all available roles
 export const getAvailableRoles = (): string[] => {
-  return ["NURSE", "DOCTOR", "ADMIN"];
+  return ["nurse", "doctor", "admin"];
 };
 
 // Helper function to check if a role has access to a specific navigation item
@@ -227,7 +229,7 @@ export const hasAccessToNavItem = (
 
 // Helper function to get navigation items filtered by role access
 export const getFilteredNavItems = (
-  userRole: "NURSE" | "DOCTOR" | "ADMIN"
+  userRole: "nurse" | "doctor" | "admin"
 ): NavItem[] => {
   const navItems = getNavItems(userRole);
   return navItems.filter((item) => hasAccessToNavItem(userRole, item));

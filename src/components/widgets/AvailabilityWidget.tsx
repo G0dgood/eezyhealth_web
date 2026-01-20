@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Clock, Calendar, Plus, Edit, Trash2 } from "lucide-react";
+import { Clock, Calendar, Trash2 } from "lucide-react";
+import Input from "@/components/Input";
+import Dropdown from "@/components/Dropdown";
 
 interface TimeSlot {
   id: string;
@@ -145,32 +147,36 @@ const AvailabilityWidget: React.FC = () => {
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h4 className="font-semibold text-gray-900 mb-3">Add New Time Slot</h4>
           <div className="grid grid-cols-3 gap-3">
-            <select
+            <Dropdown
               value={newSlot.day}
-              onChange={(e) => setNewSlot({ ...newSlot, day: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent">
-              <option value="">Select Day</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-              <option value="Sunday">Sunday</option>
-            </select>
-            <input
+              onChange={(value) => setNewSlot({ ...newSlot, day: value })}
+              options={[
+                { value: "", label: "Select Day" },
+                { value: "Monday", label: "Monday" },
+                { value: "Tuesday", label: "Tuesday" },
+                { value: "Wednesday", label: "Wednesday" },
+                { value: "Thursday", label: "Thursday" },
+                { value: "Friday", label: "Friday" },
+                { value: "Saturday", label: "Saturday" },
+                { value: "Sunday", label: "Sunday" },
+              ]}
+              placeholder="Select Day"
+              className="w-full"
+              variant="default"
+            />
+            <Input
               type="time"
               value={newSlot.startTime}
               onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent"
               placeholder="Start Time"
+              fullWidth={false}
             />
-            <input
+            <Input
               type="time"
               value={newSlot.endTime}
               onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent"
               placeholder="End Time"
+              fullWidth={false}
             />
           </div>
           <div className="flex gap-2 mt-3">

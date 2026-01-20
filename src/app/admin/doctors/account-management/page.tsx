@@ -30,6 +30,9 @@ import {
 	Bell,
 	Mail
 } from "lucide-react";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 import NotificationSystem from "@/components/notifications/NotificationSystem";
 import EmailNotificationSystem from "@/components/notifications/EmailNotificationSystem";
 
@@ -312,27 +315,30 @@ const DoctorAccountManagementPage = () => {
 					<div className="flex flex-col md:flex-row gap-4">
 						<div className="flex-1">
 							<div className="relative">
-								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-								<input
+								<Input
 									type="text"
 									placeholder="Search doctors by name, email, or specialization..."
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									icon={<Search className="text-gray-400 h-4 w-4" />}
+									fullWidth
 								/>
 							</div>
 						</div>
 
 						<div className="flex gap-2">
-							<select
+							<Dropdown
 								value={statusFilter}
-								onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-								className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-							>
-								<option value="all">All Status</option>
-								<option value="active">Active Only</option>
-								<option value="inactive">Inactive Only</option>
-							</select>
+								onChange={(value) => setStatusFilter(value as "all" | "active" | "inactive")}
+								options={[
+									{ value: "all", label: "All Status" },
+									{ value: "active", label: "Active Only" },
+									{ value: "inactive", label: "Inactive Only" },
+								]}
+								placeholder="All Status"
+								className="w-40"
+								variant="default"
+							/>
 
 							<button
 								onClick={() => setShowAuditLogs(!showAuditLogs)}
@@ -374,11 +380,10 @@ const DoctorAccountManagementPage = () => {
 									<label className="block text-sm font-medium text-gray-700 mb-2">
 										Reason for action (required)
 									</label>
-									<textarea
+									<Textarea
 										value={bulkActionReason}
 										onChange={(e) => setBulkActionReason(e.target.value)}
 										placeholder="Enter reason for bulk action..."
-										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 										rows={2}
 									/>
 								</div>
@@ -417,7 +422,7 @@ const DoctorAccountManagementPage = () => {
 							<thead className="bg-gray-50">
 								<tr>
 									<th className="px-6 py-3 text-left">
-										<input
+										<Input
 											type="checkbox"
 											checked={selectedDoctors.length === filteredDoctors.length && filteredDoctors.length > 0}
 											onChange={(e) => {
@@ -427,7 +432,7 @@ const DoctorAccountManagementPage = () => {
 													setSelectedDoctors([]);
 												}
 											}}
-											className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+											fullWidth={false}
 										/>
 									</th>
 									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -451,7 +456,7 @@ const DoctorAccountManagementPage = () => {
 								{filteredDoctors.map((doctor: DoctorData) => (
 									<tr key={doctor.uid} className="hover:bg-gray-50">
 										<td className="px-6 py-4 whitespace-nowrap">
-											<input
+											<Input
 												type="checkbox"
 												checked={selectedDoctors.includes(doctor.uid)}
 												onChange={(e) => {
@@ -461,7 +466,7 @@ const DoctorAccountManagementPage = () => {
 														setSelectedDoctors(selectedDoctors.filter(id => id !== doctor.uid));
 													}
 												}}
-												className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+												fullWidth={false}
 											/>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">

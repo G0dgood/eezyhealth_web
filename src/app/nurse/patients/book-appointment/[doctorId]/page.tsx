@@ -20,6 +20,8 @@ import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
 import { BookingConfirmationModal } from "@/components/modals";
 import { DoctorBookingSkeleton } from "@/components/ui/doctor-booking-skeleton";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 
 interface Doctor {
   id: string;
@@ -376,17 +378,20 @@ export default function DoctorBookingPage({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Communication Channel
             </label>
-            <select
+            <Dropdown
               value={selectedChannel}
-              onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer">
-              <option value="">Select Channel</option>
-              {communicationChannels?.map((channel) => (
-                <option key={channel} value={channel}>
-                  {channel}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSelectedChannel(value)}
+              options={[
+                { value: "", label: "Select Channel" },
+                ...(communicationChannels?.map((channel) => ({
+                  value: channel,
+                  label: channel
+                })) || [])
+              ]}
+              placeholder="Select Channel"
+              className="w-full"
+              variant="default"
+            />
           </div>
 
           {/* Available Date */}
@@ -429,15 +434,14 @@ export default function DoctorBookingPage({
                   <button
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                      dayData.selected
-                        ? "bg-green-500 text-white"
-                        : dayData.currentMonth
+                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${dayData.selected
+                      ? "bg-green-500 text-white"
+                      : dayData.currentMonth
                         ? dayData.hasAvailability
                           ? "hover:bg-green-100 text-green-700 border-2 border-green-300"
                           : "hover:bg-gray-100 text-gray-900"
                         : "text-gray-400"
-                    }`}>
+                      }`}>
                     {dayData.day}
                   </button>
                 ))}
@@ -459,13 +463,12 @@ export default function DoctorBookingPage({
                       key={timeSlot}
                       onClick={() => setSelectedTime(timeSlot)}
                       disabled={status !== "available"}
-                      className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${
-                        selectedTime === timeSlot
-                          ? "bg-green-500 text-white border-green-500"
-                          : status === "available"
+                      className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${selectedTime === timeSlot
+                        ? "bg-green-500 text-white border-green-500"
+                        : status === "available"
                           ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
                           : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                      }`}>
+                        }`}>
                       {timeSlot
                         .replace(/_/g, " ")
                         .replace(/([A-Z])/g, " $1")
@@ -482,13 +485,14 @@ export default function DoctorBookingPage({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Reason for consultation
             </label>
-            <textarea
+            <Textarea
               value={consultationReason}
               onChange={(e) => setConsultationReason(e.target.value)}
               placeholder="Reason for consultation"
               rows={3}
               maxLength={500}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
+              className="resize-none"
             />
             <div className="text-right text-sm text-gray-500 mt-1">
               {consultationReason?.length}/500
@@ -499,11 +503,10 @@ export default function DoctorBookingPage({
           <button
             onClick={handleContinue}
             disabled={!selectedDate || !selectedTime || !selectedChannel}
-            className={`w-full py-3 px-6 rounded-lg transition-colors font-medium cursor-pointer ${
-              selectedDate && selectedTime && selectedChannel
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}>
+            className={`w-full py-3 px-6 rounded-lg transition-colors font-medium cursor-pointer ${selectedDate && selectedTime && selectedChannel
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}>
             Continue
           </button>
         </div>

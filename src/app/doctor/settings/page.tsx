@@ -12,15 +12,21 @@ import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Skeleton } from "@/components/ui/skeleton";
 import CustomToggle from "@/components/CustomToggle";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import { useUpdateUserMutation } from "@/store/authApi";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
-  const { userInfo } = useAuth();
+  const { userInfo, setUserInfo } = useAuth();
   const { notificationPrefs, updateNotificationPrefs } = useNotifications();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  // RTK Query Mutation
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   const handleSettingsClick = () => {
     setLoading(true);
@@ -28,7 +34,7 @@ export default function DoctorSettings() {
 
   // Authentication check
   useEffect(() => {
-    if (loading && userInfo && userInfo.role === "DOCTOR") {
+    if (loading && userInfo && userInfo.role?.toLowerCase() === "doctor") {
       router.push("/settings");
       setLoading(false);
     } else if (loading) {
@@ -56,7 +62,7 @@ export default function DoctorSettings() {
 
   // Function to check if image URL is valid for Next.js Image component
   const isValidImageUrl = (url: string) => {
-    if (!url) return false;
+    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
     // Check if it's a valid HTTP/HTTPS URL
     try {
       const urlObj = new URL(url);
@@ -75,21 +81,25 @@ export default function DoctorSettings() {
 
   // Profile form state
   const [profileData, setProfileData] = useState({
-    fullName: userInfo?.display_name || "n/a",
-    doctorId: userInfo?.uid || "n/a",
-    role: userInfo?.role || "n/a",
-    email: userInfo?.email || "n/a",
-    mobileNumber: userInfo?.phone_number || "n/a",
-    department: "n/a",
-    specialization: "n/a",
-    experience: "n/a",
-    bio: "n/a",
-    firstName: userInfo?.first_name || "n/a",
-    lastName: userInfo?.last_name || "n/a",
-    address: userInfo?.address || "n/a",
-    location: userInfo?.location || "n/a",
-    dateOfBirth: userInfo?.date_of_birth || "n/a",
+    fullName: userInfo?.display_name || "",
+    doctorId: userInfo?.uid || "",
+    role: userInfo?.role || "",
+    email: userInfo?.email || "",
+    mobileNumber: userInfo?.phone_number || "",
+    department: "n/a", // This seems unused or static for now
+    specialization: (userInfo as any)?.specialization || "",
+    experience: (userInfo as any)?.experience_yrs || "",
+    bio: (userInfo as any)?.about || "",
+    firstName: userInfo?.first_name || "",
+    lastName: userInfo?.last_name || "",
+    address: userInfo?.address || "",
+    location: userInfo?.location || "",
+    dateOfBirth: userInfo?.date_of_birth || "",
     isActive: userInfo?.isActive || false,
+    hospital: (userInfo as any)?.hospital || "",
+    license: (userInfo as any)?.license || "", // Medical License
+    gender: (userInfo as any)?.gender || "",
+    title: (userInfo as any)?.title || "",
   });
 
   // Sync profileData with userInfo when it changes
@@ -108,6 +118,13 @@ export default function DoctorSettings() {
         location: userInfo.location || prev.location,
         dateOfBirth: userInfo.date_of_birth || prev.dateOfBirth,
         isActive: userInfo.isActive || prev.isActive,
+        specialization: (userInfo as any).specialization || prev.specialization,
+        experience: (userInfo as any).experience_yrs || prev.experience,
+        bio: (userInfo as any).about || prev.bio,
+        hospital: (userInfo as any).hospital || prev.hospital,
+        license: (userInfo as any).license || prev.license,
+        gender: (userInfo as any).gender || prev.gender,
+        title: (userInfo as any).title || prev.title,
       }));
     }
   }, [userInfo]);
@@ -141,15 +158,55 @@ export default function DoctorSettings() {
   };
 
   const handleProfileSave = async () => {
-    try {
-      // Simulate API call to update profile
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
+      return;
+    }
 
-      // Update profile data (in real app, this would call Firebase)
+    try {
+      // Prepare the update data
+      const updateData = {
+        display_name: profileData.fullName,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email,
+        phone_number: profileData.mobileNumber,
+        address: profileData.address,
+        location: profileData.location,
+        specialization: profileData.specialization,
+        experience_yrs: profileData.experience,
+        about: profileData.bio,
+        hospital: profileData.hospital,
+        license: profileData.license,
+        gender: profileData.gender,
+        title: profileData.title,
+        photo_url: profileImage,
+        role: userInfo.role || "doctor",
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update user in database
+      await updateUser({
+        userId: userInfo.uid,
+        ...updateData,
+      }).unwrap();
+
+      // Update localStorage with new data
+      const updatedUserInfo = { ...userInfo, ...updateData };
+      localStorage.setItem(
+        "userInfo-eezy-health",
+        JSON.stringify(updatedUserInfo)
+      );
+      
+      // Update context if possible (optional, but good practice if context doesn't auto-update from localStorage listener)
+      if (setUserInfo) {
+        setUserInfo(updatedUserInfo as any);
+      }
 
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Failed to update profile. Please try again.");
+      console.error("Profile update error:", error);
+      toast.error(`Failed to update profile: ${(error as any)?.data?.error || (error as any)?.message || "Unknown error"}`);
     }
   };
 
@@ -209,7 +266,7 @@ export default function DoctorSettings() {
   };
 
   // Redirect if not authenticated
-  if (!userInfo || userInfo.role !== "DOCTOR") {
+  if (!userInfo || userInfo.role?.toLowerCase() !== "doctor") {
     return null;
   }
 
@@ -314,7 +371,7 @@ export default function DoctorSettings() {
             <div className="text-center">
               <div className="relative inline-block">
                 {profileImage && isValidImageUrl(profileImage) ? (
-                  <img
+                  <Image
                     src={profileImage}
                     alt="Profile"
                     width={128}
@@ -344,10 +401,21 @@ export default function DoctorSettings() {
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                <input
+                <Input
+                  label="Title"
+                  type="text"
+                  value={profileData.title}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, title: e.target.value })
+                  }
+                  fullWidth
+                  placeholder="e.g. Dr., Prof."
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="First Name"
                   type="text"
                   value={profileData.firstName}
                   onChange={(e) =>
@@ -356,132 +424,50 @@ export default function DoctorSettings() {
                       firstName: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
-                <input
+                <Input
+                  label="Last Name"
                   type="text"
                   value={profileData.lastName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, lastName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
+                <Input
+                  label="Full Name"
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, fullName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Doctor ID
-                </label>
-                <input
+                <Input
+                  label="Gender"
                   type="text"
-                  value={profileData.doctorId}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <input
-                  type="text"
-                  value={profileData.role}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={profileData.email}
+                  value={profileData.gender}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, email: e.target.value })
+                    setProfileData({ ...profileData, gender: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
+                  placeholder="e.g. Male, Female"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number
-                </label>
-                <input
-                  type="tel"
-                  value={profileData.mobileNumber}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      mobileNumber: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={profileData.address}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      address: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={profileData.location}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      location: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
-                </label>
-                <input
+                <Input
+                  label="Date of Birth"
                   type="text"
                   value={
                     profileData.dateOfBirth
@@ -496,7 +482,148 @@ export default function DoctorSettings() {
                       : "n/a"
                   }
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, email: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Mobile Number"
+                  type="tel"
+                  value={profileData.mobileNumber}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      mobileNumber: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Doctor ID"
+                  type="text"
+                  value={profileData.doctorId}
+                  disabled
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Role"
+                  type="text"
+                  value={profileData.role}
+                  disabled
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Medical License"
+                  type="text"
+                  value={profileData.license}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, license: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Specialization"
+                  type="text"
+                  value={profileData.specialization}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, specialization: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Experience (Years)"
+                  type="text"
+                  value={profileData.experience}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, experience: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Hospital / Clinic"
+                  type="text"
+                  value={profileData.hospital}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, hospital: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Address"
+                  type="text"
+                  value={profileData.address}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      address: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Location"
+                  type="text"
+                  value={profileData.location}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      location: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Textarea
+                  label="Bio / About"
+                  rows={4}
+                  value={profileData.bio}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, bio: e.target.value })
+                  }
+                  placeholder="Tell us about yourself..."
+                  fullWidth
                 />
               </div>
 
@@ -519,8 +646,9 @@ export default function DoctorSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
-                Save Changes
+                disabled={isUpdating}
+                className={`px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors ${isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                {isUpdating ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -667,10 +795,8 @@ export default function DoctorSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password
-                  </label>
-                  <input
+                  <Input
+                    label="Current Password"
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -680,15 +806,14 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Enter Current Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
-                  </label>
-                  <input
+                  <Input
+                    label="New Password"
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -698,15 +823,14 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
+                  <Input
+                    label="Confirm New Password"
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -716,7 +840,8 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Confirm New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
               </div>
