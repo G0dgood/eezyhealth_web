@@ -8,6 +8,7 @@ import SearchInput from "@/components/SearchInput";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
+import Pagination from "@/components/Pagination";
 import { useGetPaymentsQuery } from "@/store/paymentApi";
 import { toast } from "sonner";
 
@@ -256,39 +257,16 @@ export default function NursePaymentPage() {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalCount={filteredPayments.length}
+                pageSize={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}>
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                    }`}>
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

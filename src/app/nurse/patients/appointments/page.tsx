@@ -126,9 +126,10 @@ export default function NursePatientAppointmentsPage() {
         columns={columns}
         data={currentData}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={currentData.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="appointments"
       />
 
       {/* Vitals Modal */}

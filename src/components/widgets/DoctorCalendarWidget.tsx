@@ -95,29 +95,29 @@ const DoctorCalendarWidget: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
             <Calendar className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">
               Today&apos;s Schedule
             </h3>
-            <p className="text-sm text-gray-500">{formatDate(currentDate)}</p>
+            <p className="text-xs md:text-sm text-gray-500">{formatDate(currentDate)}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigateMonth("prev")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ChevronLeft className="w-4 h-4 text-gray-600" />
           </button>
           <button
             onClick={() => navigateMonth("next")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ChevronRight className="w-4 h-4 text-gray-600" />
           </button>
         </div>
@@ -148,15 +148,14 @@ const DoctorCalendarWidget: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`aspect-square flex items-center justify-center text-xs rounded-lg cursor-pointer transition-colors ${
-                  isCurrentMonth
+                className={`aspect-square flex items-center justify-center text-xs rounded-lg cursor-pointer transition-colors ${isCurrentMonth
                     ? isToday
                       ? "bg-[#44CE2D] text-white font-semibold"
                       : hasBookings
-                      ? "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100"
-                      : "text-gray-900 hover:bg-gray-100"
+                        ? "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100"
+                        : "text-gray-900 hover:bg-gray-100"
                     : "text-gray-400"
-                }`}>
+                  }`}>
                 {isCurrentMonth ? date.getDate() : ""}
               </div>
             );
@@ -172,8 +171,8 @@ const DoctorCalendarWidget: React.FC = () => {
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-            <div className="flex items-center justify-between mb-2">
+            className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-900">
@@ -181,13 +180,13 @@ const DoctorCalendarWidget: React.FC = () => {
                 </span>
               </div>
               <span
-                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                className={`self-start sm:self-auto inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                   booking.status
                 )}`}>
                 {booking.status}
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-700">
@@ -195,14 +194,14 @@ const DoctorCalendarWidget: React.FC = () => {
                 </span>
               </div>
               <span
-                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(
+                className={`self-start sm:self-auto inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(
                   booking.type
                 )}`}>
                 {booking.type}
               </span>
             </div>
-            <div className="mt-1 text-xs text-gray-500">
-              with {booking.doctorName}
+            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+              <span>with {booking.doctorName}</span>
             </div>
           </div>
         ))}
@@ -210,7 +209,7 @@ const DoctorCalendarWidget: React.FC = () => {
 
       {/* Summary */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-1">
               Schedule Summary
@@ -221,7 +220,7 @@ const DoctorCalendarWidget: React.FC = () => {
               pending
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right">
             <div className="text-lg font-bold text-[#44CE2D]">
               {bookings.length} Appointments
             </div>

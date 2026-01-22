@@ -118,9 +118,10 @@ export default function NurseAppointmentsPage() {
         columns={columns}
         data={appointmentsData}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={appointmentsData.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="appointments"
       />
 
       {/* Quick Stats */}

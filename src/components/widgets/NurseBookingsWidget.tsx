@@ -254,63 +254,63 @@ const NurseBookingsWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
-            <Calendar className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Upcoming Appointments</h3>
-            <p className="text-sm text-gray-500">Next patient care schedule</p>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">Upcoming Appointments</h3>
+            <p className="text-xs md:text-sm text-gray-500">Next patient care schedule</p>
           </div>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{totalUpcoming}</div>
-          <div className="text-xs text-gray-600">Total Upcoming</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-blue-600">{totalUpcoming}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Total Upcoming</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{completedVitals}</div>
-          <div className="text-xs text-gray-600">Vitals Done</div>
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-green-600">{completedVitals}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Vitals Done</div>
         </div>
-        <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">{pendingVitals}</div>
-          <div className="text-xs text-gray-600">Pending Vitals</div>
+        <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-yellow-600">{pendingVitals}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Pending Vitals</div>
         </div>
-        <div className="text-center p-3 bg-red-50 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">{urgentCases}</div>
-          <div className="text-xs text-gray-600">Urgent Cases</div>
+        <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-red-600">{urgentCases}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Urgent Cases</div>
         </div>
       </div>
 
       {/* Appointments List */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {displayAppointments.map((appointment, index: number) => (
           <div
             key={appointment.id || `appointment-${index}`}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 md:mb-3 gap-2">
+              <div className="flex items-center gap-2 md:gap-3 overflow-hidden w-full sm:w-auto">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <Users size={16} className="text-blue-600" />
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
                     {appointment.patientName || "Unknown Patient"}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs md:text-sm text-gray-600 truncate">
                     {appointment.doctorName || "Unknown Doctor"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto ml-10 sm:ml-0">
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                  className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
                     appointment.status,
                     appointment.hasVitals
                   )}`}>
@@ -324,7 +324,7 @@ const NurseBookingsWidget: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 md:space-y-2">
               {appointment.appointmentTime ? (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">🕐</span>
@@ -366,20 +366,20 @@ const NurseBookingsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Upcoming Schedule: {totalUpcoming} appointments</span>
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">Upcoming Schedule: {totalUpcoming} appointments</span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Vitals Done: {completedVitals}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Vitals Done: {completedVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600">Pending: {pendingVitals}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600">Urgent: {urgentCases}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Urgent: {urgentCases}</span>
             </div>
           </div>
         </div>

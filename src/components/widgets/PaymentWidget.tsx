@@ -31,13 +31,13 @@ const PaymentWidget: React.FC = () => {
       : paymentsData &&
         typeof paymentsData === "object" &&
         Array.isArray((paymentsData as { data?: unknown[] }).data)
-      ? ((paymentsData as { data?: unknown[] }).data as unknown[])
-      : [];
+        ? ((paymentsData as { data?: unknown[] }).data as unknown[])
+        : [];
 
   const toNumber = (value: unknown): number => {
     if (typeof value === "number") return value;
     if (typeof value === "string") {
-      const parsed = parseFloat(value.replace(/[^0-9.-]+/g, ""));
+      const parsed = parseFloat(value.replace(/,/g, ""));
       return Number.isFinite(parsed) ? parsed : 0;
     }
     return 0;
@@ -130,6 +130,7 @@ const PaymentWidget: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
+      case "success":
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
@@ -143,6 +144,7 @@ const PaymentWidget: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
+      case "success":
         return <CheckCircle size={14} className="text-green-600" />;
       case "pending":
         return <Clock size={14} className="text-yellow-600" />;
@@ -209,87 +211,89 @@ const PaymentWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <CreditCard className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <CreditCard className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Payment Overview</h3>
-            <p className="text-sm text-gray-500">Your practice earnings</p>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">Payment Overview</h3>
+            <p className="text-xs md:text-sm text-gray-500">Your practice earnings</p>
           </div>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-green-600 truncate">
             ₦{totalRevenue.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-600">Total Revenue</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
         </div>
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-blue-600 truncate">
             ₦{thisMonthRevenue.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-600">This Month</div>
+          <div className="text-[10px] md:text-xs text-gray-600">This Month</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">{completedPayments}</div>
-          <div className="text-xs text-gray-600">Completed</div>
+        <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-purple-600 truncate">{completedPayments}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
         </div>
       </div>
 
       {/* Recent Payments List */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {recentPayments.map((payment) => (
           <div
             key={payment.id}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <DollarSign size={16} className="text-green-600" />
+            className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 md:mb-3 gap-2">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="text-green-600 w-4 h-4 md:w-5 md:h-5" />
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
                     ₦{payment.amount.toFixed(2)}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs md:text-sm text-gray-600 truncate">
                     {payment.patientName}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto ml-11 sm:ml-0">
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                  className={`px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
                     payment.status
                   )}`}>
                   {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                 </span>
-                {getStatusIcon(payment.status)}
+                <div className="hidden md:block">
+                  {getStatusIcon(payment.status)}
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="space-y-1 md:space-y-2">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                 <span className="text-xs">💳</span>
-                <span>{payment.paymentMethod}</span>
+                <span className="truncate">{payment.paymentMethod}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                 <span className="text-xs">📅</span>
-                <span>{formatDate(payment.createdTime)}</span>
+                <span className="truncate">{formatDate(payment.createdTime)}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <CreditCard size={14} />
-                <span>
-                  Payment ID: {payment.id ? `${payment.id.slice(0, 8)}...` : "N/A"}
+            <div className="flex items-center justify-between mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-600">
+                <CreditCard size={12} className="md:w-3.5 md:h-3.5" />
+                <span className="truncate">
+                  ID: {payment.id ? `${payment.id.slice(0, 8)}...` : "N/A"}
                 </span>
               </div>
             </div>
@@ -299,11 +303,11 @@ const PaymentWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
           <span className="text-gray-600">
             Pending Payments: {pendingPayments}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               <span className="text-gray-600">Completed: {completedPayments}</span>

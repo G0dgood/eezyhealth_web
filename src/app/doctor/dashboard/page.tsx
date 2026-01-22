@@ -79,7 +79,7 @@ const DoctorDashboard = () => {
           setWidgets(filtered);
           return;
         }
-      } catch {}
+      } catch { }
     }
 
     const defaultWidgets: WidgetMeta[] = [
@@ -204,7 +204,7 @@ const DoctorDashboard = () => {
     isEditing: boolean;
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+      useSortable({ id, disabled: !isEditing });
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -238,11 +238,10 @@ const DoctorDashboard = () => {
               onClick={handleRemoveClick}
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
-              className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${
-                isDarkMode
+              className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${isDarkMode
                   ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
                   : "bg-white"
-              }`}
+                }`}
               aria-label="Remove widget"
               type="button"
               title="Remove widget"
@@ -252,7 +251,7 @@ const DoctorDashboard = () => {
             </button>
           </div>
         )}
-        <div {...attributes} {...listeners}>
+        <div {...attributes} {...(isEditing ? listeners : undefined)}>
           {children}
         </div>
       </div>
@@ -309,47 +308,42 @@ const DoctorDashboard = () => {
           <Skeleton height={40} width={120} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
-          <div className="col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-left-zone">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
+          <div className="col-span-1 md:col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone">
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
                       ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
                       : "bg-white border-[#E5E7EB]"
-                  }`}
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/3 mb-4 ${
-                        isDarkMode
+                      className={`h-4 rounded w-1/3 mb-4 ${isDarkMode
                           ? "bg-[var(--dark-bg-tertiary)]"
                           : "bg-gray-200"
-                      }`}
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
+                        className={`h-8 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
+                        className={`h-8 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded w-2/3 ${
-                          isDarkMode
+                        className={`h-8 rounded w-2/3 ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -357,53 +351,47 @@ const DoctorDashboard = () => {
               ))}
             </div>
           </div>
-          <div className="col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-right-zone">
+          <div className="col-span-1 md:col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone">
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
                       ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
                       : "bg-white border-[#E5E7EB]"
-                  }`}
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/2 mb-4 ${
-                        isDarkMode
+                      className={`h-4 rounded w-1/2 mb-4 ${isDarkMode
                           ? "bg-[var(--dark-bg-tertiary)]"
                           : "bg-gray-200"
-                      }`}
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
+                        className={`h-6 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
+                        className={`h-6 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
+                        className={`h-6 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded w-3/4 ${
-                          isDarkMode
+                        className={`h-6 rounded w-3/4 ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -418,11 +406,10 @@ const DoctorDashboard = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 md:mb-6 gap-2">
         <Title
-          title={`Welcome ${userInfo?.first_name || ""} ${
-            userInfo?.last_name || ""
-          }`}
+          title={`Welcome ${userInfo?.first_name || ""} ${userInfo?.last_name || ""
+            }`}
         />
         <button
           onClick={() => setIsEditing(true)}
@@ -464,18 +451,16 @@ const DoctorDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("right")}
           </div>

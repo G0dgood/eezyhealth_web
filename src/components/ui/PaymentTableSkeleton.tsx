@@ -6,27 +6,27 @@ interface PaymentTableSkeletonProps {
 
 export const PaymentTableSkeleton = ({ rows = 5 }: PaymentTableSkeletonProps) => {
   return (
-    <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+    <div className="bg-[var(--card)] rounded-lg  border border-[var(--border)]">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[var(--border)]">
           <thead className="bg-[var(--muted)]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Patient
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Service
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Amount
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Method
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+              <th >
                 Transaction Id
               </th>
             </tr>

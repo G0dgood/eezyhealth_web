@@ -12,8 +12,7 @@ const NurseStatsCards: React.FC = () => {
       gradient: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
-      description: "Active patients",
-      trend: "+12%",
+      description: "Active patients" 
     },
     {
       title: "Today's Appointments",
@@ -22,8 +21,7 @@ const NurseStatsCards: React.FC = () => {
       gradient: "from-green-500 to-green-600",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
-      description: "Scheduled today",
-      trend: "+3",
+      description: "Scheduled today" 
     },
     {
       title: "Pending Tasks",
@@ -32,8 +30,7 @@ const NurseStatsCards: React.FC = () => {
       gradient: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600",
-      description: "Awaiting completion",
-      trend: "-2",
+      description: "Awaiting completion" 
     },
     {
       title: "Critical Alerts",
@@ -42,13 +39,12 @@ const NurseStatsCards: React.FC = () => {
       gradient: "from-red-500 to-red-600",
       bgColor: "bg-red-50",
       iconColor: "text-red-600",
-      description: "Require attention",
-      trend: "0",
+      description: "Require attention" 
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       {statsData.map((stat, index) => {
         const IconComponent = stat.icon;
         return (
@@ -60,32 +56,23 @@ const NurseStatsCards: React.FC = () => {
               className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
             {/* Content */}
-            <div className="relative p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="relative p-3 md:p-4">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
                 <div
-                  className={`w-10 h-10 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
-                  <IconComponent className={`w-5 h-5 ${stat.iconColor}`} />
+                  className={`w-8 h-8 md:w-10 md:h-10 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                  <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${stat.iconColor}`} />
                 </div>
-                {stat.trend && (
-                  <div className="text-sm font-medium flex items-center gap-1 text-green-600">
-                    {stat.trend.startsWith("+")
-                      ? "↗"
-                      : stat.trend.startsWith("-")
-                      ? "↘"
-                      : "→"}{" "}
-                    {stat.trend}
-                  </div>
-                )}
+                
               </div>
 
-              <div className="mb-2">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">
+              <div className="mb-1 md:mb-2">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
                   {stat.value}
                 </h2>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
                   {stat.title}
                 </h3>
-                <p className="text-xs text-gray-500">{stat.description}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">{stat.description}</p>
               </div>
             </div>
           </div>

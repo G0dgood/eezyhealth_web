@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import moment from "moment";
+import Button from "@/components/Button";
 
 interface Booking {
   id: string;
@@ -21,6 +22,7 @@ interface Booking {
   status: "pending" | "completed" | "cancelled";
   channel: "chat" | "videoCall" | "voiceCall";
 }
+import Pagination from "@/components/Pagination";
 
 export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -209,28 +211,26 @@ export default function BookingsPage() {
 
         <div className="flex space-x-2">
           {/* Refresh Button */}
-          <button
+          <Button
+            variant="neutral"
             onClick={() => {
               toast.info("Refreshing bookings...");
               refetch();
             }}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+            className="flex items-center gap-2 bg-gray-600 text-white hover:bg-gray-700 border-transparent"
           >
             <span>Refresh</span>
-          </button>
+          </Button>
 
           {/* Filter Button */}
-          <button
+          <Button
+            variant={hasActiveFilters ? "primary" : "neutral"}
             onClick={() => setIsFilterModalOpen(true)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
-              hasActiveFilters
-                ? "border-[#44CE2D] bg-[#44CE2D] text-white"
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-            }`}
+            className="flex items-center gap-2"
+            icon={<Filter className="w-4 h-4" />}
           >
-            <Filter className="w-4 h-4" />
             <span>filter</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -379,28 +379,14 @@ export default function BookingsPage() {
       )}
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
+      <div className="mt-6">
+        <Pagination
+          currentPage={currentPage}
+          totalCount={filteredData?.length || 0}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          itemLabel="bookings"
+        />
       </div>
 
       {/* Filter Modal */}

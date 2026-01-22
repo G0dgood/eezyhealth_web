@@ -16,8 +16,8 @@ export default function LoginPage() {
       setError(null);
       await signIn();
       console.log("User signed in:", signIn);
-      // Redirect to dashboard after successful login
-      router.push("/dashboard");
+      // Redirect to home page after successful login where role-based routing happens
+      router.push("/");
     } catch (error) {
       console.error("Login error:", error);
       setError("Failed to sign in. Please try again.");

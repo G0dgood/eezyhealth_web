@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
+import Button from "@/components/Button";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
 import CancellationDetailsModal from "@/components/modals/CancellationDetailsModal";
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { FirebaseBookingCancellation } from "@/types";
+import Pagination from "@/components/Pagination";
 
 export default function AdminBookingCancellationPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -145,11 +147,8 @@ export default function AdminBookingCancellationPage() {
         </div>
 
         {/* Refresh Button */}
-
       </div>
-
       {/* Cancellations Table */}
-
       {isLoading ? (
         <TableSkeleton
           columns={6}
@@ -222,16 +221,18 @@ export default function AdminBookingCancellationPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <button
+                          <Button
                             onClick={() => {
                               setSelectedBooking(
                                 cancellation as unknown as FirebaseBookingCancellation
                               );
                               setIsCancelModalOpen(true);
                             }}
-                            className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-sm cursor-pointer">
+                            className="text-[var(--primary)] hover:text-[var(--primary)]/80 hover:bg-transparent p-0 h-auto font-medium text-sm"
+                            variant="ghost-neutral"
+                          >
                             View Details
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     )
@@ -243,69 +244,14 @@ export default function AdminBookingCancellationPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="bg-[var(--card)] px-4 py-3 border-t border-[var(--border)] flex items-center justify-between sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  Next
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-[var(--muted-foreground)]">
-                    Showing{" "}
-                    <span className="font-medium text-[var(--foreground)]">
-                      {(currentPage - 1) * itemsPerPage + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium text-[var(--foreground)]">
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        filteredData.length
-                      )}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium text-[var(--foreground)]">
-                      {filteredData.length}
-                    </span>{" "}
-                    results
-                  </p>
-                </div>
-                <div>
-                  <nav
-                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                    aria-label="Pagination">
-                    <button
-                      onClick={() =>
-                        setCurrentPage(Math.max(1, currentPage - 1))
-                      }
-                      disabled={currentPage === 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                      <span className="sr-only">Previous</span>
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentPage(Math.min(totalPages, currentPage + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                      <span className="sr-only">Next</span>
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </nav>
-                </div>
-              </div>
+            <div className="bg-[var(--card)] px-4 py-3 border-t border-[var(--border)]">
+              <Pagination
+                currentPage={currentPage}
+                totalCount={filteredData.length}
+                pageSize={itemsPerPage}
+                onPageChange={setCurrentPage}
+                itemLabel="cancellations"
+              />
             </div>
           )}
         </div>

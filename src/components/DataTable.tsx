@@ -1,12 +1,16 @@
 "use client";
 
 import { TableColumn } from "@/types";
+import Pagination from "./Pagination";
 
 interface DataTableProps<T = unknown> {
   columns: TableColumn<T>[];
   data?: T[];
   currentPage?: number;
   totalPages?: number;
+  totalCount?: number;
+  pageSize?: number;
+  itemLabel?: string;
   onPageChange?: (page: number) => void;
   onPrevious?: () => void;
   onNext?: () => void;
@@ -18,6 +22,9 @@ export default function DataTable<T = unknown>({
   data,
   currentPage = 1,
   totalPages = 1,
+  totalCount = 0,
+  pageSize = 10,
+  itemLabel = "items",
   onPageChange,
   onPrevious,
   onNext,
@@ -25,7 +32,7 @@ export default function DataTable<T = unknown>({
 }: DataTableProps<T>) {
   return (
     <div
-      className={`bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-sm ${className}`}>
+      className={`bg-[var(--card)] border border-[var(--border)] rounded-lg  ${className}`}>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -62,29 +69,22 @@ export default function DataTable<T = unknown>({
             ))}
           </tbody>
         </table>
+      {/* Pagination */}
+      {(totalCount > 0 || totalPages > 1) && ( 
+          <Pagination
+            currentPage={currentPage}
+            totalCount={totalCount || totalPages * pageSize}
+            pageSize={pageSize}
+            onPageChange={onPageChange || ((page) => {
+                if (page > currentPage && onNext) onNext();
+                if (page < currentPage && onPrevious) onPrevious();
+            })}
+            itemLabel={itemLabel}
+            className="mt-4"
+          /> 
+      )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="bg-[var(--card)] px-6 py-3 border-t border-[var(--border)] flex items-center justify-between">
-          <div className="text-sm text-[var(--muted-foreground)]">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={onPrevious}
-              disabled={currentPage === 1}
-              className="px-3 py-1 bg-[var(--muted)] text-[var(--muted-foreground)] rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--accent)] transition-colors cursor-pointer">
-              Previous
-            </button>
-            <button
-              onClick={onNext}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-colors cursor-pointer">
-              Next
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

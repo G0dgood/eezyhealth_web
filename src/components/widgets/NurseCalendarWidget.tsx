@@ -95,41 +95,41 @@ const NurseCalendarWidget: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
-            <Calendar className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">
               Today&apos;s Schedule
             </h3>
-            <p className="text-sm text-gray-500">{formatDate(currentDate)}</p>
+            <p className="text-xs md:text-sm text-gray-500">{formatDate(currentDate)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end md:self-auto">
           <button
             onClick={() => navigateMonth("prev")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ChevronLeft className="w-4 h-4 text-gray-600" />
           </button>
           <button
             onClick={() => navigateMonth("next")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ChevronRight className="w-4 h-4 text-gray-600" />
           </button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-medium text-gray-500 py-2">
+              className="text-center text-[10px] md:text-xs font-medium text-gray-500 py-1 md:py-2">
               {day}
             </div>
           ))}
@@ -148,7 +148,7 @@ const NurseCalendarWidget: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`aspect-square flex items-center justify-center text-xs rounded-lg cursor-pointer transition-colors ${
+                className={`aspect-square flex items-center justify-center text-[10px] md:text-xs rounded-lg cursor-pointer transition-colors ${
                   isCurrentMonth
                     ? isToday
                       ? "bg-[#44CE2D] text-white font-semibold"
@@ -165,43 +165,43 @@ const NurseCalendarWidget: React.FC = () => {
       </div>
 
       {/* Today's Bookings */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">
+      <div className="space-y-2 md:space-y-3">
+        <h4 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">
           Today&apos;s Bookings ({bookings.length})
         </h4>
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-            <div className="flex items-center justify-between mb-2">
+            className="p-2 md:p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+            <div className="flex items-center justify-between mb-1.5 md:mb-2">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-900">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
+                <span className="text-xs md:text-sm font-medium text-gray-900">
                   {booking.time}
                 </span>
               </div>
               <span
-                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                className={`inline-flex px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-semibold rounded-full ${getStatusColor(
                   booking.status
                 )}`}>
                 {booking.status}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-700">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <User className="w-3 h-3 md:w-4 md:h-4 text-gray-500 flex-shrink-0" />
+                <span className="text-xs md:text-sm text-gray-700 truncate">
                   {booking.patientName}
                 </span>
               </div>
               <span
-                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(
+                className={`flex-shrink-0 inline-flex px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-semibold rounded-full ${getTypeColor(
                   booking.type
                 )}`}>
                 {booking.type}
               </span>
             </div>
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-1 text-[10px] md:text-xs text-gray-500">
               with {booking.doctorName}
             </div>
           </div>
@@ -209,23 +209,23 @@ const NurseCalendarWidget: React.FC = () => {
       </div>
 
       {/* Summary */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between">
+      <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-200">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-1">
+            <h4 className="text-xs md:text-sm font-semibold text-gray-900 mb-0.5 md:mb-1">
               Schedule Summary
             </h4>
-            <p className="text-xs text-gray-600">
+            <p className="text-[10px] md:text-xs text-gray-600">
               {bookings.filter((b) => b.status === "Confirmed").length}{" "}
               confirmed, {bookings.filter((b) => b.status === "Pending").length}{" "}
               pending
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-lg font-bold text-[#44CE2D]">
+          <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-2">
+            <div className="text-sm md:text-lg font-bold text-[#44CE2D]">
               {bookings.length} Appointments
             </div>
-            <div className="text-xs text-gray-600">Today</div>
+            <div className="text-[10px] md:text-xs text-gray-600">Today</div>
           </div>
         </div>
       </div>

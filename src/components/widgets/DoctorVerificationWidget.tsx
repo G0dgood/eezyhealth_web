@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { UserCheck, Stethoscope, Calendar, AlertCircle } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 interface VerificationRequest {
   name: string;
@@ -44,128 +45,89 @@ export default function DoctorVerificationWidget({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <UserCheck className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Doctor Verification Requests
-              </h3>
-              <p className="text-sm text-gray-500">
-                Pending verification requests
-              </p>
-            </div>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            <UserCheck className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">
+              Doctor Verification Requests
+            </h3>
+            <p className="text-xs md:text-sm text-gray-500">
+              Pending verification requests
+            </p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="overflow-x-auto">
+      <div className="overflow-hidden">
         {requests.length === 0 ? (
-          <div className="px-6 py-8 text-center">
+          <div className="py-8 text-center">
             <div className="flex flex-col items-center space-y-3">
               <UserCheck className="w-12 h-12 text-gray-300" />
               <p className="text-gray-500 text-sm">No verification requests pending</p>
             </div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Specialization
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedRequests.map((request, index) => (
-                <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                          <Stethoscope className="w-4 h-4 text-orange-600" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {request.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900">
+          <div className="flex flex-col gap-3">
+            {paginatedRequests.map((request, index) => (
+              <div 
+                key={index} 
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3 border border-gray-100"
+              >
+                {/* User Info */}
+                <div className="flex items-center gap-3 overflow-hidden flex-1">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Stethoscope className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">
+                      {request.name}
+                    </h4>
+                    <p className="text-xs md:text-sm text-gray-500 truncate">
                       {request.specialization}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">
-                        {request.date}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        request.status
-                      )}`}>
-                      {request.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date and Status */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto border-t sm:border-t-0 border-gray-200 pt-2 sm:pt-0 mt-1 sm:mt-0">
+                  <div className="flex items-center text-gray-500 text-xs md:text-sm whitespace-nowrap">
+                    <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-1.5" />
+                    {request.date}
+                  </div>
+                  <span
+                    className={`flex-shrink-0 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                      request.status
+                    )}`}>
+                    {request.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
+      {/* Pagination */}
+      {totalPages > 1 && ( 
+          <Pagination
+            currentPage={currentPage}
+            totalCount={requests.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="requests"
+            className="mt-4"
+          /> 
+      )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm text-gray-500 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer hover:text-gray-700 transition-colors">
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer transition-colors">
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer with total count */}
       {requests.length > 0 && (
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 py-3 md:mx-[-1.5rem] md:mb-[-1.5rem] md:px-6 md:rounded-b-lg">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
               {requests.length} request{requests.length !== 1 ? 's' : ''} pending

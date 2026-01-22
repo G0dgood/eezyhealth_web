@@ -37,6 +37,13 @@ const NursePaymentWidget: React.FC = () => {
     })
     .slice(0, 5);
 
+  // Helper to parse amount string "10,000" -> 10000
+  const parseAmount = (amountStr: string | number | undefined) => {
+    if (typeof amountStr === 'number') return amountStr;
+    if (!amountStr) return 0;
+    return parseFloat(amountStr.replace(/,/g, ''));
+  };
+
   // Calculate payment statistics
   const totalRevenue = (payments || [])
     .filter(
@@ -44,7 +51,7 @@ const NursePaymentWidget: React.FC = () => {
         payment?.paymentStatus === "completed" || payment?.status === "success"
     )
     .reduce(
-      (sum: number, payment: any) => sum + (Number(payment?.amount) || 0),
+      (sum: number, payment: any) => sum + parseAmount(payment?.amount),
       0
     );
 
@@ -160,80 +167,76 @@ const NursePaymentWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <CreditCard className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <CreditCard className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">
               Payment Overview
             </h3>
-            <p className="text-sm text-gray-500">Clinic payment status</p>
+            <p className="text-xs md:text-sm text-gray-500">Clinic payment status</p>
           </div>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-green-600">
             ₦{totalRevenue.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-600">Total Revenue</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
         </div>
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-blue-600">
             {completedPayments}
           </div>
-          <div className="text-xs text-gray-600">Completed</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
         </div>
-        <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">
+        <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-yellow-600">
             {pendingPayments}
           </div>
-          <div className="text-xs text-gray-600">Pending</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-purple-600">
             {todayPayments}
           </div>
-          <div className="text-xs text-gray-600">Today</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Today</div>
         </div>
       </div>
 
       {/* Recent Payments List */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {recentPayments?.map((payment: any) => (
           <div
             key={payment?.id}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+            className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <div className="flex items-start justify-between mb-2 md:mb-3">
+              <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <DollarSign size={16} className="text-green-600" />
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">
-                    ₦
-                    {(typeof payment?.amount === "number"
-                      ? payment?.amount
-                      : parseFloat(payment?.amount) || 0
-                    ).toFixed(2)}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
+                    ₦{parseAmount(payment?.amount).toFixed(2)}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs md:text-sm text-gray-600 truncate">
                     {payment?.patientName ||
                       payment?.patient_name ||
                       "Unknown Patient"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                  className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
                     payment
                   )}`}
                 >
@@ -243,23 +246,23 @@ const NursePaymentWidget: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 md:space-y-2">
               {payment?.doctor_name && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-xs">👨‍⚕️</span>
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                  <span className="text-[10px] md:text-xs">👨‍⚕️</span>
                   <span>{payment?.doctor_name}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="text-xs">💳</span>
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                <span className="text-[10px] md:text-xs">💳</span>
                 <span>
                   {payment?.paymentMethod ||
                     payment?.payment_method ||
                     "Card Payment"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="text-xs">📅</span>
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                <span className="text-[10px] md:text-xs">📅</span>
                 <span>
                   {formatDate(
                     payment?.createdAt ||
@@ -269,15 +272,15 @@ const NursePaymentWidget: React.FC = () => {
                 </span>
               </div>
               {payment?.bookingDate && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-xs">📋</span>
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                  <span className="text-[10px] md:text-xs">📋</span>
                   <span>Appointment: {formatDate(payment?.bookingDate)}</span>
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-xs text-gray-600">
+              <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-600">
                 <CreditCard size={14} />
                 <span>
                   Ref:{" "}
@@ -288,7 +291,7 @@ const NursePaymentWidget: React.FC = () => {
                   ...
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-500">
                 <Users size={12} />
                 <span>{payment?.currency || "NGN"}</span>
               </div>
@@ -299,24 +302,24 @@ const NursePaymentWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Clinic Revenue: ₦{totalRevenue.toFixed(2)}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-xs md:text-sm">
                 Completed: {completedPayments}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600">Pending: {pendingPayments}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingPayments}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              <span className="text-gray-600">Today: {todayPayments}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Today: {todayPayments}</span>
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export const authApi = api.injectEndpoints({
     updateUser: builder.mutation({
       async queryFn({ userId, ...userData }) {
         try {
-          const { updateFirebaseDocument, getFirebaseInstance } = await import(
+          const { updateFirebaseDocument, setFirebaseDocument, getFirebaseInstance } = await import(
             "@/lib/firebase-rtk"
           );
           const { collection, query, where, getDocs, updateDoc } = await import(
@@ -39,7 +39,8 @@ export const authApi = api.injectEndpoints({
           );
 
           // 1. Update users collection (Always)
-          await updateFirebaseDocument("users", userId, userData);
+          // Use setFirebaseDocument (upsert) to create the document if it doesn't exist
+          await setFirebaseDocument("users", userId, userData);
 
           // 2. Handle Role Specific Updates
           const db = getFirebaseInstance();
@@ -95,19 +96,28 @@ export const authApi = api.injectEndpoints({
     updateUserProfile: builder.mutation({
       async queryFn({ userId, ...userData }) {
         try {
-          const { updateFirebaseDocument, getFirebaseInstance } = await import(
+          const { updateFirebaseDocument, setFirebaseDocument, getFirebaseInstance } = await import(
             "@/lib/firebase-rtk"
           );
           const { collection, query, where, getDocs, updateDoc, doc, getDoc } = await import(
             "firebase/firestore"
           );
 
+          // Remove undefined values from userData to prevent Firestore errors
+          const cleanUserData = Object.entries(userData).reduce((acc, [key, value]) => {
+            if (value !== undefined) {
+              acc[key] = value;
+            }
+            return acc;
+          }, {} as Record<string, any>);
+
           // 1. Update users collection (Always)
-          await updateFirebaseDocument("users", userId, userData);
+          // Use setFirebaseDocument (upsert) to create the document if it doesn't exist
+          await setFirebaseDocument("users", userId, cleanUserData);
 
           // 2. Handle Role Specific Updates
           const db = getFirebaseInstance();
-          let role = userData.role;
+          let role = cleanUserData.role;
 
           // If role is not provided, try to fetch it from the user document
           if (!role) {
@@ -123,36 +133,46 @@ export const authApi = api.injectEndpoints({
           }
 
           if (role === "nurse") {
-            // Update nurseProfiles
-            const q = query(
-              collection(db, "nurseProfiles"),
-              where("nurseId", "==", userId)
-            );
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-              const updatePromises = querySnapshot.docs.map((doc) =>
-                updateDoc(doc.ref, userData)
+            try {
+              // Update nurseProfiles
+              const q = query(
+                collection(db, "nurseProfiles"),
+                where("nurseId", "==", userId)
               );
-              await Promise.all(updatePromises);
+              const querySnapshot = await getDocs(q);
+
+              if (!querySnapshot.empty) {
+                const updatePromises = querySnapshot.docs.map((doc) =>
+                  updateDoc(doc.ref, cleanUserData)
+                );
+                await Promise.all(updatePromises);
+              }
+            } catch (err) {
+              console.error("Error updating nurse profile:", err);
+              // Don't fail the whole request if role update fails
             }
           } else if (role === "doctor") {
-            // Update doctorProfiles
-            const q = query(
-              collection(db, "doctorProfiles"),
-              where("doctorId", "==", userId)
-            );
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-              const updatePromises = querySnapshot.docs.map((doc) =>
-                updateDoc(doc.ref, userData)
+            try {
+              // Update doctorProfiles
+              const q = query(
+                collection(db, "doctorProfiles"),
+                where("doctorId", "==", userId)
               );
-              await Promise.all(updatePromises);
+              const querySnapshot = await getDocs(q);
+
+              if (!querySnapshot.empty) {
+                const updatePromises = querySnapshot.docs.map((doc) =>
+                  updateDoc(doc.ref, cleanUserData)
+                );
+                await Promise.all(updatePromises);
+              }
+            } catch (err) {
+              console.error("Error updating doctor profile:", err);
+              // Don't fail the whole request if role update fails
             }
           }
 
-          return { data: { userId, ...userData } };
+          return { data: { userId, ...cleanUserData } };
         } catch (error) {
           console.error("Error updating user profile:", error);
           return {

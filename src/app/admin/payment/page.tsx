@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CreditCard } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchInput from "@/components/SearchInput";
+import Pagination from "@/components/Pagination";
 import { NoRecordFound } from "@/components/Options";
 import { PaymentTableSkeleton } from "@/components/ui/payment-table-skeleton";
 import {
@@ -14,18 +15,40 @@ import { useGetPaymentsQuery } from "@/store/paymentApi";
 import Dropdown from "@/components/Dropdown";
 
 interface PaymentData {
-  id: string;
-  amount: number;
+  amount: string;
+  bookingDate: string;
+  channel: string;
+  createdAt: string;
   currency: string;
-  paymentStatus: "pending" | "completed" | "failed" | "cancelled";
+  doctorId: string;
+  doctorPhotoUrl: string;
+  patientId: string;
+  patientName: string;
+  paymentDate: string;
   paymentMethod: string;
-  patientId?: string;
-  doctorId?: string;
-  bookingId?: string;
-  description?: string;
-  transactionId?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  paymentReference: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  paymentStatus: string;
+  reason: string;
+  slot: string;
+  transactionId: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  updatedAt: string;
+  id?: string; // Sometimes id is added by the fetching logic
 }
 
 // Utility function to safely render field values
@@ -41,6 +64,11 @@ const safeRenderField = (value: unknown, fallback: string = "N/A") => {
   }
   if (typeof value === "boolean") {
     return value ? "Yes" : "No";
+  }
+  if (typeof value === "object") {
+    // For objects like transactionId or paymentReference, try to return reference
+    // @ts-ignore
+    return value?.reference || value?.trxref || fallback;
   }
   return fallback;
 };
@@ -60,7 +88,7 @@ export default function AdminPaymentPage() {
 
   // Filter payments based on search query and status
   const filteredPayments = payments.filter(
-    (payment: Record<string, unknown> & { id: string }) => {
+    (payment: any) => {
       const searchLower = searchQuery.toLowerCase();
 
       // Helper function to safely convert to string and search
@@ -69,20 +97,26 @@ export default function AdminPaymentPage() {
           return value.toLowerCase().includes(searchLower);
         } else if (typeof value === "number") {
           return value.toString().toLowerCase().includes(searchLower);
+        } else if (typeof value === "object" && value !== null) {
+             // @ts-ignore
+             return (value.reference && value.reference.toLowerCase().includes(searchLower)) ||
+                    // @ts-ignore
+                    (value.trxref && value.trxref.toLowerCase().includes(searchLower));
         }
         return false;
       };
 
       const matchesSearch =
         safeSearch(payment?.patientName) ||
-        safeSearch(payment?.doctorName) ||
+        safeSearch(payment?.doctorId) ||
         safeSearch(payment?.paymentMethod) ||
-        safeSearch(payment?.transactionId);
+        safeSearch(payment?.transactionId) ||
+        safeSearch(payment?.paymentReference);
 
       const matchesStatus =
         !selectedStatus ||
-        (typeof payment.status === "string" &&
-          payment.status === selectedStatus);
+        (payment.paymentStatus &&
+          payment.paymentStatus.toLowerCase() === selectedStatus.toLowerCase());
 
       return matchesSearch && matchesStatus;
     }
@@ -105,9 +139,11 @@ export default function AdminPaymentPage() {
       cancelled: "bg-gray-100 text-gray-800",
     };
 
+    const statusKey = paymentStatus?.toLowerCase() || "pending";
+
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[paymentStatus as keyof typeof statusClasses] ||
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[statusKey as keyof typeof statusClasses] ||
           "bg-gray-100 text-gray-800"
           }`}
       >
@@ -117,27 +153,29 @@ export default function AdminPaymentPage() {
   };
 
   const getPaymentMethodIcon = (method: string) => {
-    switch (method.toLowerCase()) {
-      case "paystack":
-        return <CreditCard className="w-4 h-4 text-blue-600" />;
-      case "credit card":
-        return <CreditCard className="w-4 h-4 text-blue-600" />;
-      case "bank transfer":
-        return <span className="text-green-600">₦</span>;
-      case "cash":
-        return <span className="text-green-600">₦</span>;
-      case "mobile money":
-        return <CreditCard className="w-4 h-4 text-purple-600" />;
-      default:
-        return <CreditCard className="w-4 h-4 text-gray-600" />;
-    }
+    const methodLower = method?.toLowerCase() || "";
+    if (methodLower.includes("paystack")) return <CreditCard className="w-4 h-4 text-blue-600" />;
+    if (methodLower.includes("card")) return <CreditCard className="w-4 h-4 text-blue-600" />;
+    if (methodLower.includes("bank") || methodLower.includes("transfer")) return <span className="text-green-600 font-bold">₦</span>;
+    if (methodLower.includes("cash")) return <span className="text-green-600 font-bold">₦</span>;
+    if (methodLower.includes("mobile")) return <CreditCard className="w-4 h-4 text-purple-600" />;
+    return <CreditCard className="w-4 h-4 text-gray-600" />;
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const formatCurrency = (amount: number | string, currency: string) => {
+    let numericAmount = 0;
+    if (typeof amount === 'string') {
+        numericAmount = parseFloat(amount.replace(/,/g, ''));
+    } else {
+        numericAmount = amount;
+    }
+    
+    if (isNaN(numericAmount)) return `${currency} ${amount}`;
+
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency,
-    }).format(amount);
+      currency: currency || "NGN",
+    }).format(numericAmount);
   };
 
   return (
@@ -196,7 +234,7 @@ export default function AdminPaymentPage() {
           {isLoading ? (
             <PaymentTableSkeleton />
           ) : (
-            <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-[var(--border)]">
                   <thead className="bg-[var(--muted)]">
@@ -237,7 +275,7 @@ export default function AdminPaymentPage() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-[var(--foreground)]">
                                 {safeRenderField(
-                                  payment.doctorName,
+                                  payment.doctorId,
                                   "Unknown Doctor"
                                 )}
                               </div>
@@ -249,15 +287,10 @@ export default function AdminPaymentPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-[var(--foreground)]">
-                                ₦{" "}
-                                {typeof payment.amount === "number"
-                                  ? formatCurrency(
-                                    payment.amount as number,
-                                    typeof payment.currency === "string"
-                                      ? payment.currency
-                                      : "NGN"
-                                  )
-                                  : safeRenderField(payment.amount, "N/A")}
+                                {formatCurrency(
+                                  payment.amount as string | number,
+                                  (payment.currency as string) || "NGN"
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -297,41 +330,20 @@ export default function AdminPaymentPage() {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              {!isLoading && !error && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalCount={filteredPayments.length}
+                  pageSize={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  itemLabel="payments"
+                  className="mt-4"
+                />
+              )}
             </div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                    }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

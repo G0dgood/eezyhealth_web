@@ -105,9 +105,10 @@ export default function NurseVitalSignsPage() {
         columns={columns}
         data={vitalsData}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={vitalsData.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="vital signs"
       />
 
       {/* Vital Signs Overview Cards */}

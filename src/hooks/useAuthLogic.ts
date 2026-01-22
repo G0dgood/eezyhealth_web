@@ -70,6 +70,8 @@ export const useAuthLogic = () => {
         router.push("/doctor");
       } else if (userData.role === "nurse") {
         router.push("/nurse");
+      } else if (userData.role === "patient") {
+        throw new Error("Patient login is not allowed on this portal.");
       } else {
         throw new Error("Invalid user role");
       }
@@ -144,6 +146,8 @@ export const useAuthLogic = () => {
         router.push("/doctor");
       } else if (userData.role === "nurse") {
         router.push("/nurse");
+      } else if (userData.role === "patient") {
+        throw new Error("Patient login is not allowed on this portal.");
       } else {
         throw new Error("Invalid user role");
       }

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useGetFirebaseUsersQuery } from "@/store/patientApi";
-import { Mail, Eye, Edit, Trash2, Search, X } from "lucide-react";
+import { Mail, Eye, Edit, Trash2 } from "lucide-react";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import Dropdown from "@/components/Dropdown";
+import Button from "@/components/Button";
 import { toast } from "sonner";
 import {
   formatDate,
@@ -25,6 +26,7 @@ import { auth, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createFirebaseDocument } from "@/lib/firebase-rtk";
 import { Download } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 interface UserData {
   uid: string;
@@ -373,15 +375,16 @@ export default function AdminUsersPage() {
       <Title title="User Management" />
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+      <div className="mb-6 flex flex-col lg:flex-row gap-4">
+        <div className="flex-1 w-full">
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
             placeholder="Search users by name or email..."
+            className="w-full max-w-none lg:max-w-md"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <Dropdown
             value={selectedRole}
             onChange={(value) => setSelectedRole(value)}
@@ -393,31 +396,36 @@ export default function AdminUsersPage() {
               { value: "patient", label: "Patient" },
             ]}
             placeholder="Select Role"
-            className="w-40"
+            className="w-full sm:w-40"
             variant="default"
           />
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            Upload User
-          </button>
-          <button
-            onClick={handleDownloadTemplate}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Template
-          </button>
-          <button
-            onClick={() => {
-              toast.info("Refreshing users...");
-              refetch();
-            }}
-            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors duration-200"
-          >
-            Refresh
-          </button>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button
+              variant="primary"
+              onClick={() => setIsUploadModalOpen(true)}
+              className="flex-1 sm:flex-none"
+            >
+              Upload User
+            </Button>
+            <Button
+              variant="neutral"
+              onClick={handleDownloadTemplate}
+              icon={<Download className="w-4 h-4" />}
+              className="flex-1 sm:flex-none"
+            >
+              Template
+            </Button>
+            <Button
+              variant="soft-green"
+              onClick={() => {
+                toast.info("Refreshing users...");
+                refetch();
+              }}
+              className="flex-1 sm:flex-none"
+            >
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -563,24 +571,28 @@ export default function AdminUsersPage() {
                       {/* ACTIONS */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button
+                          <Button
+                            variant="ghost-neutral"
+                            size="sm"
+                            icon={<Eye className="h-4 w-4" />}
+                            iconOnly
                             onClick={() => handleViewUser(user)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          />
+                          <Button
+                            variant="ghost-primary"
+                            size="sm"
+                            icon={<Edit className="h-4 w-4" />}
+                            iconOnly
                             onClick={() => handleEditUser(user)}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
+                          />
+                          <Button
+                            variant="ghost-danger"
+                            size="sm"
+                            icon={<Trash2 className="h-4 w-4" />}
+                            iconOnly
                             onClick={() => handleDeleteUser(user)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>
@@ -589,35 +601,18 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredUsers.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="users"
+            className="mt-4"
+          />
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Page {currentPage} of {totalPages} • {filteredUsers.length} users
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border rounded-lg disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       <UserDetailsModal

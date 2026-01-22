@@ -85,7 +85,7 @@ function DoctorLayout({ children }: LayoutProps) {
   };
 
   // Create the exact same transition classes for both elements
-  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-64" : "translate-x-0"
+  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-[266px]" : "translate-x-0"
     } lg:translate-x-0`;
 
   // Check if we're on the message page
@@ -109,7 +109,7 @@ function DoctorLayout({ children }: LayoutProps) {
             onMobileClose={handleMobileSidenavClose}
           />
           <main
-            className={`${transitionClasses}`}
+            className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
             data-page={isMessagePage ? "message" : undefined}>
             {children}
           </main>

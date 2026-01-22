@@ -60,7 +60,7 @@ export default function Header({
 
   return (
     <header
-      className={`px-6 py-4 flex items-center justify-between border-b-[1.5px] transition-colors duration-200 relative z-40 ${className}`}
+      className={`px-4 py-3 md:px-6 md:py-4 flex items-center justify-between border-b-[1.5px] transition-colors duration-200 relative z-40 ${className}`}
       style={{
         gridArea: "header",
         backgroundColor: "var(--accent-white)",
@@ -68,19 +68,19 @@ export default function Header({
         color: "var(--foreground)",
       }}
     >
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-4">
         {/* Mobile Menu Toggle Button */}
         <button
           onClick={onMobileMenuToggle}
           className="lg:hidden p-2 cursor-pointer transition-colors duration-200"
           style={{ color: "var(--muted-foreground)" }}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5 md:w-6 md:h-6" />
         </button>
 
         <div className="flex items-center space-x-2">
           <span
-            className="text-lg font-medium"
+            className="text-base md:text-lg font-medium"
             style={{ color: "var(--foreground)" }}
           >
             {userInfo
@@ -110,9 +110,14 @@ export default function Header({
               className="w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200"
               style={{ backgroundColor: "var(--muted)" }}
             >
-              {authUserInfo?.photoURL || user?.photoURL ? (
+              {authUserInfo?.photo_url || authUserInfo?.photoURL || user?.photoURL ? (
                 <Image
-                  src={authUserInfo?.photoURL || user?.photoURL || ""}
+                  src={
+                    authUserInfo?.photo_url ||
+                    authUserInfo?.photoURL ||
+                    user?.photoURL ||
+                    ""
+                  }
                   alt="Profile"
                   width={32}
                   height={32}

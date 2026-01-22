@@ -7,6 +7,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
+  setDoc,
   doc,
   orderBy,
   limit,
@@ -28,6 +29,7 @@ export const getFirestoreInstance = () => ({
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   doc,
   orderBy,
   limit,
@@ -124,6 +126,24 @@ export const updateFirebaseDocument = async <T = Record<string, unknown>>(
     await updateDoc(documentRef, data as any);
   } catch (error) {
     console.error(`Error updating document in ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+// Generic Firebase document setter (upsert)
+export const setFirebaseDocument = async <T = Record<string, unknown>>(
+  collectionName: string,
+  documentId: string,
+  data: Partial<T>
+): Promise<void> => {
+  try {
+    const { doc, setDoc } = getFirestoreInstance();
+    const db = getFirebaseInstance();
+    
+    const documentRef = doc(db, collectionName, documentId);
+    await setDoc(documentRef, data as any, { merge: true });
+  } catch (error) {
+    console.error(`Error setting document in ${collectionName}:`, error);
     throw error;
   }
 };

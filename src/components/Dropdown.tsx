@@ -168,7 +168,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 					{selectedLabel || placeholder}
 				</span>
 
-				<div className={`ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
+				<div className={`!ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
 					{icon ? React.createElement(icon, { size: 16, color: "var(--muted-foreground)" }) : (
 						<ChevronDown size={16} color="var(--muted-foreground)" />
 					)}

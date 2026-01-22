@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Clock, Calendar, Trash2 } from "lucide-react";
+import { Clock, Calendar, Trash2, Plus } from "lucide-react";
 import Input from "@/components/Input";
 import Dropdown from "@/components/Dropdown";
 
@@ -110,43 +110,49 @@ const AvailabilityWidget: React.FC = () => {
     }, 0);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
-            <Clock className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Clock className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Availability Schedule</h3>
-            <p className="text-sm text-gray-500">Manage your working hours</p>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">Availability Schedule</h3>
+            <p className="text-xs md:text-sm text-gray-500">Manage your working hours</p>
           </div>
         </div>
+        <button
+          onClick={() => setIsAddingSlot(!isAddingSlot)}
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
+          <Plus size={16} />
+          <span>Add Slot</span>
+        </button>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{availableDays}</div>
-          <div className="text-xs text-gray-600">Available Days</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-blue-600">{availableDays}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Available Days</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{totalHours}</div>
-          <div className="text-xs text-gray-600">Hours/Week</div>
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-green-600">{totalHours}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Hours/Week</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
+          <div className="text-lg md:text-2xl font-bold text-purple-600">
             {timeSlots.length - availableDays}
           </div>
-          <div className="text-xs text-gray-600">Off Days</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Off Days</div>
         </div>
       </div>
 
       {/* Add New Slot Form */}
       {isAddingSlot && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h4 className="font-semibold text-gray-900 mb-3">Add New Time Slot</h4>
-          <div className="grid grid-cols-3 gap-3">
+        <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h4 className="font-semibold text-sm md:text-base text-gray-900 mb-3">Add New Time Slot</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Dropdown
               value={newSlot.day}
               onChange={(value) => setNewSlot({ ...newSlot, day: value })}
@@ -169,20 +175,20 @@ const AvailabilityWidget: React.FC = () => {
               value={newSlot.startTime}
               onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
               placeholder="Start Time"
-              fullWidth={false}
+              fullWidth={true}
             />
             <Input
               type="time"
               value={newSlot.endTime}
               onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
               placeholder="End Time"
-              fullWidth={false}
+              fullWidth={true}
             />
           </div>
-          <div className="flex gap-2 mt-3">
+          <div className="flex flex-col md:flex-row gap-2 mt-3">
             <button
               onClick={handleAddSlot}
-              className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
+              className="w-full md:w-auto px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
               Add Slot
             </button>
             <button
@@ -190,7 +196,7 @@ const AvailabilityWidget: React.FC = () => {
                 setIsAddingSlot(false);
                 setNewSlot({ day: "", startTime: "", endTime: "" });
               }}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
+              className="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
               Cancel
             </button>
           </div>
@@ -206,8 +212,8 @@ const AvailabilityWidget: React.FC = () => {
               ? "border-green-200 bg-green-50"
               : "border-gray-200 bg-gray-50"
               }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between">
+              <div className="flex items-center gap-3 mb-2 md:mb-0">
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center ${slot.isAvailable ? "bg-green-100" : "bg-gray-100"
                     }`}>
@@ -223,7 +229,7 @@ const AvailabilityWidget: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2 md:mt-0 justify-end w-full md:w-auto">
                 <button
                   onClick={() => handleToggleAvailability(slot.id)}
                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${slot.isAvailable
@@ -245,18 +251,18 @@ const AvailabilityWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Weekly Schedule: {availableDays} days available
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Available: {availableDays}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Available: {availableDays}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-              <span className="text-gray-600">Off: {timeSlots.length - availableDays}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Off: {timeSlots.length - availableDays}</span>
             </div>
           </div>
         </div>

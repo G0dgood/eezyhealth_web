@@ -15,6 +15,9 @@ import CustomToggle from "@/components/CustomToggle";
 import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import { useUpdateUserMutation } from "@/store/authApi";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+
+import { motion } from "framer-motion";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
@@ -59,18 +62,6 @@ export default function DoctorSettings() {
   };
 
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
-
-  // Function to check if image URL is valid for Next.js Image component
-  const isValidImageUrl = (url: string) => {
-    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
-    // Check if it's a valid HTTP/HTTPS URL
-    try {
-      const urlObj = new URL(url);
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
 
   // Sync profileImage with userInfo when it changes
   useEffect(() => {
@@ -141,19 +132,35 @@ export default function DoctorSettings() {
     confirmPassword: "",
   });
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create a temporary URL for the selected file
-      const tempUrl = URL.createObjectURL(file);
-      setProfileImage(tempUrl);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
 
-      // In a real app, you would upload this file to Firebase Storage
-      // and then update the user's profile with the new photo URL
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "doctor",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
 
+        // Update local storage and context
+        if (userInfo && setUserInfo) {
+          const updatedUserInfo = { ...userInfo, photo_url: url, photoURL: url };
+          setUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
 
-      // Clean up the temporary URL when component unmounts
-      return () => URL.revokeObjectURL(tempUrl);
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
@@ -197,7 +204,7 @@ export default function DoctorSettings() {
         "userInfo-eezy-health",
         JSON.stringify(updatedUserInfo)
       );
-      
+
       // Update context if possible (optional, but good practice if context doesn't auto-update from localStorage listener)
       if (setUserInfo) {
         setUserInfo(updatedUserInfo as any);
@@ -368,35 +375,13 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                {profileImage && isValidImageUrl(profileImage) ? (
-                  <Image
-                    src={profileImage}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    <UserCircle className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 bg-[#44CE2D] text-white p-2 rounded-full cursor-pointer hover:bg-[#3bb025] transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-[#44CE2D] font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+              buttonClassName="bg-[#44CE2D] hover:bg-[#3bb025]"
+              textClassName="text-[#44CE2D]"
+            />
+            {/* Profile Form */}
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -514,7 +499,7 @@ export default function DoctorSettings() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <Input
                   label="Doctor ID"
                   type="text"
@@ -523,7 +508,7 @@ export default function DoctorSettings() {
                   fullWidth
                   className="bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
-              </div>
+              </div> */}
 
               <div>
                 <Input
@@ -884,21 +869,27 @@ export default function DoctorSettings() {
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+        <div className="border-b border-gray-200 p-4">
+          <div className="relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                  ? "border-[#44CE2D] text-[#44CE2D]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}>
+                className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
+                  ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
+              >
                 {tab.icon}
                 <span>{tab.label}</span>
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="doctor-settings-active-tab"
+                    className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
               </button>
             ))}
-          </nav>
+          </div>
         </div>
 
         {/* Tab Content */}

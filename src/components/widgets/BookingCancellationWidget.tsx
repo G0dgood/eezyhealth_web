@@ -144,29 +144,37 @@ const BookingCancellationWidget: React.FC = () => {
   }
 
   if (error && !cancellationsData) {
-
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Failed to load cancellation requests. Please try again later.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-16 h-16 mb-4 bg-red-50 rounded-full flex items-center justify-center">
+          <AlertTriangle className="text-red-500" size={32} />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Failed to load requests
+        </h3>
+        <p className="text-gray-500 text-center text-sm mb-4">
+          We couldn't fetch the cancellation requests. Please check your connection and try again.
+        </p>
+        <div className="text-xs bg-gray-50 p-2 rounded text-gray-500 font-mono max-w-xs truncate">
+          Error: {String(error)}
+        </div>
       </div>
     );
   }
 
   if (!hasData && !isLoading) {
-
     return (
-      <div className="w-full flex flex-col items-center justify-center h-96 p-6">
-        <div className="w-64 h-32 mb-6 bg-gray-100 rounded-lg flex items-center justify-center">
-          <AlertTriangle className="text-gray-400" size={48} />
+      <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-20 h-20 mb-6 bg-green-50 rounded-full flex items-center justify-center animate-pulse">
+          <CheckCircle className="text-green-500" size={40} />
         </div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">
-          No Cancellation Requests!
+        <h2 className="text-xl md:text-2xl font-bold mb-3 text-gray-900">
+          No Cancellation Requests
         </h2>
-        <p className="mb-4 text-center text-lg max-w-xl text-gray-500">
-          No cancellation requests have been submitted yet.
-          <br />
-          All appointments are proceeding as scheduled!
+        <p className="text-gray-500 text-center max-w-md text-sm md:text-base leading-relaxed">
+          Great news! There are no pending cancellation requests at the moment.
+          <br className="hidden md:block" />
+          All scheduled appointments are proceeding as planned.
         </p>
       </div>
     );
@@ -185,8 +193,7 @@ const BookingCancellationWidget: React.FC = () => {
       gradient: "from-red-500 to-pink-600",
       bgColor: "bg-red-50",
       iconColor: "text-red-600",
-      description: "All cancellation requests",
-      trend: "+8%",
+      description: "All cancellation requests", 
     },
     {
       title: "Pending",
@@ -195,8 +202,7 @@ const BookingCancellationWidget: React.FC = () => {
       gradient: "from-yellow-500 to-orange-600",
       bgColor: "bg-yellow-50",
       iconColor: "text-yellow-600",
-      description: "Awaiting response",
-      trend: "+12%",
+      description: "Awaiting response"
     },
     {
       title: "Approved",
@@ -205,8 +211,7 @@ const BookingCancellationWidget: React.FC = () => {
       gradient: "from-green-500 to-emerald-600",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
-      description: "Cancellations approved",
-      trend: "+15%",
+      description: "Cancellations approved"
     },
     {
       title: "Rejected",
@@ -215,8 +220,7 @@ const BookingCancellationWidget: React.FC = () => {
       gradient: "from-gray-500 to-slate-600",
       bgColor: "bg-gray-50",
       iconColor: "text-gray-600",
-      description: "Requests denied",
-      trend: "+5%",
+      description: "Requests denied"
     },
   ];
 
@@ -250,31 +254,31 @@ const BookingCancellationWidget: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
-            <AlertTriangle className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">
               Cancellation Requests
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs md:text-sm text-gray-500">
               Patient cancellation requests and status
             </p>
           </div>
         </div>
         <Link
           href={viewAllHref}
-          className="text-blue-600 text-sm font-medium hover:text-blue-700">
+          className="text-blue-600 text-xs md:text-sm font-medium hover:text-blue-700">
           View All
         </Link>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         {statsData.map((item, index) => {
           const IconComponent = item.icon;
           return (
@@ -286,27 +290,23 @@ const BookingCancellationWidget: React.FC = () => {
                 className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
               {/* Content */}
-              <div className="relative p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div className="relative p-3 md:p-4">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
                   <div
-                    className={`w-8 h-8 ${item.bgColor} rounded-lg flex items-center justify-center`}>
-                    <IconComponent className={`w-4 h-4 ${item.iconColor}`} />
+                    className={`w-8 h-8 md:w-10 md:h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
+                    <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${item.iconColor}`} />
                   </div>
-                  {item.trend && (
-                    <div className="text-xs font-medium flex items-center gap-1 text-green-600">
-                      ↗ {item.trend}
-                    </div>
-                  )}
+                   
                 </div>
 
-                <div className="mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                <div className="mb-1 md:mb-2">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-gray-500">{item.description}</p>
+                  <p className="text-[10px] md:text-xs text-gray-500">{item.description}</p>
                 </div>
               </div>
             </div>
@@ -315,41 +315,41 @@ const BookingCancellationWidget: React.FC = () => {
       </div>
 
       {/* Recent Cancellations */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-gray-900">
+          <h4 className="text-base md:text-lg font-semibold text-gray-900">
             Recent Requests
           </h4>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs md:text-sm text-gray-500">
             {recentCancellations.length} requests
           </span>
         </div>
 
         {recentCancellations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <AlertTriangle className="mx-auto mb-2 text-gray-300" size={32} />
-            <p>No recent cancellation requests</p>
+          <div className="text-center py-6 md:py-8 text-gray-500">
+            <CheckCircle className="mx-auto mb-2 text-green-300" size={24} />
+            <p className="text-sm">No recent cancellation requests</p>
           </div>
         ) : (
           recentCancellations.map((cancellation: CancellationRequest) => (
             <div
               key={cancellation.id}
-              className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 md:mb-3 gap-2">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <User className="text-red-600" size={16} />
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
                       {cancellation.patientName}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs md:text-sm text-gray-600 truncate">
                       {cancellation.hospital || "Hospital"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto ml-0 sm:ml-2">
                   {getCancellationStatusBadge(
                     cancellation.cancellationRequest?.status ||
                     cancellation.status ||
@@ -358,26 +358,28 @@ const BookingCancellationWidget: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="space-y-1.5 md:space-y-2">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Calendar size={14} />
                   <span>{formatDate(cancellation.bookingDate)}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Clock size={14} />
                   <span>{cancellation.slot || cancellation.timeSlot}</span>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-xs md:text-sm text-gray-600">
                   <span className="font-medium">Reason: </span>
-                  {cancellation.cancellationRequest?.reasonForCancellation ||
-                    cancellation.cancellationRequest?.reason ||
-                    "No reason provided"}
+                  <span className="line-clamp-1 inline-block align-bottom">
+                    {cancellation.cancellationRequest?.reasonForCancellation ||
+                      cancellation.cancellationRequest?.reason ||
+                      "No reason provided"}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <AlertTriangle size={14} />
+              <div className="flex items-center justify-between mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-600">
+                  <AlertTriangle size={12} className="md:w-3.5 md:h-3.5" />
                   <span>
                     {cancellation.cancellationRequest?.status ||
                       cancellation.status ||
@@ -386,7 +388,7 @@ const BookingCancellationWidget: React.FC = () => {
                 </div>
                 <Link
                   href={viewAllHref}
-                  className="text-blue-600 text-xs font-medium hover:text-blue-700">
+                  className="text-blue-600 text-[10px] md:text-xs font-medium hover:text-blue-700">
                   View Details
                 </Link>
               </div>
@@ -397,27 +399,27 @@ const BookingCancellationWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Total Requests: {totalCancellations}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-xs md:text-sm">
                 Pending: {pendingCancellations}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-xs md:text-sm">
                 Approved: {approvedCancellations}
               </span>
             </div>
             {rejectedCancellations > 0 && (
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                <span className="text-gray-600">
+                <span className="text-gray-600 text-xs md:text-sm">
                   Rejected: {rejectedCancellations}
                 </span>
               </div>

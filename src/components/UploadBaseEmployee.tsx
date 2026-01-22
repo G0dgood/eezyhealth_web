@@ -3,6 +3,7 @@ import React, { useState, useRef } from "react";
 import { RxCross2, RxUpload } from "react-icons/rx";
 import { toast } from "sonner";
 import Input from "@/components/Input";
+import Modal from "./modals/Modal";
 
 
 interface UploadBaseProps {
@@ -148,8 +149,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
           description: `${parsedData.length} records loaded`,
           duration: 3000,
         });
-      } catch (error) {
-        console.error("CSV parse error:", error);
+      } catch (error) { 
         toast.error("Failed to parse CSV", {
           description: "Please check the file format",
           duration: 3000,
@@ -242,38 +242,17 @@ const UploadBase: React.FC<UploadBaseProps> = ({
       )}
 
       {isOpen && (
-        <div className="fixed flex items-center justify-center inset-0 bg-[#00000051] bg-opacity-50 z-40">
+        <Modal
+          isOpen={isOpen}
+          onClose={handleClose}
+          title="Upload CSV File"
+          size="md"
+        > 
           <div
-            className="dark:bg-gray-800 w-full max-w-2xl shadow-lg p-6"
+            className="dark:bg-gray-800 w-full max-w-2xl "
             style={{ backgroundColor: 'var(--accent-white)' }}
           >
-            <div
-              className="flex justify-between items-center border-b dark:border-gray-700 pb-2"
-              style={{ borderColor: 'var(--light-gray)' }}
-            >
-              <h2
-                className="text-xl font-semibold dark:text-gray-100"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Upload CSV File
-              </h2>
-              <button
-                onClick={handleClose}
-                className="dark:text-gray-400 dark:hover:text-red-400 text-lg"
-                style={{ color: 'var(--text-tertiary)' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#DC2626';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
-                }}
-              >
-                <RxCross2
-                  className="w-5 h-5 dark:text-gray-400 dark:hover:text-gray-200"
-                  style={{ color: 'var(--text-tertiary)' }}
-                />
-              </button>
-            </div>
+            
 
             <form className="mt-4 space-y-4" onSubmit={submitHandler}>
               {isError && (
@@ -463,9 +442,9 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                   {isLoading ? "Uploading..." : "Upload"}
                 </button>
               </div>
-            </form>
+            </form> 
           </div>
-        </div>
+        </Modal>
       )}
 
 

@@ -4,17 +4,160 @@ import { Search, Plus, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Input from "@/components/Input";
 import Breadcrumb from "@/components/Breadcrumb";
-import AddPatientModal from "@/components/modals/AddPatientModal";
+import AddPatientModal, { PatientFormData } from "@/components/modals/AddPatientModal";
 import Link from "next/link";
 import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
+import Pagination from "@/components/Pagination";
+import { auth, createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 
 export default function NursePatientsPage() {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState<PatientFormData>({
+    first_name: "",
+    last_name: "",
+    gender: "",
+    dateOfBirth: "",
+    phone_number: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    address: "",
+  });
+
+  const handleFormChange = (field: keyof PatientFormData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      first_name: "",
+      last_name: "",
+      gender: "",
+      dateOfBirth: "",
+      phone_number: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      address: "",
+    });
+  };
+
+  const handleCloseAddModal = () => {
+    resetForm();
+    setIsAddPatientModalOpen(false);
+  };
+
+  const handleSavePatient = async () => {
+    if (
+      !formData.first_name ||
+      !formData.last_name ||
+      !formData.email ||
+      !formData.phone_number ||
+      !formData.dateOfBirth ||
+      !formData.gender ||
+      !formData.address ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const display_name = `${formData.first_name} ${formData.last_name}`.trim();
+
+      // Use secondaryAuth to create user without signing out the current admin/nurse
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        formData.email,
+        formData.password
+      );
+
+      // Force sign out the newly created user from the secondary auth instance
+      // so it doesn't persist there (just good hygiene)
+      await signOut(secondaryAuth);
+
+      const patientUid = userCredential.user.uid;
+
+      await createFirebaseDocument("users", {
+        uid: patientUid,
+        email: formData.email,
+        display_name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        role: "patient",
+        phone_number: formData.phone_number,
+        address: formData.address,
+        location: formData.address,
+        date_of_birth: formData.dateOfBirth,
+        photo_url: "",
+        isActive: true,
+        createdTime: new Date().toISOString(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+
+      await createFirebaseDocument("patientProfiles", {
+        patientId: patientUid,
+        display_name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone_number: formData.phone_number,
+        address: formData.address,
+        location: formData.address,
+        date_of_birth: formData.dateOfBirth,
+        gender: formData.gender,
+        hmo: "",
+        medical_history: "",
+        photo_url: "",
+        isActive: true,
+        createdTime: new Date().toISOString(),
+      });
+
+      // Send verification email or password reset as needed
+      // await sendPasswordResetEmail(auth, formData.email);
+
+      toast.success("Patient created successfully");
+      handleCloseAddModal();
+      refetch();
+    } catch (error) {
+      console.error("Error creating patient user:", error);
+
+      const backendError =
+        typeof error === "object" && error !== null
+          ? // RTK Query style error shapes
+          // @ts-expect-error runtime error shape
+          error.data?.error ||
+          // @ts-expect-error runtime error shape
+          error.data?.message ||
+          // @ts-expect-error runtime error shape
+          error.error ||
+          // @ts-expect-error runtime error shape
+          error.message
+          : undefined;
+
+      toast.error(backendError || "Failed to create patient user. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   // Use RTK query to fetch patients
   const {
@@ -130,15 +273,15 @@ export default function NursePatientsPage() {
             )}
           </div>
 
-          {/* <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsAddPatientModalOpen(true)}
-              className="btn-primary-green px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer"
+              className="bg-[#44CE2D] hover:bg-[#3bb025] text-white px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add New Patient</span>
             </button>
-          </div> */}
+          </div>
         </div>
       </div>
 
@@ -363,46 +506,23 @@ export default function NursePatientsPage() {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="bg-white px-6 py-3 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="pagination-btn px-3 py-2 text-sm font-medium text-gray-500 bg-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-
-            <div className="flex items-center space-x-2 text-sm text-gray-700">
-              <span>Showing page</span>
-              <span className="font-medium">{currentPage}</span>
-              <span>of</span>
-              <span className="font-medium">{totalPages}</span>
-            </div>
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalCount={filteredPatients.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="patients"
+        className="border-t border-gray-200"
+      />
 
       {/* Add New Patient Modal */}
       <AddPatientModal
         isOpen={isAddPatientModalOpen}
-        onClose={() => setIsAddPatientModalOpen(false)}
-        onSuccess={() => {
-          // Refetch patients data after successful addition
-          refetch();
-        }}
+        onClose={handleCloseAddModal}
+        isCreating={isCreating}
+        formData={formData}
+        onChange={handleFormChange}
+        onSave={handleSavePatient}
       />
     </div>
   );

@@ -80,6 +80,7 @@ table thead tr th {
   color: var(--muted-foreground);
   background: rgba(68, 206, 45, 0.05) !important; /* Custom green with 5% opacity */
   border-bottom: 1px solid var(--border) !important;
+  white-space: nowrap !important;
 }
 
 /* Table body styles */

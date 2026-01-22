@@ -15,27 +15,17 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+import { motion } from "framer-motion";
 
 export default function NurseSettingsPage() {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, setUserInfo: setAuthUserInfo, userInfo: authUserInfo } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const notificationContext = useNotifications();
 
   const [activeTab, setActiveTab] = useState("profile");
   const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
-
-  // Function to check if image URL is valid for Next.js Image component
-  const isValidImageUrl = (url: string) => {
-    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
-    // Check if it's a valid HTTP/HTTPS URL
-    try {
-      const urlObj = new URL(url);
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
 
   // Get current user information
   const userInfo = useUserInfo();
@@ -139,7 +129,7 @@ export default function NurseSettingsPage() {
       };
 
       const profileDataStr = JSON.stringify(newProfileData);
-      
+
       // Only update if the SOURCE data is different from what we last loaded
       if (profileDataStr !== lastLoadedProfileData.current) {
         setProfileData(newProfileData);
@@ -160,20 +150,20 @@ export default function NurseSettingsPage() {
         typeof userInfo.notification_preferences === "object"
       ) {
         const newPrefs = {
-            ...notificationPrefs, // Keep existing defaults for missing keys
-            ...(userInfo.notification_preferences as Record<string, unknown>),
+          ...notificationPrefs, // Keep existing defaults for missing keys
+          ...(userInfo.notification_preferences as Record<string, unknown>),
         };
-        
+
         // We need to compare only the parts that come from userInfo
         const relevantPrefs = userInfo.notification_preferences as Record<string, unknown>;
         const prefsStr = JSON.stringify(relevantPrefs);
 
         if (prefsStr !== lastLoadedNotificationPrefs.current) {
-             setNotificationPrefs(prev => ({
-                 ...prev,
-                 ...relevantPrefs
-             }));
-             lastLoadedNotificationPrefs.current = prefsStr;
+          setNotificationPrefs(prev => ({
+            ...prev,
+            ...relevantPrefs
+          }));
+          lastLoadedNotificationPrefs.current = prefsStr;
         }
       }
 
@@ -186,15 +176,15 @@ export default function NurseSettingsPage() {
           string,
           unknown
         >;
-        
+
         const securityStr = JSON.stringify(securityData);
-        
+
         if (securityStr !== lastLoadedSecuritySettings.current) {
-            setSecuritySettings(prev => ({
-                ...prev,
-                ...securityData
-            }));
-            lastLoadedSecuritySettings.current = securityStr;
+          setSecuritySettings(prev => ({
+            ...prev,
+            ...securityData
+          }));
+          lastLoadedSecuritySettings.current = securityStr;
         }
 
         // Set theme preference if available in security settings
@@ -209,14 +199,35 @@ export default function NurseSettingsPage() {
     }
   }, [userInfo]);
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
+
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "nurse",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+
+        // Update local storage and context
+        if (authUserInfo && setAuthUserInfo) {
+          const updatedUserInfo = { ...authUserInfo, photo_url: url, photoURL: url };
+          setAuthUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
+
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
@@ -373,7 +384,6 @@ export default function NurseSettingsPage() {
 
       toast.success("Password updated successfully!");
     } catch (error) {
-      console.error("Error updating password:", error);
       toast.error("Failed to update password. Please try again.");
     }
   };
@@ -402,35 +412,12 @@ export default function NurseSettingsPage() {
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                {profileImage && isValidImageUrl(profileImage) ? (
-                  <Image
-                    src={profileImage}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    <UserCircle className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-green-600 font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+              buttonClassName="bg-green-500 hover:bg-green-600"
+              textClassName="text-green-600"
+            />
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -905,22 +892,27 @@ export default function NurseSettingsPage() {
 
       {/* Settings Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+        <div className="border-b border-gray-200 p-4">
+          <div className="relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
-                  ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
+                  ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="nurse-settings-active-tab"
+                    className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
               </button>
             ))}
-          </nav>
+          </div>
         </div>
 
         {/* Tab Content */}

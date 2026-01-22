@@ -259,7 +259,7 @@ const NurseDashboard = () => {
     isEditing: boolean;
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+      useSortable({ id, disabled: !isEditing });
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -305,7 +305,7 @@ const NurseDashboard = () => {
             </button>
           </div>
         )}
-        <div {...attributes} {...listeners}>
+        <div {...attributes} {...(isEditing ? listeners : undefined)}>
           {children}
         </div>
       </div>
@@ -362,8 +362,8 @@ const NurseDashboard = () => {
           <Skeleton height={40} width={120} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
-          <div className="col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-left-zone">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
+          <div className="col-span-1 md:col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone">
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
@@ -405,7 +405,7 @@ const NurseDashboard = () => {
               ))}
             </div>
           </div>
-          <div className="col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-right-zone">
+          <div className="col-span-1 md:col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone">
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
@@ -499,15 +499,15 @@ const NurseDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-150px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-150px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
               }`}
           >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
               }`}
           >
             {renderZone("right")}

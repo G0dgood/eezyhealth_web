@@ -1,12 +1,29 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, setDoc, addDoc } from 'firebase/firestore';
+
 import { getDatabase, ref, get } from 'firebase/database';
 import { firebaseConfig } from './config';
 import { getStorage } from 'firebase/storage';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Initialize a secondary Firebase app for admin operations (like creating users without logging out)
+// We use a unique name 'secondary' to avoid conflict with the default app
+let secondaryApp;
+try {
+  secondaryApp = initializeApp(firebaseConfig, "secondary");
+} catch (e) {
+    // If the app is already initialized, get the existing instance
+    // This can happen in development with hot reloading
+    const { getApp } = require("firebase/app");
+    secondaryApp = getApp("secondary");
+  }
+
+// Get auth instance for the secondary app
+export const secondaryAuth = getAuth(secondaryApp);
+
 
 // Suppress Firebase console errors in development
 if (process.env.NODE_ENV === 'development') {
@@ -170,6 +187,28 @@ export const fetchAllUsers = async () => {
       return [];
     }
   } catch (error) {  
+    throw error;
+  }
+};
+
+// Helper function to create a document in Firestore
+export const createFirebaseDocument = async (collectionName: string, data: any) => {
+  try {
+    const collectionRef = collection(db, collectionName);
+    
+    // If data has a uid or id, use it as the document ID
+    if (data.uid || data.id) {
+      const docId = data.uid || data.id;
+      const docRef = doc(db, collectionName, docId);
+      await setDoc(docRef, data);
+      return docRef;
+    } else {
+      // Otherwise allow Firestore to generate the ID
+      const docRef = await addDoc(collectionRef, data);
+      return docRef;
+    }
+  } catch (error) {
+    console.error(`Error creating document in ${collectionName}:`, error);
     throw error;
   }
 };

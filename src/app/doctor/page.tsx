@@ -495,15 +495,15 @@ const DoctorDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-150px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-150px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
               }`}
           >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
               }`}
           >
             {renderZone("right")}

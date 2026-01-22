@@ -225,8 +225,9 @@ export default function NurseReportsPage() {
         data={reportsData}
         currentPage={currentPage}
         totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="reports"
       />
 
       {/* Report Generation Form */}

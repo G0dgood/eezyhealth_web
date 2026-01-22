@@ -455,9 +455,10 @@ export default function NurseUsersPatientsPage() {
         columns={columns}
         data={patients}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={totalPatients}
+        pageSize={20}
+        onPageChange={setCurrentPage}
+        itemLabel="patients"
       />
 
       {/* Add/Edit Patient Modal */}

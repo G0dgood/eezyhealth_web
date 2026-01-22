@@ -147,6 +147,13 @@ export const getNavItems = (rawRole: string): NavItem[] => {
             href: `/${role.toLowerCase()}/users/nurses`,
             dynamicCount: true,
           },
+          {
+            id: "patients",
+            label: "Patients",
+            icon: <Users className="w-4 h-4" />,
+            href: `/${role.toLowerCase()}/users/patients`,
+            dynamicCount: true,
+          },
           // {
           //   id: "doctor-account-management",
           //   label: "Doctor Account Management",
@@ -160,14 +167,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Bookings",
         icon: <Calendar className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/bookings`,
-        dynamicCount: true,
       },
       {
         id: "booking-cancellation",
         label: "Booking Cancellation",
         icon: <CalendarX className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/booking-cancellation`,
-        dynamicCount: true,
       },
       {
         id: "specialization",
@@ -186,7 +191,6 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Payment",
         icon: <CreditCard className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/payment`,
-        dynamicCount: true,
       },
       {
         id: "document",

@@ -1,11 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useGetFirebasePatientsQuery, useGetFirebaseUsersQuery } from "@/store/patientApi";
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import {
   useGetFirebaseDoctorsQuery,
-  useGetFirebaseNurseProfilesQuery,
-  useGetAuditLogsQuery,
+  useGetFirebaseNurseProfilesQuery
 } from "@/store/doctorFirebaseApi";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGetBookingCancellationsQuery } from "@/store/bookingCancellationApi";
@@ -16,6 +15,7 @@ interface BadgeCounts {
   allUsers: number;
   doctors: number;
   nurses: number;
+  patients: number;
 
   // Bookings
   totalBookings: number;
@@ -49,6 +49,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     allUsers: 0,
     doctors: 0,
     nurses: 0,
+    patients: 0,
     totalBookings: 0,
     pendingBookings: 0,
     cancelledBookings: 0,
@@ -107,6 +108,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
         const allUsers = (patientsData?.length || 0) + (doctorsData?.length || 0) + (nursesData?.length || 0);
         const doctors = doctorsData?.length || 0;
         const nurses = Array.isArray(nursesData) ? nursesData.length : 0;
+        const patients = patientsData?.length || 0;
 
         // Calculate booking counts
         const totalBookings = bookingsData?.length || 0;
@@ -126,6 +128,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
           allUsers,
           doctors,
           nurses,
+          patients,
           totalBookings,
           pendingBookings,
           cancelledBookings,
@@ -139,7 +142,6 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to calculate badge counts');
-        console.error('Error calculating badge counts:', err);
       }
     };
 
@@ -206,6 +208,8 @@ export const getBadgeCount = (badgeCounts: BadgeCounts, itemId: string, subItemI
         return badgeCounts.doctors;
       case 'nurses':
         return badgeCounts.nurses;
+      case 'patients':
+        return badgeCounts.patients;
       default:
         return 0;
     }

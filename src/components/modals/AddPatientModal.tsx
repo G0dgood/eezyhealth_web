@@ -1,163 +1,148 @@
-import React, { useState } from "react";
+import React from "react";
 import Modal from "@/components/modals/Modal";
 import FormInput from "@/components/FormInput";
 import FormSelect from "@/components/FormSelect";
-import { toast } from "sonner";
+import Button from "@/components/Button";
+
+export interface PatientFormData {
+  first_name: string;
+  last_name: string;
+  gender: string;
+  dateOfBirth: string;
+  phone_number: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  address: string;
+}
 
 interface AddPatientModalProps {
   isOpen: boolean;
+  isCreating: boolean;
+  formData: PatientFormData;
+  onChange: (field: keyof PatientFormData, value: string) => void;
   onClose: () => void;
-  onSuccess: () => void;
-}
-
-interface PatientFormData {
-  name: string;
-  gender: string;
-  dateOfBirth: string;
-  phone: string;
-  email: string;
+  onSave: () => void;
 }
 
 export default function AddPatientModal({
   isOpen,
+  isCreating,
+  formData,
+  onChange,
   onClose,
-  onSuccess,
+  onSave,
 }: AddPatientModalProps) {
-  const [formData, setFormData] = useState<PatientFormData>({
-    name: "",
-    gender: "",
-    dateOfBirth: "",
-    phone: "",
-    email: "",
-  });
-
   const genderOptions = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
   ];
-
-  const handleInputChange = (field: keyof PatientFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSavePatient = async () => {
-    // Validate required fields
-    if (
-      !formData.name ||
-      !formData.gender ||
-      !formData.dateOfBirth ||
-      !formData.phone ||
-      !formData.email
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    try {
-      // Show loading toast
-      const loadingToast = toast.loading("Saving patient...");
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Dismiss loading and show success
-      toast.dismiss(loadingToast);
-      toast.success("Patient saved successfully");
-
-      // Reset form
-      setFormData({
-        name: "",
-        gender: "",
-        dateOfBirth: "",
-        phone: "",
-        email: "",
-      });
-
-      // Close modal and notify parent
-      onClose();
-      onSuccess();
-    } catch (error) {
-      toast.error("Failed to save patient. Please try again.");
-    }
-  };
-
-  const handleClose = () => {
-    // Reset form when closing
-    setFormData({
-      name: "",
-      gender: "",
-      dateOfBirth: "",
-      phone: "",
-      email: "",
-    });
-    onClose();
-  };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title="Add New Patient"
-      size="md">
-      <div className="space-y-4">
-        <FormInput
-          label="Name"
-          placeholder="Enter patient fullname"
-          value={formData.name}
-          onChange={(value) => handleInputChange("name", value)}
-          required
-        />
+      size="md"
+    >
+      <div className="flex flex-col max-h-[70vh]">
+        <div className="space-y-4 overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput
+              label="First Name"
+              placeholder="Enter first name"
+              value={formData.first_name}
+              onChange={(value) => onChange("first_name", value)}
+              required
+            />
+            <FormInput
+              label="Last Name"
+              placeholder="Enter last name"
+              value={formData.last_name}
+              onChange={(value) => onChange("last_name", value)}
+              required
+            />
+          </div>
 
-        <FormSelect
-          label="Gender"
-          options={genderOptions}
-          placeholder="Select Gender"
-          value={formData.gender}
-          onChange={(value) => handleInputChange("gender", value)}
-          required
-        />
+          <FormSelect
+            label="Gender"
+            options={genderOptions}
+            placeholder="Select Gender"
+            value={formData.gender}
+            onChange={(value) => onChange("gender", value)}
+            required
+          />
 
-        <FormInput
-          label="Date of Birth"
-          type="date"
-          placeholder="dd/mm/yy"
-          value={formData.dateOfBirth}
-          onChange={(value) => handleInputChange("dateOfBirth", value)}
-          required
-        />
+          <FormInput
+            label="Date of Birth"
+            type="date"
+            placeholder="dd/mm/yy"
+            value={formData.dateOfBirth}
+            onChange={(value) => onChange("dateOfBirth", value)}
+            required
+          />
 
-        <FormInput
-          label="Phone Number"
-          type="tel"
-          placeholder="Enter patient number"
-          value={formData.phone}
-          onChange={(value) => handleInputChange("phone", value)}
-          required
-        />
+          <FormInput
+            label="Phone Number"
+            type="tel"
+            placeholder="Enter phone number"
+            value={formData.phone_number}
+            onChange={(value) => onChange("phone_number", value)}
+            required
+          />
 
-        <FormInput
-          label="Email Address"
-          type="email"
-          placeholder="Enter patient email"
-          value={formData.email}
-          onChange={(value) => handleInputChange("email", value)}
-          required
-        />
+          <FormInput
+            label="Email Address"
+            type="email"
+            placeholder="Enter email address"
+            value={formData.email}
+            onChange={(value) => onChange("email", value)}
+            required
+          />
 
-        <div className="flex justify-end space-x-3 pt-4">
-          <button
-            onClick={handleClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+          <FormInput
+            label="Password"
+            type="password"
+            placeholder="Enter password"
+            value={formData.password}
+            onChange={(value) => onChange("password", value)}
+            required
+          />
+
+          <FormInput
+            label="Confirm Password"
+            type="password"
+            placeholder="Confirm password"
+            value={formData.confirmPassword}
+            onChange={(value) => onChange("confirmPassword", value)}
+            required
+          />
+
+          <FormInput
+            label="Address"
+            placeholder="Enter address"
+            value={formData.address}
+            onChange={(value) => onChange("address", value)}
+            required
+          />
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-6 mt-auto bg-white border-t border-gray-100">
+          <Button
+            variant="outline-neutral"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Cancel
-          </button>
-          <button
-            onClick={handleSavePatient}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
-            Save
-          </button>
+          </Button>
+          <Button
+            variant="primary"
+            onClick={onSave}
+            isLoading={isCreating}
+            className="w-full sm:w-auto"
+          >
+            Save Patient
+          </Button>
         </div>
       </div>
     </Modal>

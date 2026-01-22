@@ -6,6 +6,7 @@ import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useGetBookingsQuery } from "@/store/bookingApi";
 import FormattedDate from "@/utils/FormattedDate";
+import Pagination from "@/components/Pagination";
 
 interface Booking {
   bookingId?: string;
@@ -91,18 +92,18 @@ const BookingList = () => {
           ]}
         />
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Channel</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th >Patient Name</th>
+                  <th >Doctor</th>
+                  <th >Date</th>
+                  <th >Time</th>
+                  <th >Channel</th>
+                  <th >Specialty</th>
+                  <th >Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -153,7 +154,7 @@ const BookingList = () => {
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
                             }`}>
-                          {booking.bookingStatus || "Unknown"}
+                          {booking.bookingStatus || "-"}
                         </span>
                       </td>
                     </tr>
@@ -167,30 +168,15 @@ const BookingList = () => {
 
       {/* Pagination Controls */}
       {filteredBookings.length > 0 && (
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredBookings.length)} of {filteredBookings.length} bookings
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+      
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredBookings.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="bookings"
+
+          /> 
       )}
     </div>
   );

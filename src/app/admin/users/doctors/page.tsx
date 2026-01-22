@@ -12,6 +12,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import Image from "next/image";
+import Button from "@/components/Button";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { NoRecordFound } from "@/components/Options";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
@@ -234,11 +235,13 @@ export default function AdminDoctorsPage() {
         <p className="text-gray-600 mb-6">
           Please try again or contact support if the problem persists.
         </p>
-        <button
+        <Button
           onClick={() => window.location.reload()}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+          variant="primary"
+          className="px-6 py-3"
+        >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }

@@ -99,9 +99,7 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-blue-500 to-indigo-600",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
-      description: "All registered users",
-      trend: "+12%",
-      trendUp: true,
+      description: "All registered users",  
     },
     {
       title: "Total Doctors",
@@ -110,9 +108,7 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-green-500 to-emerald-600",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
-      description: "Verified doctors",
-      trend: "+8%",
-      trendUp: true,
+      description: "Verified doctors" 
     },
     {
       title: "Total Bookings",
@@ -121,9 +117,7 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-purple-500 to-violet-600",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600",
-      description: "All appointments",
-      trend: "+15%",
-      trendUp: true,
+      description: "All appointments"
     },
     {
       title: "Total Revenue",
@@ -132,10 +126,8 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-yellow-500 to-orange-600",
       bgColor: "bg-yellow-50",
       iconColor: "text-yellow-600",
-      description: "From completed payments",
-      trend: "+18%",
-      trendUp: true,
-    },
+      description: "From completed payments"
+    }
   ];
 
   if (usersLoading || bookingsLoading || paymentsLoading) {
@@ -154,22 +146,22 @@ const AdminStatsCards: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center">
-            <Users className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#44CE2D] to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Users className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">System Overview</h3>
-            <p className="text-sm text-gray-500">Key metrics and statistics</p>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">System Overview</h3>
+            <p className="text-xs md:text-sm text-gray-500">Key metrics and statistics</p>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {statsData.map((item, index) => {
           const IconComponent = item.icon as React.ElementType;
           return (
@@ -181,34 +173,23 @@ const AdminStatsCards: React.FC = () => {
                 className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
               {/* Content */}
-              <div className="relative p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div className="relative p-3 md:p-4">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
                   <div
-                    className={`w-8 h-8 ${item.bgColor} rounded-lg flex items-center justify-center`}>
-                    <IconComponent className={`w-4 h-4 ${item.iconColor}`} />
+                    className={`w-8 h-8 md:w-10 md:h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
+                    <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${item.iconColor}`} />
                   </div>
-                  {item.trend && (
-                    <div
-                      className={`text-xs font-medium flex items-center gap-1 ${item.trendUp ? "text-green-600" : "text-red-600"
-                        }`}>
-                      {item.trendUp ? (
-                        <TrendingUp size={12} />
-                      ) : (
-                        <TrendingDown size={12} />
-                      )}
-                      {item.trend}
-                    </div>
-                  )}
+                   
                 </div>
 
-                <div className="mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                <div className="mb-1 md:mb-2">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-gray-500">{item.description}</p>
+                  <p className="text-[10px] md:text-xs text-gray-500">{item.description}</p>
                 </div>
               </div>
             </div>
@@ -218,22 +199,22 @@ const AdminStatsCards: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             System Status: All Systems Operational
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">Active Users: {totalUsers}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Active Users: {totalUsers}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              <span className="text-gray-600">Doctors: {totalDoctors}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Doctors: {totalDoctors}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              <span className="text-gray-600">Bookings: {totalBookings}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Bookings: {totalBookings}</span>
             </div>
           </div>
         </div>

@@ -48,7 +48,7 @@ function AdminLayout({ children }: LayoutProps) {
             isMobileOpen={isMobileSidenavOpen}
             onMobileClose={handleMobileSidenavClose}
           />
-          <main className={`${transitionClasses}`}>{children}</main>
+          <main className={`p-4 md:p-6 ${transitionClasses}`}>{children}</main>
         </div>
       </EditModeContext.Provider>
     </ProtectedRoute>

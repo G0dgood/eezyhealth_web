@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import Pagination from "@/components/Pagination";
+import Button from "@/components/Button";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
@@ -226,12 +228,14 @@ export default function DocumentPage() {
                       </div>
                     </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
+                      <Button
+                        variant="ghost-primary"
+                        size="sm"
                         onClick={() => handleAction(upload)}
-                        className="text-[#44CE2D] hover:text-[#3bb025] text-sm font-medium transition-colors"
+                        className="px-2"
                       >
                         {getActionText(upload.status)}
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -249,46 +253,18 @@ export default function DocumentPage() {
             </tbody>
           </table>
         </div>
+      {/* Pagination */}
+      {filteredData.length > 0 && ( 
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredData.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="documents"
+          /> 
+      )}
       </div>
 
-      {/* Pagination */}
-      {filteredData.length > 0 && (
-        <div className="mt-6 flex items-center justify-between">
-          <div
-            className="text-sm"
-            style={{
-              color: "var(--muted-foreground)",
-            }}
-          >
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium rounded-lg border disabled:opacity-50 transition-colors"
-              style={{
-                backgroundColor: "var(--card)",
-                borderColor: "var(--border)",
-                color: "var(--card-foreground)",
-              }}
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 transition-colors"
-              style={{
-                backgroundColor: "var(--primary)",
-                color: "var(--primary-foreground)",
-              }}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Document Review Modal */}
       {selectedUpload && (

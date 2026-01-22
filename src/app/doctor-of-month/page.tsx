@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Trophy, User, Search, Bell } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
+import Pagination from "@/components/Pagination";
 
 export default function DoctorOfMonthPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 5;
+  const pageSize = 5;
 
   // Sample data for past doctors of the month
   const pastDoctors = [
@@ -59,6 +60,11 @@ export default function DoctorOfMonthPage() {
       completedAppointments: "98%",
     },
   ];
+
+  const currentDoctors = pastDoctors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div>
@@ -207,27 +213,13 @@ export default function DoctorOfMonthPage() {
 
             {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors cursor-pointer">
-                    Previous
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-green-600 text-white rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-colors cursor-pointer">
-                    Next
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalCount={pastDoctors.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                itemLabel="doctors"
+              />
             </div>
           </div>
         </div>

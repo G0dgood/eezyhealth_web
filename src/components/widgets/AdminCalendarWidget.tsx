@@ -184,16 +184,16 @@ const AdminCalendarWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-            <Calendar className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Calendar</h3>
-            <p className="text-sm text-gray-500">Appointment calendar</p>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900">Calendar</h3>
+            <p className="text-xs md:text-sm text-gray-500">Appointment calendar</p>
           </div>
         </div>
       </div>
@@ -273,27 +273,27 @@ const AdminCalendarWidget: React.FC = () => {
               <div
                 key={booking.id}
                 className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
+                  <div className="flex items-center gap-2 overflow-hidden w-full sm:w-auto">
                     {getChannelIcon(booking.channel)}
-                    <div>
-                      <h5 className="font-medium text-gray-900 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <h5 className="font-medium text-gray-900 text-sm truncate">
                         {booking.patientName || "Unknown Patient"}
                       </h5>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 truncate">
                         with {booking.doctorName || "Unknown Doctor"}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                    className={`self-start sm:self-auto px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
                       booking.status
-                    )}`}>
+                    )} flex-shrink-0 ml-6 sm:ml-2`}>
                     {booking.status || "Unknown"}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-gray-600">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-600">
                   <div className="flex items-center gap-1">
                     <Clock size={12} />
                     <span>{booking.time || "N/A"}</span>
@@ -313,11 +313,11 @@ const AdminCalendarWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Today: {todaysBookings.length} appointments
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               <span className="text-gray-600">Has bookings</span>

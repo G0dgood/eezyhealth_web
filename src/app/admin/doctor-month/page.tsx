@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trophy, User } from "lucide-react";
 import Title from "@/components/Title";
+import Pagination from "@/components/Pagination";
 import {
   useGetFirebaseDoctorOfTheMonthQuery,
   useTriggerDoctorOfTheMonthMutation,
@@ -85,6 +86,7 @@ const AdminDoctorOfMonthPage = () => {
   const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true);
   const [currentMonth, setCurrentMonth] = useState("");
   const [isAutoCreating, setIsAutoCreating] = useState(false);
+  const pageSize = 10;
 
   // RTK Query hooks for Doctor of The Month
   const {
@@ -400,7 +402,11 @@ const AdminDoctorOfMonthPage = () => {
     isAutoCreating,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(pastDoctors.length / 10));
+  const totalPages = Math.max(1, Math.ceil(pastDoctors.length / pageSize));
+  const paginatedPastDoctors = pastDoctors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   // Calculate comprehensive performance score for Doctor of The Month selection
   const calculatePerformanceScore = (doctor: DoctorPerformance): number => {
@@ -620,14 +626,15 @@ const AdminDoctorOfMonthPage = () => {
                   Auto-creating...
                 </span>
               )}
-              <button
+              <Button
                 onClick={handleAutoSelectDoctorOfMonth}
                 disabled={
                   isTriggering || topPerformers.length === 0 || isAutoCreating
                 }
-                className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:bg-[#3bb025] transition-colors disabled:opacity-50">
+                className="bg-[#44CE2D] text-white hover:bg-[#3bb025] disabled:opacity-50 h-auto py-1 px-3 text-sm"
+              >
                 {isTriggering ? "Selecting..." : "Auto-Select"}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -673,12 +680,13 @@ const AdminDoctorOfMonthPage = () => {
                       <span className="text-lg font-bold text-[#44CE2D]">
                         {performer.performanceScore?.toFixed(1) || 0}
                       </span>
-                      <button
+                      <Button
                         onClick={() => handleSelectDoctorOfMonth(performer.id)}
                         disabled={isTriggering}
-                        className="block mt-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50">
+                        className="block mt-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50 bg-transparent hover:bg-transparent p-0 h-auto"
+                        variant="ghost">
                         Select as DoM
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -693,29 +701,17 @@ const AdminDoctorOfMonthPage = () => {
             Past Doctors of The Month
           </h3>
 
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      DOCTOR
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      SPECIALTY
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      MONTH
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      RATING
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CANCELLATION RATE
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      COMPLETED APPOINTMENT
-                    </th>
+                    <th>DOCTOR</th>
+                    <th>SPECIALTY</th>
+                    <th>MONT</th>
+                    <th>RATING</th>
+                    <th>CANCELLATION RATE</th>
+                    <th>COMPLETED APPOINTMENT</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -723,7 +719,7 @@ const AdminDoctorOfMonthPage = () => {
                     pastDoctors?.length === undefined ? (
                     <NoRecordFound colSpan={6} />
                   ) : (
-                    pastDoctors.map((doctor, index) => (
+                    paginatedPastDoctors.map((doctor, index) => (
                       <tr
                         key={doctor.id || index}
                         className="hover:bg-gray-50 transition-colors"
@@ -738,54 +734,26 @@ const AdminDoctorOfMonthPage = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.specialty}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.displayMonth}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.rating}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.cancellationRate}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.completedAppointments}%
-                        </td>
+                        <td>{doctor.specialty}  </td>
+                        <td>{doctor.displayMonth} </td>
+                        <td>{doctor.rating}% </td>
+                        <td>{doctor.cancellationRate}% </td>
+                        <td>{doctor.completedAppointments}% </td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
-
             {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
+              <Pagination
+
+                currentPage={currentPage}
+                totalCount={pastDoctors.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                itemLabel="doctors"
+              /> 
           </div>
         </div>
       </div>

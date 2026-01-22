@@ -14,13 +14,13 @@ export const doctorFirebaseApi = api.injectEndpoints({
           let doctorsData;
           try {
             doctorsData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "DOCTOR"),
+              firebaseConstraints.where("role", "==", "doctor"),
               firebaseConstraints.orderBy("rating", "desc"),
             ]);
           } catch {
             // If rating field doesn't exist or causes an error, get all doctors without ordering
             doctorsData = await createFirebaseQuery("users", [
-              firebaseConstraints.where("role", "==", "DOCTOR"),
+              firebaseConstraints.where("role", "==", "doctor"),
             ]);
           }
 

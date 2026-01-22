@@ -33,6 +33,7 @@ import {
 import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import Dropdown from "@/components/Dropdown";
+import Button from "@/components/Button";
 import NotificationSystem from "@/components/notifications/NotificationSystem";
 import EmailNotificationSystem from "@/components/notifications/EmailNotificationSystem";
 
@@ -340,13 +341,13 @@ const DoctorAccountManagementPage = () => {
 								variant="default"
 							/>
 
-							<button
+							<Button
 								onClick={() => setShowAuditLogs(!showAuditLogs)}
-								className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center"
+								className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+								icon={<Filter className="h-4 w-4" />}
 							>
-								<Filter className="h-4 w-4 mr-2" />
 								Audit Logs
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -359,18 +360,18 @@ const DoctorAccountManagementPage = () => {
 								{selectedDoctors.length} doctor(s) selected
 							</p>
 							<div className="flex gap-2">
-								<button
+								<Button
 									onClick={() => setShowBulkActions(!showBulkActions)}
-									className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+									className="bg-blue-600 text-white hover:bg-blue-700 border-none"
 								>
 									Bulk Actions
-								</button>
-								<button
+								</Button>
+								<Button
 									onClick={() => setSelectedDoctors([])}
-									className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+									className="bg-gray-200 text-gray-700 hover:bg-gray-300 border-none"
 								>
 									Clear Selection
-								</button>
+								</Button>
 							</div>
 						</div>
 
@@ -389,22 +390,22 @@ const DoctorAccountManagementPage = () => {
 								</div>
 
 								<div className="flex gap-2">
-									<button
+									<Button
 										onClick={() => handleBulkStatusUpdate("inactive")}
 										disabled={!bulkActionReason || bulkUpdateLoading}
-										className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center"
+										className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 border-none"
+										icon={<UserX className="h-4 w-4" />}
 									>
-										<UserX className="h-4 w-4 mr-2" />
 										Deactivate Selected
-									</button>
-									<button
+									</Button>
+									<Button
 										onClick={() => handleBulkStatusUpdate("active")}
 										disabled={!bulkActionReason || bulkUpdateLoading}
-										className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center"
+										className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 border-none"
+										icon={<UserCheck className="h-4 w-4" />}
 									>
-										<UserCheck className="h-4 w-4 mr-2" />
 										Reactivate Selected
-									</button>
+									</Button>
 								</div>
 							</div>
 						)}
@@ -435,19 +436,19 @@ const DoctorAccountManagementPage = () => {
 											fullWidth={false}
 										/>
 									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th >
 										Doctor
 									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th >
 										Specialization
 									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th >
 										Status
 									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th >
 										Last Updated
 									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th >
 										Actions
 									</th>
 								</tr>
@@ -503,34 +504,34 @@ const DoctorAccountManagementPage = () => {
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
 											<div className="flex items-center space-x-2">
-												<button
+												<Button
 													onClick={() => handleDataVerification(doctor.uid)}
-													className="text-blue-600 hover:text-blue-900"
+													className="text-blue-600 hover:text-blue-900 bg-transparent hover:bg-transparent border-none p-1"
 													title="Verify Data"
-												>
-													<Eye className="h-4 w-4" />
-												</button>
-												<button
+													icon={<Eye className="h-4 w-4" />}
+													iconOnly
+												/>
+												<Button
 													onClick={() => handleDataExport(doctor.uid)}
-													className="text-green-600 hover:text-green-900"
+													className="text-green-600 hover:text-green-900 bg-transparent hover:bg-transparent border-none p-1"
 													title="Export Data"
-												>
-													<Download className="h-4 w-4" />
-												</button>
-												<button
+													icon={<Download className="h-4 w-4" />}
+													iconOnly
+												/>
+												<Button
 													onClick={() => handleOpenNotificationSystem(doctor.uid)}
-													className="text-blue-600 hover:text-blue-900"
+													className="text-blue-600 hover:text-blue-900 bg-transparent hover:bg-transparent border-none p-1"
 													title="Send Notifications"
-												>
-													<Bell className="h-4 w-4" />
-												</button>
-												<button
+													icon={<Bell className="h-4 w-4" />}
+													iconOnly
+												/>
+												<Button
 													onClick={() => handleOpenEmailNotification(doctor.uid, doctor.isActive ? "reactivated" : "deactivated")}
-													className="text-purple-600 hover:text-purple-900"
+													className="text-purple-600 hover:text-purple-900 bg-transparent hover:bg-transparent border-none p-1"
 													title="Send Email"
-												>
-													<Mail className="h-4 w-4" />
-												</button>
+													icon={<Mail className="h-4 w-4" />}
+													iconOnly
+												/>
 											</div>
 										</td>
 									</tr>
@@ -548,15 +549,16 @@ const DoctorAccountManagementPage = () => {
 								<h3 className="text-lg font-medium text-gray-900">
 									Data Verification - {selectedDoctor.display_name}
 								</h3>
-								<button
+								<Button
 									onClick={() => setSelectedDoctor(null)}
-									className="text-gray-400 hover:text-gray-600"
+									className="text-gray-400 hover:text-gray-600 bg-transparent hover:bg-transparent border-none p-1"
+									icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									</svg>}
+									iconOnly
 								>
 									<span className="sr-only">Close</span>
-									<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-									</svg>
-								</button>
+								</Button>
 							</div>
 
 							<div className="space-y-4">
@@ -605,15 +607,16 @@ const DoctorAccountManagementPage = () => {
 								<h3 className="text-lg font-medium text-gray-900">
 									Data Export - {selectedDoctor?.display_name}
 								</h3>
-								<button
+								<Button
 									onClick={() => setShowDataExport(false)}
-									className="text-gray-400 hover:text-gray-600"
+									className="text-gray-400 hover:text-gray-600 bg-transparent hover:bg-transparent border-none p-1"
+									icon={<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									</svg>}
+									iconOnly
 								>
 									<span className="sr-only">Close</span>
-									<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-									</svg>
-								</button>
+								</Button>
 							</div>
 
 							<div className="space-y-4 mb-6">
@@ -646,13 +649,13 @@ const DoctorAccountManagementPage = () => {
 							</div>
 
 							<div className="flex justify-end">
-								<button
+								<Button
 									onClick={downloadExportData}
-									className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+									className="bg-blue-600 text-white hover:bg-blue-700 border-none"
+									icon={<Download className="h-4 w-4" />}
 								>
-									<Download className="h-4 w-4 mr-2" />
 									Download JSON
-								</button>
+								</Button>
 							</div>
 						</div>
 					</div>
@@ -669,19 +672,19 @@ const DoctorAccountManagementPage = () => {
 							<table className="min-w-full divide-y divide-gray-200">
 								<thead className="bg-gray-50">
 									<tr>
-										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										<th >
 											Action
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										<th >
 											Target
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										<th >
 											Performed By
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										<th >
 											Reason
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										<th >
 											Timestamp
 										</th>
 									</tr>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Filter, Calendar, Clock, User, Stethoscope } from "lucide-react";
 import { getTypeColor } from "@/components/Options";
+import Pagination from "@/components/Pagination";
 
 interface Appointment {
   patient: string;
@@ -48,27 +49,27 @@ export default function TodaysAppointmentsWidget({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+    <div className={`bg-white rounded-lg  border border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="p-4 md:px-6 md:py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="w-5 h-5 text-blue-600" />
+            <div className="p-1.5 md:p-2 bg-blue-100 rounded-lg">
+              <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">
                 Today&apos;s Appointments
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs md:text-sm text-gray-500">
                 {formatDate(date)}
               </p>
             </div>
           </div>
           {showFilter && (
-            <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
-              <Filter className="w-4 h-4" />
-              <span className="text-sm">Filter</span>
+            <button className="flex items-center space-x-2 px-2 py-1.5 md:px-3 md:py-2 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
+              <Filter className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="text-xs md:text-sm">Filter</span>
             </button>
           )}
         </div>
@@ -87,16 +88,16 @@ export default function TodaysAppointmentsWidget({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th >
                   Patient
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th >
                   Doctor
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th >
                   Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th >
                   Type
                 </th>
               </tr>
@@ -104,42 +105,42 @@ export default function TodaysAppointmentsWidget({
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedAppointments.map((appointment, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-3">
+                  <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2 md:space-x-3">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="w-4 h-4 text-blue-600" />
+                        <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-xs md:text-sm font-medium text-gray-900">
                           {appointment.patient}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-[10px] md:text-sm text-gray-500">
                           {appointment.specialization}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <Stethoscope className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">
+                  <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-1.5 md:space-x-2">
+                      <Stethoscope className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                      <span className="text-xs md:text-sm text-gray-900">
                         {appointment.doctor}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">
+                  <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-1.5 md:space-x-2">
+                      <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                      <span className="text-xs md:text-sm text-gray-900">
                         {appointment.time}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(
+                      className={`inline-flex px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-semibold rounded-full ${getTypeColor(
                         appointment.type
                       )}`}>
                       {appointment.type}
@@ -150,43 +151,28 @@ export default function TodaysAppointmentsWidget({
             </tbody>
           </table>
         )}
+      {/* Pagination */}
+      {totalPages > 1 && ( 
+          <Pagination
+            currentPage={currentPage}
+            totalCount={appointments.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="appointments"
+            className="mt-4"
+          />  
+      )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm text-gray-500 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer hover:text-gray-700 transition-colors">
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer transition-colors">
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer with total count */}
       {appointments.length > 0 && (
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+        <div className="px-4 py-3 md:px-6 md:py-3 bg-gray-50 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+            <span className="text-xs md:text-sm text-gray-600">
               {appointments.length} appointment{appointments.length !== 1 ? 's' : ''} today
             </span>
-            <button className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+            <button className="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
               View All
             </button>
           </div>

@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import Image from "next/image";
+import { toast } from "sonner"; 
 import {
   User,
   Bell,
   Shield,
-  Camera,
-  UserCircle,
   Sun,
   Moon,
 } from "lucide-react";
+import Button from "@/components/Button";
 import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Toggle } from "@/components/Toggle";
@@ -23,27 +21,20 @@ import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import Dropdown from "@/components/Dropdown";
 import { PageSkeleton } from "@/components/SkeletonLoader";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+import { useUpdateUserProfileMutation } from "@/store/authApi";
+
+import { motion } from "framer-motion";
 
 export default function AdminSettings() {
-  const { userInfo, loading, signOut } = useAuth();
+  const { userInfo, loading, signOut, setUserInfo } = useAuth();
+  const [updateUser] = useUpdateUserProfileMutation();
   const [activeTab, setActiveTab] = useState("profile");
   const { theme, setTheme, toggleTheme } = useTheme();
 
   const router = useRouter();
 
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
-
-  // Function to check if image URL is valid for Next.js Image component
-  const isValidImageUrl = (url: string) => {
-    if (!url || url === "/api/placeholder/120/120" || url.includes("placeholder")) return false;
-    // Check if it's a valid HTTP/HTTPS URL
-    try {
-      const urlObj = new URL(url);
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
 
   // Sync profileImage with userInfo when it changes
   useEffect(() => {
@@ -128,8 +119,11 @@ export default function AdminSettings() {
   });
 
   // Session timeout state
-  const [sessionTimeoutId, setSessionTimeoutId] =
-    useState<NodeJS.Timeout | null>(null);
+  const logoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
   const [timeUntilLogout, setTimeUntilLogout] = useState<number>(0);
   const [isSessionWarning, setIsSessionWarning] = useState(false);
 
@@ -148,28 +142,38 @@ export default function AdminSettings() {
   const [profileChanges, setProfileChanges] = useState(false);
 
   // Session timeout functions
-  const startSessionTimeout = () => {
-    // Clear existing timeout
-    if (sessionTimeoutId) {
-      clearTimeout(sessionTimeoutId);
-    }
+  const clearAllTimeouts = () => {
+    if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
+    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+  };
+
+  const startSessionTimeout = useCallback(() => {
+    clearAllTimeouts();
 
     const timeoutMinutes = parseInt(securitySettings.sessionTimeout);
+
+    // Validate timeout: must be a number and at least 1 minute
+    if (isNaN(timeoutMinutes) || timeoutMinutes < 1) {
+      return;
+    }
+
     const timeoutMs = timeoutMinutes * 60 * 1000;
 
-    // Set warning 2 minutes before logout
-    const warningTime = timeoutMs - 2 * 60 * 1000;
+    // Set warning 2 minutes before logout, or at 80% if timeout is small
+    const warningTime = timeoutMs > 3 * 60 * 1000 ? timeoutMs - 2 * 60 * 1000 : Math.floor(timeoutMs * 0.8);
 
     // Start countdown for warning
-    const warningTimeoutId = setTimeout(() => {
+    warningTimeoutRef.current = setTimeout(() => {
       setIsSessionWarning(true);
-      setTimeUntilLogout(120); // 2 minutes in seconds
+      const secondsRemaining = Math.floor((timeoutMs - warningTime) / 1000);
+      setTimeUntilLogout(secondsRemaining);
 
       // Start countdown timer
-      const countdownInterval = setInterval(() => {
+      countdownIntervalRef.current = setInterval(() => {
         setTimeUntilLogout((prev) => {
           if (prev <= 1) {
-            clearInterval(countdownInterval);
+            if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
             return 0;
           }
           return prev - 1;
@@ -178,21 +182,23 @@ export default function AdminSettings() {
     }, warningTime);
 
     // Set actual logout timeout
-    const logoutTimeoutId = setTimeout(() => {
+    logoutTimeoutRef.current = setTimeout(() => {
       handleSessionTimeout();
     }, timeoutMs);
+  }, [securitySettings.sessionTimeout]);
 
-    setSessionTimeoutId(logoutTimeoutId);
-  };
+  const resetSessionTimeout = useCallback(() => {
+    const now = Date.now();
+    // Throttle: only reset if 30 seconds have passed since last activity
+    if (now - lastActivityRef.current < 30000) return;
 
-  const resetSessionTimeout = () => {
-    if (sessionTimeoutId) {
-      clearTimeout(sessionTimeoutId);
-    }
+    lastActivityRef.current = now;
+
+    // Only clear and restart if we are in warning mode OR enough time passed
+    // But for simplicity and correctness, we restart the timer
     setIsSessionWarning(false);
-    setTimeUntilLogout(0);
     startSessionTimeout();
-  };
+  }, [startSessionTimeout]);
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -222,11 +228,9 @@ export default function AdminSettings() {
 
     // Cleanup on unmount
     return () => {
-      if (sessionTimeoutId) {
-        clearTimeout(sessionTimeoutId);
-      }
+      clearAllTimeouts();
     };
-  }, []);
+  }, [startSessionTimeout]);
 
   // Reset session timeout on user activity
   useEffect(() => {
@@ -254,7 +258,7 @@ export default function AdminSettings() {
         document.removeEventListener(event, handleUserActivity, true);
       });
     };
-  }, [securitySettings.sessionTimeout]);
+  }, [resetSessionTimeout]);
 
   // Update session timeout when settings change
   useEffect(() => {
@@ -263,15 +267,36 @@ export default function AdminSettings() {
     }
   }, [securitySettings.sessionTimeout]);
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create a temporary URL for the selected file
-      const tempUrl = URL.createObjectURL(file);
-      setProfileImage(tempUrl);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
 
-      // Clean up the temporary URL when component unmounts
-      return () => URL.revokeObjectURL(tempUrl);
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        // Update user in database
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+
+        // Update local storage and context
+        if (userInfo && setUserInfo) {
+          const updatedUserInfo = { ...userInfo, photo_url: url, photoURL: url };
+          setUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
+
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
@@ -376,35 +401,10 @@ export default function AdminSettings() {
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                {profileImage && isValidImageUrl(profileImage) ? (
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    <UserCircle className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 bg-[#22c55e] text-white p-2 rounded-full cursor-pointer hover:bg-[#16a34a] transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-[#22c55e] font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+            />
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -424,17 +424,7 @@ export default function AdminSettings() {
                 />
               </div>
 
-              <div>
-                <Input
-                  label="Admin ID"
-                  type="text"
-                  value={profileData.adminId}
-                  onChange={(e) =>
-                    handleProfileDataChange("adminId", e.target.value)
-                  }
-                  fullWidth
-                />
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -653,15 +643,16 @@ export default function AdminSettings() {
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3">
-              <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <Button variant="neutral">
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+                variant="primary"
+                isLoading={isProfileSaving}
               >
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -766,12 +757,12 @@ export default function AdminSettings() {
 
             {/* Save Button */}
             <div className="flex justify-end">
-              <button
+              <Button
                 onClick={handleNotificationSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+                className="bg-[#22c55e] hover:bg-[#1a9f4a] text-white"
               >
                 Save Preference
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -945,26 +936,29 @@ export default function AdminSettings() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3">
-                <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                <Button
+                  variant="outline-neutral"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handlePasswordUpdate}
-                  className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+                  className="bg-[#22c55e] hover:bg-[#1a9f4a] text-white"
                 >
                   Update Password
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Save Security Settings Button */}
             <div className="flex justify-end">
-              <button
+              <Button
                 onClick={handleSecuritySave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer"
+                variant="primary"
               >
                 Save Settings
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -996,22 +990,27 @@ export default function AdminSettings() {
 
       {/* Settings Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+        <div className="border-b border-gray-200 p-4">
+          <div className="relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
-                  ? "border-[#22c55e] text-[#22c55e]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
+                  ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="admin-settings-active-tab"
+                    className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
               </button>
             ))}
-          </nav>
+          </div>
         </div>
 
         {/* Tab Content */}
