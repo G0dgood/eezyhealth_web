@@ -31,6 +31,8 @@ export const api = createApi({
     "BookingCancellation",
     "DoctorOfTheMonth",
     "Specialization",
+    "PatientAppointments",
+    "PatientVitals",
   ],
   endpoints: () => ({}),
 });
