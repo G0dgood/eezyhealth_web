@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, setDoc, addDoc } from 'firebase/firestore';
 
@@ -17,7 +17,6 @@ try {
 } catch (e) {
     // If the app is already initialized, get the existing instance
     // This can happen in development with hot reloading
-    const { getApp } = require("firebase/app");
     secondaryApp = getApp("secondary");
   }
 

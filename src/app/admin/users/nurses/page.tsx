@@ -27,8 +27,8 @@ import { updateUserByUid } from "@/hooks/updateUserByUid";
 import { createFirebaseDocument } from "@/lib/firebase-rtk";
 import Pagination from "@/components/Pagination";
 import AddNurseModalComponent, { NurseFormData as NurseFormDataType } from "@/components/modals/AddNurseModal";
-import { auth } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { auth, secondaryAuth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 
 interface UserData {
   uid: string;
@@ -118,7 +118,7 @@ export default function AdminNursesPage() {
 
   const transformedNurses = nursesData.map(
     (nurse: Record<string, unknown>, index: number): Nurse => ({
-      uid: (nurse.uid as string) || `nurse-${index}`,
+      uid: (nurse.uid as string) || (nurse.id as string) || `nurse-${index}`,
       id: (nurse.id as string) || (nurse.uid as string) || `nurse-${index}`,
       display_name: nurse.display_name as string,
       first_name: nurse.first_name as string,
@@ -304,12 +304,16 @@ export default function AdminNursesPage() {
       const display_name = `${formData.first_name} ${formData.last_name}`.trim();
 
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         formData.email,
         formData.password
       );
 
       const nurseUid = userCredential.user.uid;
+
+      // Immediately sign out the secondary user to prevent auth state pollution
+      // This ensures the admin remains logged in with the primary auth instance
+      await signOut(secondaryAuth);
 
       await createFirebaseDocument("users", {
         uid: nurseUid,

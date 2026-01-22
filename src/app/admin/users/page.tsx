@@ -21,8 +21,8 @@ import DeleteUserModal from "@/components/modals/DeleteUserModal";
 import { deleteUser } from "@/hooks/deleteUser";
 import { updateUserByUid } from "@/hooks/updateUserByUid";
 import UploadBase from "@/components/UploadBaseEmployee";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
+import { auth, db, secondaryAuth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createFirebaseDocument } from "@/lib/firebase-rtk";
 import { Download } from "lucide-react";
@@ -99,9 +99,9 @@ export default function AdminUsersPage() {
       email: user.email || "",
       display_name: user.display_name || "",
       role: (user.role || "patient").toLowerCase(),
-      phone_number: user.phone_number || "",
-      address: user.address || "",
-      location: user.location || "",
+      phone_number: user?.phone_number || "",
+      address: user?.address || "",
+      location: user?.location || "",
       date_of_birth: user.date_of_birth || "",
       isActive: user.isActive ?? false,
       createdTime: user.createdTime || "",
@@ -239,9 +239,9 @@ export default function AdminUsersPage() {
 
           const display_name = `${first_name} ${last_name}`.trim();
 
-          // 1. Create Auth User
+          // 1. Create Auth User using Secondary Auth (to keep admin logged in)
           const userCredential = await createUserWithEmailAndPassword(
-            auth,
+            secondaryAuth,
             email,
             password
           );
@@ -252,6 +252,9 @@ export default function AdminUsersPage() {
           await updateProfile(user, {
             displayName: display_name,
           });
+
+          // Immediately sign out the secondary user to prevent auth state pollution
+          await signOut(secondaryAuth);
 
           // 3. Create User Document in 'users' collection
           await setDoc(doc(db, "users", uid), {
