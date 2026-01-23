@@ -26,13 +26,13 @@ const PillTabs = ({
 }: PillTabsProps) => {
   return (
     <div
-      className={`relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1 ${className}`}
+      className={`relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit max-w-full overflow-x-auto p-1 ${className}`}
     >
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
+          className={`flex-shrink-0 flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
             ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
         >
           {tab.icon && <span>{tab.icon}</span>}

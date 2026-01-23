@@ -16,6 +16,16 @@ interface AddVitalsModalProps {
   bookingId?: string;
 }
 
+interface VitalsFormData {
+  heartRate: string;
+  bloodPressure: string;
+  weight: string;
+  temperature: string;
+  breathingRate: string;
+  comment: string;
+  recommendation: string;
+}
+
 export default function AddVitalsModal({
   isOpen,
   onClose,
@@ -25,13 +35,15 @@ export default function AddVitalsModal({
 }: AddVitalsModalProps) {
   const [saveVitals, { isLoading }] = useSavePatientVitalsMutation();
   const { user } = useAuth();
-  
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<VitalsFormData>({
     heartRate: "",
     bloodPressure: "",
     weight: "",
     temperature: "",
-    breathingRate: "", 
+    breathingRate: "",
+    comment: "",
+    recommendation: "",
   });
 
   useEffect(() => {
@@ -41,12 +53,14 @@ export default function AddVitalsModal({
         bloodPressure: "",
         weight: "",
         temperature: "",
-        breathingRate: "", 
+        breathingRate: "",
+        comment: "",
+        recommendation: "",
       });
     }
   }, [isOpen]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof VitalsFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -87,42 +101,42 @@ export default function AddVitalsModal({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <FormInput 
-            label="Heart Rate" 
-            placeholder="bpm" 
+          <FormInput
+            label="Heart Rate"
+            placeholder="bpm"
             value={formData.heartRate}
             onChange={(val) => handleChange("heartRate", val)}
           />
-          <FormInput 
-            label="Blood Pressure" 
-            placeholder="mmHg" 
+          <FormInput
+            label="Blood Pressure"
+            placeholder="mmHg"
             value={formData.bloodPressure}
             onChange={(val) => handleChange("bloodPressure", val)}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormInput 
-            label="Weight" 
-            placeholder="kg" 
+          <FormInput
+            label="Weight"
+            placeholder="kg"
             value={formData.weight}
             onChange={(val) => handleChange("weight", val)}
           />
-          <FormInput 
-            label="Temperature" 
-            placeholder="°C" 
+          <FormInput
+            label="Temperature"
+            placeholder="°C"
             value={formData.temperature}
             onChange={(val) => handleChange("temperature", val)}
           />
         </div>
 
-        <FormInput 
-          label="Breathing Rate" 
-          placeholder="breaths/min" 
+        <FormInput
+          label="Breathing Rate"
+          placeholder="breaths/min"
           value={formData.breathingRate}
           onChange={(val) => handleChange("breathingRate", val)}
         />
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
@@ -147,13 +161,13 @@ export default function AddVitalsModal({
 
         <div className="flex justify-end space-x-3 pt-4">
           <Button
-            variant="outline"
+            variant="outline-neutral"
             onClick={onClose}
             disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSubmit}
             isLoading={isLoading}
           >

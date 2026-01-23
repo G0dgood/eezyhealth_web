@@ -6,9 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
+import { User, Bell, Shield } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
-import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Skeleton } from "@/components/ui/skeleton";
 import CustomToggle from "@/components/CustomToggle";
@@ -16,8 +15,8 @@ import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import { useUpdateUserMutation } from "@/store/authApi";
 import ProfilePictureSection from "@/components/ProfilePictureSection";
-
 import { motion } from "framer-motion";
+import PillTabs from "@/components/Tabs/PillTabs";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
@@ -870,26 +869,12 @@ export default function DoctorSettings() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Tabs */}
         <div className="border-b border-gray-200 p-4">
-          <div className="relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
-                  ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="doctor-settings-active-tab"
-                    className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            layoutId="doctor-settings-active-tab"
+          />
         </div>
 
         {/* Tab Content */}

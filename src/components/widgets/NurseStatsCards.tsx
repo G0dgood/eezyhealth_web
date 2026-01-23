@@ -1,13 +1,91 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Users, Calendar, Clock, AlertCircle } from "lucide-react";
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 
 const NurseStatsCards: React.FC = () => {
+  const { data: bookingsData } = useGetBookingsQuery({});
+  const { data: patientsData } = useGetFirebasePatientsQuery({});
+
+  const stats = useMemo(() => {
+    // 1. Total Patients
+    const totalPatients = Array.isArray(patientsData) ? patientsData.length : 0;
+
+    // Process Bookings
+    const rawBookings = Array.isArray(bookingsData?.bookings)
+      ? bookingsData.bookings
+      : Array.isArray(bookingsData)
+      ? bookingsData
+      : bookingsData && typeof bookingsData === "object" && Array.isArray((bookingsData as any).data)
+      ? (bookingsData as any).data
+      : [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todaysBookings = rawBookings.filter((booking: any) => {
+      if (!booking.bookingDate) return false;
+      
+      let date: Date | null = null;
+      
+      // Handle Firestore Timestamp
+      if (typeof booking.bookingDate === 'object' && booking.bookingDate.seconds) {
+        date = new Date(booking.bookingDate.seconds * 1000);
+      } 
+      // Handle String Date
+      else if (typeof booking.bookingDate === 'string') {
+        date = new Date(booking.bookingDate);
+      }
+
+      if (!date || isNaN(date.getTime())) return false;
+
+      // Check if same day
+      const bookingDay = new Date(date);
+      bookingDay.setHours(0, 0, 0, 0);
+      
+      return bookingDay.getTime() === today.getTime();
+    });
+
+    const todaysAppointmentsCount = todaysBookings.length;
+
+    // Pending Tasks: Appointments today without vitals and not cancelled/completed
+    const pendingTasksCount = todaysBookings.filter((booking: any) => {
+      const status = booking.bookingStatus?.toLowerCase() || "pending";
+      const hasVitals = !!booking.vital_signs;
+      const isCompleted = status === "completed" || status === "cancelled" || status === "rejected";
+      
+      return !hasVitals && !isCompleted;
+    }).length;
+
+    // Critical Alerts: Urgent/Emergency in reason or comments
+    const criticalAlertsCount = todaysBookings.filter((booking: any) => {
+      const reason = booking.reason?.toLowerCase() || "";
+      const comments = Array.isArray(booking.comments) 
+        ? booking.comments.join(" ").toLowerCase() 
+        : (booking.comments || "").toString().toLowerCase();
+      
+      return reason.includes("urgent") || 
+             reason.includes("emergency") || 
+             comments.includes("urgent") || 
+             comments.includes("emergency");
+    }).length;
+
+    return {
+      totalPatients,
+      todaysAppointmentsCount,
+      pendingTasksCount,
+      criticalAlertsCount
+    };
+  }, [bookingsData, patientsData]);
+
   const statsData = [
     {
       title: "Total Patients",
-      value: "156",
+      value: stats.totalPatients.toString(),
       icon: Users,
       gradient: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
@@ -16,7 +94,7 @@ const NurseStatsCards: React.FC = () => {
     },
     {
       title: "Today's Appointments",
-      value: "12",
+      value: stats.todaysAppointmentsCount.toString(),
       icon: Calendar,
       gradient: "from-green-500 to-green-600",
       bgColor: "bg-green-50",
@@ -25,7 +103,7 @@ const NurseStatsCards: React.FC = () => {
     },
     {
       title: "Pending Tasks",
-      value: "8",
+      value: stats.pendingTasksCount.toString(),
       icon: Clock,
       gradient: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
@@ -34,7 +112,7 @@ const NurseStatsCards: React.FC = () => {
     },
     {
       title: "Critical Alerts",
-      value: "3",
+      value: stats.criticalAlertsCount.toString(),
       icon: AlertCircle,
       gradient: "from-red-500 to-red-600",
       bgColor: "bg-red-50",

@@ -266,8 +266,8 @@ const NursePaymentWidget: React.FC = () => {
                 <span>
                   {formatDate(
                     payment?.createdAt ||
-                      payment?.paymentDate ||
-                      payment?.createdTime
+                    payment?.paymentDate ||
+                    payment?.createdTime
                   )}
                 </span>
               </div>

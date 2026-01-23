@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ArrowLeft, Activity, FileText } from "lucide-react";
+import { ArrowLeft, Activity } from "lucide-react";
 import VitalsModal from "@/components/modals/VitalsModal";
-import ConsultationNoteModal from "@/components/modals/ConsultationNoteModal";
 import Breadcrumb from "@/components/Breadcrumb";
 import PillTabs from "@/components/Tabs/PillTabs";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useGetPatientAppointmentsQuery } from "@/store/patientApi";
 import { convertSlotToTime } from "@/components/Options";
 import { formatFirebaseDate } from "@/utils/dateUtils";
@@ -16,15 +15,15 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { NoRecordFound } from "@/components/Options";
 import Pagination from "@/components/Pagination";
 
-export default function NursePatientAppointmentsPage() {
+export default function DoctorPatientAppointmentsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const patientId = searchParams.get("patientId") || "";
   const patientName = searchParams.get("patient") || "Patient";
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
-  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -75,10 +74,7 @@ export default function NursePatientAppointmentsPage() {
         period,
         status,
         channel: booking?.channel || "N/A",
-        consultationNote: booking?.consultationNote || booking?.doctorComment,
-        doctorRecommendation: booking?.doctorRecommendation,
-        diagnosis: booking?.diagnosis,
-        prescriptions: booking?.prescriptions,
+        channelId: booking?.channelId,
         bookingData: booking,
       };
     });
@@ -135,9 +131,9 @@ export default function NursePatientAppointmentsPage() {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: "Nurse Dashboard", href: "/nurse" },
-          { label: "Patients", href: "/nurse/patients" },
-          { label: "Appointments" },
+          { label: "Doctor Dashboard", href: "/doctor" },
+          { label: "Appointments", href: "/doctor/appointments" },
+          { label: "Patient Appointments" },
         ]}
       />
 
@@ -145,7 +141,7 @@ export default function NursePatientAppointmentsPage() {
       <div className="mb-6">
         <div className="flex items-center space-x-4 mb-4">
           <Link
-            href="/nurse/patients"
+            href="/doctor/appointments"
             className="text-gray-600 hover:text-gray-800 cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -249,26 +245,16 @@ export default function NursePatientAppointmentsPage() {
 
                     {/* Actions Column */}
                     <td>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3">
                         <button
-                          onClick={() => setIsVitalsModalOpen(true)}
-                          className="link-green flex items-center space-x-1"
+                          onClick={() => {
+                            setSelectedBookingId(appointment.bookingId);
+                            setIsVitalsModalOpen(true);
+                          }}
+                          className="text-green-600 hover:text-green-700 font-medium cursor-pointer text-sm"
                         >
-                          <Activity className="w-4 h-4" />
-                          <span>Vitals</span>
+                          Vitals
                         </button>
-                        {appointment.status === "Completed" && (
-                          <button
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setIsConsultationModalOpen(true);
-                            }}
-                            className="link-green flex items-center space-x-1"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>Consultation Details</span>
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -292,25 +278,13 @@ export default function NursePatientAppointmentsPage() {
       {/* Vitals Modal */}
       <VitalsModal
         isOpen={isVitalsModalOpen}
-        onClose={() => setIsVitalsModalOpen(false)}
-        patientId={patientId}
-      />
-
-      {/* Consultation Details Modal */}
-      <ConsultationNoteModal
-        isOpen={isConsultationModalOpen}
         onClose={() => {
-          setIsConsultationModalOpen(false);
-          setSelectedAppointment(null);
+          setIsVitalsModalOpen(false);
+          setSelectedBookingId(undefined);
         }}
-        onSubmit={() => { }} // No-op for read-only
-        initialData={{
-          note: selectedAppointment?.consultationNote,
-          recommendation: selectedAppointment?.doctorRecommendation,
-          diagnosis: selectedAppointment?.diagnosis,
-          prescriptions: selectedAppointment?.prescriptions,
-        }}
-        readOnly={true}
+        patientId={patientId}
+        bookingId={selectedBookingId}
+        patientName={patientName}
       />
     </div>
   );

@@ -8,10 +8,13 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { toast } from "sonner";
+import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
+import { connectStreamChatUser, storeStreamChatInfo, StreamChatInfo } from "@/lib/streamChat";
 
 export const useAuthLogic = () => {
   const router = useRouter();
   const { setUserInfo } = useAuth();
+  const [generateTokenForUser] = useGenerateTokenForUserMutation();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,6 +65,35 @@ export const useAuthLogic = () => {
 
       // Update global auth context
       setUserInfo({ ...userData, uid: user.uid } as any);
+
+      // Initialize Stream Chat
+      try {
+        const tokenResponse = await generateTokenForUser({ 
+          userId: user.uid, 
+        }).unwrap();
+
+        const streamToken = tokenResponse.streamToken || tokenResponse.token;
+        if (streamToken) {
+          await connectStreamChatUser(
+            user.uid,
+            userData.display_name || userData.name || '',
+            userData.photo_url || userData.profileImage || '',
+            streamToken
+          );
+
+          const chatInfo: StreamChatInfo = {
+            chatApiKey: "4g6sfwegs7he",
+            chatUserId: user.uid,
+            chatUserName: userData.display_name || userData.name || '',
+            chatUserToken: streamToken,
+            userRole: userData.role || 'patient',
+          };
+          
+          storeStreamChatInfo(chatInfo);
+        }
+      } catch (streamError) {
+        console.error('Stream Chat initialization failed:', streamError);
+      }
 
       // Navigate based on role
       if (userData.role === "admin") {
@@ -138,6 +170,35 @@ export const useAuthLogic = () => {
 
       // Update global auth context
       setUserInfo({ ...userData, uid: user.uid } as any);
+
+      // Initialize Stream Chat
+      try {
+        const tokenResponse = await generateTokenForUser({ 
+          userId: user.uid, 
+        }).unwrap();
+
+        const streamToken = tokenResponse.streamToken || tokenResponse.token;
+        if (streamToken) {
+          await connectStreamChatUser(
+            user.uid,
+            userData.display_name || userData.name || '',
+            userData.photo_url || userData.profileImage || '',
+            streamToken
+          );
+
+          const chatInfo: StreamChatInfo = {
+            chatApiKey: "4g6sfwegs7he",
+            chatUserId: user.uid,
+            chatUserName: userData.display_name || userData.name || '',
+            chatUserToken: streamToken,
+            userRole: userData.role || 'patient',
+          };
+          
+          storeStreamChatInfo(chatInfo);
+        }
+      } catch (streamError) {
+        console.error('Stream Chat initialization failed:', streamError);
+      }
 
       // Navigate based on role
       if (userData.role === "admin") {

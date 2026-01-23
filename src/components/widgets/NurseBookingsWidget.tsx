@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -14,6 +14,7 @@ import {
   convertBookingsToStandardFormat,
   StandardBookingData,
 } from "@/utils/bookingDataConverter";
+import AddVitalsModal from "@/components/modals/AddVitalsModal";
 
 interface BookingData {
   id: string;
@@ -29,6 +30,10 @@ interface BookingData {
 
 const NurseBookingsWidget: React.FC = () => {
   const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
+  const [selectedBookingId, setSelectedBookingId] = useState<string>("");
 
   const standardizedBookings = useMemo(() => {
     const rawBookings = Array.isArray(bookingsData?.bookings)
@@ -138,6 +143,7 @@ const NurseBookingsWidget: React.FC = () => {
         const hasVitals = Boolean(raw.vital_signs);
         return {
           id: booking.bookingId,
+          patientId: booking.userId,
           patientName: booking.patientName,
           doctorName: booking.doctorName,
           appointmentTime: slotToTime(booking.slot),
@@ -145,6 +151,7 @@ const NurseBookingsWidget: React.FC = () => {
           appointmentDateTime,
           status: booking.bookingStatus?.toLowerCase?.() ?? "pending",
           hasVitals,
+          vitalSigns: raw.vital_signs as any,
           reason: derivedReason ?? "",
         };
       })
@@ -153,6 +160,7 @@ const NurseBookingsWidget: React.FC = () => {
           booking
         ): booking is {
           id: string;
+          patientId: string;
           patientName: string;
           doctorName: string;
           appointmentTime: string;
@@ -160,6 +168,7 @@ const NurseBookingsWidget: React.FC = () => {
           appointmentDateTime: Date;
           status: string;
           hasVitals: boolean;
+          vitalSigns: any;
           reason: string;
         } => Boolean(booking && booking.appointmentDateTime)
       )
@@ -349,15 +358,56 @@ const NurseBookingsWidget: React.FC = () => {
               </div>
             </div>
 
+            {/* Vitals Display */}
+            {appointment.hasVitals && appointment.vitalSigns && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {appointment.vitalSigns.bloodPressure && (
+                  <div className="bg-gray-50 p-2 rounded flex flex-col">
+                    <span className="text-[10px] text-gray-500 uppercase">Blood Pressure</span>
+                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.bloodPressure} <span className="text-[10px] font-normal text-gray-500">mmHg</span></span>
+                  </div>
+                )}
+                {appointment.vitalSigns.heartRate && (
+                  <div className="bg-gray-50 p-2 rounded flex flex-col">
+                    <span className="text-[10px] text-gray-500 uppercase">Heart Rate</span>
+                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.heartRate} <span className="text-[10px] font-normal text-gray-500">bpm</span></span>
+                  </div>
+                )}
+                {appointment.vitalSigns.temperature && (
+                  <div className="bg-gray-50 p-2 rounded flex flex-col">
+                    <span className="text-[10px] text-gray-500 uppercase">Temperature</span>
+                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.temperature} <span className="text-[10px] font-normal text-gray-500">°C</span></span>
+                  </div>
+                )}
+                {appointment.vitalSigns.weight && (
+                  <div className="bg-gray-50 p-2 rounded flex flex-col">
+                    <span className="text-[10px] text-gray-500 uppercase">Weight</span>
+                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.weight} <span className="text-[10px] font-normal text-gray-500">kg</span></span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <Stethoscope size={14} />
                 <span>Appointment ID: {appointment.id ? appointment.id.slice(0, 8) + '...' : 'N/A'}</span>
               </div>
-              <button className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-xs">
+              <button
+                className={`px-3 py-1 rounded-lg transition-colors text-xs ${appointment.hasVitals ? "bg-gray-100 text-gray-600 cursor-default" : "bg-[#44CE2D] text-white hover:bg-[#3bb025]"}`}
+                onClick={() => {
+                  if (!appointment.hasVitals) {
+                    setSelectedPatientId(appointment.patientId);
+                    setSelectedPatientName(appointment.patientName);
+                    setSelectedBookingId(appointment.id);
+                    setIsVitalsModalOpen(true);
+                  }
+                }}
+                disabled={appointment.hasVitals}
+              >
                 {appointment.hasVitals
-                  ? "View Vitals"
-                  : "Take Vitals"}
+                  ? "Vitals Done"
+                  : "Add Vitals"}
               </button>
             </div>
           </div>
@@ -384,6 +434,19 @@ const NurseBookingsWidget: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <AddVitalsModal
+        isOpen={isVitalsModalOpen}
+        onClose={() => {
+          setIsVitalsModalOpen(false);
+          setSelectedPatientId("");
+          setSelectedPatientName("");
+          setSelectedBookingId("");
+        }}
+        patientId={selectedPatientId}
+        patientName={selectedPatientName}
+        bookingId={selectedBookingId}
+      />
     </div>
   );
 };

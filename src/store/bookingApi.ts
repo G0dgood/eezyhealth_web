@@ -10,9 +10,26 @@ export const bookingApi = api.injectEndpoints({
             "@/lib/firebase-rtk"
           );
 
-          const bookingsData = await createFirebaseQuery("Bookings", [
-            firebaseConstraints.orderBy("createdTime", "desc"),
-          ]);
+          // Try 'Bookings' first
+          let bookingsData: any[] = [];
+          
+          try {
+             bookingsData = await createFirebaseQuery("Bookings", []);
+          } catch (e) {
+             console.log("Failed to fetch from Bookings, trying bookings");
+          }
+
+          // If empty or failed, try 'bookings'
+          if (!bookingsData || bookingsData.length === 0) {
+             try {
+                const fallbackData = await createFirebaseQuery("bookings", []);
+                if (fallbackData && fallbackData.length > 0) {
+                   bookingsData = fallbackData;
+                }
+             } catch (e) {
+                console.log("Failed to fetch from bookings");
+             }
+          }
 
           return { data: bookingsData };
         } catch (error) {
@@ -65,12 +82,23 @@ export const bookingApi = api.injectEndpoints({
           );
           const { db } = await import("@/lib/firebase");
 
-          const bookingsCollectionRef = collection(db, "Bookings");
-          const q = query(
+          // Try fetching from 'Bookings' first
+          let bookingsCollectionRef = collection(db, "Bookings");
+          let q = query(
             bookingsCollectionRef,
             where("doctorId", "==", doctorId)
           );
-          const snapshot = await getDocs(q);
+          let snapshot = await getDocs(q);
+
+          // If no documents found, try 'bookings' (lowercase)
+          if (snapshot.empty) {
+            bookingsCollectionRef = collection(db, "bookings");
+            q = query(
+              bookingsCollectionRef,
+              where("doctorId", "==", doctorId)
+            );
+            snapshot = await getDocs(q);
+          }
 
           const firebaseRtk = await import("@/lib/firebase-rtk");
           const serializeFirebaseData = firebaseRtk.serializeFirebaseData;
@@ -136,14 +164,87 @@ export const bookingApi = api.injectEndpoints({
     }),
 
     updateBookingStatus: builder.mutation({
-      query: ({ bookingId, status }) => ({
-        url: "/updateBookingStatus",
-        method: "PUT",
-        body: { bookingId, status },
-      }),
-      invalidatesTags: (result, error, { bookingId }) => [
-        { type: "Booking", id: bookingId },
-      ],
+      async queryFn({
+        bookingId,
+        newStatus,
+        cancellationReason,
+        cancellationDetails,
+        comment,
+        recommendation,
+        diagnosis,
+        prescriptions,
+      }) {
+        try {
+          const { doc, getDoc, updateDoc, serverTimestamp } = await import(
+            "firebase/firestore"
+          );
+          const { db } = await import("@/lib/firebase");
+
+          const bookingDocRef = doc(db, "Bookings", bookingId);
+
+          // First, get the booking to retrieve the doctorId
+          const bookingSnapshot = await getDoc(bookingDocRef);
+          const bookingData = bookingSnapshot.data();
+          const doctorId = bookingData?.doctorId;
+
+          // Prepare update data
+          const updateData: any = { bookingStatus: newStatus };
+
+          // If cancelling, add cancellation details
+          if (newStatus === "Cancelled") {
+            updateData.cancellationReason =
+              cancellationReason || "No reason provided";
+            updateData.cancellationDetails = cancellationDetails || "";
+            updateData.cancelledAt = serverTimestamp();
+            updateData.cancelledBy = "doctor"; // or get from auth context
+          }
+
+          // Add comment and recommendation if provided
+          if (comment !== undefined) {
+            updateData.doctorComment = comment;
+            updateData.consultationNote = comment; // Keep consultationNote in sync
+          }
+          if (recommendation !== undefined) {
+            updateData.doctorRecommendation = recommendation;
+          }
+          if (diagnosis !== undefined) {
+            updateData.diagnosis = diagnosis;
+          }
+          if (prescriptions !== undefined) {
+            updateData.prescriptions = prescriptions;
+          }
+
+          // Always update the updatedAt timestamp
+          updateData.updatedAt = serverTimestamp();
+
+          await updateDoc(bookingDocRef, updateData);
+
+          return { data: { success: true, bookingId, newStatus, doctorId } };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: (result, error, { bookingId }) => {
+        const tags: any[] = [
+          { type: "Booking", id: bookingId },
+          { type: "Booking", id: "LIST" },
+        ];
+
+        // Also invalidate the doctor's specific booking list if we have the doctorId
+        if (result?.doctorId) {
+          tags.push({ type: "Booking", id: result.doctorId });
+        }
+
+        return tags;
+      },
     }),
 
     rescheduleBooking: builder.mutation({

@@ -56,6 +56,7 @@ export type DoctorPaymentStatus = "Completed" | "Pending" | "Failed" | "Refunded
 // Doctor Appointment types
 export interface DoctorAppointment {
   id: string;
+  patientId?: string;
   patientName: string;
   date: string;
   time: string;
@@ -68,6 +69,9 @@ export interface DoctorAppointment {
   heartRate: string;
   reason: string;
   consultationNote: string;
+  doctorRecommendation?: string;
+  diagnosis?: string;
+  prescriptions?: string[];
 }
 
 export type AppointmentStatus = "pending" | "completed" | "cancelled";

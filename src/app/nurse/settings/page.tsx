@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import ProfilePictureSection from "@/components/ProfilePictureSection";
 import { motion } from "framer-motion";
 
+import PillTabs from "@/components/Tabs/PillTabs";
+
 export default function NurseSettingsPage() {
   const router = useRouter();
   const { signOut, setUserInfo: setAuthUserInfo, userInfo: authUserInfo } = useAuth();
@@ -893,26 +895,12 @@ export default function NurseSettingsPage() {
       {/* Settings Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
         <div className="border-b border-gray-200 p-4">
-          <div className="relative flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg w-fit p-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
-                  ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="nurse-settings-active-tab"
-                    className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            layoutId="nurse-settings-active-tab"
+          />
         </div>
 
         {/* Tab Content */}

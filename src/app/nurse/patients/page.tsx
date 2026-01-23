@@ -499,11 +499,11 @@ export default function NursePatientsPage() {
 
                               <button
                                 onClick={() => {
-                                  setSelectedPatientId(patient.uid || patient.id);
+                                  setSelectedPatientId((patient.uid as string) || patient.id);
                                   setSelectedPatientName((patient.display_name as string) || (patient.name as string) || "Patient");
                                   setIsVitalsModalOpen(true);
                                 }}
-                                className="!link-green flex items-center space-x-1"
+                                className="bg-[#44CE2D] hover:bg-[#3bb025] text-white px-4 py-1 rounded-lg flex items-center space-x-2 cursor-pointer transition-colors shadow-sm"
                               >
                                 <Plus className="w-4 h-4" />
                                 <span>Add Vitals</span>

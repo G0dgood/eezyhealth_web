@@ -48,6 +48,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/patients`,
       },
       {
+        id: "message",
+        label: "Message",
+        icon: <MessageCircle className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/message`,
+      },
+      {
         id: "bookings",
         label: "Bookings",
         icon: <Calendar className="w-5 h-5" />,
@@ -82,16 +88,16 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/appointments`,
       },
       {
-        id: "bookings",
-        label: "Bookings",
-        icon: <Calendar className="w-5 h-5" />,
-        href: `/${role.toLowerCase()}/bookings`,
-      },
-      {
         id: "message",
         label: "Message",
         icon: <MessageCircle className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/message`,
+      },
+      {
+        id: "bookings",
+        label: "Bookings",
+        icon: <Calendar className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/bookings`,
       },
       {
         id: "availability",

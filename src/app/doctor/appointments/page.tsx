@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, MoreVertical, Video, MessageCircle, Phone } from "lucide-react";
+import Link from "next/link";
+import { Plus, Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -20,6 +21,7 @@ import {
 } from "@/components/modals";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
+import { useUpdateBookingStatusMutation } from "@/store/bookingApi";
 import { showError, showSuccess, showInfo } from "@/utils/toast";
 import { convertSlotToTime, NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
@@ -34,7 +36,11 @@ export default function DoctorAppointmentsPage() {
     data: bookingsData,
     isLoading,
     error,
+    refetch,
   } = useBookingsByDoctorId(doctorId);
+
+  const [updateBookingStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateBookingStatusMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,8 +52,6 @@ export default function DoctorAppointmentsPage() {
     useState(false);
   const [selectedAppointment, setSelectedAppointment] =
     useState<DoctorAppointment | null>(null);
-  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<"top" | "bottom">("bottom");
 
   // Prevent body scrolling when modals are open
   useEffect(() => {
@@ -84,8 +88,36 @@ export default function DoctorAppointmentsPage() {
     // TODO: Implement appointment creation
   };
 
-  const handleConsultationNote = (note: string) => {
-    // TODO: Implement consultation note addition
+  const handleConsultationNote = async (data: {
+    note: string;
+    recommendation: string;
+    diagnosis: string;
+    prescriptions: string;
+  }) => {
+    if (!selectedAppointment?.id) return;
+
+    try {
+      const prescriptionsArray = data.prescriptions
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      await updateBookingStatus({
+        bookingId: selectedAppointment.id,
+        newStatus: selectedAppointment.status,
+        comment: data.note,
+        recommendation: data.recommendation,
+        diagnosis: data.diagnosis,
+        prescriptions: prescriptionsArray,
+      }).unwrap();
+
+      await refetch();
+      showSuccess("Success", "Consultation details saved successfully!");
+      closeAllModals();
+    } catch (error) {
+      console.error("Failed to save details:", error);
+      showError("Error", "Failed to save consultation details.");
+    }
   };
 
   const handleCancelAppointment = (reason: string) => {
@@ -128,6 +160,7 @@ export default function DoctorAppointmentsPage() {
           `booking-${index}`
         ),
         patientName: String(booking.patientName || "Unknown Patient"),
+        patientId: String(booking.patientId || booking.userId || ""),
         date: appointmentDate,
         time: convertSlotToTime(String(booking.slot || "")),
         channel: (() => {
@@ -152,7 +185,14 @@ export default function DoctorAppointmentsPage() {
         bloodPressure: "120/80 mmHg",
         heartRate: "72 bpm",
         reason: String(booking.reason || "No reason provided"),
-        consultationNote: String(booking.consultationNote || ""),
+        consultationNote: String(
+          booking.consultationNote || booking.doctorComment || ""
+        ),
+        doctorRecommendation: String(booking.doctorRecommendation || ""),
+        diagnosis: String(booking.diagnosis || ""),
+        prescriptions: Array.isArray(booking.prescriptions)
+          ? (booking.prescriptions as string[])
+          : [],
       };
     });
   };
@@ -208,55 +248,19 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
-  const handleActionMenuToggle = (
-    appointmentId: string,
-    event: React.MouseEvent
-  ) => {
-    const button = event.currentTarget as HTMLElement;
-    const rect = button.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const menuHeight = 200; // Approximate height of the menu
-
-    // Find the table container to determine table boundaries
-    const tableContainer = button.closest("table")?.parentElement;
-    const tableRect = tableContainer?.getBoundingClientRect();
-
-    // Check if there's enough space below within the table
-    const spaceBelowInTable = tableRect
-      ? tableRect.bottom - rect.bottom
-      : viewportHeight - rect.bottom;
-    const spaceBelowInViewport = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    // Face up if close to end of table OR close to bottom of viewport
-    if (
-      (spaceBelowInTable < menuHeight && spaceAbove > menuHeight) ||
-      (spaceBelowInViewport < menuHeight && spaceAbove > menuHeight)
-    ) {
-      setMenuPosition("top");
-    } else {
-      setMenuPosition("bottom");
-    }
-
-    setActionMenuOpen(actionMenuOpen === appointmentId ? null : appointmentId);
-  };
-
   const handleViewDetails = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsDetailModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleViewNote = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsConsultationNoteModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleReschedule = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsRescheduleModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleRescheduleSubmit = (rescheduleData: {
@@ -269,7 +273,6 @@ export default function DoctorAppointmentsPage() {
   const handleCancel = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsCancelModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const closeAllModals = () => {
@@ -332,10 +335,10 @@ export default function DoctorAppointmentsPage() {
                 </tr>
               </thead>
               <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-                {currentAppointments.length === 0 ? (
+                {currentAppointments?.length === 0 ? (
                   <NoRecordFound colSpan={6} />
                 ) : (
-                  currentAppointments.map((appointment) => (
+                  currentAppointments?.map((appointment) => (
                     <tr
                       key={appointment.id}
                       className="hover:bg-[var(--muted)]"
@@ -362,57 +365,59 @@ export default function DoctorAppointmentsPage() {
                         {getStatusBadge(appointment.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap relative">
-                        <button
-                          onClick={(e) =>
-                            handleActionMenuToggle(appointment.id, e)
-                          }
-                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-
-                        {actionMenuOpen === appointment.id && (
-                          <div
-                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${menuPosition === "top"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
-                              }`}
+                        <div className="flex items-center space-x-6">
+                          {appointment.status === "pending" && (appointment.channel === "videoCall" || appointment.channel === "voiceCall") && (
+                            <Link
+                              href={`/doctor/call?callId=${appointment.id}&bookingId=${appointment.id}&callType=${appointment.channel === 'voiceCall' ? 'audio' : 'video'}&callerName=Doctor&patientId=${appointment.patientId}&patientName=${encodeURIComponent(appointment.patientName)}`}
+                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium"
+                            >
+                              <Video className="w-4 h-4" />
+                              <span>Join Call</span>
+                            </Link>
+                          )}
+                          <Link
+                            href={`/doctor/patients/appointments?patient=${encodeURIComponent(
+                              appointment.patientName
+                            )}&patientId=${appointment.patientId || ""}`}
+                            className="link-green flex items-center space-x-1"
                           >
-                            <div className="py-1">
+                            <User className="w-4 h-4" />
+                            <span>Appointments</span>
+                          </Link>
+                          <button
+                            onClick={() => handleViewDetails(appointment)}
+                            className="link-green flex items-center space-x-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>Detail</span>
+                          </button>
+                          <button
+                            onClick={() => handleViewNote(appointment)}
+                            className="link-green flex items-center space-x-1"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Consultation Details</span>
+                          </button>
+                          {appointment.status === "pending" && (
+                            <>
                               <button
-                                onClick={() => handleViewDetails(appointment)}
-                                className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
+                                onClick={() => handleReschedule(appointment)}
+                                className="text-orange-600 hover:text-orange-800 transition-colors"
+                                title="Reschedule Appointment"
                               >
-                                View Details
+                                <Calendar className="w-4 h-4" />
                               </button>
-                              {appointment.status === "completed" && (
-                                <button
-                                  onClick={() => handleViewNote(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                                >
-                                  View Note
-                                </button>
-                              )}
-                              {appointment.status === "pending" && (
-                                <button
-                                  onClick={() => handleReschedule(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                                >
-                                  Reschedule Appointment
-                                </button>
-                              )}
-                              {appointment.status === "pending" && (
-                                <button
-                                  onClick={() => handleCancel(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer"
-                                >
-                                  Cancel Appointment
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </td>
+                              <button
+                            onClick={() => handleCancel(appointment)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            title="Cancel Appointment"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
                     </tr>
                   ))
                 )}
@@ -443,7 +448,13 @@ export default function DoctorAppointmentsPage() {
         isOpen={isConsultationNoteModalOpen}
         onClose={closeAllModals}
         onSubmit={handleConsultationNote}
-        initialNote={selectedAppointment?.consultationNote || ""}
+        initialData={{
+          note: selectedAppointment?.consultationNote,
+          recommendation: selectedAppointment?.doctorRecommendation,
+          diagnosis: selectedAppointment?.diagnosis,
+          prescriptions: selectedAppointment?.prescriptions,
+        }}
+        isSubmitting={isUpdatingStatus}
       />
 
       {/* Reschedule Modal */}

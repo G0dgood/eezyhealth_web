@@ -88,6 +88,9 @@ function NurseLayout({ children }: LayoutProps) {
   const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-[266px]" : "translate-x-0"
     } lg:translate-x-0`;
 
+  // Check if we're on the message page
+  const isMessagePage = pathname === "/nurse/message";
+
   return (
     <ProtectedRoute>
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
@@ -105,7 +108,11 @@ function NurseLayout({ children }: LayoutProps) {
             isMobileOpen={isMobileSidenavOpen}
             onMobileClose={handleMobileSidenavClose}
           />
-          <main className={`p-4 md:p-6 ${transitionClasses}`}>{children}</main>
+          <main
+            className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
+            data-page={isMessagePage ? "message" : undefined}>
+            {children}
+          </main>
         </div>
 
         <Modal

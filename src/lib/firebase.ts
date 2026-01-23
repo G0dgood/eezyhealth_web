@@ -5,9 +5,11 @@ import { getFirestore, collection, query, where, getDocs, doc, setDoc, addDoc } 
 import { getDatabase, ref, get } from 'firebase/database';
 import { firebaseConfig } from './config';
 import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const functions = getFunctions(app);
 
 // Initialize a secondary Firebase app for admin operations (like creating users without logging out)
 // We use a unique name 'secondary' to avoid conflict with the default app
