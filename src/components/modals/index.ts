@@ -13,3 +13,5 @@ export { default as ConsultationNoteModal } from './ConsultationNoteModal';
 export { default as RescheduleModal } from './RescheduleModal';
 export { default as CancelAppointmentModal } from './CancelAppointmentModal';
 export { default as DoctorBookingDetailModal } from './DoctorBookingDetailModal';
+export { default as AddVitalsModal } from './AddVitalsModal';
+export { default as VitalsModal } from './VitalsModal';

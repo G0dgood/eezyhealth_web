@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBadges, getBadgeCount } from "@/contexts/BadgeContext";
+import { motion } from "framer-motion";
 import {
   X,
   ChevronDown
@@ -27,6 +28,15 @@ export default function RoleBasedSidenav({
   const pathname = usePathname();
   const { theme } = useTheme();
   const { badgeCounts, loading: badgesLoading } = useBadges();
+
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const toggleExpanded = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -234,9 +244,24 @@ export default function RoleBasedSidenav({
   return (
     <>
       {/* Sidenav */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }`}
+      <motion.aside
+        initial={false}
+        animate={
+          isMobile === null
+            ? undefined
+            : isMobile
+              ? isMobileOpen
+                ? "open"
+                : "closed"
+              : "desktop"
+        }
+        variants={{
+          open: { x: 0 },
+          closed: { x: "-100%" },
+          desktop: { x: 0 },
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 border-r-[1.5px] -translate-x-full lg:translate-x-0"
         style={{
           gridArea: "sidenav",
           backgroundColor: "var(--accent-white)",
@@ -275,7 +300,7 @@ export default function RoleBasedSidenav({
         <nav className="space-y-2">
           {navItems.map((item) => renderNavItem(item))}
         </nav>
-      </aside>
+      </motion.aside>
     </>
   );
 }

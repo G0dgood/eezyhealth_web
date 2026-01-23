@@ -15,7 +15,7 @@ export default function SearchInput({
   className = "",
 }: SearchInputProps) {
   return (
-    <div className={`relative max-w-md bg-white ${className}`}>
+    <div className={`relative max-w-md !rounded-md bg-white ${className}`}>
       <Input
         type="text"
         placeholder={placeholder}

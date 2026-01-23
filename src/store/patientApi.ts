@@ -147,6 +147,103 @@ export const patientApi = api.injectEndpoints({
       ],
     }),
 
+    savePatientVitals: builder.mutation<
+      { success: boolean },
+      {
+        userId: string;
+        doctorId: string;
+        bookingId?: string;
+        patientName?: string;
+        vitals: {
+          temperature?: string;
+          heartRate?: string;
+          pulse?: string;
+          bloodPressure?: string;
+          weight?: string;
+          breathingRate?: string;
+          comment?: string;
+          recommendation?: string;
+        };
+      }
+    >({
+      async queryFn({ userId, doctorId, bookingId = "", patientName = "", vitals }) {
+        try {
+          if (!userId) {
+            return {
+              error: { status: "FETCH_ERROR", error: "Missing userId" },
+            } as any;
+          }
+
+          const { doc, getDoc, setDoc, updateDoc } = await import(
+            "firebase/firestore"
+          );
+          const { db } = await import("@/lib/firebase");
+          const { serializeFirebaseData } = await import("@/lib/firebase-rtk");
+          const ensureSerializable = serializeFirebaseData;
+
+          const vitalsRef = doc(db, "patientVitalsHistory", String(userId));
+          const snapshot = await getDoc(vitalsRef);
+
+          const entry = ensureSerializable({
+            userId: String(userId),
+            doctorId: String(doctorId || ""),
+            bookingId: String(bookingId || ""),
+            name: String(patientName || ""),
+            date: new Date().toISOString(),
+            vitals: [
+              {
+                temperature: String(vitals?.temperature || ""),
+                heartRate: String(vitals?.heartRate || vitals?.pulse || ""),
+                pulse: String(vitals?.pulse || vitals?.heartRate || ""),
+                bloodPressure: String(vitals?.bloodPressure || ""),
+                weight: String(vitals?.weight || ""),
+                breathingRate: String(vitals?.breathingRate || ""),
+                comment: String(vitals?.comment || ""),
+                recommendation: String(vitals?.recommendation || ""),
+              },
+            ],
+          });
+
+          if (snapshot.exists()) {
+            const current = (snapshot.data() as any)?.entries || [];
+            const nextEntries = [...current, entry];
+            await updateDoc(
+              vitalsRef,
+              ensureSerializable({
+                entries: nextEntries,
+                upload: { lastUpdated: new Date().toISOString() },
+              }) as any
+            );
+          } else {
+            await setDoc(
+              vitalsRef,
+              ensureSerializable({
+                name: "",
+                userId: String(userId),
+                entries: [entry],
+                upload: { lastUpdated: new Date().toISOString() },
+              }) as any
+            );
+          }
+
+          return { data: { success: true } };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to save vitals",
+            },
+          };
+        }
+      },
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "PatientVitals", id: userId },
+      ],
+    }),
+
     getPatientVitalsHistory: builder.query<any[], string>({
       async queryFn(userId: string) {
         try {
@@ -219,6 +316,7 @@ export const {
   useGetFirebaseUsersQuery,
   useGetPatientAppointmentsQuery,
   useGetPatientVitalsHistoryQuery,
+  useSavePatientVitalsMutation,
 } = patientApi;
 
 

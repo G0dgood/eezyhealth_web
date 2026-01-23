@@ -163,21 +163,18 @@ const BookingList = () => {
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */} 
+              <Pagination
+                currentPage={currentPage}
+                totalCount={filteredBookings.length}
+                pageSize={itemsPerPage}
+                onPageChange={setCurrentPage}
+                itemLabel="bookings"
+    
+              />  
         </div>
       )}
 
-      {/* Pagination Controls */}
-      {filteredBookings.length > 0 && (
-      
-          <Pagination
-            currentPage={currentPage}
-            totalCount={filteredBookings.length}
-            pageSize={itemsPerPage}
-            onPageChange={setCurrentPage}
-            itemLabel="bookings"
-
-          /> 
-      )}
     </div>
   );
 };

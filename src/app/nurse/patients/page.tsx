@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Plus, ArrowLeft } from "lucide-react";
+import { Search, Plus, ArrowLeft, Activity } from "lucide-react";
 import { toast } from "sonner";
 import Input from "@/components/Input";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -13,9 +13,13 @@ import Title from "@/components/Title";
 import Pagination from "@/components/Pagination";
 import { auth, createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
+import AddVitalsModal from "@/components/modals/AddVitalsModal";
 
 export default function NursePatientsPage() {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+  const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -244,7 +248,7 @@ export default function NursePatientsPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               startIcon={<Search className="w-5 h-5 text-gray-400" />}
-              className="search-input cursor-pointer"
+              className="search-input cursor-pointer rounded-md"
               fullWidth
             />
             {searchTerm && (
@@ -492,6 +496,18 @@ export default function NursePatientsPage() {
                                   Select Doctor
                                 </span>
                               </Link>
+
+                              <button
+                                onClick={() => {
+                                  setSelectedPatientId(patient.uid || patient.id);
+                                  setSelectedPatientName((patient.display_name as string) || (patient.name as string) || "Patient");
+                                  setIsVitalsModalOpen(true);
+                                }}
+                                className="!link-green flex items-center space-x-1"
+                              >
+                                <Plus className="w-4 h-4" />
+                                <span>Add Vitals</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -502,18 +518,18 @@ export default function NursePatientsPage() {
               </tbody>
             </table>
           </div>
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredPatients.length}
+            pageSize={10}
+            onPageChange={setCurrentPage}
+            itemLabel="patients"
+            className="border-t border-gray-200"
+          />
         </div>
       )}
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalCount={filteredPatients.length}
-        pageSize={10}
-        onPageChange={setCurrentPage}
-        itemLabel="patients"
-        className="border-t border-gray-200"
-      />
 
       {/* Add New Patient Modal */}
       <AddPatientModal
@@ -524,6 +540,20 @@ export default function NursePatientsPage() {
         onChange={handleFormChange}
         onSave={handleSavePatient}
       />
+
+      {/* Add Vitals Modal */}
+      {selectedPatientId && (
+        <AddVitalsModal
+          isOpen={isVitalsModalOpen}
+          onClose={() => {
+            setIsVitalsModalOpen(false);
+            setSelectedPatientId(null);
+            setSelectedPatientName("");
+          }}
+          patientId={selectedPatientId}
+          patientName={selectedPatientName}
+        />
+      )}
     </div>
   );
 }

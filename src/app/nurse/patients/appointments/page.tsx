@@ -171,11 +171,11 @@ export default function NursePatientAppointmentsPage() {
               </tr>
             </thead>
             <tbody>
-              {paginatedAppointments.length === 0 ? (
+              {paginatedAppointments?.length === 0 ? (
                 <NoRecordFound colSpan={5} />
               ) : (
-                paginatedAppointments.map((appointment) => (
-                  <tr key={appointment.id} className="table-row-hover">
+                paginatedAppointments?.map((appointment) => (
+                  <tr key={appointment?.id} className="table-row-hover">
                     {/* Doctor Column */}
                     <td>
                       <div className="flex items-center">

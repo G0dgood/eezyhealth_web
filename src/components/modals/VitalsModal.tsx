@@ -9,6 +9,16 @@ interface VitalsModalProps {
   patientId: string;
 }
 
+interface VitalItem {
+  label: string;
+  value: string;
+}
+
+interface VitalsHistoryEntry {
+  date: string;
+  vitals: VitalItem[];
+}
+
 const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId }) => {
   const { data, isLoading, error } = useGetPatientVitalsHistoryQuery(patientId, {
     skip: !patientId || !isOpen,
@@ -23,8 +33,8 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId })
     }));
   };
 
-  const vitalsData = useMemo(() => {
-    if (!Array.isArray(data)) return [] as any[];
+  const vitalsData: VitalsHistoryEntry[] = useMemo(() => {
+    if (!Array.isArray(data)) return [];
     return data
       .slice()
       .sort((a: any, b: any) => {
@@ -75,8 +85,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId })
                   "bloodPressure",
                   "breathingRate",
                   "comment",
-                  "recommendation",
-                  // explicitly exclude non-vital metadata
+                  "recommendation", 
                   "doctorId",
                   "bookingId",
                   "upload",

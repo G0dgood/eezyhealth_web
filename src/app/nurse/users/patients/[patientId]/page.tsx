@@ -215,6 +215,7 @@ export default function PatientDetailsPage({
       <VitalsModal
         isOpen={isVitalsModalOpen}
         onClose={() => setIsVitalsModalOpen(false)}
+        patientId={patientId}
       />
     </div>
   );
