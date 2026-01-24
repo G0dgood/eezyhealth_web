@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Plus, ArrowLeft, Activity } from "lucide-react";
+import { Search, Plus, ArrowLeft, Activity, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import Input from "@/components/Input";
 import Breadcrumb from "@/components/Breadcrumb";
 import AddPatientModal, { PatientFormData } from "@/components/modals/AddPatientModal";
 import Link from "next/link";
-import { useGetFirebasePatientsQuery } from "@/store/patientApi";
+import { useGetFirebasePatientsQuery, useLazyGetPatientAppointmentsQuery } from "@/store/patientApi";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
@@ -14,12 +14,14 @@ import Pagination from "@/components/Pagination";
 import { auth, createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 import AddVitalsModal from "@/components/modals/AddVitalsModal";
+import ConsultationNoteModal from "@/components/modals/ConsultationNoteModal";
 
 export default function NursePatientsPage() {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatientName, setSelectedPatientName] = useState<string>("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -447,19 +449,7 @@ export default function NursePatientsPage() {
                                 }
                                 className="link-green flex items-center space-x-1"
                               >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
+                                <User className="w-4 h-4" />
                                 <span>Appointments</span>
                               </Link>
 
@@ -479,19 +469,7 @@ export default function NursePatientsPage() {
                                 }
                                 className="link-green flex items-center space-x-1"
                               >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                                  />
-                                </svg>
+                                <UserPlus className="w-4 h-4" />
                                 <span className="whitespace-nowrap">
                                   Select Doctor
                                 </span>

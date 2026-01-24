@@ -315,6 +315,7 @@ export const {
   useGetFirebasePatientsQuery,
   useGetFirebaseUsersQuery,
   useGetPatientAppointmentsQuery,
+  useLazyGetPatientAppointmentsQuery,
   useGetPatientVitalsHistoryQuery,
   useSavePatientVitalsMutation,
 } = patientApi;

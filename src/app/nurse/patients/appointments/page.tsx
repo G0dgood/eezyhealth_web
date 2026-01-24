@@ -257,7 +257,7 @@ export default function NursePatientAppointmentsPage() {
                           <Activity className="w-4 h-4" />
                           <span>Vitals</span>
                         </button>
-                        {appointment.status === "Completed" && (
+                        
                           <button
                             onClick={() => {
                               setSelectedAppointment(appointment);
@@ -267,8 +267,7 @@ export default function NursePatientAppointmentsPage() {
                           >
                             <FileText className="w-4 h-4" />
                             <span>Consultation Details</span>
-                          </button>
-                        )}
+                          </button> 
                       </div>
                     </td>
                   </tr>
