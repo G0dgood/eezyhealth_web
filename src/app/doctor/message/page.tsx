@@ -176,10 +176,32 @@ export default function DoctorMessagePage() {
   const handleStartCall = (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
     
-    // Find the other member (patient)
+    let patientId = "";
+    let patientName = "Patient";
+
+    // Try getting from channel members first
     const members = Object.values(activeChannel.state.members);
     const otherMember = members.find(m => m.user_id !== chatClient.userID);
-    const patientName = otherMember?.user?.name || "Patient";
+    
+    if (otherMember) {
+        patientId = otherMember.user_id || "";
+        patientName = otherMember.user?.name || "Patient";
+    } else {
+        // Fallback: try to find from selectedConversation index
+        if (selectedConversation.startsWith('patient-')) {
+            const index = parseInt(selectedConversation.split('-')[1]);
+            if (!isNaN(index) && uniquePatients[index]) {
+                patientId = uniquePatients[index].userId;
+                patientName = uniquePatients[index].patientName;
+            }
+        }
+    }
+
+    if (!patientId) {
+        console.error("Could not find patient ID for call");
+        showError("Error", "Could not identify patient for the call");
+        return;
+    }
     
     // KEY FIX: Use channel ID as call ID to match mobile app's behavior
     // The mobile app uses the channel ID (which is often the booking ID) as the room identifier.
@@ -189,6 +211,7 @@ export default function DoctorMessagePage() {
       callId: callId || "",
       callType,
       patientName,
+      patientId,
       isAccepting: "false", // Doctor initiates call
       channelId: activeChannel.id || "",
     });

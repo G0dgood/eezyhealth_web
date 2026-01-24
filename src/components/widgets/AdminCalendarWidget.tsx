@@ -233,11 +233,13 @@ const AdminCalendarWidget: React.FC = () => {
           {calendarDays.map((dayData, index) => (
             <div
               key={index}
-              className={`p-2 text-sm rounded-lg transition-colors cursor-pointer text-center ${dayData.currentMonth
+              className={`p-2 text-sm rounded-lg transition-colors cursor-pointer text-center ${
+                dayData.currentMonth
                   ? "text-gray-900 hover:bg-gray-100"
                   : "text-gray-400"
-                } ${dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
-                }`}>
+              } ${
+                dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
+              }`}>
               <div className="flex items-center justify-center">
                 <span>{dayData.day}</span>
                 {dayData.hasBooking && (

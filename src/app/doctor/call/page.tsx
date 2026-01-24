@@ -4,269 +4,162 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   StreamVideo,
-  StreamCall,
-  useStreamVideoClient,
-  Call,
   StreamVideoClient,
+  StreamCall,
   SpeakerLayout,
   CallControls,
-  CallParticipantsList,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
-import { StreamChat, Channel as StreamChannel } from "stream-chat";
-import { getStreamChatInfo } from "@/lib/streamChat";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
 
-// Wrapper component to handle the call logic once provider is set up
-const CallScreenContent = () => {
-  const router = useRouter();
+export default function DoctorCallPage() {
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const videoClient = useStreamVideoClient();
+  const router = useRouter();
+  const params = useSearchParams();
+  const [generateTokenForUser] = useGenerateTokenForUserMutation();
 
-  const patientName = searchParams.get("patientName") || "Patient";
-  const patientId = searchParams.get("patientId");
-  const callId = searchParams.get("callId");
-  const callType = searchParams.get("callType"); // 'video' or 'audio'
-  const channelId = searchParams.get("channelId");
-  const bookingId = searchParams.get("bookingId");
-  const isAccepting = searchParams.get("isAccepting") === "true";
+  const callId = params.get("callId")!;
+  const patientName = params.get("patientName") || "Patient";
+  const isCaller = params.get("isCaller") === "true";
 
-  const [callDuration, setCallDuration] = useState(0);
-  const [isCallAccepted, setIsCallAccepted] = useState(isAccepting);
-  const [isWaitingForAcceptance, setIsWaitingForAcceptance] = useState(!isAccepting);
-  const [streamCall, setStreamCall] = useState<Call | null>(null);
-  const [chatClient, setChatClient] = useState<StreamChat | null>(null);
-  const [chatChannel, setChatChannel] = useState<StreamChannel | null>(null);
+  const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const [call, setCall] = useState<any>(null);
+  const [waiting, setWaiting] = useState(isCaller);
+  const [duration, setDuration] = useState(0);
 
-  // Initialize Stream Chat
+  /* ----------------------------------
+     INIT STREAM VIDEO CLIENT
+  ---------------------------------- */
   useEffect(() => {
-    const initializeChat = async () => {
+    if (!user) return;
+
+    let videoClient: StreamVideoClient;
+
+    const init = async () => {
       try {
-        const chatInfo = getStreamChatInfo();
-        if (!chatInfo) return;
+        const response = await generateTokenForUser({ userId: user.uid }).unwrap();
+        // Prefer videoToken if available, otherwise fallback to streamToken/token
+        const token = response.videoToken || response.streamToken || response.token;
+        const apiKey = response.apiKey || "4g6sfwegs7he";
 
-        const { chatApiKey, chatUserId, chatUserToken } = chatInfo;
-        const streamClient = StreamChat.getInstance(chatApiKey);
-
-        if (!streamClient.userID) {
-          await streamClient.connectUser(
-            {
-              id: chatUserId,
-              name: "Doctor", // You might want to get actual name
-            },
-            chatUserToken
-          );
+        if (!apiKey) {
+           throw new Error("API Key is missing");
         }
 
-        setChatClient(streamClient);
+        videoClient = new StreamVideoClient({
+          apiKey,
+          user: {
+            id: user.uid,
+            name: user.displayName || "Doctor",
+            image: user.photoURL || undefined,
+          },
+          token,
+        });
 
-        if (channelId) {
-          const channel = streamClient.channel("messaging", channelId);
-          await channel.watch();
-          setChatChannel(channel);
-        }
-      } catch (error) {
-        console.error("Error initializing chat:", error);
-      }
-    };
+        const streamCall = videoClient.call("default", callId);
 
-    initializeChat();
-  }, [channelId]);
+        await streamCall.join({
+          create: isCaller, //  only doctor creates if they are the caller
+        });
 
-  // Handle outgoing call creation or incoming call acceptance
-  useEffect(() => {
-    let myCall: Call | undefined;
-
-    if (!videoClient || !callId || !user) return;
-
-    const setupCall = async () => {
-      try {
-        const call = videoClient.call("default", callId);
-        myCall = call;
-        
-        if (!isAccepting) {
-            // Initiate the call
-            await call.getOrCreate({
-                ring: true,
-                data: {
-                    members: [{ user_id: user.uid }, { user_id: callId }], // Assuming callId matches other user ID pattern or adjust
-                    custom: {
-                        bookingId: bookingId,
-                        callerName: "Doctor",
-                        callType: callType || 'video',
-                    }
-                }
-            });
-        } else {
-            // Join existing call
-            await call.join();
+        if (isCaller) {
+            await streamCall.ring();
         }
 
-        setStreamCall(call);
-      } catch (error) {
-        console.error("Error setting up call:", error);
-        toast.error("Failed to start/join call");
-      }
-    };
+        streamCall.on("call.accepted", () => setWaiting(false));
+        streamCall.on("call.ended", () => router.back());
 
-    setupCall();
-
-    return () => {
-      if (myCall) {
-        myCall.leave().catch((error) => console.error("Error leaving call:", error));
-      }
-    };
-  }, [videoClient, callId, user, isAccepting, bookingId, callType, patientId]);
-
-  // Listen for call acceptance (if we initiated)
-  useEffect(() => {
-    if (!streamCall || isAccepting) return;
-
-    const unsubscribe = streamCall.on("call.accepted", () => {
-      setIsWaitingForAcceptance(false);
-      setIsCallAccepted(true);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [streamCall, isAccepting]);
-
-  // Listen for chat messages (rejection/acceptance signals if sent via chat)
-  useEffect(() => {
-    if (!chatChannel) return;
-
-    const handleNewMessage = (event: any) => {
-      if (event.message.text === "Call Rejected") {
-        toast.info("Patient rejected the call");
+        setClient(videoClient);
+        setCall(streamCall);
+      } catch (err) {
+        console.error(err);
+        toast.error("Unable to start call");
         router.back();
       }
     };
 
-    chatChannel.on("message.new", handleNewMessage);
+    init();
 
     return () => {
-      chatChannel.off("message.new", handleNewMessage);
+      call?.leave();
+      videoClient?.disconnectUser();
     };
-  }, [chatChannel, router]);
+  }, [user, generateTokenForUser, callId, isCaller]);
 
-
-  // Timer for duration
+  /* ----------------------------------
+     CALL DURATION TIMER
+  ---------------------------------- */
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isCallAccepted) {
-      interval = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-    }
+    if (!call || waiting) return;
+
+    const interval = setInterval(() => {
+      setDuration((d) => d + 1);
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [isCallAccepted]);
+  }, [call, waiting]);
 
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const handleEndCall = async () => {
-      if (streamCall) {
-          await streamCall.endCall();
-      }
-      router.back();
-  };
-
-  if (!streamCall) {
-      return (
-          <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-              <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                  <p>Initializing secure connection...</p>
-              </div>
-          </div>
-      );
+  if (!client || !call) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black text-white">
+        Connecting…
+      </div>
+    );
   }
 
   return (
-    <StreamCall call={streamCall}>
-      <div className="relative h-screen w-full bg-gray-900 overflow-hidden">
-         {/* Custom Call UI Layout */}
-         <div className="absolute inset-0">
-             <StreamTheme>
-                 <SpeakerLayout participantsBarPosition="bottom" />
-                 <CallControls onLeave={handleEndCall} />
-                 {/* <CallParticipantsList /> */}
-             </StreamTheme>
-         </div>
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <StreamTheme>
+          <div className="relative h-screen bg-black">
 
-         {/* Overlay for Waiting State */}
-         {isWaitingForAcceptance && (
-             <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
-                 <div className="text-center text-white">
-                     <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">
-                         {patientName.charAt(0)}
-                     </div>
-                     <h2 className="text-2xl font-bold mb-2">Calling {patientName}...</h2>
-                     <p className="text-gray-400 animate-pulse">Waiting for answer</p>
-                     
-                     <button 
-                        onClick={handleEndCall}
-                        className="mt-8 bg-red-500 hover:bg-red-600 text-white rounded-full p-4"
-                     >
-                        End Call
-                     </button>
-                 </div>
-             </div>
-         )}
+            {/* VIDEO */}
+            <SpeakerLayout participantsBarPosition="bottom" />
 
-         {/* Duration Indicator */}
-         {isCallAccepted && (
-             <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-mono z-40">
-                 {formatDuration(callDuration)}
-             </div>
-         )}
-      </div>
-    </StreamCall>
+            {/* CONTROLS */}
+            <div className="absolute bottom-6 w-full flex justify-center">
+              <CallControls onLeave={() => call.endCall()} />
+            </div>
+
+            {/* WAITING OVERLAY */}
+            {waiting && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center text-white z-50">
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-full bg-gray-700 mx-auto mb-4 flex items-center justify-center text-3xl">
+                    {patientName.charAt(0)}
+                  </div>
+                  <h2 className="text-2xl font-semibold">
+                    Calling {patientName}…
+                  </h2>
+                  <p className="opacity-60 animate-pulse mt-2">
+                    Waiting for answer
+                  </p>
+
+                  <button
+                    onClick={() => call.endCall()}
+                    className="mt-6 bg-red-600 px-6 py-3 rounded-full"
+                  >
+                    Cancel Call
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TIMER */}
+            {!waiting && (
+              <div className="absolute top-4 left-4 bg-black/60 px-3 py-1 rounded-full text-white text-sm">
+                {formatTime(duration)}
+              </div>
+            )}
+          </div>
+        </StreamTheme>
+      </StreamCall>
+    </StreamVideo>
   );
-};
-
-// Main Page Component that provides the StreamVideo provider
-const DoctorCallPage = () => {
-    const { user } = useAuth();
-    const [client, setClient] = useState<StreamVideoClient | null>(null);
-
-    useEffect(() => {
-        const init = async () => {
-            const chatInfo = getStreamChatInfo();
-            if (!chatInfo || !user) return;
-
-            const { chatApiKey, chatUserToken, chatUserId, chatUserName } = chatInfo;
-            
-            const _client = new StreamVideoClient({
-                apiKey: chatApiKey,
-                user: {
-                    id: chatUserId,
-                    name: user.displayName || chatUserName || "Doctor",
-                    image: user.photoURL || undefined,
-                },
-                token: chatUserToken,
-            });
-
-            setClient(_client);
-        };
-
-        init();
-    }, [user]);
-
-    if (!client) return null;
-
-    return (
-        <StreamVideo client={client}>
-            <CallScreenContent />
-        </StreamVideo>
-    );
-};
-
-export default DoctorCallPage;
+}

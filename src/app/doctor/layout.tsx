@@ -10,6 +10,8 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/Button";
 import { ClipboardList, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import VideoProvider from "@/components/VideoProvider";
+import { useCreateStreamTokenMutation } from "@/store/streamChatApi";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,6 +27,19 @@ function DoctorLayout({ children }: LayoutProps) {
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  
+  // Stream Video Token Logic
+  const [streamToken, setStreamToken] = useState<string>("");
+  const [createStreamToken] = useCreateStreamTokenMutation();
+
+  useEffect(() => {
+    if (authUser && !streamToken) {
+       createStreamToken({ name: authUser.displayName || "Doctor" })
+         .unwrap()
+         .then((res) => setStreamToken(res.token))
+         .catch((err) => console.error("Failed to generate global video token", err));
+    }
+  }, [authUser, streamToken, createStreamToken]);
 
   useEffect(() => {
     // Wait for auth loading to finish
@@ -94,26 +109,33 @@ function DoctorLayout({ children }: LayoutProps) {
   return (
     <ProtectedRoute>
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
-        <div id="page-wrapper">
-          <Header
-            userRole="doctor"
-            notificationCount={4}
-            onMobileMenuToggle={handleMobileMenuToggle}
-            onEditClick={handleEditClick}
-            className={transitionClasses}
-            userInfo={userInfo}
-          />
-          <RoleBasedSidenav
-            userRole="doctor"
-            isMobileOpen={isMobileSidenavOpen}
-            onMobileClose={handleMobileSidenavClose}
-          />
-          <main
-            className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
-            data-page={isMessagePage ? "message" : undefined}>
-            {children}
-          </main>
-        </div>
+        <VideoProvider 
+          apiKey="4g6sfwegs7he" 
+          token={streamToken} 
+          userId={authUser?.uid || ""} 
+          userName={authUser?.displayName || "Doctor"}
+        >
+          <div id="page-wrapper">
+            <Header
+              userRole="doctor"
+              notificationCount={4}
+              onMobileMenuToggle={handleMobileMenuToggle}
+              onEditClick={handleEditClick}
+              className={transitionClasses}
+              userInfo={userInfo}
+            />
+            <RoleBasedSidenav
+              userRole="doctor"
+              isMobileOpen={isMobileSidenavOpen}
+              onMobileClose={handleMobileSidenavClose}
+            />
+            <main
+              className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
+              data-page={isMessagePage ? "message" : undefined}>
+              {children}
+            </main>
+          </div>
+        </VideoProvider>
 
         <Modal
           isOpen={showProfileAlert}

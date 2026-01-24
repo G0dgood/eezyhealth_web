@@ -366,15 +366,6 @@ export default function DoctorAppointmentsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap relative">
                         <div className="flex items-center space-x-6">
-                          {appointment.status === "pending" && (appointment.channel === "videoCall" || appointment.channel === "voiceCall") && (
-                            <Link
-                              href={`/doctor/call?callId=${appointment.id}&bookingId=${appointment.id}&callType=${appointment.channel === 'voiceCall' ? 'audio' : 'video'}&callerName=Doctor&patientId=${appointment.patientId}&patientName=${encodeURIComponent(appointment.patientName)}`}
-                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 font-medium"
-                            >
-                              <Video className="w-4 h-4" />
-                              <span>Join Call</span>
-                            </Link>
-                          )}
                           <Link
                             href={`/doctor/patients/appointments?patient=${encodeURIComponent(
                               appointment.patientName

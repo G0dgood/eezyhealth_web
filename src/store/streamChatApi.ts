@@ -21,6 +21,7 @@ interface GenerateTokenResponse {
   token: string; 
   apiKey: string; 
   userId: string; 
+  videoToken?: string; 
 } 
 
 interface AddMemberRequest {
@@ -40,6 +41,7 @@ interface CreateNurseProxyTokenResponse {
   token: string;
   userId: string;
   apiKey: string;
+  videoToken?: string;
 }
 
 export const streamChatApi = createApi({ 

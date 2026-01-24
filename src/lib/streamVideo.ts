@@ -15,9 +15,7 @@ export const connectStreamVideoUser = (
   userToken: string
 ) => {
   // Check if client is already connected with the same user
-  // We use any casting here because the SDK type definition for state might be missing currentUser in some versions
-  // or it's nested differently. This is a safe check.
-  const currentUser = (videoClient as any)?.state?.currentUser || (videoClient as any)?.user;
+  const currentUser = videoClient?.user;
   
   if (videoClient && currentUser?.id === userId) {
     return videoClient;

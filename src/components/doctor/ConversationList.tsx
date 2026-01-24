@@ -76,7 +76,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                   {patient.photo_url ? (
                     <img
                       src={patient.photo_url}
-                      alt={patient.patientName}
+                      alt={patient.patientName || "Patient"}
                       width={48}
                       height={48}
                       className="w-full h-full object-cover"

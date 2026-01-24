@@ -9,6 +9,8 @@ import { showError, showInfo } from "@/utils/toast";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGenerateTokenForUserMutation, useAddMemberToChannelMutation } from "@/store/streamChatApi";
 import { useNurseChat } from "@/hooks/useNurseChat";
+import { useIncomingCall } from "@/hooks/useIncomingCall";
+import IncomingCallModal from "@/components/IncomingCallModal";
 import moment from "moment";
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
 import { StreamVideoClient, Call } from "@stream-io/video-react-sdk";
@@ -20,11 +22,41 @@ import {
   MessageList, 
   MessageInput, 
   Thread, 
-  LoadingIndicator 
+  LoadingIndicator,
+  MessageSimple
 } from 'stream-chat-react';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../../stream-chat.css';
 import { getStreamChatInfo, storeStreamChatInfo, StreamChatInfo } from "@/lib/streamChat";
+
+const CustomMessage = (props: any) => {
+  const { message } = props;
+  
+  if (message?.custom?.callId) {
+    return (
+      <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 m-2 w-64">
+        <div className="flex items-center gap-2 mb-2 text-green-600">
+           <Phone className="w-4 h-4" />
+           <span className="font-bold text-sm">Call Invite</span>
+        </div>
+        <p className="text-gray-600 mb-4 text-sm">
+            {message.text || "Click to join the call"}
+            {message.custom.testDriveLink && (
+                <a 
+                    href={message.custom.testDriveLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block mt-2 text-blue-500 hover:underline text-xs break-all"
+                >
+                    Dashboard Link (Test)
+                </a>
+            )}
+        </p>
+      </div>
+    );
+  }
+  return <MessageSimple {...props} />;
+};
 
 interface Conversation {
   id: string;
@@ -191,6 +223,7 @@ export default function NurseMessagePage() {
         const proxyClient = result.chatClient || result; // Fallback for safety
         const token = result.token;
         const userId = result.userId;
+        const isProxy = result.isProxy !== false; // Default to true if undefined
         
         if (!proxyClient) {
             throw new Error("Failed to initialize proxy client");
@@ -199,7 +232,8 @@ export default function NurseMessagePage() {
         setChatClient(proxyClient);
 
         // Initialize Video Client for Patient to receive calls
-        if (token && userId) {
+        // ONLY if acting as proxy (if acting as Nurse, we use the Nurse's video client from CallPage context or similar)
+        if (isProxy && token && userId) {
             if (videoClient) await videoClient.disconnectUser();
             
             const _videoClient = new StreamVideoClient({
@@ -211,22 +245,50 @@ export default function NurseMessagePage() {
                 },
                 token,
             });
+            
+            // Explicitly connect user to ensure we receive events without the Provider
+            await _videoClient.connectUser(
+                {
+                    id: userId,
+                    name: patient.patientName || "Patient",
+                    image: patient.photo_url,
+                },
+                token
+            );
+            
             setVideoClient(_videoClient);
         }
 
         // Create/Get channel using bookingId as ID
-        // Since we are now "the patient" (proxy), we can access the channel if it exists
-        // or create it with correct members (Patient + Doctor)
         if (bookingId && patient.doctorId) {
             const channelId = `${bookingId}`;
             
-            // Define members: Patient (proxy user) and Doctor
-            // Note: proxyClient.userID is the patient's ID
-            const members = [proxyClient.userID!, patient.doctorId];
+            let channel;
             
-            const channel = proxyClient.channel('messaging', channelId, {
-                members,
-            });
+            if (isProxy) {
+                // Proxy Mode: We ARE the patient
+                const members = [proxyClient.userID!, patient.doctorId];
+                channel = proxyClient.channel('messaging', channelId, {
+                    members,
+                });
+            } else {
+                // Fallback Mode: We are the Nurse
+                // Try to join the existing channel
+                try {
+                     // Attempt to add ourselves to the channel via backend
+                     await addMemberToChannel({
+                        channelId,
+                        userId: proxyClient.userID!,
+                        type: 'messaging',
+                        doctorId: patient.doctorId
+                     }).unwrap();
+                } catch (addErr) {
+                     console.warn("Failed to add nurse to channel, trying to watch anyway...", addErr);
+                }
+                
+                // Watch the channel without asserting members (assumes we are now a member)
+                channel = proxyClient.channel('messaging', channelId);
+            }
 
             await channel.watch();
             setActiveChannel(channel);
@@ -256,26 +318,38 @@ export default function NurseMessagePage() {
   };
 
   // Handle video/audio call
-  const handleStartCall = (callType: 'video' | 'audio') => {
+  const handleStartCall = async (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
     
-    // Find the other member (patient)
-    const members = Object.values(activeChannel.state.members);
-    const otherMember = members.find(m => m.user_id !== chatClient.userID);
-    const patientName = otherMember?.user?.name || "Patient";
+    const callId = activeChannel.id; // Use channel ID as call ID for simplicity
     
-    // Use channel ID as call ID
-    const callId = activeChannel.id; 
+    // Construct Dashboard Link for testing/demo
+    const callCid = `${callType}:${callId}`;
+    const testDriveLink = `https://beta.dashboard.getstream.io/organization/1244114/1341115/video/test-drive/?cid=${encodeURIComponent(callCid)}`;
 
+    // 1. Send the invite message FIRST
+    try {
+        await activeChannel.sendMessage({
+            text: `📞 ${callType === 'video' ? 'Video' : 'Audio'} Call`,
+            custom: {
+                callId,
+                callType,
+                testDriveLink,
+            },
+        });
+    } catch (err) {
+        console.error("Failed to send call invite:", err);
+        showError("Error", "Failed to start call invite.");
+        return;
+    }
+
+    // 2. Navigate to Call Page as Caller
     const params = new URLSearchParams({
-      callId: callId || "",
-      callType,
-      patientName,
-      isAccepting: "false", // Nurse initiates call
-      channelId: activeChannel.id || "",
+      callId,
+      isCaller: "true",
+      // patientId is intentionally omitted so Nurse logs in as themselves
     });
 
-    // Navigate to nurse call page
     router.push(`/nurse/call?${params.toString()}`);
   };
 
@@ -285,18 +359,23 @@ export default function NurseMessagePage() {
 
     const unsubscribeCreated = videoClient.on('call.created', (event) => {
         console.log("Call created:", event);
-        setIncomingCall(event.call);
+        const call = videoClient.call(event.call.type, event.call.id);
+        setIncomingCall(call);
     });
 
     const unsubscribeRing = videoClient.on('call.ring', (event) => {
         console.log("Call ringing:", event);
-        setIncomingCall(event.call);
+        const call = videoClient.call(event.call.type, event.call.id);
+        setIncomingCall(call);
     });
 
     return () => {
         unsubscribeCreated();
         unsubscribeRing();
-        // Don't disconnect here to avoid disrupting active flow, but ideally should cleanup on unmount
+        // Disconnect video client when component unmounts or client changes
+        if (videoClient) {
+            videoClient.disconnectUser();
+        }
     };
   }, [videoClient]);
 
@@ -320,36 +399,37 @@ export default function NurseMessagePage() {
   return (
     <div className="h-full flex">
       {/* Central Column - Messages/Chat List */}
-      {chatClient && activeChannel ? (
-        <div className="w-auto lg:w-80 bg-white border-r border-gray-200 p-4">
-          <button 
-            onClick={() => {
-              setSelectedConversation(null);
-              setActiveChannel(null);
-            }}
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-medium">Back</span>
-          </button>
-        </div>
-      ) : (
-      <ConversationList
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        isLoading={isLoading}
-        filteredPatients={filteredPatients}
-        handlePatientSelect={handlePatientSelect}
-        selectedConversation={selectedConversation}
-      />
-      )}
+      <div className={`w-full lg:w-80 bg-white border-r border-gray-200 ${selectedConversation ? 'hidden lg:block' : 'block'}`}>
+        <ConversationList
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          isLoading={isLoading}
+          filteredPatients={filteredPatients}
+          handlePatientSelect={handlePatientSelect}
+          selectedConversation={selectedConversation}
+        />
+      </div>
 
       {/* Right Column - Active Chat Interface */}
       <div className={`flex-1 bg-white flex flex-col h-full ${selectedConversation ? 'flex' : 'hidden lg:flex'}`}>
         {chatClient && activeChannel ? (
-          <div className="h-full stream-chat-wrapper">
+          <div className="h-full stream-chat-wrapper flex flex-col">
+             {/* Mobile Back Button */}
+             <div className="lg:hidden p-4 border-b border-gray-200">
+                <button 
+                  onClick={() => {
+                    setSelectedConversation(null);
+                    setActiveChannel(null);
+                  }}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  <span className="font-medium">Back</span>
+                </button>
+             </div>
+
              <Chat client={chatClient} theme="messaging light">
-                <Channel channel={activeChannel}>
+                <Channel channel={activeChannel} Message={CustomMessage}>
                   <Window>
                     <div className="relative">
                       <ChannelHeader />
@@ -399,52 +479,29 @@ export default function NurseMessagePage() {
 
       {/* Incoming Call Alert */}
       {incomingCall && (
-        <div className="fixed bottom-4 right-4 w-80 bg-white p-6 shadow-2xl rounded-xl border border-gray-200 z-50 animate-in slide-in-from-bottom-5 duration-300">
-            <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
-                    <Phone className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-lg">Incoming Call</h3>
-                    <p className="text-sm text-gray-500">Doctor is calling...</p>
-                </div>
-            </div>
-            <div className="flex gap-3">
-                <button 
-                    onClick={() => {
-                        if (incomingCall) {
-                            const callId = incomingCall.id;
-                            const params = new URLSearchParams({
-                                callId,
-                                callType: 'video', 
-                                patientName: "Patient", 
-                                isAccepting: "true",
-                                channelId: activeChannel?.id || "",
-                            });
-                            router.push(`/nurse/call?${params.toString()}`);
-                        }
-                    }} 
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors"
-                >
-                    Accept
-                </button>
-                <button 
-                    onClick={async () => {
-                        if (incomingCall) {
-                            try {
-                                await incomingCall.leave();
-                            } catch (e) {
-                                console.error("Error rejecting call", e);
-                            }
-                            setIncomingCall(null);
-                        }
-                    }} 
-                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-lg font-medium transition-colors"
-                >
-                    Decline
-                </button>
-            </div>
-        </div>
+        <IncomingCallModal
+            call={incomingCall}
+            onAccept={() => {
+                const callId = incomingCall.id;
+                const params = new URLSearchParams({
+                    callId: callId || "",
+                    callType: 'video', 
+                    patientName: activeConversation?.patientName || "Patient", 
+                    isAccepting: "true",
+                    channelId: activeChannel?.id || "",
+                });
+                router.push(`/nurse/call?${params.toString()}`);
+                setIncomingCall(null);
+            }}
+            onReject={async () => {
+                try {
+                    await incomingCall.reject();
+                } catch (e) {
+                    console.error("Error rejecting call", e);
+                }
+                setIncomingCall(null);
+            }}
+        />
       )}
     </div>
   );
