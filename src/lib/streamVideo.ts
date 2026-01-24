@@ -15,7 +15,7 @@ export const connectStreamVideoUser = (
   userToken: string
 ) => {
   // Check if client is already connected with the same user
-  const currentUser = videoClient?.user;
+  const currentUser = (videoClient as any)?.state?.currentUser || (videoClient as any)?.user;
   
   if (videoClient && currentUser?.id === userId) {
     return videoClient;

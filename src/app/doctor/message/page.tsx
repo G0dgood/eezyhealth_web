@@ -192,7 +192,7 @@ export default function DoctorMessagePage() {
             const index = parseInt(selectedConversation.split('-')[1]);
             if (!isNaN(index) && uniquePatients[index]) {
                 patientId = uniquePatients[index].userId;
-                patientName = uniquePatients[index].patientName;
+                patientName = uniquePatients[index].patientName || "Patient";
             }
         }
     }

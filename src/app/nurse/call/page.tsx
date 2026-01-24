@@ -54,9 +54,10 @@ const CallScreenContent = ({ token }: { token?: string }) => {
         let effectiveName = user?.displayName || "Nurse";
         
         // 1. Prefer token passed from parent (Proxy Mode)
-        if (token && videoClient?.user?.id) {
-            effectiveUserId = videoClient.user.id;
-            effectiveName = videoClient.user.name || effectiveName;
+        const clientUser = (videoClient as any)?.state?.currentUser || (videoClient as any)?.user;
+        if (token && clientUser?.id) {
+            effectiveUserId = clientUser.id;
+            effectiveName = clientUser.name || effectiveName;
         } 
         // 2. Fallback to existing logic if no token passed
         else {
@@ -209,7 +210,7 @@ const CallScreenContent = ({ token }: { token?: string }) => {
                 call_type: callType,
                 call_status: "started"
             }
-          });
+          } as any);
         } catch (error) {
           console.error("Error sending start call message:", error);
         }
@@ -251,7 +252,7 @@ const CallScreenContent = ({ token }: { token?: string }) => {
                   call_type: callType,
                   call_status: "ended"
               }
-          });
+          } as any);
         } catch (error) {
            console.error("Error sending end call message:", error);
         }
@@ -400,18 +401,25 @@ export default function NurseCallPage() {
         return;
       }
 
-      const { chatApiKey, chatUserToken, chatUserId, chatUserName } = chatInfo;
+      // We don't initialize client here if we want to rely on provider, 
+      // but the NurseCallPage seems to be standalone or needs to handle its own client?
+      // Based on the code structure, it seems we are initializing client here.
       
-      _client = new StreamVideoClient({
-        apiKey: chatApiKey,
-        user: {
-          id: chatUserId,
-          name: user.displayName || chatUserName || "Nurse",
-          image: user.photoURL || undefined,
-        },
-        token: chatUserToken,
-      });
+      const apiKey = "4g6sfwegs7he";
+      const token = chatInfo.chatUserToken;
+      const userId = chatInfo.chatUserId;
+      const userName = chatInfo.chatUserName;
+      const userImage = user.photoURL || undefined;
+      
+      const userObj = {
+        id: userId,
+        name: userName,
+        image: userImage,
+      };
 
+      _client = new StreamVideoClient({ apiKey, user: userObj, token });
+      await _client.connectUser(userObj, token);
+      
       setClient(_client);
     };
 
@@ -424,13 +432,11 @@ export default function NurseCallPage() {
     };
   }, [user, generateTokenForUser]);
 
-  if (!client) {
-     return (
-        <div className="flex items-center justify-center h-screen">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-        </div>
-     );
-  }
+  if (!client) return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        <p>Initializing video client...</p>
+      </div>
+  );
 
   return (
     <StreamVideo client={client}>

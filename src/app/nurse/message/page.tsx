@@ -336,7 +336,7 @@ export default function NurseMessagePage() {
                 callType,
                 testDriveLink,
             },
-        });
+        } as any);
     } catch (err) {
         console.error("Failed to send call invite:", err);
         showError("Error", "Failed to start call invite.");
@@ -345,7 +345,7 @@ export default function NurseMessagePage() {
 
     // 2. Navigate to Call Page as Caller
     const params = new URLSearchParams({
-      callId,
+      callId: callId || "",
       isCaller: "true",
       // patientId is intentionally omitted so Nurse logs in as themselves
     });
