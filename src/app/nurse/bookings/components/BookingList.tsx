@@ -17,7 +17,7 @@ interface Booking {
   bookingDate?: {
     _seconds: number;
     _nanoseconds: number;
-  };
+  } | string;
   slot?: string;
   bookingChannel?: string;
   specialization?: string;
@@ -36,11 +36,13 @@ const BookingList = () => {
 
   // Filter bookings based on search term
   const filteredBookings = useMemo(() => {
-    if (!bookings?.bookings) return [];
+    const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
 
-    if (!searchTerm.trim()) return bookings.bookings;
+    if (!data || data.length === 0) return [];
 
-    return bookings.bookings.filter((booking: Booking) => {
+    if (!searchTerm.trim()) return data;
+
+    return data.filter((booking: Booking) => {
       return (
         booking.bookingStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,7 +52,7 @@ const BookingList = () => {
         booking.slot?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
-  }, [bookings?.bookings, searchTerm]);
+  }, [bookings, searchTerm]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
@@ -150,7 +152,7 @@ const BookingList = () => {
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${booking.bookingStatus === "Accepted"
                             ? "bg-green-100 text-green-800"
-                            : booking.status === "Pending"
+                            : (booking.bookingStatus === "pending" || booking.bookingStatus === "Pending" || booking.status === "Pending")
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
                             }`}>

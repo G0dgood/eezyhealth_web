@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,7 +10,6 @@ import {
   Phone,
   Video,
   MessageCircle,
-  X,
 } from "lucide-react";
 import SearchInput from "@/components/SearchInput";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
@@ -25,19 +23,7 @@ import { useGetBookingsQuery } from "@/store/bookingApi";
 import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
 import { showError, showNetworkError } from "@/utils/toast";
 import { toast } from "sonner";
-
-interface Booking {
-  id: string;
-  patientName: string;
-  date: string;
-  time: string;
-  type: "Online Booking" | "Physical Booking";
-  status: "confirmed" | "pending" | "cancelled";
-  channel: "videoCall" | "chat" | "voiceCall" | "physical";
-  patientAge: number;
-  reason: string;
-  contactNumber: string;
-}
+import BookingDetailModal, { Booking } from "./BookingDetailModal";
 
 interface DayBooking {
   date: string;
@@ -109,9 +95,10 @@ export default function Bookings() {
 
   // Convert raw booking data to standard format
   const standardizedBookings = useMemo(() => {
-    if (!bookings?.bookings) return [];
-    return convertBookingsToStandardFormat(bookings.bookings);
-  }, [bookings?.bookings]);
+    const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
+    if (!data || data.length === 0) return [];
+    return convertBookingsToStandardFormat(data);
+  }, [bookings]);
 
 
 
@@ -121,7 +108,9 @@ export default function Bookings() {
 
     // Group bookings by date
     const bookingsByDate = standardizedBookings.reduce((acc, booking) => {
+      if (!booking.bookingDate || typeof booking.bookingDate._seconds !== 'number') return acc;
       const bookingDate = new Date(booking.bookingDate._seconds * 1000);
+      if (isNaN(bookingDate.getTime())) return acc;
 
       // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
       const year = bookingDate.getFullYear();
@@ -135,7 +124,7 @@ export default function Bookings() {
 
       // Convert slot to time format (e.g., "morning_6am" -> "06:00 AM")
       const slotToTime = (slot: string): string => {
-        const slotLower = slot.toLowerCase();
+        const slotLower = (slot || "").toLowerCase();
         // Extract hour and period
         const hourMatch = slotLower.match(/(\d+)(am|pm)/);
         if (!hourMatch) return "06:00 AM";
@@ -150,7 +139,7 @@ export default function Bookings() {
 
       // Map booking channel to standardized channel values
       const mapChannel = (channel: string): "videoCall" | "chat" | "voiceCall" | "physical" => {
-        const channelLower = channel.toLowerCase();
+        const channelLower = (channel || "").toLowerCase();
 
 
         if (channelLower.includes('video') || channelLower.includes('videocall')) {
@@ -180,8 +169,13 @@ export default function Bookings() {
         patientName: booking.patientName,
         date: dateKey,
         time: slotToTime(booking.slot),
-        type: booking.bookingChannel === "Chat" ? "Online Booking" : "Physical Booking",
-        status: booking.bookingStatus.toLowerCase() as "confirmed" | "pending" | "cancelled",
+        type: mapChannel(booking.bookingChannel) === "physical" ? "Physical Booking" : "Online Booking",
+        status: ((s) => {
+             const status = (s || "").toLowerCase();
+             if (status === 'accepted' || status === 'confirmed') return 'confirmed';
+             if (status === 'cancelled' || status === 'rejected') return 'cancelled';
+             return 'pending';
+        })(booking.bookingStatus),
         channel: mapChannel(booking.bookingChannel),
         patientAge: 0, // Default value
         reason: "Consultation", // Default value
@@ -493,110 +487,11 @@ export default function Bookings() {
       )}
 
       {/* Booking Detail Modal */}
-      {isDetailModalOpen &&
-        selectedBooking &&
-        createPortal(
-          <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Booking Details
-                </h3>
-                <button
-                  onClick={closeDetailModal}
-                  className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-3 h-3 rounded-full ${getBookingColor(
-                      selectedBooking.channel
-                    )}`}></div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {selectedBooking.type}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Patient:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.patientName}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Age:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.patientAge} years
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Date:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.date}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Time:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.time}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Channel:
-                  </span>
-                  <span className="text-sm text-gray-900 capitalize">
-                    {selectedBooking.channel.replace("Call", " Call")}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Contact:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.contactNumber}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Reason:
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {selectedBooking.reason}
-                  </span>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button className="flex-1 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center justify-center gap-2">
-                    <Video className="w-4 h-4" />
-                    Start Session
-                  </button>
-                  <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Contact
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <BookingDetailModal
+        isOpen={isDetailModalOpen}
+        selectedBooking={selectedBooking}
+        onClose={closeDetailModal}
+      />
     </div>
   );
 }

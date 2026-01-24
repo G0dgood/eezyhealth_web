@@ -24,7 +24,6 @@ import NurseStatsCards from "@/components/widgets/NurseStatsCards";
 import NurseCalendarWidget from "@/components/widgets/NurseCalendarWidget";
 import BookingCancellationWidget from "@/components/widgets/BookingCancellationWidget";
 import NursePaymentWidget from "@/components/widgets/NursePaymentWidget";
-import AvailabilityWidget from "@/components/widgets/AvailabilityWidget";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
 
 const getStorageKey = (userId: string) =>
@@ -36,7 +35,6 @@ const widgetMap = {
   NurseCalendarWidget,
   BookingCancellationWidget,
   NursePaymentWidget,
-  AvailabilityWidget,
 };
 
 type Zone = "left" | "right";
@@ -114,12 +112,6 @@ const NurseDashboard = () => {
         id: uuidv4(),
         zone: "left" as Zone,
         type: "NursePaymentWidget" as WidgetType,
-        visible: true,
-      },
-      {
-        id: uuidv4(),
-        zone: "left" as Zone,
-        type: "AvailabilityWidget" as WidgetType,
         visible: true,
       },
       {

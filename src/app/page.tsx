@@ -83,10 +83,7 @@ export default function HomePage() {
             <p className="text-gray-700 mb-6 leading-relaxed text-[13px]">
               To continue, please sign in to your account or create a new one
               to access our healthcare management system.
-            </p>
-
-
-
+            </p> 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4 mt-20">
               <div>
