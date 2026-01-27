@@ -515,7 +515,7 @@ export default function DoctorAvailabilityPage() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="text-sm font-medium text-gray-700">
+                <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-700">
                   Consultation duration:
                 </div>
                 <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
@@ -559,7 +559,7 @@ export default function DoctorAvailabilityPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-gray-700">
+              <label className=" !text-[10px]  !md:text-[12px] font-medium text-gray-700">
                 Consultation duration:
               </label>
               <Dropdown
@@ -581,7 +581,7 @@ export default function DoctorAvailabilityPage() {
           <div className="flex gap-3">
             {!hasExistingAvailability &&
               Object.keys(rawDoctorAvailability).length > 0 && (
-                <div className="text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
+                <div className=" !text-[10px]  !md:text-[12px] text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
                   ⚠️ Your previous consultation duration is being converted to
                   1-hour slots
                 </div>
@@ -606,7 +606,7 @@ export default function DoctorAvailabilityPage() {
             <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
               {currentMonth}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className=" !text-[10px]  !md:text-[12px] text-gray-500">
               {currentWeekStart.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -633,7 +633,7 @@ export default function DoctorAvailabilityPage() {
                 const year = today.getFullYear();
                 setCurrentMonth(`${monthName}, ${year}`);
               }}
-              className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+              className="px-3 py-1  !text-[10px]  !md:text-[12px] bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
             >
               Today
             </button>
@@ -657,11 +657,11 @@ export default function DoctorAvailabilityPage() {
           <div className="min-w-[800px]">
             {/* Day Headers */}
             <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="p-3 text-sm font-medium text-gray-500 bg-gray-50"></div>
-              {availability.map((day, index) => (
+              <div className="p-3  !text-[10px]  !md:text-[12px] font-medium text-gray-500 bg-gray-50"></div>
+              {availability?.map((day, index) => (
                 <div
                   key={String(`${day.dayName}-${day.date}-${index}`)}
-                  className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center"
+                  className="p-3  !text-[10px]  !md:text-[12px] font-medium text-gray-900 bg-gray-50 text-center"
                 >
                   <div className="font-semibold">{day.dayName}</div>
                   <div className="text-xs text-gray-500">{day.date}</div>
@@ -680,7 +680,7 @@ export default function DoctorAvailabilityPage() {
                       className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
                     >
                       {/* Time Label */}
-                      <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
+                      <div className="p-3  !text-[10px]  !md:text-[12px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                         {availability[0].timeSlots[slotIndex].time}
                       </div>
 

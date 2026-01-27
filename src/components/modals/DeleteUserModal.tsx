@@ -64,7 +64,7 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700">
+              <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
                 {user.display_name?.[0] ||
                   user.first_name?.[0] ||
                   user.email[0].toUpperCase()}
@@ -76,8 +76,8 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
                   `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
                   "N/A"}
               </p>
-              <p className="text-sm text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-500">Role: {user.role}</p>
+              <p className=" text-[10px]  md:text-[12px] text-gray-600">{user.email}</p>
+              <p className=" text-[10px]  md:text-[12px] text-gray-500">Role: {user.role}</p>
             </div>
           </div>
         </div>

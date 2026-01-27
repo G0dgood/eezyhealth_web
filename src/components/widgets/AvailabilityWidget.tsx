@@ -119,12 +119,12 @@ const AvailabilityWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] md:text-[16px] md:text-[18px] font-bold text-gray-900">Availability Schedule</h3>
-            <p className="text-xs md:text-sm text-gray-500">Manage your working hours</p>
+            <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-500">Manage your working hours</p>
           </div>
         </div>
         <button
           onClick={() => setIsAddingSlot(!isAddingSlot)}
-          className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors  text-[10px]  md:text-[12px]">
           <Plus size={16} />
           <span>Add Slot</span>
         </button>
@@ -151,7 +151,7 @@ const AvailabilityWidget: React.FC = () => {
       {/* Add New Slot Form */}
       {isAddingSlot && (
         <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h4 className="font-semibold text-sm md:text-base text-gray-900 mb-3">Add New Time Slot</h4>
+          <h4 className="font-semibold  text-[10px]  md:text-[12px] md:text-base text-gray-900 mb-3">Add New Time Slot</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Dropdown
               value={newSlot.day}
@@ -188,7 +188,7 @@ const AvailabilityWidget: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-2 mt-3">
             <button
               onClick={handleAddSlot}
-              className="w-full md:w-auto px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm">
+              className="w-full md:w-auto px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors  text-[10px]  md:text-[12px]">
               Add Slot
             </button>
             <button
@@ -196,7 +196,7 @@ const AvailabilityWidget: React.FC = () => {
                 setIsAddingSlot(false);
                 setNewSlot({ day: "", startTime: "", endTime: "" });
               }}
-              className="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
+              className="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors  text-[10px]  md:text-[12px]">
               Cancel
             </button>
           </div>
@@ -224,7 +224,7 @@ const AvailabilityWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">{slot.day}</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     {slot.startTime} - {slot.endTime}
                   </p>
                 </div>
@@ -251,18 +251,18 @@ const AvailabilityWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  text-[10px]  md:text-[12px]">
+          <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
             Weekly Schedule: {availableDays} days available
           </span>
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Available: {availableDays}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Available: {availableDays}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Off: {timeSlots.length - availableDays}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Off: {timeSlots.length - availableDays}</span>
             </div>
           </div>
         </div>

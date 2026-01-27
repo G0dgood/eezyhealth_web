@@ -175,7 +175,7 @@ const AdminPaymentsWidget: React.FC = () => {
           <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Payments Found
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className=" text-[10px]  md:text-[12px] text-gray-500 text-center mb-4">
             No payment records found yet. Payments will appear here once they
             are processed.
           </p>
@@ -194,7 +194,7 @@ const AdminPaymentsWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] md:text-[16px] md:text-[18px] font-bold text-gray-900">Recent Payments</h3>
-            <p className="text-xs md:text-sm text-gray-500">Latest payment transactions</p>
+            <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-500">Latest payment transactions</p>
           </div>
         </div>
       </div>
@@ -240,10 +240,10 @@ const AdminPaymentsWidget: React.FC = () => {
                   <DollarSign size={16} className="text-green-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
+                  <h4 className="font-medium  text-[10px]  md:text-[12px] md:text-base text-gray-900 truncate">
                     ₦{parseAmount(payment.amount).toFixed(2)}
                   </h4>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                  <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-600 truncate">
                     {payment.patientName || "Unknown Patient"}
                   </p>
                 </div>
@@ -262,16 +262,16 @@ const AdminPaymentsWidget: React.FC = () => {
 
             <div className="space-y-1.5 md:space-y-2">
               {payment.doctorId && (
-                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
                   <span className="text-[10px] md:text-xs">👨‍⚕️</span>
                   <span className="truncate">{payment.doctorId}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
                 <span className="text-[10px] md:text-xs">💳</span>
                 <span>{payment.paymentMethod || "Card Payment"}</span>
               </div>
-              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
                 <span className="text-[10px] md:text-xs">📅</span>
                 <span>{formatDate(payment.createdAt || payment.paymentDate)}</span>
               </div>
@@ -292,24 +292,24 @@ const AdminPaymentsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  text-[10px]  md:text-[12px]">
+          <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
             Average Payment: ₦{averagePayment.toFixed(2)}
           </span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
                 Completed: {completedPayments}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingPayments}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Pending: {pendingPayments}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Failed: {failedPayments}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Failed: {failedPayments}</span>
             </div>
           </div>
         </div>

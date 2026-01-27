@@ -54,7 +54,7 @@ export default function DataTable<T = unknown>({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-[var(--foreground)]">
                     {(() => {
                       const cell = (row as Record<string, unknown>)[column.key];
                       const display =
@@ -69,20 +69,20 @@ export default function DataTable<T = unknown>({
             ))}
           </tbody>
         </table>
-      {/* Pagination */}
-      {(totalCount > 0 || totalPages > 1) && ( 
+        {/* Pagination */}
+        {(totalCount > 0 || totalPages > 1) && (
           <Pagination
             currentPage={currentPage}
             totalCount={totalCount || totalPages * pageSize}
             pageSize={pageSize}
             onPageChange={onPageChange || ((page) => {
-                if (page > currentPage && onNext) onNext();
-                if (page < currentPage && onPrevious) onPrevious();
+              if (page > currentPage && onNext) onNext();
+              if (page < currentPage && onPrevious) onPrevious();
             })}
             itemLabel={itemLabel}
             className="mt-4"
-          /> 
-      )}
+          />
+        )}
       </div>
 
     </div>

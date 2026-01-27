@@ -168,28 +168,28 @@ export default function PatientDetailsPage({
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedAppointments.map((appointment, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] font-medium text-gray-900">
                     {appointment.doctor}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-gray-900">
                     {appointment.specialty}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-gray-900">
                     {appointment.bookingId}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-gray-900">
                     {appointment.date}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-gray-900">
                     {appointment.time}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] text-gray-900">
                     {appointment.channel}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap  text-[10px]  md:text-[12px] font-medium">
                     <button
                       onClick={handleVitalsClick}
-                      className="text-green-600 hover:text-green-700 font-medium text-sm cursor-pointer">
+                      className="text-green-600 hover:text-green-700 font-medium  text-[10px]  md:text-[12px] cursor-pointer">
                       Vitals
                     </button>
                   </td>

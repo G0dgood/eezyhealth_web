@@ -38,7 +38,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Add Appointment" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
             Search Patient Name
           </label>
           <SearchInput

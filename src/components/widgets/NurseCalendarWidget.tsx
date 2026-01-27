@@ -103,7 +103,7 @@ const NurseCalendarWidget: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] md:tex font-bold text-gray-900">
               Today&apos;s Schedule
             </h3>
             <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">{formatDate(currentDate)}</p>

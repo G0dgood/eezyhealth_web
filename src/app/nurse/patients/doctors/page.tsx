@@ -208,10 +208,10 @@ export default function NursesDoctorsPage() {
                 <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.title || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || ""}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {`${doctor.first_name || ""}  ${doctor.last_name || ""
                     }`.trim() || ""}
                 </p>
@@ -221,24 +221,24 @@ export default function NursesDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor.email}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor.phone_number || "Phone not available"}</span>
                   </div>
 
                   {doctor.hospital && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                       <User className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.hospital}</span>
                     </div>
                   )}
 
                   {doctor.address && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                       <MapPin className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.address}</span>
                     </div>
@@ -252,7 +252,7 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}
+                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg  text-[10px]  md:text-[12px] font-medium cursor-pointer`}
                   >
                     Book Appointment
                   </button>
@@ -299,14 +299,14 @@ export default function NursesDoctorsPage() {
                 <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.display_name || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {`${doctor.first_name || ""} ${doctor.last_name || ""
                     }`.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.specialization || "N/A"}
                 </p>
                 <p className="text-xs text-gray-500 mb-3">
@@ -320,23 +320,23 @@ export default function NursesDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.email || "n/a"}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor?.phone_number || "Phone not available"}</span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <User className="w-4 h-4 mr-2" />
                     <span className="truncate">
                       {doctor?.hospital || "n/a"}
                     </span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <MapPin className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.address || "n/a"}</span>
                   </div>
@@ -349,7 +349,7 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg  text-[10px]  md:text-[12px] font-medium cursor-pointer"
                   >
                     Book Appointment
                   </button>

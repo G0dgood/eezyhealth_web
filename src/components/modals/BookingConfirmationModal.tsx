@@ -142,7 +142,7 @@ export default function BookingConfirmationModal({
               <h4 className="font-semibold text-blue-900">
                 {bookingDetails.doctorName}
               </h4>
-              <p className="text-sm text-blue-700">
+              <p className=" text-[10px]  md:text-[12px] text-blue-700">
                 {bookingDetails.doctorSpecialization}
               </p>
             </div>
@@ -155,7 +155,7 @@ export default function BookingConfirmationModal({
             <User className="w-5 h-5 text-green-600" />
             <div>
               <h4 className="font-semibold text-green-900">Patient</h4>
-              <p className="text-sm text-green-700">
+              <p className=" text-[10px]  md:text-[12px] text-green-700">
                 {bookingDetails.patientName}
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function BookingConfirmationModal({
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <Calendar className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm text-gray-500">Date</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-500">Date</p>
                 <p className="font-medium text-gray-900">
                   {formatDate(bookingDetails.date)}
                 </p>
@@ -182,7 +182,7 @@ export default function BookingConfirmationModal({
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <Clock className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm text-gray-500">Time</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-500">Time</p>
                 <p className="font-medium text-gray-900">
                   {formatTime(bookingDetails.time)}
                 </p>
@@ -193,7 +193,7 @@ export default function BookingConfirmationModal({
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <MessageSquare className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm text-gray-500">Channel</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-500">Channel</p>
                 <p className="font-medium text-gray-900">
                   {bookingDetails.channel}
                 </p>
@@ -204,7 +204,7 @@ export default function BookingConfirmationModal({
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <FileText className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm text-gray-500">Reason</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-500">Reason</p>
                 <p className="font-medium text-gray-900 truncate">
                   {bookingDetails.reason || "Not specified"}
                 </p>
@@ -217,7 +217,7 @@ export default function BookingConfirmationModal({
         <div className="bg-yellow-50 rounded-lg p-4">
           <div className="flex items-start space-x-3">
             <CheckCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-            <div className="text-sm text-yellow-800">
+            <div className=" text-[10px]  md:text-[12px] text-yellow-800">
               <p className="font-medium">Important Notes:</p>
               <ul className="mt-2 space-y-1 list-disc list-inside">
                 <li>Please arrive 10 minutes before your appointment time</li>

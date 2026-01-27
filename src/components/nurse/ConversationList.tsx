@@ -59,7 +59,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             startIcon={<Search className="w-4 h-4 text-gray-400" />}
             fullWidth
-            className="text-sm"
+            className=" text-[10px]  md:text-[12px]"
           />
         </div>
       </div>
@@ -88,7 +88,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-gray-500 font-medium text-sm">
+                      <span className="text-gray-500 font-medium  text-[10px]  md:text-[12px]">
                         {getInitials(patient.patientName || "Patient")}
                       </span>
                     )}
@@ -99,14 +99,14 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">
+                    <h3 className=" text-[10px]  md:text-[12px] font-medium text-gray-900 truncate">
                       {patient.patientName}
                     </h3>
                     <span className="text-xs text-gray-500">
                       {patient.timestamp || "Recently"}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 truncate mt-1">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600 truncate mt-1">
                     {patient.lastMessage}
                   </p>
                 </div>

@@ -202,7 +202,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Role
               </label>
               <Dropdown
@@ -221,7 +221,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Account Status
               </label>
               <Dropdown
@@ -289,7 +289,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Address
               </label>
               <Textarea
@@ -321,7 +321,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               <Shield className="h-5 w-5 mr-2 text-red-600" />
               Account Deactivation
             </h3>
-            <p className="text-sm text-red-700 bg-red-100 p-3 rounded-md">
+            <p className=" text-[10px]  md:text-[12px] text-red-700 bg-red-100 p-3 rounded-md">
               <strong>Important:</strong> You are deactivating this user account. Please provide a clear reason for this action as it will be recorded in the system audit trail.
             </p>
 
@@ -338,7 +338,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                   Deactivation Reason *
                 </label>
                 <Textarea
@@ -351,7 +351,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                 />
 
                 {errors.deactivationReason && (
-                  <p className="text-red-500 text-sm mt-1">{errors.deactivationReason}</p>
+                  <p className="text-red-500  text-[10px]  md:text-[12px] mt-1">{errors.deactivationReason}</p>
                 )}
               </div>
             </div>

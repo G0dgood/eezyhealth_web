@@ -70,7 +70,7 @@ export default function FilterModal({
         <div className="p-6 space-y-6">
           {/* Status Section */}
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-3">Status</h4>
+            <h4 className=" text-[10px]  md:text-[12px] font-medium text-gray-900 mb-3">Status</h4>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
                 <Input
@@ -81,7 +81,7 @@ export default function FilterModal({
                   onChange={() => handleStatusChange("pending")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Pending</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Pending</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -93,7 +93,7 @@ export default function FilterModal({
                   onChange={() => handleStatusChange("completed")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Completed</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Completed</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -105,14 +105,14 @@ export default function FilterModal({
                   onChange={() => handleStatusChange("cancelled")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Cancelled</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Cancelled</span>
               </label>
             </div>
           </div>
 
           {/* Channel Section */}
           <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-3">Channel</h4>
+            <h4 className=" text-[10px]  md:text-[12px] font-medium text-gray-900 mb-3">Channel</h4>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
                 <Input
@@ -123,7 +123,7 @@ export default function FilterModal({
                   onChange={() => handleChannelChange("chat")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Chat</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Chat</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -135,7 +135,7 @@ export default function FilterModal({
                   onChange={() => handleChannelChange("videoCall")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Video Call</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Video Call</span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -147,7 +147,7 @@ export default function FilterModal({
                   onChange={() => handleChannelChange("voiceCall")}
                   fullWidth={false}
                 />
-                <span className="text-sm text-gray-700">Voice Call</span>
+                <span className=" text-[10px]  md:text-[12px] text-gray-700">Voice Call</span>
               </label>
             </div>
           </div>

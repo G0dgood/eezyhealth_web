@@ -361,7 +361,7 @@ EezyHealth Security Team
 								<User className="h-4 w-4 mr-2" />
 								Doctor Information
 							</h4>
-							<div className="space-y-2 text-sm">
+							<div className="space-y-2  text-[10px]  md:text-[12px]">
 								<div>
 									<span className="font-medium text-gray-600">Name:</span> {doctorName || "N/A"}
 								</div>
@@ -376,7 +376,7 @@ EezyHealth Security Team
 
 						{/* Template Selection */}
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-3">
+							<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-3">
 								Email Template
 							</label>
 							<div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3">
@@ -398,7 +398,7 @@ EezyHealth Security Team
 											</div>
 											{getTypeBadge(template.type)}
 										</div>
-										<p className="text-sm text-gray-600 line-clamp-2">
+										<p className=" text-[10px]  md:text-[12px] text-gray-600 line-clamp-2">
 											{template.template.substring(0, 100)}...
 										</p>
 									</div>
@@ -442,15 +442,15 @@ EezyHealth Security Team
 									<div className="space-y-4">
 										<div className="border-b pb-2">
 											<div className="flex items-center justify-between mb-2">
-												<span className="text-sm font-medium text-gray-600">Subject:</span>
+												<span className=" text-[10px]  md:text-[12px] font-medium text-gray-600">Subject:</span>
 												{getTypeBadge(selectedTemplateData.type)}
 											</div>
 											<p className="font-medium text-gray-900">{selectedTemplateData.subject}</p>
 										</div>
 
 										<div>
-											<span className="text-sm font-medium text-gray-600 mb-2 block">Content:</span>
-											<div className="bg-gray-50 p-3 rounded text-sm text-gray-700 whitespace-pre-line">
+											<span className=" text-[10px]  md:text-[12px] font-medium text-gray-600 mb-2 block">Content:</span>
+											<div className="bg-gray-50 p-3 rounded  text-[10px]  md:text-[12px] text-gray-700 whitespace-pre-line">
 												{processTemplate(selectedTemplateData.template, {
 													doctorName: doctorName || "Dr. [Name]",
 													doctorId: doctorId || "[ID]",
@@ -477,12 +477,12 @@ EezyHealth Security Team
 								) : customSubject && customContent ? (
 									<div className="space-y-4">
 										<div className="border-b pb-2">
-											<span className="text-sm font-medium text-gray-600">Subject:</span>
+											<span className=" text-[10px]  md:text-[12px] font-medium text-gray-600">Subject:</span>
 											<p className="font-medium text-gray-900 mt-1">{customSubject}</p>
 										</div>
 										<div>
-											<span className="text-sm font-medium text-gray-600 mb-2 block">Content:</span>
-											<div className="bg-gray-50 p-3 rounded text-sm text-gray-700 whitespace-pre-line">
+											<span className=" text-[10px]  md:text-[12px] font-medium text-gray-600 mb-2 block">Content:</span>
+											<div className="bg-gray-50 p-3 rounded  text-[10px]  md:text-[12px] text-gray-700 whitespace-pre-line">
 												{customContent}
 											</div>
 										</div>

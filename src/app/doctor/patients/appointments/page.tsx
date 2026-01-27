@@ -191,17 +191,17 @@ export default function DoctorPatientAppointmentsPage() {
                             />
                           ) : (
                             <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium">
+                              <span className=" text-[10px]  md:text-[12px] font-medium">
                                 {appointment.doctor.charAt(0).toUpperCase()}
                               </span>
                             </div>
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className=" text-[10px]  md:text-[12px] font-medium text-gray-900">
                             {appointment.doctor}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className=" text-[10px]  md:text-[12px] text-gray-500">
                             {appointment.specialty}
                           </div>
                         </div>
@@ -210,20 +210,20 @@ export default function DoctorPatientAppointmentsPage() {
 
                     {/* Booking Info Column */}
                     <td>
-                      <div className="text-sm text-gray-900">
+                      <div className=" text-[10px]  md:text-[12px] text-gray-900">
                         ID: {appointment.bookingId.slice(0, 8)}...
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className=" text-[10px]  md:text-[12px] text-gray-500">
                         {appointment.channel}
                       </div>
                     </td>
 
                     {/* Schedule Column */}
                     <td>
-                      <div className="text-sm text-gray-900">
+                      <div className=" text-[10px]  md:text-[12px] text-gray-900">
                         {appointment.date}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className=" text-[10px]  md:text-[12px] text-gray-500">
                         {appointment.time} ({appointment.period})
                       </div>
                     </td>
@@ -232,10 +232,10 @@ export default function DoctorPatientAppointmentsPage() {
                     <td>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === "Upcoming"
-                            ? "bg-blue-100 text-blue-800"
-                            : appointment.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                          ? "bg-blue-100 text-blue-800"
+                          : appointment.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
                           }`}
                       >
                         {appointment.status}
@@ -250,7 +250,7 @@ export default function DoctorPatientAppointmentsPage() {
                             setSelectedBookingId(appointment.bookingId);
                             setIsVitalsModalOpen(true);
                           }}
-                          className="text-green-600 hover:text-green-700 font-medium cursor-pointer text-sm"
+                          className="text-green-600 hover:text-green-700 font-medium cursor-pointer  text-[10px]  md:text-[12px]"
                         >
                           Vitals
                         </button>

@@ -306,7 +306,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 					<div className="space-y-6">
 						{/* Notification Type */}
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-3">
+							<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-3">
 								Notification Type
 							</label>
 							<div className="flex space-x-4">
@@ -334,7 +334,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 						{/* Template Selection */}
 						{notificationType === "template" && (
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-3">
+								<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-3">
 									Select Template
 								</label>
 								<div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3">
@@ -356,7 +356,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 												</div>
 												{getTypeBadge(template.type)}
 											</div>
-											<p className="text-sm text-gray-600 line-clamp-2">
+											<p className=" text-[10px]  md:text-[12px] text-gray-600 line-clamp-2">
 												{template.message}
 											</p>
 											<div className="mt-2">
@@ -373,7 +373,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 						{/* Custom Message */}
 						{notificationType === "custom" && (
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
+								<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
 									Custom Message
 								</label>
 								<Textarea
@@ -388,7 +388,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 
 						{/* Patient Selection */}
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-3">
+							<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-3">
 								Select Patients ({selectedPatients.length} selected)
 							</label>
 
@@ -396,12 +396,12 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 								<div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
 									<div className="flex items-center">
 										<Users className="h-4 w-4 text-blue-600 mr-2" />
-										<span className="text-sm text-blue-800">
+										<span className=" text-[10px]  md:text-[12px] text-blue-800">
 											{affectedPatients.length} patients affected by doctor actions
 										</span>
 										<button
 											onClick={() => setSelectedPatients(affectedPatients)}
-											className="ml-auto text-sm text-blue-600 hover:text-blue-800"
+											className="ml-auto  text-[10px]  md:text-[12px] text-blue-600 hover:text-blue-800"
 										>
 											Select All Affected
 										</button>
@@ -428,7 +428,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 
 							{/* Add Patient Dropdown */}
 							<div className="mt-4">
-								<label className="block text-sm font-medium text-gray-700 mb-2">
+								<label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
 									Add Patient
 								</label>
 								<div className="flex gap-2">
@@ -499,7 +499,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 													<h5 className="font-medium text-gray-900">{template.title}</h5>
 													{getTypeBadge(template.type)}
 												</div>
-												<p className="text-sm text-gray-600">{template.message}</p>
+												<p className=" text-[10px]  md:text-[12px] text-gray-600">{template.message}</p>
 												<div className="text-xs text-gray-500">
 													Category: {template.category}
 												</div>
@@ -512,7 +512,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 											<h5 className="font-medium text-gray-900">Important Notification</h5>
 											{getTypeBadge("info")}
 										</div>
-										<p className="text-sm text-gray-600">{customMessage}</p>
+										<p className=" text-[10px]  md:text-[12px] text-gray-600">{customMessage}</p>
 									</div>
 								) : (
 									<div className="text-center py-8 text-gray-500">

@@ -149,7 +149,7 @@ export default function NursePatientAppointmentsPage() {
             className="text-gray-600 hover:text-gray-800 cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{patientName}</h1>
+          <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900">{patientName}</h1>
         </div>
 
         {/* Tabs */}
@@ -195,17 +195,17 @@ export default function NursePatientAppointmentsPage() {
                             />
                           ) : (
                             <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium">
+                              <span className=" !text-[10px]  !md:text-[12px] font-medium">
                                 {appointment.doctor.charAt(0).toUpperCase()}
                               </span>
                             </div>
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                             {appointment.doctor}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
                             {appointment.specialty}
                           </div>
                         </div>
@@ -214,20 +214,20 @@ export default function NursePatientAppointmentsPage() {
 
                     {/* Booking Info Column */}
                     <td>
-                      <div className="text-sm text-gray-900">
+                      <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
                         ID: {appointment.bookingId.slice(0, 8)}...
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
                         {appointment.channel}
                       </div>
                     </td>
 
                     {/* Schedule Column */}
                     <td>
-                      <div className="text-sm text-gray-900">
+                      <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
                         {appointment.date}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
                         {appointment.time} ({appointment.period})
                       </div>
                     </td>
@@ -235,13 +235,12 @@ export default function NursePatientAppointmentsPage() {
                     {/* Status Column */}
                     <td>
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          appointment.status === "Upcoming"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === "Upcoming"
                             ? "bg-blue-100 text-blue-800"
                             : appointment.status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {appointment.status}
                       </span>
@@ -257,17 +256,17 @@ export default function NursePatientAppointmentsPage() {
                           <Activity className="w-4 h-4" />
                           <span>Vitals</span>
                         </button>
-                        
-                          <button
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setIsConsultationModalOpen(true);
-                            }}
-                            className="link-green flex items-center space-x-1"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>Consultation Details</span>
-                          </button> 
+
+                        <button
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setIsConsultationModalOpen(true);
+                          }}
+                          className="link-green flex items-center space-x-1"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <span>Consultation Details</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -276,15 +275,15 @@ export default function NursePatientAppointmentsPage() {
             </tbody>
           </table>
         </div>
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalCount={filteredAppointments.length}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-        itemLabel="appointments"
-        className="border-t border-gray-200"
-      />
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalCount={filteredAppointments.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          itemLabel="appointments"
+          className="border-t border-gray-200"
+        />
       </div>
 
 

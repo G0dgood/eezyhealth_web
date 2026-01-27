@@ -105,7 +105,7 @@ export default function NotificationsDemoPage() {
                 <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {notifications.length}
                 </p>
-                <p className="text-sm text-gray-600">Total Notifications</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-600">Total Notifications</p>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function NotificationsDemoPage() {
                 <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {unreadCount}
                 </p>
-                <p className="text-sm text-gray-600">Unread</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-600">Unread</p>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function NotificationsDemoPage() {
                 <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {notifications.filter((n) => n.isRead).length}
                 </p>
-                <p className="text-sm text-gray-600">Read</p>
+                <p className=" text-[10px]  md:text-[12px] text-gray-600">Read</p>
               </div>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function NotificationsDemoPage() {
           </h2>
 
           <div className="flex items-center space-x-4 mb-4">
-            <label className="text-sm font-medium text-gray-700">Type:</label>
+            <label className=" text-[10px]  md:text-[12px] font-medium text-gray-700">Type:</label>
             <Dropdown
               value={selectedType}
               onChange={(value) =>
@@ -229,7 +229,7 @@ export default function NotificationsDemoPage() {
                       <h4 className="font-medium text-gray-900">
                         {notification.title}
                       </h4>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className=" text-[10px]  md:text-[12px] text-gray-600 mt-1">
                         {notification.description}
                       </p>
                       <div className="flex items-center justify-between mt-2">

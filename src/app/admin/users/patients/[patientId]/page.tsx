@@ -154,7 +154,7 @@ export default function PatientDetailsPage({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   DATE
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-sm uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium  !text-[10px]  !md:text-[12px] uppercase tracking-wider">
                   TIME
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -168,7 +168,7 @@ export default function PatientDetailsPage({
             <tbody className="bg-white divide-y divide-gray-200">
               {appointments.map((appointment, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                     {appointment.doctor}
                   </td>
                   <td >
@@ -186,7 +186,7 @@ export default function PatientDetailsPage({
                   <td >
                     {appointment.channel}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] font-medium">
                     <Button
                       variant="ghost-primary"
                       size="sm"

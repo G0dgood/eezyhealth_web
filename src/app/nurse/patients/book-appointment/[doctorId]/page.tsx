@@ -331,24 +331,24 @@ export default function DoctorBookingPage({
 
             {/* Contact Info */}
             <div className="space-y-2 text-left mb-4">
-              <div className="flex items-center text-sm text-gray-800">
+              <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                 <Mail className="w-4 h-4 mr-2" />
                 <span className="truncate">{doctor.email}</span>
               </div>
               {doctor.phone_number && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                   <Phone className="w-4 h-4 mr-2" />
                   <span>{doctor.phone_number}</span>
                 </div>
               )}
               {doctor.hospital && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                   <User className="w-4 h-4 mr-2" />
                   <span className="truncate">{doctor.hospital}</span>
                 </div>
               )}
               {doctor.address && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                   <MapPin className="w-4 h-4 mr-2" />
                   <span className="truncate">{doctor.address}</span>
                 </div>
@@ -359,7 +359,7 @@ export default function DoctorBookingPage({
             {doctor.about && (
               <div className="text-left">
                 <h3 className="font-semibold text-gray-900 mb-2">About</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-gray-600  text-[10px]  md:text-[12px] leading-relaxed">
                   {doctor.about}
                 </p>
               </div>
@@ -375,7 +375,7 @@ export default function DoctorBookingPage({
 
           {/* Communication Channel */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Communication Channel
             </label>
             <Dropdown
@@ -396,7 +396,7 @@ export default function DoctorBookingPage({
 
           {/* Available Date */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Select Available Date
             </label>
             <div className="border border-gray-200 rounded-lg p-4">
@@ -434,7 +434,7 @@ export default function DoctorBookingPage({
                   <button
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${dayData.selected
+                    className={`p-2  text-[10px]  md:text-[12px] rounded-lg transition-colors cursor-pointer ${dayData.selected
                       ? "bg-green-500 text-white"
                       : dayData.currentMonth
                         ? dayData.hasAvailability
@@ -452,7 +452,7 @@ export default function DoctorBookingPage({
           {/* Show availability for selected day */}
           {selectedDayAvailability && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                 Available Times for{" "}
                 {selectedDate ? getDayName(selectedDate) : ""}
               </label>
@@ -463,7 +463,7 @@ export default function DoctorBookingPage({
                       key={timeSlot}
                       onClick={() => setSelectedTime(timeSlot)}
                       disabled={status !== "available"}
-                      className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${selectedTime === timeSlot
+                      className={`p-2  text-[10px]  md:text-[12px] rounded-lg border transition-colors cursor-pointer ${selectedTime === timeSlot
                         ? "bg-green-500 text-white border-green-500"
                         : status === "available"
                           ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
@@ -482,7 +482,7 @@ export default function DoctorBookingPage({
 
           {/* Reason for Consultation */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Reason for consultation
             </label>
             <Textarea
@@ -494,7 +494,7 @@ export default function DoctorBookingPage({
               fullWidth
               className="resize-none"
             />
-            <div className="text-right text-sm text-gray-500 mt-1">
+            <div className="text-right  text-[10px]  md:text-[12px] text-gray-500 mt-1">
               {consultationReason?.length}/500
             </div>
           </div>

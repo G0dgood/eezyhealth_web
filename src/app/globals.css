@@ -70,12 +70,12 @@ input:checked ~ .dot {
 
   /* Font Sizes */
   --paragraph-small-font-size: 0.875rem;
-  --paragraph-medium-font-size: 1rem;
+  --paragraph-medium-font-size: 0.8rem;
   --input-font-size: 0.875rem;
 }
 
 html {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 [data-theme="dark"] {
@@ -144,7 +144,7 @@ html {
 }
 
 html {
-  font-size: 14px; /* Reduced base font size from default 16px */
+  font-size: 12px; /* Reduced base font size from default 16px */
   background: #ffffff;
   color: #171717;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -154,8 +154,7 @@ body {
   background: #ffffff;
   color: #171717;
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease; 
 }
 
 /* Dark mode for html and body using data-theme attribute */
@@ -246,7 +245,7 @@ main {
   }
   
   main {
-    padding: 16px;
+    padding: 14px;
     min-width: 100vw;
     transform-origin: left;
   }
@@ -727,7 +726,7 @@ main[data-page="message"] {
   }
   
   .input-label {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
   }
   

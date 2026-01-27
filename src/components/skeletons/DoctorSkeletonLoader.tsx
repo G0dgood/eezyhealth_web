@@ -19,7 +19,7 @@ const DoctorSkeletonLoader: React.FC<DoctorSkeletonLoaderProps> = ({ patientName
 						className="text-gray-600 hover:text-gray-900 transition-colors">
 						<ArrowLeft className="w-5 h-5" />
 					</Link>
-					<h1 className="text-2xl font-bold text-gray-900">
+					<h1 className="text-[18px] md:text-[20px] font-bold text-gray-900">
 						Select Doctor for{" "}
 						{patientName ? `Patient: ${patientName}` : "Patient"}
 					</h1>

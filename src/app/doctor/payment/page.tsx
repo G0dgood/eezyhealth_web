@@ -136,10 +136,9 @@ export default function DoctorPaymentPage() {
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${
-          statusClasses[status as keyof typeof statusClasses] ||
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status as keyof typeof statusClasses] ||
           "bg-gray-100 text-gray-800"
-        }`}
+          }`}
       >
         {status}
       </span>
@@ -234,35 +233,35 @@ export default function DoctorPaymentPage() {
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {currentPayments?.length === 0 ||
-              currentPayments?.length === undefined ? (
+                currentPayments?.length === undefined ? (
                 <NoRecordFound colSpan={6} />
               ) : (
                 currentPayments?.map((payment) => (
                   <tr key={payment.id} className="hover:bg-[var(--muted)]">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-[var(--foreground)]">
+                        <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                           {payment.patientName}
                         </div>
-                        <div className="text-sm text-[var(--muted-foreground)]">
+                        <div className=" text-[10px]  md:text-[12px] text-[var(--muted-foreground)]">
                           ID: {payment.id}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {payment.slot}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                         ₦{payment?.amount}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {getPaymentMethodIcon(payment.paymentMethod)}
-                        <span className="text-sm text-[var(--foreground)]">
+                        <span className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                           {payment.paymentMethod}
                         </span>
                       </div>
@@ -271,7 +270,7 @@ export default function DoctorPaymentPage() {
                       {getStatusBadge(payment.paymentStatus)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {payment.transactionId.reference}
                       </div>
                     </td>

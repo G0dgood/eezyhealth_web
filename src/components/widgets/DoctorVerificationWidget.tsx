@@ -56,7 +56,7 @@ export default function DoctorVerificationWidget({
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
               Doctor Verification Requests
             </h3>
-            <p className="text-xs md:text-sm text-gray-500">
+            <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-500">
               Pending verification requests
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function DoctorVerificationWidget({
           <div className="py-8 text-center">
             <div className="flex flex-col items-center space-y-3">
               <UserCheck className="w-12 h-12 text-gray-300" />
-              <p className="text-gray-500 text-sm">No verification requests pending</p>
+              <p className="text-gray-500  !text-[10px]  !md:text-[12px]">No verification requests pending</p>
             </div>
           </div>
         ) : (
@@ -85,10 +85,10 @@ export default function DoctorVerificationWidget({
                     <Stethoscope className="w-5 h-5 text-orange-600" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">
+                    <h4 className=" !text-[10px]  !md:text-[12px] md:text-base font-medium text-gray-900 truncate">
                       {request.name}
                     </h4>
-                    <p className="text-xs md:text-sm text-gray-500 truncate">
+                    <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-500 truncate">
                       {request.specialization}
                     </p>
                   </div>
@@ -96,7 +96,7 @@ export default function DoctorVerificationWidget({
 
                 {/* Date and Status */}
                 <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto border-t sm:border-t-0 border-gray-200 pt-2 sm:pt-0 mt-1 sm:mt-0">
-                  <div className="flex items-center text-gray-500 text-xs md:text-sm whitespace-nowrap">
+                  <div className="flex items-center text-gray-500 text-xs md: !text-[10px]  !md:text-[12px] whitespace-nowrap">
                     <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-1.5" />
                     {request.date}
                   </div>
@@ -129,10 +129,10 @@ export default function DoctorVerificationWidget({
       {requests.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 py-3 md:mx-[-1.5rem] md:mb-[-1.5rem] md:px-6 md:rounded-b-lg">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <span className=" !text-[10px]  !md:text-[12px] text-gray-600">
               {requests.length} request{requests.length !== 1 ? 's' : ''} pending
             </span>
-            <button className="text-sm text-orange-600 hover:text-orange-800 font-medium transition-colors">
+            <button className=" !text-[10px]  !md:text-[12px] text-orange-600 hover:text-orange-800 font-medium transition-colors">
               View All
             </button>
           </div>

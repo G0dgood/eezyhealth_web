@@ -424,7 +424,7 @@ export default function NurseSettingsPage() {
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
                 <Input
@@ -438,7 +438,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Medical License
                 </label>
                 <Input
@@ -455,7 +455,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Specialization
                 </label>
                 <Dropdown
@@ -480,7 +480,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Email
                 </label>
                 <Input
@@ -494,7 +494,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Mobile Number
                 </label>
                 <Input
@@ -511,7 +511,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Years of Experience
                 </label>
                 <Input
@@ -528,7 +528,7 @@ export default function NurseSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Hospital/Clinic
                 </label>
                 <Input
@@ -547,7 +547,7 @@ export default function NurseSettingsPage() {
 
             {/* Bio Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                 Your bio
               </label>
               <Textarea
@@ -559,7 +559,7 @@ export default function NurseSettingsPage() {
                 maxLength={400}
                 fullWidth
               />
-              <div className="text-right text-sm text-gray-500 mt-1">
+              <div className="text-right  text-[10px]  md:text-[12px] text-gray-500 mt-1">
                 {profileData?.bio?.length} characters
               </div>
             </div>
@@ -590,7 +590,7 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     New Appointments
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get notified when a new patient books an appointment.
                   </p>
                 </div>
@@ -611,7 +611,7 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Patient Reschedulings
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get notified when a patient changes their appointment time.
                   </p>
                 </div>
@@ -630,7 +630,7 @@ export default function NurseSettingsPage() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Account Updates</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Receive notifications about changes to your account (e.g.,
                     password changes, profile updates).
                   </p>
@@ -652,7 +652,7 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Updates
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get alerts for modifications made to existing appointments
                     by patient.
                   </p>
@@ -674,7 +674,7 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Cancellations (By Doctor)
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Receive confirmations of your appointment cancellations.
                   </p>
                 </div>
@@ -723,7 +723,7 @@ export default function NurseSettingsPage() {
                   <h4 className="font-medium text-gray-900">
                     Theme Preference
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Choose between light and dark mode
                   </p>
                 </div>
@@ -733,7 +733,7 @@ export default function NurseSettingsPage() {
                       className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
                         }`}
                     />
-                    <span className="text-sm text-gray-600">Light</span>
+                    <span className=" text-[10px]  md:text-[12px] text-gray-600">Light</span>
                   </div>
                   <Toggle
                     checked={theme === "dark"}
@@ -744,7 +744,7 @@ export default function NurseSettingsPage() {
                       className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
                         }`}
                     />
-                    <span className="text-sm text-gray-600">Dark</span>
+                    <span className=" text-[10px]  md:text-[12px] text-gray-600">Dark</span>
                   </div>
                 </div>
               </div>
@@ -753,7 +753,7 @@ export default function NurseSettingsPage() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">Session Timeout</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Auto-logout after inactivity
                   </p>
                 </div>
@@ -769,7 +769,7 @@ export default function NurseSettingsPage() {
                     }
                     className="w-20 text-center"
                   />
-                  <span className="text-sm text-gray-600">minutes</span>
+                  <span className=" text-[10px]  md:text-[12px] text-gray-600">minutes</span>
                 </div>
               </div>
             </div>
@@ -787,7 +787,7 @@ export default function NurseSettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     Password
                   </label>
                   <Input
@@ -806,7 +806,7 @@ export default function NurseSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     New Password
                   </label>
                   <Input
@@ -825,7 +825,7 @@ export default function NurseSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     Confirm New Password
                   </label>
                   <Input

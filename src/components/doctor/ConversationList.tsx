@@ -42,7 +42,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   return (
     <div className="w-full lg:w-[400px] bg-white border-r border-gray-200 flex flex-col h-full">
       <div className="p-6 h-[80px] border-b border-gray-200">
-        <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Messages</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
       </div>
 
       {/* Search Bar */}
@@ -71,7 +71,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
           >
             <div className="flex items-start gap-3">
               <div className="relative">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-[14px] md:text-[16px] overflow-hidden">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg overflow-hidden">
                   {patient.photo_url ? (
                     <img
                       src={patient.photo_url}

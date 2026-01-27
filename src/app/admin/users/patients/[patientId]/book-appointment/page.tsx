@@ -145,7 +145,7 @@ export default function BookAppointmentPage() {
           <h1 className="text-[16px] md:text-[18px] sm:text-2xl font-bold text-gray-900">
             Book Appointment
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className=" text-[10px]  md:text-[12px] sm:text-base text-gray-600">
             Select a doctor to book your appointment
           </p>
         </div>
@@ -175,7 +175,7 @@ export default function BookAppointmentPage() {
                   <h3 className="text-base sm:text-[14px] md:text-[16px] font-semibold text-gray-900 mb-1 truncate">
                     {doctor.name}
                   </h3>
-                  <p className="text-green-600 font-medium mb-2 text-sm sm:text-base">
+                  <p className="text-green-600 font-medium mb-2  text-[10px]  md:text-[12px] sm:text-base">
                     {doctor.specialty}
                   </p>
                   <div className="flex items-center space-x-2 mb-2">
@@ -190,11 +190,11 @@ export default function BookAppointmentPage() {
                         />
                       ))}
                     </div>
-                    <span className="text-xs sm:text-sm text-gray-600">
+                    <span className="text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                       {doctor.rating} ({doctor.totalReviews})
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <p className="text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                     {doctor.experience} experience
                   </p>
                 </div>
@@ -203,22 +203,22 @@ export default function BookAppointmentPage() {
 
             {/* Doctor Details */}
             <div className="p-4 sm:p-6 space-y-2 sm:space-y-3">
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.availableSlots}</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">
                   Available: {doctor.availableTimes.slice(0, 2).join(", ")}
                   {doctor.availableTimes.length > 2 && "..."}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.location}</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.phone}</span>
               </div>
@@ -232,7 +232,7 @@ export default function BookAppointmentPage() {
                 </span>
                 <Link
                   href={`/admin/users/patients/book-appointment/${doctor.id}`}
-                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer text-sm sm:text-base text-center">
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer  text-[10px]  md:text-[12px] sm:text-base text-center">
                   Book Now
                 </Link>
               </div>

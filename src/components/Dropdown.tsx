@@ -124,7 +124,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
 		const sizeClassesObj = {
 			sm: 'h-[var(--input-height-sm)] px-3 text-xs',
-			md: 'h-[var(--input-height-md)] px-4 text-sm',
+			md: 'h-[var(--input-height-md)] px-4  text-[10px]  md:text-[12px]',
 			lg: 'h-[var(--input-height-lg)] px-5 text-base'
 		};
 		const sizeClass = sizeClassesObj[size];
@@ -189,7 +189,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 							<div
 								key={option.value}
 								className={cn(
-									"px-4 py-3 hover:bg-[var(--muted)] cursor-pointer text-sm text-[var(--foreground)] transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center justify-between",
+									"px-4 py-3 hover:bg-[var(--muted)] cursor-pointer  text-[10px]  md:text-[12px] text-[var(--foreground)] transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center justify-between",
 									isSelected && "bg-[var(--muted)]",
 									optionClassName
 								)}

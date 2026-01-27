@@ -151,7 +151,7 @@ function NurseLayout({ children }: LayoutProps) {
             </div>
 
             <div className="text-center w-full space-y-2">
-              <h4 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Profile Incomplete</h4>
+              <h4 className="text-xl font-semibold text-gray-900">Profile Incomplete</h4>
               <p className="text-gray-500 max-w-xs mx-auto text-[10px] md:text-[12px]">
                 To ensure you can receive job offers and get paid, please complete the following details:
               </p>

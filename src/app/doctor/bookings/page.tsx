@@ -279,7 +279,7 @@ export default function DoctorBookingsPage() {
           {/* Calendar Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-gray-900">
                 {currentMonth}
               </h3>
               <p className="text-[10px] md:text-[12px] text-gray-500">
@@ -355,7 +355,7 @@ export default function DoctorBookingsPage() {
                   className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
                 >
                   {/* Time Label */}
-                  <div className="p-3 text-[10px] md:text-[12px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
+                  <div className="p-3 text-[9px] md:text-[11px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                     {time.from} {"->"} {time.to}
                   </div>
 

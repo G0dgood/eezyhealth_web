@@ -168,12 +168,12 @@ export default function DoctorBookingCancellationPage() {
                 currentAppointments?.map((appointment) => (
                   <tr key={appointment.id} className="hover:bg-[var(--muted)]">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                         {appointment.patientName}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.bookingDate?.toDate
                           ? appointment.bookingDate
                             .toDate()
@@ -184,12 +184,12 @@ export default function DoctorBookingCancellationPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.slot || appointment.timeSlot}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.cancellationRequest
                           ?.reasonForCancellation ||
                           appointment.cancellationRequest?.reason ||

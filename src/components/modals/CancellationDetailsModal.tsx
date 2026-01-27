@@ -23,7 +23,7 @@ export default function CancellationDetailsModal({
 		<div>
 			<div className="space-y-4">
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Doctor
 					</label>
 					<p className="text-[var(--foreground)]">
@@ -31,7 +31,7 @@ export default function CancellationDetailsModal({
 					</p>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Patient Name
 					</label>
 					<p className="text-[var(--foreground)]">
@@ -39,7 +39,7 @@ export default function CancellationDetailsModal({
 					</p>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						User ID
 					</label>
 					<p className="text-[var(--foreground)]">
@@ -47,7 +47,7 @@ export default function CancellationDetailsModal({
 					</p>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Booking Date
 					</label>
 					<p className="text-[var(--foreground)]">
@@ -57,7 +57,7 @@ export default function CancellationDetailsModal({
 					</p>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Cancellation Status
 					</label>
 					<span
@@ -73,7 +73,7 @@ export default function CancellationDetailsModal({
 					</span>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Hospital
 					</label>
 					<p className="text-[var(--foreground)]">
@@ -81,7 +81,7 @@ export default function CancellationDetailsModal({
 					</p>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+					<label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
 						Specialization
 					</label>
 					<p className="text-[var(--foreground)]">

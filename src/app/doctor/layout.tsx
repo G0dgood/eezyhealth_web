@@ -152,7 +152,7 @@ function DoctorLayout({ children }: LayoutProps) {
 
             <div className="text-center w-full space-y-2">
               <h4 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Profile Incomplete</h4>
-              <p className="text-gray-500 max-w-xs mx-auto text-sm">
+              <p className="text-gray-500 max-w-xs mx-auto  !text-[10px]  !md:text-[12px]">
                 To ensure you can receive patient appointments, please complete the following details:
               </p>
             </div>
@@ -160,43 +160,43 @@ function DoctorLayout({ children }: LayoutProps) {
             <div className="w-full bg-gray-50 rounded-xl p-4 border border-gray-100">
               <div className="space-y-3">
                 {!(userInfo as any)?.title && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Title (e.g. Dr.)</span>
                   </div>
                 )}
                 {!(userInfo as any)?.gender && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Gender</span>
                   </div>
                 )}
                 {!(userInfo as any)?.license && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Medical License</span>
                   </div>
                 )}
                 {!(userInfo as any)?.specialization && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Specialization</span>
                   </div>
                 )}
                 {!(userInfo as any)?.experience_yrs && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Years of Experience</span>
                   </div>
                 )}
                 {!(userInfo as any)?.hospital && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Hospital/Clinic</span>
                   </div>
                 )}
                 {!(userInfo as any)?.about && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Bio</span>
                   </div>

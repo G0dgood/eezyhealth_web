@@ -80,7 +80,7 @@ export default function Header({
 
         <div className="flex items-center space-x-2">
           <span
-            className="text-base md:text-[14px] md:text-[16px] font-medium"
+            className="text-base md:text-lg font-medium"
             style={{ color: "var(--foreground)" }}
           >
             {userInfo

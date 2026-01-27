@@ -35,7 +35,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
     <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900">
             Booking Details
           </h3>
           <button

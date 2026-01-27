@@ -319,7 +319,7 @@ const CallScreenContent = ({ token }: { token?: string }) => {
           {/* Header / Info */}
           <div className="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
             <div>
-              <h2 className="text-[16px] md:text-[18px] font-bold">{patientName}</h2>
+              <h2 className="text-xl font-bold">{patientName}</h2>
               <p className="text-[10px] md:text-[12px] opacity-80">{isWaitingForAcceptance ? "Calling..." : formatDuration(callDuration)}</p>
             </div>
           </div>
@@ -338,10 +338,10 @@ const CallScreenContent = ({ token }: { token?: string }) => {
           {isWaitingForAcceptance && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
               <div className="text-center text-white">
-                <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-[20px] md:text-[24px]">
+                <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">
                   {patientName.charAt(0)}
                 </div>
-                <h2 className="text-[18px] md:text-[20px] font-bold mb-2">Calling {patientName}...</h2>
+                <h2 className="text-2xl font-bold mb-2">Calling {patientName}...</h2>
                 <p className="text-gray-400 animate-pulse">Waiting for answer</p>
 
                 <button

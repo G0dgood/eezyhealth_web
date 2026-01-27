@@ -75,7 +75,7 @@ export const Toggle: React.FC<ToggleProps> = ({
 				/>
 			</button>
 			{label && (
-				<span className={`ml-3 text-sm ${disabled ? 'text-gray-400' : 'text-gray-600'}`}>
+				<span className={`ml-3  text-[10px]  md:text-[12px] ${disabled ? 'text-gray-400' : 'text-gray-600'}`}>
 					{label}
 				</span>
 			)}

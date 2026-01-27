@@ -213,7 +213,7 @@ export default function DoctorBookingPage({
             {/* About Section */}
             <div className="text-left">
               <h3 className="font-semibold text-gray-900 mb-2">About</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-gray-600  text-[10px]  md:text-[12px] leading-relaxed">
                 {doctor.about}
               </p>
             </div>
@@ -228,7 +228,7 @@ export default function DoctorBookingPage({
 
           {/* Communication Channel */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Communication Channel
             </label>
             <Dropdown
@@ -246,7 +246,7 @@ export default function DoctorBookingPage({
 
           {/* Available Date */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Select Available Date
             </label>
             <div className="border border-gray-200 rounded-lg p-4">
@@ -284,7 +284,7 @@ export default function DoctorBookingPage({
                   <button
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${dayData.selected
+                    className={`p-2  text-[10px]  md:text-[12px] rounded-lg transition-colors cursor-pointer ${dayData.selected
                       ? "bg-green-500 text-white"
                       : dayData.currentMonth
                         ? "hover:bg-gray-100 text-gray-900"
@@ -299,7 +299,7 @@ export default function DoctorBookingPage({
 
           {/* Available Time */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Select Available Time
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -307,7 +307,7 @@ export default function DoctorBookingPage({
                 <button
                   key={time}
                   onClick={() => setSelectedTime(time)}
-                  className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${selectedTime === time
+                  className={`p-2  text-[10px]  md:text-[12px] rounded-lg border transition-colors cursor-pointer ${selectedTime === time
                     ? "bg-green-500 text-white border-green-500"
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                     }`}>
@@ -319,7 +319,7 @@ export default function DoctorBookingPage({
 
           {/* Reason for Consultation */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
               Reason for consultation
             </label>
             <Textarea
@@ -330,7 +330,7 @@ export default function DoctorBookingPage({
               maxLength={200}
               fullWidth
             />
-            <div className="text-right text-sm text-gray-500 mt-1">
+            <div className="text-right  text-[10px]  md:text-[12px] text-gray-500 mt-1">
               {consultationReason.length}/200
             </div>
           </div>

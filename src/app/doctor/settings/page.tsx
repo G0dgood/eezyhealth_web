@@ -612,12 +612,12 @@ export default function DoctorSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Status
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                    className={`px-3 py-2 rounded-lg  text-[10px]  md:text-[12px] font-medium ${profileData.isActive
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                       }`}>
@@ -657,7 +657,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     New Patient Bookings
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get notified when new patients book appointments with you.
                   </p>
                 </div>
@@ -680,7 +680,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Reminders
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Receive reminders about upcoming appointments.
                   </p>
                 </div>
@@ -702,7 +702,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     Patient Messages
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get notified when patients send you messages.
                   </p>
                 </div>
@@ -746,7 +746,7 @@ export default function DoctorSettings() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Dark Mode</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Enable dark theme for the doctor interface
                   </p>
                   <p className="text-xs text-gray-500 mt-1">

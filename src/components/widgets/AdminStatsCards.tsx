@@ -155,7 +155,7 @@ const AdminStatsCards: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">System Overview</h3>
-            <p className="text-xs md:text-sm text-gray-500">Key metrics and statistics</p>
+            <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-500">Key metrics and statistics</p>
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@ const AdminStatsCards: React.FC = () => {
                   <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
+                  <h3 className="text-xs md: text-[10px]  md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
                   <p className="text-[10px] md:text-xs text-gray-500">{item.description}</p>
@@ -199,22 +199,22 @@ const AdminStatsCards: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4  text-[10px]  md:text-[12px]">
+          <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
             System Status: All Systems Operational
           </span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Active Users: {totalUsers}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Active Users: {totalUsers}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Doctors: {totalDoctors}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Doctors: {totalDoctors}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Bookings: {totalBookings}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Bookings: {totalBookings}</span>
             </div>
           </div>
         </div>

@@ -47,7 +47,7 @@ export default function Calendar({
           <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
             {getCurrentMonth()}
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className=" text-[10px]  md:text-[12px] text-gray-500">
             {currentWeekStart.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -65,7 +65,7 @@ export default function Calendar({
         <div className="flex items-center gap-3">
           <button
             onClick={onTodayClick}
-            className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+            className="px-3 py-1  text-[10px]  md:text-[12px] bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
             Today
           </button>
           <div className="flex gap-3">

@@ -50,7 +50,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         {/* Appointment Details */}
         {appointmentDetails && (
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="text-sm">
+            <div className=" text-[10px]  md:text-[12px]">
               <p className="font-medium text-gray-900">
                 Patient: {appointmentDetails.patientName}
               </p>
@@ -63,7 +63,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
 
         {/* Cancellation Reason */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
             Reason for Cancellation (Optional)
           </label>
           <Textarea

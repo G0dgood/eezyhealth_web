@@ -468,9 +468,9 @@ export default function NurseMessagePage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-gray-500">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-[18px] md:text-[20px]">💬</span>
+                <span className="text-2xl">💬</span>
               </div>
-              <p className="text-[14px] md:text-[16px] font-medium">Select a conversation</p>
+              <p className="text-lg font-medium">Select a conversation</p>
               <p className="text-[10px] md:text-[12px]">Choose a patient to start messaging</p>
             </div>
           </div>

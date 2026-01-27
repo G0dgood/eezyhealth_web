@@ -245,7 +245,7 @@ export default function DocumentReviewModal({
                   onChange={toggleSelectAll}
                   fullWidth={false}
                 />
-                <span className="text-sm font-medium text-[var(--foreground)]">
+                <span className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                   Select All ({pendingDocs.length} pending)
                 </span>
               </label>
@@ -253,7 +253,7 @@ export default function DocumentReviewModal({
                 <button
                   onClick={handleApproveAll}
                   disabled={isSubmitting}
-                  className="px-4 py-1.5 text-sm bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  className="px-4 py-1.5  text-[10px]  md:text-[12px] bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
@@ -294,14 +294,14 @@ export default function DocumentReviewModal({
                       <h4 className="font-semibold text-[var(--foreground)]">
                         {doc.name || doc.fileName || "Unknown Document"}
                       </h4>
-                      <p className="text-sm text-[var(--muted-foreground)]">
+                      <p className=" text-[10px]  md:text-[12px] text-[var(--muted-foreground)]">
                         {doc.description || "No description"}
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mt-3 ml-13">
-                    <div className="text-sm">
+                    <div className=" text-[10px]  md:text-[12px]">
                       <span className="text-[var(--muted-foreground)]">
                         Upload Date:
                       </span>
@@ -310,7 +310,7 @@ export default function DocumentReviewModal({
                       </span>
                     </div>
                     {doc.mimeType && (
-                      <div className="text-sm">
+                      <div className=" text-[10px]  md:text-[12px]">
                         <span className="text-[var(--muted-foreground)]">
                           Type:
                         </span>
@@ -327,7 +327,7 @@ export default function DocumentReviewModal({
                         href={doc.downloadUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity"
+                        className="inline-flex items-center gap-2 px-4 py-2  text-[10px]  md:text-[12px] bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity"
                       >
                         <Eye className="w-4 h-4" />
                         View Document
@@ -353,7 +353,7 @@ export default function DocumentReviewModal({
               {/* Individual Comment Input for Pending Docs */}
               {!isReadOnly(doc) && (
                 <div className="mt-4 ml-13">
-                  <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-2">
                     Review Comment for this Document
                   </label>
                   <Textarea
@@ -398,10 +398,10 @@ export default function DocumentReviewModal({
               {/* Previous Review Info */}
               {doc.status !== "pending" && doc.comment && (
                 <div className="mt-4 ml-13 p-3 bg-[var(--muted)] rounded-lg">
-                  <p className="text-sm text-[var(--muted-foreground)] mb-1">
+                  <p className=" text-[10px]  md:text-[12px] text-[var(--muted-foreground)] mb-1">
                     Review Comment:
                   </p>
-                  <p className="text-sm text-[var(--foreground)]">
+                  <p className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                     {doc.comment}
                   </p>
                 </div>
@@ -424,7 +424,7 @@ export default function DocumentReviewModal({
         {selectedDocs.size > 0 && (
           <>
             <div className="mb-3">
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-2">
                 General Comment (applies to all selected documents)
               </label>
               <Textarea
@@ -442,7 +442,7 @@ export default function DocumentReviewModal({
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-sm text-[var(--muted-foreground)]">
+              <p className=" text-[10px]  md:text-[12px] text-[var(--muted-foreground)]">
                 {selectedDocs.size} document(s) selected
               </p>
               <div className="flex gap-3">

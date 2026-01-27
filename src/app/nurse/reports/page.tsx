@@ -110,7 +110,7 @@ export default function NurseReportsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Reports</h1>
+        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2">Reports</h1>
         <p className="text-gray-600">
           Generate and view healthcare reports and analytics
         </p>
@@ -140,7 +140,7 @@ export default function NurseReportsPage() {
                       }`}
                   />
                   <span
-                    className={`text-sm font-medium ${selectedReport === type.id
+                    className={` !text-[10px]  !md:text-[12px] font-medium ${selectedReport === type.id
                       ? "text-green-700"
                       : "text-gray-700"
                       }`}>
@@ -158,8 +158,8 @@ export default function NurseReportsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Reports Generated</p>
-              <p className="text-2xl font-bold text-blue-600">24</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Reports Generated</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">24</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6 text-blue-600" />
@@ -170,8 +170,8 @@ export default function NurseReportsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">This Month</p>
-              <p className="text-2xl font-bold text-green-600">8</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">This Month</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-green-600">8</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-green-600" />
@@ -182,8 +182,8 @@ export default function NurseReportsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Pending Reports</p>
-              <p className="text-2xl font-bold text-orange-600">3</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Pending Reports</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-orange-600">3</p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-orange-600" />
@@ -194,8 +194,8 @@ export default function NurseReportsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Size</p>
-              <p className="text-2xl font-bold text-purple-600">45 MB</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Total Size</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-purple-600">45 MB</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-purple-600" />
@@ -237,7 +237,7 @@ export default function NurseReportsPage() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
               Report Type
             </label>
             <Dropdown
@@ -254,7 +254,7 @@ export default function NurseReportsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
               Date Range
             </label>
             <Dropdown
