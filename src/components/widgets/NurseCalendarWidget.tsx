@@ -148,14 +148,15 @@ const NurseCalendarWidget: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`aspect-square flex items-center justify-center text-[10px] md:text-xs rounded-lg cursor-pointer transition-colors ${isCurrentMonth
+                className={`aspect-square flex items-center justify-center text-[10px] md:text-xs rounded-lg cursor-pointer transition-colors ${
+                  isCurrentMonth
                     ? isToday
                       ? "bg-[#44CE2D] text-white font-semibold"
                       : hasBookings
-                        ? "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100"
-                        : "text-gray-900 hover:bg-gray-100"
+                      ? "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100"
+                      : "text-gray-900 hover:bg-gray-100"
                     : "text-gray-400"
-                  }`}>
+                }`}>
                 {isCurrentMonth ? date.getDate() : ""}
               </div>
             );

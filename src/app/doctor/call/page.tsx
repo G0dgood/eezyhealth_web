@@ -46,7 +46,7 @@ export default function DoctorCallPage() {
         const apiKey = response.apiKey || "4g6sfwegs7he";
 
         if (!apiKey) {
-           throw new Error("API Key is missing");
+          throw new Error("API Key is missing");
         }
 
         videoClient = new StreamVideoClient({
@@ -66,11 +66,11 @@ export default function DoctorCallPage() {
         });
 
         if (isCaller) {
-            await streamCall.ring();
+          await streamCall.ring();
         }
 
         streamCall.on("call.accepted", () => setWaiting(false));
-        streamCall.on("call.ended", () => router.back());
+        streamCall.on("call.ended", () => router.push("/doctor/message"));
 
         setClient(videoClient);
         setCall(streamCall);

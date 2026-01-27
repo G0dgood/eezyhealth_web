@@ -134,21 +134,25 @@ export default function DoctorAppointmentsPage() {
       // Debug: Log booking structure to understand the ID field
       if (index === 0) {
       }
-      // Handle Firestore timestamp conversion
-      let appointmentDate: string;
-      if (
-        booking.bookingDate &&
-        typeof booking.bookingDate === "object" &&
-        booking.bookingDate !== null
-      ) {
-        const timestamp = booking.bookingDate as {
-          seconds: number;
-          nanoseconds: number;
-        };
-        const date = new Date(timestamp.seconds * 1000);
-        appointmentDate = date.toLocaleDateString("en-GB"); // DD-MM-YYYY format
-      } else {
-        appointmentDate = String(booking.bookingDate || booking.date || "");
+      // Handle Firestore timestamp conversion and string dates
+      let appointmentDate: string = "";
+      const rawDate = booking.bookingDate || booking.date;
+
+      if (rawDate) {
+        if (typeof rawDate === "object" && rawDate !== null) {
+          const seconds = (rawDate as any).seconds || (rawDate as any)._seconds;
+          if (typeof seconds === "number") {
+            const date = new Date(seconds * 1000);
+            appointmentDate = date.toLocaleDateString("en-GB"); // DD-MM-YYYY format
+          }
+        } else if (typeof rawDate === "string") {
+          const date = new Date(rawDate);
+          if (!isNaN(date.getTime())) {
+            appointmentDate = date.toLocaleDateString("en-GB");
+          } else {
+            appointmentDate = rawDate;
+          }
+        }
       }
 
       return {
@@ -399,16 +403,16 @@ export default function DoctorAppointmentsPage() {
                                 <Calendar className="w-4 h-4" />
                               </button>
                               <button
-                            onClick={() => handleCancel(appointment)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Cancel Appointment"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                                onClick={() => handleCancel(appointment)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Cancel Appointment"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}

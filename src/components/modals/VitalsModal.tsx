@@ -37,7 +37,7 @@ const initialFormState = {
 
 const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, bookingId, patientName }) => {
   const { user } = useAuth();
-  const { data, isLoading, error, refetch } = useGetPatientVitalsHistoryQuery(patientId, {
+  const { data, isLoading, error } = useGetPatientVitalsHistoryQuery(patientId, {
     skip: !patientId || !isOpen,
   });
 
@@ -77,7 +77,6 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
         vitals: formData,
       }).unwrap();
 
-      await refetch();
       toast.success("Vitals saved successfully");
       setIsAdding(false);
       setFormData(initialFormState);

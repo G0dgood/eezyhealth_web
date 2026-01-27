@@ -97,28 +97,33 @@ export default function DoctorBookingsPage() {
           if (typeof booking === "object" && booking !== null) {
             const bookingObj = booking as Record<string, unknown>;
 
-            // Handle Firestore timestamp conversion
-            let bookingDate: string;
-            if (
-              bookingObj.bookingDate &&
-              typeof bookingObj.bookingDate === "object" &&
-              bookingObj.bookingDate !== null
-            ) {
-              const timestamp = bookingObj.bookingDate as {
-                seconds: number;
-                nanoseconds: number;
-              };
-              const date = new Date(timestamp.seconds * 1000);
+            // Handle Firestore timestamp conversion and string dates
+            let bookingDate: string = "";
+            const rawDate = bookingObj.bookingDate || bookingObj.date;
 
-              // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
-              const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const dayStr = String(date.getDate()).padStart(2, '0');
-              bookingDate = `${year}-${month}-${dayStr}`; // Format as YYYY-MM-DD
-            } else {
-              bookingDate = String(
-                bookingObj.bookingDate || bookingObj.date || ""
-              );
+            if (rawDate) {
+              if (typeof rawDate === "object" && rawDate !== null) {
+                // Handle both seconds (client SDK) and _seconds (admin SDK/serialized)
+                const seconds = (rawDate as any).seconds || (rawDate as any)._seconds;
+                if (typeof seconds === "number") {
+                  const date = new Date(seconds * 1000);
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const dayStr = String(date.getDate()).padStart(2, '0');
+                  bookingDate = `${year}-${month}-${dayStr}`;
+                }
+              } else if (typeof rawDate === "string") {
+                // Handle ISO strings
+                const date = new Date(rawDate);
+                if (!isNaN(date.getTime())) {
+                   const year = date.getFullYear();
+                   const month = String(date.getMonth() + 1).padStart(2, '0');
+                   const dayStr = String(date.getDate()).padStart(2, '0');
+                   bookingDate = `${year}-${month}-${dayStr}`;
+                } else {
+                   bookingDate = rawDate;
+                }
+              }
             }
 
             if (bookingDate === dateString) {
@@ -145,12 +150,10 @@ export default function DoctorBookingsPage() {
                     ? "Physical Booking"
                     : "Online Booking",
                 status: (() => {
-                  const status = String(
-                    bookingObj.bookingStatus || ""
-                  ).toLowerCase();
-                  return status === "confirmed" || status === "cancelled"
-                    ? status
-                    : "pending";
+                  const status = String(bookingObj.bookingStatus || "").toLowerCase();
+                  if (status === "confirmed" || status === "accepted") return "confirmed";
+                  if (status === "cancelled" || status === "rejected") return "cancelled";
+                  return "pending";
                 })(),
                 channel: (() => {
                   const channel = String(bookingObj.bookingChannel || "");

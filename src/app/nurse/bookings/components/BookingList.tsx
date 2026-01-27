@@ -28,7 +28,7 @@ interface Booking {
 const BookingList = () => {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-
+console.log('bookings------>',bookings)
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

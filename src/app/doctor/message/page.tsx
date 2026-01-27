@@ -8,13 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { showError } from "@/utils/toast";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
-import { 
-  Chat, 
-  Channel, 
-  Window, 
-  ChannelHeader, 
-  MessageList, 
-  MessageInput, 
+import {
+  Chat,
+  Channel,
+  Window,
+  ChannelHeader,
+  MessageList,
+  MessageInput,
   Thread
 } from 'stream-chat-react';
 import 'stream-chat-react/dist/css/v2/index.css';
@@ -70,7 +70,7 @@ export default function DoctorMessagePage() {
       ).values(),
     ]
     : [];
-  
+
   // Initialize Stream Chat client
   useEffect(() => {
     const initChat = async () => {
@@ -115,7 +115,7 @@ export default function DoctorMessagePage() {
   // Handle patient selection and channel creation
   const handlePatientSelect = async (patient: BookingData, index: number) => {
     setSelectedConversation(`patient-${index}`);
-    
+
     if (!chatClient || !user) {
       showError("Error", "Chat not initialized. Please login again.");
       return;
@@ -124,10 +124,10 @@ export default function DoctorMessagePage() {
     // Determine the other user's ID (patient's ID)
     const otherUserId = patient.userId;
     const bookingId = patient.bookingId;
-    
+
     if (!otherUserId) {
-        showError("Error", "Cannot start chat: Invalid patient ID");
-        return;
+      showError("Error", "Cannot start chat: Invalid patient ID");
+      return;
     }
 
     try {
@@ -158,7 +158,7 @@ export default function DoctorMessagePage() {
           members: [user.uid, otherUserId],
         });
       }
-      
+
       await channel.watch();
       setActiveChannel(channel);
     } catch (error) {
@@ -168,44 +168,44 @@ export default function DoctorMessagePage() {
   };
 
   // Filter conversations based on search term
-  const filteredPatients = uniquePatients.filter(patient => 
+  const filteredPatients = uniquePatients.filter(patient =>
     (patient.patientName || patient.first_name || "Unknown Patient").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle video/audio call
   const handleStartCall = (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
-    
+
     let patientId = "";
     let patientName = "Patient";
 
     // Try getting from channel members first
     const members = Object.values(activeChannel.state.members);
     const otherMember = members.find(m => m.user_id !== chatClient.userID);
-    
+
     if (otherMember) {
-        patientId = otherMember.user_id || "";
-        patientName = otherMember.user?.name || "Patient";
+      patientId = otherMember.user_id || "";
+      patientName = otherMember.user?.name || "Patient";
     } else {
-        // Fallback: try to find from selectedConversation index
-        if (selectedConversation.startsWith('patient-')) {
-            const index = parseInt(selectedConversation.split('-')[1]);
-            if (!isNaN(index) && uniquePatients[index]) {
-                patientId = uniquePatients[index].userId;
-                patientName = uniquePatients[index].patientName || "Patient";
-            }
+      // Fallback: try to find from selectedConversation index
+      if (selectedConversation.startsWith('patient-')) {
+        const index = parseInt(selectedConversation.split('-')[1]);
+        if (!isNaN(index) && uniquePatients[index]) {
+          patientId = uniquePatients[index].userId;
+          patientName = uniquePatients[index].patientName || "Patient";
         }
+      }
     }
 
     if (!patientId) {
-        console.error("Could not find patient ID for call");
-        showError("Error", "Could not identify patient for the call");
-        return;
+      console.error("Could not find patient ID for call");
+      showError("Error", "Could not identify patient for the call");
+      return;
     }
-    
+
     // KEY FIX: Use channel ID as call ID to match mobile app's behavior
     // The mobile app uses the channel ID (which is often the booking ID) as the room identifier.
-    const callId = activeChannel.id; 
+    const callId = activeChannel.id;
 
     const params = new URLSearchParams({
       callId: callId || "",
@@ -224,7 +224,7 @@ export default function DoctorMessagePage() {
       {/* Left Column - Messages List */}
       {chatClient && activeChannel ? (
         <div className="w-auto lg:w-[400px] bg-white border-r border-gray-200 p-4">
-          <button 
+          <button
             onClick={() => {
               setSelectedConversation("");
               setActiveChannel(null);
@@ -236,48 +236,48 @@ export default function DoctorMessagePage() {
           </button>
         </div>
       ) : (
-      <ConversationList
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filteredPatients={filteredPatients}
-        handlePatientSelect={handlePatientSelect}
-        selectedConversation={selectedConversation}
-      />
+        <ConversationList
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filteredPatients={filteredPatients}
+          handlePatientSelect={handlePatientSelect}
+          selectedConversation={selectedConversation}
+        />
       )}
 
       {/* Right Column - Active Chat Interface */}
       <div className={`flex-1 bg-white flex flex-col ${selectedConversation ? 'flex' : 'hidden lg:flex'}`}>
         {chatClient && activeChannel ? (
-           <div className="h-full stream-chat-wrapper">
-             <Chat client={chatClient} theme="messaging light">
-                <Channel channel={activeChannel}>
-                  <Window>
-                    <div className="relative">
-                      <ChannelHeader />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
-                        <button 
-                          onClick={() => handleStartCall('audio')}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
-                          title="Voice Call"
-                        >
-                          <Phone className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleStartCall('video')}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Video Call"
-                        >
-                          <Video className="w-5 h-5" />
-                        </button>
-                      </div>
+          <div className="h-full stream-chat-wrapper">
+            <Chat client={chatClient} theme="messaging light">
+              <Channel channel={activeChannel}>
+                <Window>
+                  <div className="relative">
+                    <ChannelHeader />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
+                      <button
+                        onClick={() => handleStartCall('audio')}
+                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
+                        title="Voice Call"
+                      >
+                        <Phone className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleStartCall('video')}
+                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
+                        title="Video Call"
+                      >
+                        <Video className="w-5 h-5" />
+                      </button>
                     </div>
-                    <MessageList />
-                    <MessageInput />
-                  </Window>
-                  <Thread />
-                </Channel>
-             </Chat>
-           </div>
+                  </div>
+                  <MessageList />
+                  <MessageInput />
+                </Window>
+                <Thread />
+              </Channel>
+            </Chat>
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-gray-500">
