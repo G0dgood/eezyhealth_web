@@ -190,7 +190,9 @@ const formatTime = (timeSlot: string) => {
     .trim();
 };
 
-const convertSlotToTime = (slot: string): string => {
+const convertSlotToTime = (slot: string | null | undefined): string => {
+  if (!slot || typeof slot !== "string") return "09:00 AM"; // Default fallback
+
   // Convert slot formats to match timeSlots array format
   if (slot.includes("night_11pm")) return "11:00 PM";
   if (slot.includes("night_11:30pm")) return "11:30 PM";

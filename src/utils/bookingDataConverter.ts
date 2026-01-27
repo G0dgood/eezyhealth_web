@@ -23,6 +23,9 @@ export interface StandardBookingData {
   patientAddress: string;
   bookingId: string;
   updatedAt?: string;
+  patientAge?: number;
+  reason?: string;
+  contactNumber?: string;
 }
 
 export interface RawBookingData {
@@ -43,6 +46,15 @@ export interface RawBookingData {
   patientAddress: string;
   bookingId: string;
   updatedAt?: string;
+  patientAge?: number | string;
+  reason?: string;
+  description?: string;
+  contactNumber?: string;
+  patient?: {
+    age?: number;
+    phone?: string;
+    name?: string;
+  };
 }
 
 /**
@@ -50,11 +62,14 @@ export interface RawBookingData {
  * @param dateString - Date string in format "YYYY-MM-DD"
  * @returns Firebase timestamp object
  */
-function convertDateStringToTimestamp(dateString: string): { _seconds: number; _nanoseconds: number } {
+function convertDateStringToTimestamp(dateString: string): {
+  _seconds: number;
+  _nanoseconds: number;
+} {
   const date = new Date(dateString);
   return {
     _seconds: Math.floor(date.getTime() / 1000),
-    _nanoseconds: 0
+    _nanoseconds: 0,
   };
 }
 
@@ -63,11 +78,13 @@ function convertDateStringToTimestamp(dateString: string): { _seconds: number; _
  * @param rawBooking - Raw booking data object
  * @returns Standardized booking data
  */
-export function convertBookingToStandardFormat(rawBooking: RawBookingData): StandardBookingData {
+export function convertBookingToStandardFormat(
+  rawBooking: RawBookingData,
+): StandardBookingData {
   // Handle bookingDate conversion
   let bookingDate: { _seconds: number; _nanoseconds: number };
-  
-  if (typeof rawBooking.bookingDate === 'string') {
+
+  if (typeof rawBooking.bookingDate === "string") {
     bookingDate = convertDateStringToTimestamp(rawBooking.bookingDate);
   } else {
     bookingDate = rawBooking.bookingDate;
@@ -90,7 +107,13 @@ export function convertBookingToStandardFormat(rawBooking: RawBookingData): Stan
     comments: rawBooking.comments || [],
     patientAddress: rawBooking.patientAddress,
     bookingId: rawBooking.bookingId,
-    updatedAt: rawBooking.updatedAt
+    updatedAt: rawBooking.updatedAt,
+    patientAge:
+      Number(rawBooking.patientAge) ||
+      (rawBooking.patient?.age ? Number(rawBooking.patient.age) : 0),
+    reason: rawBooking.reason || rawBooking.description || "No reason provided",
+    contactNumber:
+      rawBooking.contactNumber || rawBooking.patient?.phone || "No contact",
   };
 }
 
@@ -99,7 +122,9 @@ export function convertBookingToStandardFormat(rawBooking: RawBookingData): Stan
  * @param rawBookings - Array of raw booking data objects
  * @returns Array of standardized booking data
  */
-export function convertBookingsToStandardFormat(rawBookings: RawBookingData[]): StandardBookingData[] {
+export function convertBookingsToStandardFormat(
+  rawBookings: RawBookingData[],
+): StandardBookingData[] {
   return rawBookings.map(convertBookingToStandardFormat);
 }
 
@@ -108,32 +133,34 @@ export function convertBookingsToStandardFormat(rawBookings: RawBookingData[]): 
  * @param booking - Booking data to validate
  * @returns True if booking matches standard format
  */
-export function isValidStandardBooking(booking: unknown): booking is StandardBookingData {
-  if (!booking || typeof booking !== 'object') {
+export function isValidStandardBooking(
+  booking: unknown,
+): booking is StandardBookingData {
+  if (!booking || typeof booking !== "object") {
     return false;
   }
 
   const b = booking as Record<string, unknown>;
-  
+
   return (
-    typeof b.userId === 'string' &&
-    typeof b.patientName === 'string' &&
-    typeof b.doctorId === 'string' &&
-    typeof b.doctorName === 'string' &&
-    typeof b.specialization === 'string' &&
-    (b.doctorPhotoUrl === null || typeof b.doctorPhotoUrl === 'string') &&
-    typeof b.hospital === 'string' &&
-    typeof b.photo_url === 'string' &&
-    typeof b.bookingDate === 'object' &&
+    typeof b.userId === "string" &&
+    typeof b.patientName === "string" &&
+    typeof b.doctorId === "string" &&
+    typeof b.doctorName === "string" &&
+    typeof b.specialization === "string" &&
+    (b.doctorPhotoUrl === null || typeof b.doctorPhotoUrl === "string") &&
+    typeof b.hospital === "string" &&
+    typeof b.photo_url === "string" &&
+    typeof b.bookingDate === "object" &&
     b.bookingDate !== null &&
-    typeof (b.bookingDate as any)._seconds === 'number' &&
-    typeof (b.bookingDate as any)._nanoseconds === 'number' &&
-    typeof b.slot === 'string' &&
-    typeof b.bookingChannel === 'string' &&
-    typeof b.bookingStatus === 'string' &&
-    typeof b.paymentStatus === 'string' &&
+    typeof (b.bookingDate as any)._seconds === "number" &&
+    typeof (b.bookingDate as any)._nanoseconds === "number" &&
+    typeof b.slot === "string" &&
+    typeof b.bookingChannel === "string" &&
+    typeof b.bookingStatus === "string" &&
+    typeof b.paymentStatus === "string" &&
     Array.isArray(b.comments) &&
-    typeof b.patientAddress === 'string' &&
-    typeof b.bookingId === 'string'
+    typeof b.patientAddress === "string" &&
+    typeof b.bookingId === "string"
   );
 }
