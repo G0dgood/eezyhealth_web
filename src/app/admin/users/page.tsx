@@ -506,7 +506,7 @@ export default function AdminUsersPage() {
                               />
                             ) : (
                               <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-medium">
+                                <span className="text-[10px] md:text-[12px] font-medium">
                                   {(
                                     user.display_name ||
                                     user.first_name ||
@@ -520,13 +520,13 @@ export default function AdminUsersPage() {
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium">
+                            <div className="text-[10px] md:text-[12px] font-medium">
                               {user.display_name ||
                                 `${user.first_name || ""} ${user.last_name || ""
                                   }`.trim() ||
                                 "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
                               ID: {user.uid?.slice(0, 8)}...
                             </div>
                           </div>
@@ -542,13 +542,13 @@ export default function AdminUsersPage() {
 
                       {/* CONTACT */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm flex flex-col">
+                        <div className="text-[10px] md:text-[12px] flex flex-col">
                           <div className="flex items-center">
                             <Mail className="h-4 w-4 mr-2" />
                             {user.email}
                           </div>
                           {user.phone_number && (
-                            <div className="text-sm text-gray-500 mt-1">
+                            <div className="text-[10px] md:text-[12px] text-gray-500 mt-1">
                               {user.phone_number}
                             </div>
                           )}
@@ -566,7 +566,7 @@ export default function AdminUsersPage() {
 
                       {/* JOINED */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-[10px] md:text-[12px] text-gray-500">
                           {formatDate(user.createdTime)}
                         </div>
                       </td>

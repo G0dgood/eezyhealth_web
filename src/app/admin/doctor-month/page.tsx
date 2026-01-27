@@ -577,7 +577,7 @@ const AdminDoctorOfMonthPage = () => {
             <Trophy className="w-8 h-8 text-white" />
           </div>
           <div>
-            <p className="text-white/80 text-sm font-medium">Current Leader</p>
+            <p className="text-white/80 text-[10px] md:text-[12px] font-medium">Current Leader</p>
             <p className="text-xl text-white font-bold">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
@@ -585,7 +585,7 @@ const AdminDoctorOfMonthPage = () => {
                   ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
                   : currentLeader?.name || "No data available"}
             </p>
-            <p className="text-white/80 text-sm">
+            <p className="text-white/80 text-[10px] md:text-[12px]">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
@@ -631,7 +631,7 @@ const AdminDoctorOfMonthPage = () => {
                 disabled={
                   isTriggering || topPerformers.length === 0 || isAutoCreating
                 }
-                className="bg-[#44CE2D] text-white hover:bg-[#3bb025] disabled:opacity-50 h-auto py-1 px-3 text-sm"
+                className="bg-[#44CE2D] text-white hover:bg-[#3bb025] disabled:opacity-50 h-auto py-1 px-3 text-[10px] md:text-[12px]"
               >
                 {isTriggering ? "Selecting..." : "Auto-Select"}
               </Button>
@@ -647,7 +647,7 @@ const AdminDoctorOfMonthPage = () => {
             <div className="w-full md:w-[521px] p-8 text-center">
               <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No performance data available</p>
-              <p className="text-sm text-gray-400">
+              <p className="text-[10px] md:text-[12px] text-gray-400">
                 Performance metrics will appear here once data is available
               </p>
             </div>
@@ -666,7 +666,7 @@ const AdminDoctorOfMonthPage = () => {
                         <p className="font-medium text-gray-900">
                           {performer.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-[10px] md:text-[12px] text-gray-600">
                           {performer.specialty}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -729,7 +729,7 @@ const AdminDoctorOfMonthPage = () => {
                             <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
                               <User className="w-3 h-3 text-gray-600" />
                             </div>
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-[10px] md:text-[12px] font-medium text-gray-900">
                               {doctor.name}
                             </span>
                           </div>
@@ -746,14 +746,14 @@ const AdminDoctorOfMonthPage = () => {
               </table>
             </div>
             {/* Pagination */}
-              <Pagination
+            <Pagination
 
-                currentPage={currentPage}
-                totalCount={pastDoctors.length}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-                itemLabel="doctors"
-              /> 
+              currentPage={currentPage}
+              totalCount={pastDoctors.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              itemLabel="doctors"
+            />
           </div>
         </div>
       </div>

@@ -23,7 +23,7 @@ import { useGetBookingsQuery } from "@/store/bookingApi";
 import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
 import { showError, showNetworkError } from "@/utils/toast";
 import { toast } from "sonner";
-import BookingDetailModal, { Booking } from "./BookingDetailModal";
+import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
 
 interface DayBooking {
   date: string;

@@ -205,13 +205,13 @@ export default function DocumentPage() {
                       (e.currentTarget.style.backgroundColor = "var(--card)")
                     }
                   >
-                    <td className="px-6 py-4 text-sm font-medium">
+                    <td className="px-6 py-4 text-[10px] md:text-[12px] font-medium">
                       {upload.doctorName || "Unknown Doctor"}
                     </td>
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-6 py-4 text-[10px] md:text-[12px]">
                       {upload.specialization || upload.location || "—"}
                     </td>
-                    {/* <td className="px-6 py-4 text-sm">
+                    {/* <td className="px-6 py-4 text-[10px] md:text-[12px]">
                       <FormattedDate
                         timestamp={upload?.uploadDate || upload?.createdTime}
                       />
@@ -243,7 +243,7 @@ export default function DocumentPage() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-8 text-center text-sm"
+                    className="px-6 py-8 text-center text-[10px] md:text-[12px]"
                     style={{ color: "var(--muted-foreground)" }}
                   >
                     No uploads found.
@@ -253,16 +253,16 @@ export default function DocumentPage() {
             </tbody>
           </table>
         </div>
-      {/* Pagination */}
-      {filteredData.length > 0 && ( 
+        {/* Pagination */}
+        {filteredData.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalCount={filteredData.length}
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
             itemLabel="documents"
-          /> 
-      )}
+          />
+        )}
       </div>
 
 

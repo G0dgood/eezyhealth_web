@@ -348,17 +348,17 @@ export default function DoctorAppointmentsPage() {
                       className="hover:bg-[var(--muted)]"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
                           {appointment.patientName}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                           {appointment.date}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                           {appointment.time}
                         </div>
                       </td>

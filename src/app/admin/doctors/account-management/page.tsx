@@ -270,7 +270,7 @@ const DoctorAccountManagementPage = () => {
 						<div className="flex items-center">
 							<Users className="h-8 w-8 text-blue-600" />
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Total Doctors</p>
+								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Total Doctors</p>
 								<p className="text-2xl font-bold text-gray-900">{doctorsData?.length || 0}</p>
 							</div>
 						</div>
@@ -280,7 +280,7 @@ const DoctorAccountManagementPage = () => {
 						<div className="flex items-center">
 							<CheckCircle className="h-8 w-8 text-green-600" />
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Active Doctors</p>
+								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Active Doctors</p>
 								<p className="text-2xl font-bold text-gray-900">
 									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => d.isActive).length || 0}
 								</p>
@@ -292,7 +292,7 @@ const DoctorAccountManagementPage = () => {
 						<div className="flex items-center">
 							<AlertCircle className="h-8 w-8 text-red-600" />
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Inactive Doctors</p>
+								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Inactive Doctors</p>
 								<p className="text-2xl font-bold text-gray-900">
 									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => !d.isActive).length || 0}
 								</p>
@@ -304,7 +304,7 @@ const DoctorAccountManagementPage = () => {
 						<div className="flex items-center">
 							<Activity className="h-8 w-8 text-purple-600" />
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Recent Actions</p>
+								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Recent Actions</p>
 								<p className="text-2xl font-bold text-gray-900">{auditLogs?.length || 0}</p>
 							</div>
 						</div>
@@ -378,7 +378,7 @@ const DoctorAccountManagementPage = () => {
 						{showBulkActions && (
 							<div className="mt-4 p-4 bg-white rounded-lg border">
 								<div className="mb-4">
-									<label className="block text-sm font-medium text-gray-700 mb-2">
+									<label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
 										Reason for action (required)
 									</label>
 									<Textarea
@@ -480,21 +480,21 @@ const DoctorAccountManagementPage = () => {
 													</div>
 												</div>
 												<div className="ml-4">
-													<div className="text-sm font-medium text-gray-900">
+													<div className="text-[10px] md:text-[12px] font-medium text-gray-900">
 														{doctor.display_name || `${doctor.first_name} ${doctor.last_name}` || "Unknown"}
 													</div>
-													<div className="text-sm text-gray-500">{doctor.email}</div>
+													<div className="text-[10px] md:text-[12px] text-gray-500">{doctor.email}</div>
 												</div>
 											</div>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="text-sm text-gray-900">{doctor.specialization || "N/A"}</div>
-											<div className="text-sm text-gray-500">{doctor.hospital || "N/A"}</div>
+											<div className="text-[10px] md:text-[12px] text-gray-900">{doctor.specialization || "N/A"}</div>
+											<div className="text-[10px] md:text-[12px] text-gray-500">{doctor.hospital || "N/A"}</div>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											{getStatusBadge(doctor.isActive)}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+										<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-500">
 											{doctor.reactivatedAt ?
 												`Reactivated: ${new Date(doctor.reactivatedAt).toLocaleDateString()}` :
 												doctor.deactivatedAt ?
@@ -502,7 +502,7 @@ const DoctorAccountManagementPage = () => {
 													"Never"
 											}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+										<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] font-medium">
 											<div className="flex items-center space-x-2">
 												<Button
 													onClick={() => handleDataVerification(doctor.uid)}
@@ -622,25 +622,25 @@ const DoctorAccountManagementPage = () => {
 							<div className="space-y-4 mb-6">
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 									<div className="bg-blue-50 p-3 rounded-lg">
-										<p className="text-sm text-gray-600">Profile</p>
+										<p className="text-[10px] md:text-[12px] text-gray-600">Profile</p>
 										<p className="text-lg font-semibold text-blue-600">
 											{exportData.profile ? "1" : "0"}
 										</p>
 									</div>
 									<div className="bg-green-50 p-3 rounded-lg">
-										<p className="text-sm text-gray-600">Appointments</p>
+										<p className="text-[10px] md:text-[12px] text-gray-600">Appointments</p>
 										<p className="text-lg font-semibold text-green-600">
 											{exportData.appointments?.length || 0}
 										</p>
 									</div>
 									<div className="bg-purple-50 p-3 rounded-lg">
-										<p className="text-sm text-gray-600">Documents</p>
+										<p className="text-[10px] md:text-[12px] text-gray-600">Documents</p>
 										<p className="text-lg font-semibold text-purple-600">
 											{exportData.documents?.length || 0}
 										</p>
 									</div>
 									<div className="bg-orange-50 p-3 rounded-lg">
-										<p className="text-sm text-gray-600">Analytics</p>
+										<p className="text-[10px] md:text-[12px] text-gray-600">Analytics</p>
 										<p className="text-lg font-semibold text-orange-600">
 											{exportData.analytics?.length || 0}
 										</p>
@@ -695,16 +695,16 @@ const DoctorAccountManagementPage = () => {
 											<td className="px-6 py-4 whitespace-nowrap">
 												{getActionBadge(log.action)}
 											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+											<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
 												{log.targetId}
 											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+											<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
 												{log.performedBy}
 											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+											<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-500">
 												{log.reason || "N/A"}
 											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+											<td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-500">
 												<div className="flex items-center">
 													<Clock className="h-4 w-4 mr-1 text-gray-400" />
 													{new Date(log.timestamp).toLocaleString()}

@@ -484,7 +484,7 @@ export default function NursePatientsPage() {
                                 className="bg-[#44CE2D] hover:bg-[#3bb025] text-white px-4 py-1 rounded-lg flex items-center space-x-2 cursor-pointer transition-colors shadow-sm"
                               >
                                 <Plus className="w-4 h-4" />
-                                <span>Add Vitals</span>
+                                <span className="whitespace-nowrap">Add Vitals</span>
                               </button>
                             </div>
                           </td>

@@ -67,6 +67,15 @@ input:checked ~ .dot {
   --status-approved: #22c55e;
   --status-rejected: #ef4444;
   --status-completed: #3b82f6;
+
+  /* Font Sizes */
+  --paragraph-small-font-size: 0.875rem;
+  --paragraph-medium-font-size: 1rem;
+  --input-font-size: 0.875rem;
+}
+
+html {
+  font-size: 14px;
 }
 
 [data-theme="dark"] {
@@ -135,6 +144,7 @@ input:checked ~ .dot {
 }
 
 html {
+  font-size: 14px; /* Reduced base font size from default 16px */
   background: #ffffff;
   color: #171717;
   transition: background-color 0.3s ease, color 0.3s ease;

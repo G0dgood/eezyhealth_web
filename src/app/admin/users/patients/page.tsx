@@ -429,10 +429,10 @@ export default function AdminPatientsPage() {
                         {patient.display_name || patient.name || "N/A"}
                       </Link>
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
                       {patient.id}
                     </td> */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
                       {patient.gender || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -440,20 +440,20 @@ export default function AdminPatientsPage() {
                         {patient.status || "Active"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
                       {patient.age || "N/A"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
                       {patient.phone || "N/A"}
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--foreground)]">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
                       {patient.lastConsultation || "N/A"}
                     </td> */}
                     {/* <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex space-x-2">
                         <Link
                           href={`/admin/users/patients/${patient.id}/book-appointment`}
-                          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-sm flex items-center space-x-1 cursor-pointer">
+                          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-[10px] md:text-[12px] flex items-center space-x-1 cursor-pointer">
                           <Calendar className="w-3 h-3" />
                           <span>Book Appointment</span>
                         </Link>

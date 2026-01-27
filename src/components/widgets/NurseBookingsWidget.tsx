@@ -393,8 +393,8 @@ const NurseBookingsWidget: React.FC = () => {
                 <Stethoscope size={14} />
                 <span>Appointment ID: {appointment.id ? appointment.id.slice(0, 8) + '...' : 'N/A'}</span>
               </div>
-              <button 
-                className={`px-3 py-1 rounded-lg transition-colors text-xs ${appointment.hasVitals ? "bg-gray-100 text-gray-600 cursor-default" : "bg-[#44CE2D] text-white hover:bg-[#3bb025]"}`}
+              <button
+                className={`whitespace-nowrap px-3 py-1 rounded-lg transition-colors text-xs ${appointment.hasVitals ? "bg-gray-100 text-gray-600 cursor-default" : "bg-[#44CE2D] text-white hover:bg-[#3bb025]"}`}
                 onClick={() => {
                   if (!appointment.hasVitals) {
                     setSelectedPatientId(appointment.patientId);
@@ -434,7 +434,7 @@ const NurseBookingsWidget: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <AddVitalsModal
         isOpen={isVitalsModalOpen}
         onClose={() => {

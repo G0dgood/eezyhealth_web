@@ -10,7 +10,7 @@ import {
   Video,
   MessageCircle,
 } from "lucide-react";
-import DoctorBookingDetailModal from "@/components/modals/DoctorBookingDetailModal";
+import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -30,19 +30,6 @@ import {
   convertBookingsToStandardFormat,
   RawBookingData,
 } from "@/utils/bookingDataConverter";
-
-interface Booking {
-  id: string;
-  patientName: string;
-  date: string;
-  time: string;
-  type: "Online Booking" | "Physical Booking";
-  status: "confirmed" | "pending" | "cancelled";
-  channel: "videoCall" | "chat" | "voiceCall" | "physical";
-  patientAge: number;
-  reason: string;
-  contactNumber: string;
-}
 
 interface DayBooking {
   date: string;
@@ -295,7 +282,7 @@ export default function DoctorBookingsPage() {
               <h3 className="text-lg font-medium text-gray-900">
                 {currentMonth}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-[10px] md:text-[12px] text-gray-500">
                 {currentWeekStart.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -323,7 +310,7 @@ export default function DoctorBookingsPage() {
                   const year = today.getFullYear();
                   setCurrentMonth(`${month}, ${year}`);
                 }}
-                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+                className="px-3 py-1 text-[10px] md:text-[12px] bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
               >
                 Today
               </button>
@@ -349,11 +336,11 @@ export default function DoctorBookingsPage() {
             <div className="min-w-[1000px]">
               {/* Day Headers */}
               <div className="grid grid-cols-8 border-b border-gray-200">
-                <div className="p-3 text-sm font-medium text-gray-500 bg-gray-50"></div>
+                <div className="p-3 text-[10px] md:text-[12px] font-medium text-gray-500 bg-gray-50"></div>
                 {weekBookings?.map((day) => (
                   <div
                     key={day.date}
-                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center"
+                    className="p-3 text-[10px] md:text-[12px] font-medium text-gray-900 bg-gray-50 text-center"
                   >
                     <div className="font-semibold">{day.dayName}</div>
                     <div className="text-xs text-gray-500">{day.dayNumber}</div>
@@ -368,7 +355,7 @@ export default function DoctorBookingsPage() {
                   className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
                 >
                   {/* Time Label */}
-                  <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
+                  <div className="p-3 text-[10px] md:text-[12px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                     {time.from} {"->"} {time.to}
                   </div>
 
@@ -380,8 +367,8 @@ export default function DoctorBookingsPage() {
                       <div
                         key={`${day.date}-${time.key}`}
                         className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
-                            ? "cursor-pointer hover:scale-105 transition-transform"
-                            : ""
+                          ? "cursor-pointer hover:scale-105 transition-transform"
+                          : ""
                           }`}
                       >
                         {booking && (
@@ -413,9 +400,9 @@ export default function DoctorBookingsPage() {
       )}
 
       {/* Booking Detail Modal */}
-      <DoctorBookingDetailModal
+      <BookingDetailModal
         isOpen={isDetailModalOpen}
-        booking={selectedBooking}
+        selectedBooking={selectedBooking}
         onClose={closeDetailModal}
       />
     </div>

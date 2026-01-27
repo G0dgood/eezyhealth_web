@@ -188,22 +188,22 @@ export default function AdminBookingCancellationPage() {
                         key={index}
                         className="hover:bg-[var(--muted)] transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-[var(--foreground)]">
+                          <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
                             {(cancellation.doctorName as string) || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-[var(--foreground)]">
+                          <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                             {(cancellation.patientName as string) || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-[var(--muted-foreground)]">
+                          <div className="text-[10px] md:text-[12px] text-[var(--muted-foreground)]">
                             {(cancellation.userId as string) || "N/A"}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-[var(--muted-foreground)]">
+                          <div className="text-[10px] md:text-[12px] text-[var(--muted-foreground)]">
                             {(cancellation.bookingDate as string) || "N/A"}
                           </div>
                         </td>
@@ -228,7 +228,7 @@ export default function AdminBookingCancellationPage() {
                               );
                               setIsCancelModalOpen(true);
                             }}
-                            className="text-[var(--primary)] hover:text-[var(--primary)]/80 hover:bg-transparent p-0 h-auto font-medium text-sm"
+                            className="text-[var(--primary)] hover:text-[var(--primary)]/80 hover:bg-transparent p-0 h-auto font-medium text-[10px] md:text-[12px]"
                             variant="ghost-neutral"
                           >
                             View Details

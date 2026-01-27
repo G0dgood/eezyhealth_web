@@ -261,19 +261,19 @@ export default function AdminPaymentPage() {
                           >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-[var(--foreground)]">
+                                <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
                                   {safeRenderField(
                                     payment.patientName,
                                     "Unknown Patient"
                                   )}
                                 </div>
-                                <div className="text-sm text-[var(--muted-foreground)]">
+                                <div className="text-[10px] md:text-[12px] text-[var(--muted-foreground)]">
                                   ID: {payment.id}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-[var(--foreground)]">
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                 {safeRenderField(
                                   payment.doctorId,
                                   "Unknown Doctor"
@@ -281,12 +281,12 @@ export default function AdminPaymentPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-[var(--foreground)]">
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                 {safeRenderField(payment.slot, "N/A")}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-[var(--foreground)]">
+                              <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
                                 {formatCurrency(
                                   payment.amount as string | number,
                                   (payment.currency as string) || "NGN"
@@ -300,7 +300,7 @@ export default function AdminPaymentPage() {
                                     ? payment.paymentMethod
                                     : "Unknown"
                                 )}
-                                <span className="text-sm text-[var(--foreground)]">
+                                <span className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                   {safeRenderField(
                                     payment.paymentMethod,
                                     "Unknown"
@@ -316,7 +316,7 @@ export default function AdminPaymentPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-[var(--foreground)]">
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                 {safeRenderField(
                                   payment.transactionId,
                                   payment.id

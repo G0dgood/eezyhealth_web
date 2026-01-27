@@ -139,7 +139,7 @@ export default function AdminSpecializationPage() {
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm leading-relaxed">
+        <p className="text-gray-600 text-[10px] md:text-[12px] leading-relaxed">
           {specialization.description}
         </p>
 
@@ -370,7 +370,7 @@ export default function AdminSpecializationPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
               Description
             </label>
             <Textarea

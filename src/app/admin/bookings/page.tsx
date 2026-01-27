@@ -238,7 +238,7 @@ export default function BookingsPage() {
       {bookings && bookings.length > 0 && (
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Total Bookings
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -246,7 +246,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Pending
             </div>
             <div className="text-2xl font-bold text-orange-600">
@@ -254,7 +254,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Completed
             </div>
             <div className="text-2xl font-bold text-green-600">
@@ -262,7 +262,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Cancelled
             </div>
             <div className="text-2xl font-bold text-red-600">
@@ -307,7 +307,7 @@ export default function BookingsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData?.length === 0 ||
-                paginatedData?.length === undefined ? (
+                  paginatedData?.length === undefined ? (
                   <NoRecordFound colSpan={8} />
                 ) : (
                   paginatedData?.map(
@@ -324,34 +324,34 @@ export default function BookingsPage() {
                     }) => (
                       <tr key={booking.id} className="hover:bg-gray-50">
                         <td>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                             {booking?.patientName}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {formatFirebaseTimestamp(booking?.bookingDate)}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {booking?.bookingChannel}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {isFirebaseTimestamp(booking?.slot)
                               ? formatFirebaseTimestampWithTime(booking.slot)
                               : booking?.slot || "N/A"}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-[10px] md:text-[12px] text-gray-900">
                             {booking?.doctorName}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {booking.specialization}
                           </div>
                         </td>
@@ -364,7 +364,7 @@ export default function BookingsPage() {
                         </td>
 
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {getChannelText(booking.bookingChannel)}
                           </div>
                         </td>

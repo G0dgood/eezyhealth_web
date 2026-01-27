@@ -506,23 +506,23 @@ export default function AdminNursesPage() {
                                 height={48}
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-sm font-semibold text-green-700">
+                              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-[10px] md:text-[12px] font-semibold text-green-700">
                                 {initials}
                               </div>
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                               {displayName}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
                               {nurse.email}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-[10px] md:text-[12px] text-gray-900">
                           <div className="flex items-center">
                             <Phone className="w-4 h-4 mr-2 text-gray-400" />
                             {nurse.phone_number || "N/A"}
@@ -530,7 +530,7 @@ export default function AdminNursesPage() {
                           {nurse.hospital && (
                             <div className="flex items-center mt-1">
                               <User className="w-4 h-4 mr-2 text-gray-400" />
-                              <span className="text-sm text-gray-600 truncate">
+                              <span className="text-[10px] md:text-[12px] text-gray-600 truncate">
                                 {nurse.hospital}
                               </span>
                             </div>
@@ -538,12 +538,12 @@ export default function AdminNursesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-[10px] md:text-[12px] text-gray-900">
                           {nurse.specialization || nurse.title || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-[10px] md:text-[12px] text-gray-900">
                           {nurse.experience_yrs
                             ? `${nurse.experience_yrs} years`
                             : "N/A"}
@@ -562,7 +562,7 @@ export default function AdminNursesPage() {
                           {nurse.isActive !== false ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] font-medium">
                         <div className="flex items-center space-x-2">
                           <Button
                             variant="ghost-neutral"
