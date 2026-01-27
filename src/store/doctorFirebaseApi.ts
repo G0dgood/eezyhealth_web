@@ -6,9 +6,8 @@ export const doctorFirebaseApi = api.injectEndpoints({
     getFirebaseDoctors: builder.query({
       async queryFn() {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
-            "@/lib/firebase-rtk"
-          );
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
 
           // First try to get doctors ordered by rating (if rating field exists)
           let doctorsData;
@@ -70,15 +69,14 @@ export const doctorFirebaseApi = api.injectEndpoints({
     getFirebaseDoctorProfileById: builder.query({
       async queryFn(doctorId: string) {
         try {
-          const { collection, query, where, getDocs } = await import(
-            "firebase/firestore"
-          );
+          const { collection, query, where, getDocs } =
+            await import("firebase/firestore");
           const { db } = await import("@/lib/firebase");
 
           const doctorCollectionRef = collection(db, "doctorProfiles");
           const q = query(
             doctorCollectionRef,
-            where("doctorId", "==", doctorId)
+            where("doctorId", "==", doctorId),
           );
           const querySnapshot = await getDocs(q);
 
@@ -101,7 +99,7 @@ export const doctorFirebaseApi = api.injectEndpoints({
                 }
                 return acc;
               },
-              {} as Record<string, unknown>
+              {} as Record<string, unknown>,
             );
 
             return { data: { id: doc.id, ...serializedData } };
@@ -138,6 +136,7 @@ export const doctorFirebaseApi = api.injectEndpoints({
           const { getDoctorDetails } = await import("@/lib/availability");
           const data = await getDoctorDetails(doctorId);
           return { data };
+          console.log("data", data);
         } catch (error) {
           console.error("Error fetching doctor availability:", error);
           return {
@@ -190,9 +189,8 @@ export const doctorFirebaseApi = api.injectEndpoints({
     getFirebaseNurseProfiles: builder.query({
       async queryFn() {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
-            "@/lib/firebase-rtk"
-          );
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
 
           // Get nurse profiles from Firebase users collection where role is nurse
           let nursesData;
@@ -229,9 +227,8 @@ export const doctorFirebaseApi = api.injectEndpoints({
     verifyDoctorData: builder.query({
       async queryFn(doctorId: string) {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
-            "@/lib/firebase-rtk"
-          );
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
 
           const verification = {
             profile: false,
@@ -318,32 +315,31 @@ export const doctorFirebaseApi = api.injectEndpoints({
     getAuditLogs: builder.query({
       async queryFn({ doctorId, action, limit = 50 }) {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
-            "@/lib/firebase-rtk"
-          );
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
 
           const queryConstraints = [];
 
           if (doctorId) {
             queryConstraints.push(
-              firebaseConstraints.where("targetId", "==", doctorId)
+              firebaseConstraints.where("targetId", "==", doctorId),
             );
           }
 
           if (action) {
             queryConstraints.push(
-              firebaseConstraints.where("action", "==", action)
+              firebaseConstraints.where("action", "==", action),
             );
           }
 
           queryConstraints.push(
-            firebaseConstraints.orderBy("timestamp", "desc")
+            firebaseConstraints.orderBy("timestamp", "desc"),
           );
           queryConstraints.push(firebaseConstraints.limit(limit));
 
           const auditLogs = await createFirebaseQuery(
             "auditLogs",
-            queryConstraints
+            queryConstraints,
           );
 
           return { data: auditLogs };
@@ -412,8 +408,7 @@ export const doctorFirebaseApi = api.injectEndpoints({
               results.push({
                 doctorId,
                 success: false,
-                error:
-                  error instanceof Error ? error.message : "Unknown error",
+                error: error instanceof Error ? error.message : "Unknown error",
               });
             }
           }
@@ -441,9 +436,8 @@ export const doctorFirebaseApi = api.injectEndpoints({
     exportDoctorData: builder.query({
       async queryFn(doctorId: string) {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
-            "@/lib/firebase-rtk"
-          );
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
 
           // Get all doctor-related data
           const [profile, appointments, documents, availability, analytics] =
@@ -507,4 +501,3 @@ export const {
   useBulkUpdateDoctorStatusMutation,
   useExportDoctorDataQuery,
 } = doctorFirebaseApi;
-

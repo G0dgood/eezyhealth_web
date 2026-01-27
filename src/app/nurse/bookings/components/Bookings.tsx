@@ -65,31 +65,47 @@ export default function Bookings() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
+  // console.log("bookings", bookings);
+
   // Handle error state
   useEffect(() => {
     if (error) {
       console.error("Bookings API Error:", error);
 
       // Show appropriate error message
-      if ('status' in error) {
-        if (error.status === 'FETCH_ERROR' || error.status === 'TIMEOUT_ERROR') {
+      if ("status" in error) {
+        if (
+          error.status === "FETCH_ERROR" ||
+          error.status === "TIMEOUT_ERROR"
+        ) {
           showNetworkError();
-        } else if (error.status === 'PARSING_ERROR') {
-          showError("Data Error", "Failed to parse booking data. Please try again.");
-        } else if (error.status === 'CUSTOM_ERROR') {
-          showError("Booking Error", "Unable to load bookings. Please try again.");
+        } else if (error.status === "PARSING_ERROR") {
+          showError(
+            "Data Error",
+            "Failed to parse booking data. Please try again.",
+          );
+        } else if (error.status === "CUSTOM_ERROR") {
+          showError(
+            "Booking Error",
+            "Unable to load bookings. Please try again.",
+          );
         } else {
-          showError("Booking Error", "Something went wrong while loading bookings.");
+          showError(
+            "Booking Error",
+            "Something went wrong while loading bookings.",
+          );
         }
       } else {
-        showError("Booking Error", "Unable to load bookings. Please try again.");
+        showError(
+          "Booking Error",
+          "Unable to load bookings. Please try again.",
+        );
       }
     }
   }, [error]);
 
   // Retry function for failed requests
   const handleRetry = () => {
-
     refetch();
   };
 
@@ -100,95 +116,112 @@ export default function Bookings() {
     return convertBookingsToStandardFormat(data);
   }, [bookings]);
 
-
-
   // Convert standardized bookings to the sample data format
   const convertedWeekBookings = useMemo(() => {
     if (!standardizedBookings || standardizedBookings.length === 0) return [];
 
     // Group bookings by date
-    const bookingsByDate = standardizedBookings.reduce((acc, booking) => {
-      if (!booking.bookingDate || typeof booking.bookingDate._seconds !== 'number') return acc;
-      const bookingDate = new Date(booking.bookingDate._seconds * 1000);
-      if (isNaN(bookingDate.getTime())) return acc;
+    const bookingsByDate = standardizedBookings.reduce(
+      (acc, booking) => {
+        if (
+          !booking.bookingDate ||
+          typeof booking.bookingDate._seconds !== "number"
+        )
+          return acc;
+        const bookingDate = new Date(booking.bookingDate._seconds * 1000);
+        if (isNaN(bookingDate.getTime())) return acc;
 
-      // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
-      const year = bookingDate.getFullYear();
-      const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
-      const day = String(bookingDate.getDate()).padStart(2, '0');
-      const dateKey = `${year}-${month}-${day}`;
+        // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
+        const year = bookingDate.getFullYear();
+        const month = String(bookingDate.getMonth() + 1).padStart(2, "0");
+        const day = String(bookingDate.getDate()).padStart(2, "0");
+        const dateKey = `${year}-${month}-${day}`;
 
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
 
-      // Convert slot to time format (e.g., "morning_6am" -> "06:00 AM")
-      const slotToTime = (slot: string): string => {
-        const slotLower = (slot || "").toLowerCase();
-        // Extract hour and period
-        const hourMatch = slotLower.match(/(\d+)(am|pm)/);
-        if (!hourMatch) return "06:00 AM";
+        // Convert slot to time format (e.g., "morning_6am" -> "06:00 AM")
+        const slotToTime = (slot: string): string => {
+          const slotLower = (slot || "").toLowerCase();
+          // Extract hour and period
+          const hourMatch = slotLower.match(/(\d+)(am|pm)/);
+          if (!hourMatch) return "06:00 AM";
 
-        const hour = parseInt(hourMatch[1]);
-        const period = hourMatch[2].toUpperCase();
+          const hour = parseInt(hourMatch[1]);
+          const period = hourMatch[2].toUpperCase();
 
-        // Format as HH:MM PM/AM
-        const hourFormatted = hour.toString().padStart(2, '0');
-        return `${hourFormatted}:00 ${period}`;
-      };
+          // Format as HH:MM PM/AM
+          const hourFormatted = hour.toString().padStart(2, "0");
+          return `${hourFormatted}:00 ${period}`;
+        };
 
-      // Map booking channel to standardized channel values
-      const mapChannel = (channel: string): "videoCall" | "chat" | "voiceCall" | "physical" => {
-        const channelLower = (channel || "").toLowerCase();
+        // Map booking channel to standardized channel values
+        const mapChannel = (
+          channel: string,
+        ): "videoCall" | "chat" | "voiceCall" | "physical" => {
+          const channelLower = (channel || "").toLowerCase();
 
-
-        if (channelLower.includes('video') || channelLower.includes('videocall')) {
+          if (
+            channelLower.includes("video") ||
+            channelLower.includes("videocall")
+          ) {
+            return "videoCall";
+          }
+          if (channelLower.includes("chat")) {
+            return "chat";
+          }
+          if (
+            channelLower.includes("voice") ||
+            channelLower.includes("voicecall") ||
+            channelLower.includes("call")
+          ) {
+            return "voiceCall";
+          }
+          if (
+            channelLower.includes("physical") ||
+            channelLower.includes("in-person")
+          ) {
+            return "physical";
+          }
+          // Default fallback
 
           return "videoCall";
-        }
-        if (channelLower.includes('chat')) {
+        };
 
-          return "chat";
-        }
-        if (channelLower.includes('voice') || channelLower.includes('voicecall') || channelLower.includes('call')) {
+        // Convert to the exact sample format
+        acc[dateKey].push({
+          id: booking.bookingId,
+          patientName: booking.patientName,
+          date: dateKey,
+          time: slotToTime(booking.slot),
+          type:
+            mapChannel(booking.bookingChannel) === "physical"
+              ? "Physical Booking"
+              : "Online Booking",
+          status: ((s) => {
+            const status = (s || "").toLowerCase();
+            if (status === "accepted" || status === "confirmed")
+              return "confirmed";
+            if (status === "cancelled" || status === "rejected")
+              return "cancelled";
+            return "pending";
+          })(booking.bookingStatus),
+          channel: mapChannel(booking.bookingChannel),
+          patientAge: 0, // Default value
+          reason: "Consultation", // Default value
+          contactNumber: "+234 000 000 0000", // Default value
+        });
 
-          return "voiceCall";
-        }
-        if (channelLower.includes('physical') || channelLower.includes('in-person')) {
-
-          return "physical";
-        }
-        // Default fallback
-
-        return "videoCall";
-      };
-
-      // Convert to the exact sample format
-      acc[dateKey].push({
-        id: booking.bookingId,
-        patientName: booking.patientName,
-        date: dateKey,
-        time: slotToTime(booking.slot),
-        type: mapChannel(booking.bookingChannel) === "physical" ? "Physical Booking" : "Online Booking",
-        status: ((s) => {
-             const status = (s || "").toLowerCase();
-             if (status === 'accepted' || status === 'confirmed') return 'confirmed';
-             if (status === 'cancelled' || status === 'rejected') return 'cancelled';
-             return 'pending';
-        })(booking.bookingStatus),
-        channel: mapChannel(booking.bookingChannel),
-        patientAge: 0, // Default value
-        reason: "Consultation", // Default value
-        contactNumber: "+234 000 000 0000", // Default value
-      });
-
-      return acc;
-    }, {} as Record<string, Booking[]>);
+        return acc;
+      },
+      {} as Record<string, Booking[]>,
+    );
 
     // Convert to DayBooking format
     return Object.entries(bookingsByDate).map(([date, bookings]) => {
       // Parse the date string (YYYY-MM-DD) to get day name and number
-      const [year, month, day] = date.split('-').map(Number);
+      const [year, month, day] = date.split("-").map(Number);
       const dateObj = new Date(year, month - 1, day);
       const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
       const dayName = dayNames[dateObj.getDay()];
@@ -202,10 +235,6 @@ export default function Bookings() {
       };
     });
   }, [standardizedBookings]);
-
-
-
-
 
   // Week bookings state - populated from converted data
   const [weekBookings, setWeekBookings] = useState<DayBooking[]>([]);
@@ -221,7 +250,6 @@ export default function Bookings() {
     generateWeekBookings(currentWeekStart);
   }, [convertedWeekBookings, currentWeekStart]);
 
-
   const navigateWeek = (direction: "prev" | "next") => {
     const newWeekStart = new Date(currentWeekStart);
 
@@ -233,7 +261,6 @@ export default function Bookings() {
 
     setCurrentWeekStart(newWeekStart);
 
-
     const month = monthNames[newWeekStart.getMonth()];
     const year = newWeekStart.getFullYear();
     setCurrentMonth(`${month}, ${year}`);
@@ -243,7 +270,6 @@ export default function Bookings() {
   };
 
   const generateWeekBookings = (weekStart: Date) => {
-
     // Always generate a full week structure (7 days)
     const newWeekBookings: DayBooking[] = [];
 
@@ -257,16 +283,14 @@ export default function Bookings() {
 
       // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
       const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDate.getDate()).padStart(2, '0');
+      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const day = String(currentDate.getDate()).padStart(2, "0");
       const dateKey = `${year}-${month}-${day}`;
 
       // Find bookings for this specific date
-      const dayBookings = convertedWeekBookings?.find(dayBooking =>
-        dayBooking.date === dateKey
-      )?.bookings || [];
-
-
+      const dayBookings =
+        convertedWeekBookings?.find((dayBooking) => dayBooking.date === dateKey)
+          ?.bookings || [];
 
       newWeekBookings.push({
         date: dateKey,
@@ -276,22 +300,14 @@ export default function Bookings() {
       });
     }
 
-
     // Debug: Log bookings for each day
-    newWeekBookings.forEach(day => {
+    newWeekBookings.forEach((day) => {
       if (day.bookings.length > 0) {
-
-        day.bookings.forEach(booking => {
-
-        });
+        day.bookings.forEach((booking) => {});
       }
     });
     setWeekBookings(newWeekBookings);
   };
-
-
-
-
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -305,8 +321,7 @@ export default function Bookings() {
 
   // Simulate loading for demonstration
   useEffect(() => {
-    const timer = setTimeout(() => {
-    }, 2000); // Show skeleton for 2 seconds
+    const timer = setTimeout(() => {}, 2000); // Show skeleton for 2 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -338,16 +353,13 @@ export default function Bookings() {
     to: string;
   }) => {
     const timeIndex = timeSlots.findIndex(
-      (slot) => slot.key === currentTimeSlot.key
+      (slot) => slot.key === currentTimeSlot.key,
     );
     if (timeIndex === -1 || timeIndex === timeSlots.length - 1) {
       return currentTimeSlot.to;
     }
     return timeSlots[timeIndex + 1].from;
   };
-
-
-
 
   return (
     <div>
@@ -367,7 +379,6 @@ export default function Bookings() {
         </div>
       )}
 
-
       {/* Calendar Grid */}
       {!isLoading && !error && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -384,7 +395,7 @@ export default function Bookings() {
                 })}
                 -
                 {new Date(
-                  currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000
+                  currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000,
                 ).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -404,18 +415,21 @@ export default function Bookings() {
                   const year = today.getFullYear();
                   setCurrentMonth(`${month}, ${year}`);
                 }}
-                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+              >
                 Today
               </button>
               <div className="flex gap-3">
                 <button
                   onClick={() => navigateWeek("prev")}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </button>
                 <button
                   onClick={() => navigateWeek("next")}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   <ChevronRight className="w-4 h-4 text-gray-600" />
                 </button>
               </div>
@@ -431,7 +445,8 @@ export default function Bookings() {
                 {weekBookings.map((day) => (
                   <div
                     key={day.date}
-                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
+                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center"
+                  >
                     <div className="font-semibold">{day.dayName}</div>
                     <div className="text-xs text-gray-500">{day.dayNumber}</div>
                   </div>
@@ -442,7 +457,8 @@ export default function Bookings() {
               {timeSlots.map((timeSlot, timeIndex) => (
                 <div
                   key={timeSlot.key}
-                  className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
+                  className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
+                >
                   {/* Time Label */}
                   <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                     {timeSlot.from} {"->"} {getNextTime(timeSlot)}
@@ -455,16 +471,19 @@ export default function Bookings() {
                     return (
                       <div
                         key={`${day.date}-${timeSlot.key}`}
-                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
-                          ? "cursor-pointer hover:scale-105 transition-transform"
-                          : ""
-                          }`}>
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
+                          booking
+                            ? "cursor-pointer hover:scale-105 transition-transform"
+                            : ""
+                        }`}
+                      >
                         {booking && (
                           <div
                             onClick={() => handleBookingClick(booking)}
                             className={`${getBookingColor(
-                              booking.channel
-                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}>
+                              booking.channel,
+                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}
+                          >
                             <div className="flex items-center gap-1 mb-1">
                               {getChannelIcon(booking.channel)}
                               <span className="font-medium">

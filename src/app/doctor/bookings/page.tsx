@@ -18,8 +18,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDaySuffix, getDayName } from "@/utils/dateUtils";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { showError } from "@/utils/toast";
-import { timeSlots, monthNames, convertSlotToTime } from "@/components/Options";
+import {
+  timeSlots,
+  monthNames,
+  convertSlotToTime,
+  getBookingColor,
+  getChannelIcon,
+} from "@/components/Options";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
+import {
+  convertBookingsToStandardFormat,
+  RawBookingData,
+} from "@/utils/bookingDataConverter";
 
 interface Booking {
   id: string;
@@ -72,8 +82,22 @@ export default function DoctorBookingsPage() {
   // Generate week bookings from API data or create default structure
   const generateWeekBookingsFromData = (
     bookings: unknown[] = [],
-    weekStart: Date = new Date()
+    weekStart: Date = new Date(),
   ) => {
+    // Convert all bookings to standard format first
+    const rawBookings: RawBookingData[] = bookings.map((b: any) => ({
+      ...b,
+      bookingId: b.bookingId || b.id,
+      bookingChannel: b.bookingChannel || b.channel,
+      slot: b.slot || b.bookingTime || b.time || "",
+      hospital: b.hospital || "",
+      paymentStatus: b.paymentStatus || "",
+      patientAddress: b.patientAddress || "",
+      comments: b.comments || [],
+      bookingDate: b.bookingDate || b.date,
+    }));
+
+    const standardBookings = convertBookingsToStandardFormat(rawBookings);
     const weekBookings: DayBooking[] = [];
 
     // Create 7 days starting from weekStart
@@ -86,118 +110,58 @@ export default function DoctorBookingsPage() {
 
       // Format date as YYYY-MM-DD in local timezone to avoid timezone shift issues
       const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDate.getDate()).padStart(2, '0');
+      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const day = String(currentDate.getDate()).padStart(2, "0");
       const dateString = `${year}-${month}-${day}`;
 
       // Filter bookings for this specific date
-      const dayBookings: Booking[] = [];
-      if (bookings && bookings.length > 0) {
-        bookings.forEach((booking) => {
-          if (typeof booking === "object" && booking !== null) {
-            const bookingObj = booking as Record<string, unknown>;
-
-            // Handle Firestore timestamp conversion and string dates
-            let bookingDate: string = "";
-            const rawDate = bookingObj.bookingDate || bookingObj.date;
-
-            if (rawDate) {
-              if (typeof rawDate === "object" && rawDate !== null) {
-                // Handle both seconds (client SDK) and _seconds (admin SDK/serialized)
-                const seconds = (rawDate as any).seconds || (rawDate as any)._seconds;
-                if (typeof seconds === "number") {
-                  const date = new Date(seconds * 1000);
-                  const year = date.getFullYear();
-                  const month = String(date.getMonth() + 1).padStart(2, '0');
-                  const dayStr = String(date.getDate()).padStart(2, '0');
-                  bookingDate = `${year}-${month}-${dayStr}`;
-                }
-              } else if (typeof rawDate === "string") {
-                // Handle ISO strings
-                const date = new Date(rawDate);
-                if (!isNaN(date.getTime())) {
-                   const year = date.getFullYear();
-                   const month = String(date.getMonth() + 1).padStart(2, '0');
-                   const dayStr = String(date.getDate()).padStart(2, '0');
-                   bookingDate = `${year}-${month}-${dayStr}`;
-                } else {
-                   bookingDate = rawDate;
-                }
-              }
-            }
-
-            if (bookingDate === dateString) {
-              // Transform API data to match our Booking interface
-              const transformedBooking: Booking = {
-                id: String(bookingObj.id || bookingObj.bookingId || ""),
-                patientName:
-                  String(bookingObj.patientName || "") ||
-                  (typeof bookingObj.patient === "object" &&
-                    bookingObj.patient !== null &&
-                    "name" in bookingObj.patient
-                    ? String(
-                      (bookingObj.patient as Record<string, unknown>).name ||
-                      ""
-                    )
-                    : "") ||
-                  "Unknown Patient",
-                date: dateString,
-                time: convertSlotToTime(
-                  String(bookingObj.slot || bookingObj.time || "")
-                ),
-                type:
-                  bookingObj.bookingChannel === "physical"
-                    ? "Physical Booking"
-                    : "Online Booking",
-                status: (() => {
-                  const status = String(bookingObj.bookingStatus || "").toLowerCase();
-                  if (status === "confirmed" || status === "accepted") return "confirmed";
-                  if (status === "cancelled" || status === "rejected") return "cancelled";
-                  return "pending";
-                })(),
-                channel: (() => {
-                  const channel = String(bookingObj.bookingChannel || "");
-                  // Convert numeric channel codes to string values
-                  if (channel === "1" || channel === "videoCall")
-                    return "videoCall";
-                  if (channel === "2" || channel === "chat") return "chat";
-                  if (channel === "3" || channel === "voiceCall")
-                    return "voiceCall";
-                  if (channel === "4" || channel === "physical")
-                    return "physical";
-                  return "videoCall";
-                })(),
-                patientAge:
-                  Number(bookingObj.patientAge) ||
-                  (typeof bookingObj.patient === "object" &&
-                    bookingObj.patient !== null &&
-                    "age" in bookingObj.patient
-                    ? Number(
-                      (bookingObj.patient as Record<string, unknown>).age
-                    ) || 0
-                    : 0),
-                reason: String(
-                  bookingObj.reason ||
-                  bookingObj.description ||
-                  "No reason provided"
-                ),
-                contactNumber:
-                  String(bookingObj.contactNumber || "") ||
-                  (typeof bookingObj.patient === "object" &&
-                    bookingObj.patient !== null &&
-                    "phone" in bookingObj.patient
-                    ? String(
-                      (bookingObj.patient as Record<string, unknown>).phone ||
-                      ""
-                    )
-                    : "") ||
-                  "No contact",
-              };
-              dayBookings.push(transformedBooking);
-            }
-          }
-        });
-      }
+      const dayBookings: Booking[] = standardBookings
+        .filter((sb) => {
+          // Convert timestamp to YYYY-MM-DD
+          const date = new Date(sb.bookingDate._seconds * 1000);
+          const sbYear = date.getFullYear();
+          const sbMonth = String(date.getMonth() + 1).padStart(2, "0");
+          const sbDay = String(date.getDate()).padStart(2, "0");
+          const sbDateString = `${sbYear}-${sbMonth}-${sbDay}`;
+          return sbDateString === dateString;
+        })
+        .map((sb) => ({
+          id: sb.bookingId,
+          patientName: sb.patientName || "Unknown Patient",
+          date: dateString,
+          time: convertSlotToTime(sb.slot),
+          type:
+            sb.bookingChannel === "physical"
+              ? "Physical Booking"
+              : "Online Booking",
+          status:
+            (sb.bookingStatus?.toLowerCase() as
+              | "confirmed"
+              | "pending"
+              | "cancelled") || "pending",
+          channel: (() => {
+            const channel = (sb.bookingChannel || "").toLowerCase();
+            if (channel.includes("video") || channel === "1")
+              return "videoCall";
+            if (channel.includes("chat") || channel === "2") return "chat";
+            if (
+              channel.includes("voice") ||
+              channel.includes("call") ||
+              channel === "3"
+            )
+              return "voiceCall";
+            if (
+              channel.includes("physical") ||
+              channel.includes("in-person") ||
+              channel === "4"
+            )
+              return "physical";
+            return "videoCall";
+          })(),
+          patientAge: sb.patientAge || 0,
+          reason: sb.reason || "No reason provided",
+          contactNumber: sb.contactNumber || "No contact",
+        }));
 
       weekBookings.push({
         date: dateString,
@@ -212,23 +176,8 @@ export default function DoctorBookingsPage() {
 
   // Initialize weekBookings with current week
   const [weekBookings, setWeekBookings] = useState<DayBooking[]>(() =>
-    generateWeekBookingsFromData([], currentWeekStart)
+    generateWeekBookingsFromData([], currentWeekStart),
   );
-
-  const getBookingColor = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-        return "bg-green-500";
-      case "chat":
-        return "bg-blue-500";
-      case "voiceCall":
-        return "bg-purple-500";
-      case "physical":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   const navigateWeek = (direction: "prev" | "next") => {
     const newWeekStart = new Date(currentWeekStart);
@@ -253,24 +202,9 @@ export default function DoctorBookingsPage() {
     // Generate new week bookings with current API data
     const newWeekBookings = generateWeekBookingsFromData(
       bookingsData || [],
-      weekStart
+      weekStart,
     );
     setWeekBookings(newWeekBookings);
-  };
-
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-        return <Video className="w-3 h-3" />;
-      case "chat":
-        return <MessageCircle className="w-3 h-3" />;
-      case "voiceCall":
-        return <Phone className="w-3 h-3" />;
-      case "physical":
-        return <User className="w-3 h-3" />;
-      default:
-        return <Calendar className="w-3 h-3" />;
-    }
   };
 
   const handleBookingClick = (booking: Booking) => {
@@ -295,7 +229,7 @@ export default function DoctorBookingsPage() {
     if (bookingsData && !isLoading) {
       const newWeekBookings = generateWeekBookingsFromData(
         bookingsData,
-        currentWeekStart
+        currentWeekStart,
       );
       setWeekBookings(newWeekBookings);
     }
@@ -303,7 +237,12 @@ export default function DoctorBookingsPage() {
 
   // Auto-navigate to current week when bookings are loaded
   useEffect(() => {
-    if (bookingsData && !isLoading && bookingsData.length > 0 && !hasNavigatedToCurrentWeek.current) {
+    if (
+      bookingsData &&
+      !isLoading &&
+      bookingsData.length > 0 &&
+      !hasNavigatedToCurrentWeek.current
+    ) {
       const today = new Date();
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay());
@@ -363,7 +302,7 @@ export default function DoctorBookingsPage() {
                 })}{" "}
                 -{" "}
                 {new Date(
-                  currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000
+                  currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000,
                 ).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -384,18 +323,21 @@ export default function DoctorBookingsPage() {
                   const year = today.getFullYear();
                   setCurrentMonth(`${month}, ${year}`);
                 }}
-                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+                className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+              >
                 Today
               </button>
               <div className="flex gap-3">
                 <button
                   onClick={() => navigateWeek("prev")}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </button>
                 <button
                   onClick={() => navigateWeek("next")}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   <ChevronRight className="w-4 h-4 text-gray-600" />
                 </button>
               </div>
@@ -411,7 +353,8 @@ export default function DoctorBookingsPage() {
                 {weekBookings?.map((day) => (
                   <div
                     key={day.date}
-                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
+                    className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center"
+                  >
                     <div className="font-semibold">{day.dayName}</div>
                     <div className="text-xs text-gray-500">{day.dayNumber}</div>
                   </div>
@@ -422,7 +365,8 @@ export default function DoctorBookingsPage() {
               {timeSlots?.map((time) => (
                 <div
                   key={time.key}
-                  className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
+                  className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
+                >
                   {/* Time Label */}
                   <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                     {time.from} {"->"} {time.to}
@@ -438,13 +382,15 @@ export default function DoctorBookingsPage() {
                         className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
                             ? "cursor-pointer hover:scale-105 transition-transform"
                             : ""
-                          }`}>
+                          }`}
+                      >
                         {booking && (
                           <div
                             onClick={() => handleBookingClick(booking)}
                             className={`${getBookingColor(
-                              booking.channel
-                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}>
+                              booking.channel,
+                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}
+                          >
                             <div className="flex items-center gap-1 mb-1">
                               {getChannelIcon(booking.channel)}
                               <span className="font-medium">
