@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import {
   User,
   Bell,
@@ -774,7 +774,7 @@ export default function AdminSettings() {
             {/* Security Settings Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Security Settings
                 </h3>
                 <p className="text-gray-600">
@@ -873,7 +873,7 @@ export default function AdminSettings() {
             {/* Change Password Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Change Password
                 </h3>
                 <p className="text-gray-600">

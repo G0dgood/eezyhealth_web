@@ -27,17 +27,17 @@ function DoctorLayout({ children }: LayoutProps) {
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
-  
+
   // Stream Video Token Logic
   const [streamToken, setStreamToken] = useState<string>("");
   const [createStreamToken] = useCreateStreamTokenMutation();
 
   useEffect(() => {
     if (authUser && !streamToken) {
-       createStreamToken({ name: authUser.displayName || "Doctor" })
-         .unwrap()
-         .then((res) => setStreamToken(res.token))
-         .catch((err) => console.error("Failed to generate global video token", err));
+      createStreamToken({ name: authUser.displayName || "Doctor" })
+        .unwrap()
+        .then((res) => setStreamToken(res.token))
+        .catch((err) => console.error("Failed to generate global video token", err));
     }
   }, [authUser, streamToken, createStreamToken]);
 
@@ -109,10 +109,10 @@ function DoctorLayout({ children }: LayoutProps) {
   return (
     <ProtectedRoute>
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
-        <VideoProvider 
-          apiKey="4g6sfwegs7he" 
-          token={streamToken} 
-          userId={authUser?.uid || ""} 
+        <VideoProvider
+          apiKey="4g6sfwegs7he"
+          token={streamToken}
+          userId={authUser?.uid || ""}
           userName={authUser?.displayName || "Doctor"}
         >
           <div id="page-wrapper">
@@ -151,7 +151,7 @@ function DoctorLayout({ children }: LayoutProps) {
             </div>
 
             <div className="text-center w-full space-y-2">
-              <h4 className="text-xl font-semibold text-gray-900">Profile Incomplete</h4>
+              <h4 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Profile Incomplete</h4>
               <p className="text-gray-500 max-w-xs mx-auto text-sm">
                 To ensure you can receive patient appointments, please complete the following details:
               </p>

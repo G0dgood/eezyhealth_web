@@ -130,7 +130,7 @@ export default function AdminBookingCancellationPage() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2 ">
+        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2 ">
           Booking Cancellation
         </h1>
       </div>

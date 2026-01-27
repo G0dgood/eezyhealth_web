@@ -578,7 +578,7 @@ const AdminDoctorOfMonthPage = () => {
           </div>
           <div>
             <p className="text-white/80 text-[10px] md:text-[12px] font-medium">Current Leader</p>
-            <p className="text-xl text-white font-bold">
+            <p className="text-[16px] md:text-[18px] text-white font-bold">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
@@ -601,7 +601,7 @@ const AdminDoctorOfMonthPage = () => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl text-white font-bold">
+          <p className="text-[18px] md:text-[20px] text-white font-bold">
             {isLoadingDoctorOfMonth || isAutoCreating
               ? "..."
               : currentDoctorOfMonth
@@ -617,7 +617,7 @@ const AdminDoctorOfMonthPage = () => {
         {/* Top Performers This Month */}
         {/* <div className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
               Top Performers This Month
             </h3>
             <div className="flex items-center space-x-2">
@@ -677,7 +677,7 @@ const AdminDoctorOfMonthPage = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-[#44CE2D]">
+                      <span className="text-[14px] md:text-[16px] font-bold text-[#44CE2D]">
                         {performer.performanceScore?.toFixed(1) || 0}
                       </span>
                       <Button
@@ -697,7 +697,7 @@ const AdminDoctorOfMonthPage = () => {
 
         {/* Past Doctors of The Month Table */}
         <div className="lg:col-span-2">
-          <h3 className="text-lg font-semibold text-gray-900 mt-8">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mt-8">
             Past Doctors of The Month
           </h3>
 

@@ -343,7 +343,7 @@ export default function NursePatientsPage() {
                                   />
                                 ) : (
                                   <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
-                                    <span className="text-sm font-medium">
+                                    <span className="text-[10px] md:text-[12px] font-medium">
                                       {(
                                         (patient.display_name as string) ||
                                         (patient.name as string)
@@ -355,12 +355,12 @@ export default function NursePatientsPage() {
                                 )}
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                                   {(patient.display_name as string) ||
                                     (patient.name as string) ||
                                     "N/A"}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-[10px] md:text-[12px] text-gray-500">
                                   ID: {patient.id.slice(0, 8)}...
                                 </div>
                               </div>
@@ -369,17 +369,17 @@ export default function NursePatientsPage() {
 
                           {/* Contact Column */}
                           <td>
-                            <div className="text-sm text-gray-900">
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
                               {(patient.email as string) || "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
                               {(patient.phone_number as string) || "N/A"}
                             </div>
                           </td>
 
                           {/* Demographics Column */}
                           <td>
-                            <div className="text-sm text-gray-900">
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
                               Age:{" "}
                               {(() => {
                                 const birthDate =
@@ -408,24 +408,24 @@ export default function NursePatientsPage() {
                                 }
                               })()}
                             </div>
-                            <div className="text-sm text-gray-500 capitalize">
+                            <div className="text-[10px] md:text-[12px] text-gray-500 capitalize">
                               {(patient.gender as string) || "N/A"}
                             </div>
                           </td>
 
                           {/* Location Column */}
                           <td>
-                            <div className="text-sm text-gray-900">
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
                               {(patient.address as string) || "N/A"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
                               {(patient.city as string) || "N/A"}
                             </div>
                           </td>
 
                           {/* Status Column */}
                           <td>
-                            <div className="text-sm text-gray-900">
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
                               {(patient.status as string) || "Active"}
                             </div>
                           </td>

@@ -192,8 +192,8 @@ const AdminCalendarWidget: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Calendar</h3>
-            <p className="text-xs md:text-sm text-gray-500">Appointment calendar</p>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Calendar</h3>
+            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Appointment calendar</p>
           </div>
         </div>
       </div>
@@ -233,13 +233,11 @@ const AdminCalendarWidget: React.FC = () => {
           {calendarDays.map((dayData, index) => (
             <div
               key={index}
-              className={`p-2 text-sm rounded-lg transition-colors cursor-pointer text-center ${
-                dayData.currentMonth
+              className={`p-2 text-[10px] md:text-[12px] rounded-lg transition-colors cursor-pointer text-center ${dayData.currentMonth
                   ? "text-gray-900 hover:bg-gray-100"
                   : "text-gray-400"
-              } ${
-                dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
-              }`}>
+                } ${dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
+                }`}>
               <div className="flex items-center justify-center">
                 <span>{dayData.day}</span>
                 {dayData.hasBooking && (
@@ -254,10 +252,10 @@ const AdminCalendarWidget: React.FC = () => {
       {/* Today's Schedule */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-gray-900">
+          <h4 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
             Today&apos;s Schedule
           </h4>
-          <span className="text-sm text-gray-500">
+          <span className="text-[10px] md:text-[12px] text-gray-500">
             {todaysBookings.length} appointments
           </span>
         </div>
@@ -277,7 +275,7 @@ const AdminCalendarWidget: React.FC = () => {
                   <div className="flex items-center gap-2 overflow-hidden w-full sm:w-auto">
                     {getChannelIcon(booking.channel)}
                     <div className="min-w-0 flex-1">
-                      <h5 className="font-medium text-gray-900 text-sm truncate">
+                      <h5 className="font-medium text-gray-900 text-[10px] md:text-[12px] truncate">
                         {booking.patientName || "Unknown Patient"}
                       </h5>
                       <p className="text-xs text-gray-600 truncate">
@@ -313,8 +311,8 @@ const AdminCalendarWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
+          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
             Today: {todaysBookings.length} appointments
           </span>
           <div className="flex flex-wrap items-center gap-4">

@@ -315,7 +315,7 @@ export default function DoctorBookingPage({
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {doctor.title || "Dr."} {doctorName}
             </h2>
-            <p className="text-lg text-gray-600 mb-2">
+            <p className="text-[14px] md:text-[16px] text-gray-600 mb-2">
               {doctor.specialization || "General Practitioner"}
             </p>
             <p className="text-gray-500 mb-3">
@@ -369,7 +369,7 @@ export default function DoctorBookingPage({
 
         {/* Right Panel - Appointment Booking */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">
+          <h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
             Book Appointment
           </h3>
 

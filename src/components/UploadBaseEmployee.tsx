@@ -149,7 +149,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
           description: `${parsedData.length} records loaded`,
           duration: 3000,
         });
-      } catch (error) { 
+      } catch (error) {
         toast.error("Failed to parse CSV", {
           description: "Please check the file format",
           duration: 3000,
@@ -247,12 +247,12 @@ const UploadBase: React.FC<UploadBaseProps> = ({
           onClose={handleClose}
           title="Upload CSV File"
           size="md"
-        > 
+        >
           <div
             className="dark:bg-gray-800 w-full max-w-2xl "
             style={{ backgroundColor: 'var(--accent-white)' }}
           >
-            
+
 
             <form className="mt-4 space-y-4" onSubmit={submitHandler}>
               {isError && (
@@ -297,7 +297,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                   </p>
                   <button
                     onClick={onClickReset}
-                    className="dark:text-gray-400 dark:hover:text-red-400 text-lg"
+                    className="dark:text-gray-400 dark:hover:text-red-400 text-[14px] md:text-[16px]"
                     style={{ color: 'var(--text-tertiary)' }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.color = '#DC2626';
@@ -353,7 +353,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                   style={isDragOver ? { color: primaryColor } : { color: 'var(--text-tertiary)' }}
                 />
                 <p
-                  className="text-lg font-medium dark:text-gray-300 mb-2"
+                  className="text-[14px] md:text-[16px] font-medium dark:text-gray-300 mb-2"
                   style={{ color: 'var(--text-secondary)' }}
                 >
                   {progress === 0
@@ -442,7 +442,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                   {isLoading ? "Uploading..." : "Upload"}
                 </button>
               </div>
-            </form> 
+            </form>
           </div>
         </Modal>
       )}

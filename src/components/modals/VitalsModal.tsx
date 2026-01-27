@@ -42,7 +42,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
   });
 
   const [saveVitals, { isLoading: isSaving }] = useSavePatientVitalsMutation();
-  
+
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState(initialFormState);
@@ -225,7 +225,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
       size="lg"
     >
       <div className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-        
+
         {/* Add Vitals Section */}
         <div className="mb-4">
           {!isAdding ? (
@@ -247,10 +247,10 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Temperature (°C)</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Temperature (°C)</label>
                   <input
                     type="number"
                     name="temperature"
@@ -261,7 +261,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Blood Pressure (mmHg)</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Blood Pressure (mmHg)</label>
                   <input
                     type="text"
                     name="bloodPressure"
@@ -272,7 +272,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Heart Rate (bpm)</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Heart Rate (bpm)</label>
                   <input
                     type="number"
                     name="heartRate"
@@ -283,7 +283,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Weight (kg)</label>
                   <input
                     type="number"
                     name="weight"
@@ -294,7 +294,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Breathing Rate (breaths/min)</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Breathing Rate (breaths/min)</label>
                   <input
                     type="number"
                     name="breathingRate"
@@ -308,7 +308,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
 
               <div className="space-y-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Comment</label>
                   <textarea
                     name="comment"
                     value={formData.comment}
@@ -319,7 +319,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Recommendation</label>
+                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Recommendation</label>
                   <textarea
                     name="recommendation"
                     value={formData.recommendation}
@@ -389,7 +389,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                             <div className="text-xs text-gray-500 uppercase tracking-wide">
                               {vital.label}
                             </div>
-                            <div className="text-sm font-semibold text-gray-900 mt-1">
+                            <div className="text-[10px] md:text-[12px] font-semibold text-gray-900 mt-1">
                               {vital.value}
                             </div>
                           </div>
@@ -402,25 +402,22 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                         {item.notes.map((note, nIndex) => (
                           <div
                             key={nIndex}
-                            className={`p-3 rounded-md border ${
-                              note.isMissing
+                            className={`p-3 rounded-md border ${note.isMissing
                                 ? "bg-gray-50 border-gray-100"
                                 : "bg-blue-50 border-blue-100"
-                            }`}
+                              }`}
                           >
                             <div
-                              className={`text-xs uppercase tracking-wide font-semibold ${
-                                note.isMissing ? "text-gray-500" : "text-blue-600"
-                              }`}
+                              className={`text-xs uppercase tracking-wide font-semibold ${note.isMissing ? "text-gray-500" : "text-blue-600"
+                                }`}
                             >
                               {note.label}
                             </div>
                             <div
-                              className={`text-sm mt-1 whitespace-pre-wrap ${
-                                note.isMissing
+                              className={`text-[10px] md:text-[12px] mt-1 whitespace-pre-wrap ${note.isMissing
                                   ? "text-gray-500 italic"
                                   : "text-gray-800"
-                              }`}
+                                }`}
                             >
                               {note.value}
                             </div>

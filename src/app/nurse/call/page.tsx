@@ -52,43 +52,43 @@ const CallScreenContent = ({ token }: { token?: string }) => {
         let effectiveUserId = user?.uid;
         let effectiveToken = token;
         let effectiveName = user?.displayName || "Nurse";
-        
+
         // 1. Prefer token passed from parent (Proxy Mode)
         const clientUser = (videoClient as any)?.state?.currentUser || (videoClient as any)?.user;
         if (token && clientUser?.id) {
-            effectiveUserId = clientUser.id;
-            effectiveName = clientUser.name || effectiveName;
-        } 
+          effectiveUserId = clientUser.id;
+          effectiveName = clientUser.name || effectiveName;
+        }
         // 2. Fallback to existing logic if no token passed
         else {
-             let chatInfo = getStreamChatInfo();
-             
-             if (user && (!chatInfo || chatInfo.chatUserId !== user.uid)) {
-                try {
-                    const tokenResponse = await generateTokenForUser({ 
-                        userId: user.uid, 
-                    }).unwrap();
+          let chatInfo = getStreamChatInfo();
 
-                    const streamToken = tokenResponse.streamToken || tokenResponse.token;
-                    if (streamToken) {
-                        chatInfo = {
-                            chatApiKey: "4g6sfwegs7he", 
-                            chatUserId: user.uid,
-                            chatUserName: user.displayName || "Patient",
-                            chatUserToken: streamToken,
-                            userRole: 'patient',
-                        };
-                        storeStreamChatInfo(chatInfo);
-                    }
-                } catch (err) {
-                    console.error("Failed to generate stream token:", err);
-                }
-             }
+          if (user && (!chatInfo || chatInfo.chatUserId !== user.uid)) {
+            try {
+              const tokenResponse = await generateTokenForUser({
+                userId: user.uid,
+              }).unwrap();
 
-             if (chatInfo) {
-                 effectiveUserId = chatInfo.chatUserId;
-                 effectiveToken = chatInfo.chatUserToken;
-             }
+              const streamToken = tokenResponse.streamToken || tokenResponse.token;
+              if (streamToken) {
+                chatInfo = {
+                  chatApiKey: "4g6sfwegs7he",
+                  chatUserId: user.uid,
+                  chatUserName: user.displayName || "Patient",
+                  chatUserToken: streamToken,
+                  userRole: 'patient',
+                };
+                storeStreamChatInfo(chatInfo);
+              }
+            } catch (err) {
+              console.error("Failed to generate stream token:", err);
+            }
+          }
+
+          if (chatInfo) {
+            effectiveUserId = chatInfo.chatUserId;
+            effectiveToken = chatInfo.chatUserToken;
+          }
         }
 
         if (!effectiveToken || !effectiveUserId) return;
@@ -99,24 +99,24 @@ const CallScreenContent = ({ token }: { token?: string }) => {
 
         // Ensure we are connected before using the client
         const connectPromise = async () => {
-            // If we are acting as proxy (patientId present) but have no token yet, wait.
-            // This prevents falling back to Nurse user which causes permission errors.
-            if (patientId && !token) {
-                return false;
-            }
+          // If we are acting as proxy (patientId present) but have no token yet, wait.
+          // This prevents falling back to Nurse user which causes permission errors.
+          if (patientId && !token) {
+            return false;
+          }
 
-            if (streamClient.userID) {
-                await streamClient.disconnectUser();
-            }
-            
-            await streamClient.connectUser(
-                {
-                id: effectiveUserId,
-                name: effectiveName,
-                },
-                effectiveToken
-            );
-            return true;
+          if (streamClient.userID) {
+            await streamClient.disconnectUser();
+          }
+
+          await streamClient.connectUser(
+            {
+              id: effectiveUserId,
+              name: effectiveName,
+            },
+            effectiveToken
+          );
+          return true;
         };
 
         const connected = await connectPromise();
@@ -128,8 +128,8 @@ const CallScreenContent = ({ token }: { token?: string }) => {
           const channel = streamClient.channel("messaging", channelId);
           // Only watch if we are sure the client is connected
           if (streamClient.userID) {
-              await channel.watch();
-              setChatChannel(channel);
+            await channel.watch();
+            setChatChannel(channel);
           }
         }
       } catch (error) {
@@ -140,11 +140,11 @@ const CallScreenContent = ({ token }: { token?: string }) => {
     initializeChat();
 
     return () => {
-       // Cleanup local instance
-       setChatClient((prevClient) => {
-           if (prevClient) prevClient.disconnectUser();
-           return null;
-       });
+      // Cleanup local instance
+      setChatClient((prevClient) => {
+        if (prevClient) prevClient.disconnectUser();
+        return null;
+      });
     };
   }, [channelId, user, generateTokenForUser, token, videoClient, patientId]);
 
@@ -157,7 +157,7 @@ const CallScreenContent = ({ token }: { token?: string }) => {
 
       const call = videoClient.call("default", callId);
       myCall = call;
-      
+
       try {
         const callData = {
           members: patientId && user?.uid ? [{ user_id: user.uid }, { user_id: patientId }] : undefined,
@@ -169,9 +169,9 @@ const CallScreenContent = ({ token }: { token?: string }) => {
         };
 
         if (!isAccepting) {
-            await call.join({ create: true, data: callData });
+          await call.join({ create: true, data: callData });
         } else {
-            await call.join();
+          await call.join();
         }
         setStreamCall(call);
       } catch (error) {
@@ -194,10 +194,10 @@ const CallScreenContent = ({ token }: { token?: string }) => {
   useEffect(() => {
     const sendStartMessage = async () => {
       if (
-        streamCall && 
-        chatChannel && 
-        !isAccepting && 
-        !hasSentStartMessage.current && 
+        streamCall &&
+        chatChannel &&
+        !isAccepting &&
+        !hasSentStartMessage.current &&
         callId
       ) {
         hasSentStartMessage.current = true;
@@ -205,10 +205,10 @@ const CallScreenContent = ({ token }: { token?: string }) => {
           await chatChannel.sendMessage({
             text: `${callType === "video" ? "📹" : "📞"} Call started`,
             custom: {
-                call_id: callId,
-                booking_id: bookingId,
-                call_type: callType,
-                call_status: "started"
+              call_id: callId,
+              booking_id: bookingId,
+              call_type: callType,
+              call_status: "started"
             }
           } as any);
         } catch (error) {
@@ -234,28 +234,28 @@ const CallScreenContent = ({ token }: { token?: string }) => {
   const handleEndCall = async () => {
     isCallEndedRef.current = true;
     if (streamCall) {
-        try {
-          await streamCall.endCall();
-        } catch (error) {
-          console.error("Error ending call:", error);
-        }
+      try {
+        await streamCall.endCall();
+      } catch (error) {
+        console.error("Error ending call:", error);
+      }
     }
-    
+
     // Send call end message
     if (chatChannel && callId) {
-        try {
-          await chatChannel.sendMessage({
-              text: `${callType === "video" ? "📹" : "📞"} Call ended`,
-              custom: {
-                  call_id: callId,
-                  booking_id: bookingId,
-                  call_type: callType,
-                  call_status: "ended"
-              }
-          } as any);
-        } catch (error) {
-           console.error("Error sending end call message:", error);
-        }
+      try {
+        await chatChannel.sendMessage({
+          text: `${callType === "video" ? "📹" : "📞"} Call ended`,
+          custom: {
+            call_id: callId,
+            booking_id: bookingId,
+            call_type: callType,
+            call_status: "ended"
+          }
+        } as any);
+      } catch (error) {
+        console.error("Error sending end call message:", error);
+      }
     }
 
     router.back();
@@ -318,41 +318,41 @@ const CallScreenContent = ({ token }: { token?: string }) => {
         <div className="h-screen w-full bg-gray-900 text-white flex flex-col relative">
           {/* Header / Info */}
           <div className="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-              <div>
-                  <h2 className="text-xl font-bold">{patientName}</h2>
-                  <p className="text-sm opacity-80">{isWaitingForAcceptance ? "Calling..." : formatDuration(callDuration)}</p>
-              </div>
+            <div>
+              <h2 className="text-[16px] md:text-[18px] font-bold">{patientName}</h2>
+              <p className="text-[10px] md:text-[12px] opacity-80">{isWaitingForAcceptance ? "Calling..." : formatDuration(callDuration)}</p>
+            </div>
           </div>
 
           {/* Main Video Area */}
           <div className="flex-1 flex items-center justify-center">
-               <SpeakerLayout participantsBarPosition="bottom" />
+            <SpeakerLayout participantsBarPosition="bottom" />
           </div>
 
           {/* Controls */}
           <div className="pb-8">
-              <CallControls onLeave={handleEndCall} />
+            <CallControls onLeave={handleEndCall} />
           </div>
 
           {/* Overlay for Waiting State */}
           {isWaitingForAcceptance && (
-             <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
-                 <div className="text-center text-white">
-                     <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">
-                         {patientName.charAt(0)}
-                     </div>
-                     <h2 className="text-2xl font-bold mb-2">Calling {patientName}...</h2>
-                     <p className="text-gray-400 animate-pulse">Waiting for answer</p>
-                     
-                     <button 
-                        onClick={handleEndCall}
-                        className="mt-8 bg-red-500 hover:bg-red-600 text-white rounded-full p-4"
-                     >
-                        End Call
-                     </button>
-                 </div>
-             </div>
-         )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
+              <div className="text-center text-white">
+                <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-[20px] md:text-[24px]">
+                  {patientName.charAt(0)}
+                </div>
+                <h2 className="text-[18px] md:text-[20px] font-bold mb-2">Calling {patientName}...</h2>
+                <p className="text-gray-400 animate-pulse">Waiting for answer</p>
+
+                <button
+                  onClick={handleEndCall}
+                  className="mt-8 bg-red-500 hover:bg-red-600 text-white rounded-full p-4"
+                >
+                  End Call
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </StreamTheme>
     </StreamCall>
@@ -367,32 +367,32 @@ export default function NurseCallPage() {
 
   useEffect(() => {
     let _client: StreamVideoClient | null = null;
-    
+
     const init = async () => {
       let chatInfo = getStreamChatInfo();
-      
+
       // If chatInfo is missing or belongs to a different user, generate a new token
       if (user && (!chatInfo || chatInfo.chatUserId !== user.uid)) {
-          console.log("Chat info mismatch or missing in call page, generating new token for", user.uid);
-          try {
-              const tokenResponse = await generateTokenForUser({ 
-                  userId: user.uid, 
-              }).unwrap();
+        console.log("Chat info mismatch or missing in call page, generating new token for", user.uid);
+        try {
+          const tokenResponse = await generateTokenForUser({
+            userId: user.uid,
+          }).unwrap();
 
-              const streamToken = tokenResponse.streamToken || tokenResponse.token;
-              if (streamToken) {
-                  chatInfo = {
-                      chatApiKey: "4g6sfwegs7he", // Should ideally come from env or config
-                      chatUserId: user.uid,
-                      chatUserName: user.displayName || "Nurse",
-                      chatUserToken: streamToken,
-                      userRole: 'nurse',
-                  };
-                  storeStreamChatInfo(chatInfo);
-              }
-          } catch (err) {
-              console.error("Failed to generate stream token:", err);
+          const streamToken = tokenResponse.streamToken || tokenResponse.token;
+          if (streamToken) {
+            chatInfo = {
+              chatApiKey: "4g6sfwegs7he", // Should ideally come from env or config
+              chatUserId: user.uid,
+              chatUserName: user.displayName || "Nurse",
+              chatUserToken: streamToken,
+              userRole: 'nurse',
+            };
+            storeStreamChatInfo(chatInfo);
           }
+        } catch (err) {
+          console.error("Failed to generate stream token:", err);
+        }
       }
 
       if (!chatInfo || !user) {
@@ -404,13 +404,13 @@ export default function NurseCallPage() {
       // We don't initialize client here if we want to rely on provider, 
       // but the NurseCallPage seems to be standalone or needs to handle its own client?
       // Based on the code structure, it seems we are initializing client here.
-      
+
       const apiKey = "4g6sfwegs7he";
       const token = chatInfo.chatUserToken;
       const userId = chatInfo.chatUserId;
       const userName = chatInfo.chatUserName;
       const userImage = user.photoURL || undefined;
-      
+
       const userObj = {
         id: userId,
         name: userName,
@@ -419,7 +419,7 @@ export default function NurseCallPage() {
 
       _client = new StreamVideoClient({ apiKey, user: userObj, token });
       await _client.connectUser(userObj, token);
-      
+
       setClient(_client);
     };
 
@@ -433,9 +433,9 @@ export default function NurseCallPage() {
   }, [user, generateTokenForUser]);
 
   if (!client) return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <p>Initializing video client...</p>
-      </div>
+    <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+      <p>Initializing video client...</p>
+    </div>
   );
 
   return (

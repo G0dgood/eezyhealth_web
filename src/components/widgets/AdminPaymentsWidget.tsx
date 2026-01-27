@@ -172,7 +172,7 @@ const AdminPaymentsWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <CreditCard className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Payments Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
@@ -193,7 +193,7 @@ const AdminPaymentsWidget: React.FC = () => {
             <CreditCard className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Recent Payments</h3>
+            <h3 className="text-[14px] md:text-[16px] md:text-[16px] md:text-[18px] font-bold text-gray-900">Recent Payments</h3>
             <p className="text-xs md:text-sm text-gray-500">Latest payment transactions</p>
           </div>
         </div>
@@ -202,25 +202,25 @@ const AdminPaymentsWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-green-600">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">
             ₦{totalRevenue.toFixed(2)}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-blue-600">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">
             {completedPayments}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-yellow-600">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">
             {pendingPayments}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-red-600">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-red-600">
             {failedPayments}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Failed</div>

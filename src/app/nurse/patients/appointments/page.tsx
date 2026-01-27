@@ -118,7 +118,7 @@ export default function NursePatientAppointmentsPage() {
   if (error) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Appointments</h2>
+        <h2 className="text-[16px] md:text-[18px] font-semibold text-red-600 mb-2">Error Loading Appointments</h2>
         <p className="text-gray-600 mb-4">Failed to fetch patient appointments.</p>
         <button
           onClick={() => refetch()}

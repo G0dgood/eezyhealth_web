@@ -94,7 +94,7 @@ export default function Pagination({
 								{page}
 							</button>
 						) : (
-							<span key={index} className="px-2 text-sm text-gray-500">
+							<span key={index} className="px-2 text-[10px] md:text-[12px] text-gray-500">
 								...
 							</span>
 						),

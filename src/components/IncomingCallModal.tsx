@@ -17,9 +17,9 @@ export default function IncomingCallModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-[360px] text-center space-y-4 shadow-xl animate-in fade-in zoom-in duration-200">
 
-        <h2 className="text-xl font-semibold">Incoming Call</h2>
+        <h2 className="text-[16px] md:text-[18px] font-semibold">Incoming Call</h2>
 
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-3xl">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-[20px] md:text-[24px]">
           {call.state.createdBy?.name?.charAt(0) || "?"}
         </div>
 

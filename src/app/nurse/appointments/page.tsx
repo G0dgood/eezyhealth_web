@@ -82,7 +82,7 @@ export default function NurseAppointmentsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Appointments</h1>
+        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2">Appointments</h1>
         <p className="text-gray-600">
           Manage and schedule patient appointments
         </p>
@@ -130,7 +130,7 @@ export default function NurseAppointmentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Today&apos;s Appointments</p>
-              <p className="text-2xl font-bold text-blue-600">5</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">5</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-blue-600" />
@@ -142,7 +142,7 @@ export default function NurseAppointmentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending Confirmations</p>
-              <p className="text-2xl font-bold text-yellow-600">2</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-yellow-600">2</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-yellow-600" />
@@ -154,7 +154,7 @@ export default function NurseAppointmentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Completed Today</p>
-              <p className="text-2xl font-bold text-green-600">3</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-green-600">3</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-green-600" />

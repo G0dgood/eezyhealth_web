@@ -255,7 +255,7 @@ const DoctorAccountManagementPage = () => {
 			<div className="max-w-7xl mx-auto">
 				{/* Header */}
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-gray-900 flex items-center">
+					<h1 className="text-[20px] md:text-[24px] font-bold text-gray-900 flex items-center">
 						<Shield className="h-8 w-8 mr-3 text-blue-600" />
 						Doctor Account Management
 					</h1>
@@ -271,7 +271,7 @@ const DoctorAccountManagementPage = () => {
 							<Users className="h-8 w-8 text-blue-600" />
 							<div className="ml-4">
 								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Total Doctors</p>
-								<p className="text-2xl font-bold text-gray-900">{doctorsData?.length || 0}</p>
+								<p className="text-[18px] md:text-[20px] font-bold text-gray-900">{doctorsData?.length || 0}</p>
 							</div>
 						</div>
 					</div>
@@ -281,7 +281,7 @@ const DoctorAccountManagementPage = () => {
 							<CheckCircle className="h-8 w-8 text-green-600" />
 							<div className="ml-4">
 								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Active Doctors</p>
-								<p className="text-2xl font-bold text-gray-900">
+								<p className="text-[18px] md:text-[20px] font-bold text-gray-900">
 									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => d.isActive).length || 0}
 								</p>
 							</div>
@@ -293,7 +293,7 @@ const DoctorAccountManagementPage = () => {
 							<AlertCircle className="h-8 w-8 text-red-600" />
 							<div className="ml-4">
 								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Inactive Doctors</p>
-								<p className="text-2xl font-bold text-gray-900">
+								<p className="text-[18px] md:text-[20px] font-bold text-gray-900">
 									{(doctorsData as unknown as DoctorData[])?.filter((d: DoctorData) => !d.isActive).length || 0}
 								</p>
 							</div>
@@ -305,7 +305,7 @@ const DoctorAccountManagementPage = () => {
 							<Activity className="h-8 w-8 text-purple-600" />
 							<div className="ml-4">
 								<p className="text-[10px] md:text-[12px] font-medium text-gray-600">Recent Actions</p>
-								<p className="text-2xl font-bold text-gray-900">{auditLogs?.length || 0}</p>
+								<p className="text-[18px] md:text-[20px] font-bold text-gray-900">{auditLogs?.length || 0}</p>
 							</div>
 						</div>
 					</div>
@@ -415,7 +415,7 @@ const DoctorAccountManagementPage = () => {
 				{/* Doctors Table */}
 				<div className="bg-white rounded-lg shadow overflow-hidden">
 					<div className="px-6 py-4 border-b border-gray-200">
-						<h3 className="text-lg font-medium text-gray-900">Doctor Accounts</h3>
+						<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">Doctor Accounts</h3>
 					</div>
 
 					<div className="overflow-x-auto">
@@ -546,7 +546,7 @@ const DoctorAccountManagementPage = () => {
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
 							<div className="flex justify-between items-center mb-4">
-								<h3 className="text-lg font-medium text-gray-900">
+								<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
 									Data Verification - {selectedDoctor.display_name}
 								</h3>
 								<Button
@@ -604,7 +604,7 @@ const DoctorAccountManagementPage = () => {
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
 							<div className="flex justify-between items-center mb-4">
-								<h3 className="text-lg font-medium text-gray-900">
+								<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
 									Data Export - {selectedDoctor?.display_name}
 								</h3>
 								<Button
@@ -623,25 +623,25 @@ const DoctorAccountManagementPage = () => {
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 									<div className="bg-blue-50 p-3 rounded-lg">
 										<p className="text-[10px] md:text-[12px] text-gray-600">Profile</p>
-										<p className="text-lg font-semibold text-blue-600">
+										<p className="text-[14px] md:text-[16px] font-semibold text-blue-600">
 											{exportData.profile ? "1" : "0"}
 										</p>
 									</div>
 									<div className="bg-green-50 p-3 rounded-lg">
 										<p className="text-[10px] md:text-[12px] text-gray-600">Appointments</p>
-										<p className="text-lg font-semibold text-green-600">
+										<p className="text-[14px] md:text-[16px] font-semibold text-green-600">
 											{exportData.appointments?.length || 0}
 										</p>
 									</div>
 									<div className="bg-purple-50 p-3 rounded-lg">
 										<p className="text-[10px] md:text-[12px] text-gray-600">Documents</p>
-										<p className="text-lg font-semibold text-purple-600">
+										<p className="text-[14px] md:text-[16px] font-semibold text-purple-600">
 											{exportData.documents?.length || 0}
 										</p>
 									</div>
 									<div className="bg-orange-50 p-3 rounded-lg">
 										<p className="text-[10px] md:text-[12px] text-gray-600">Analytics</p>
-										<p className="text-lg font-semibold text-orange-600">
+										<p className="text-[14px] md:text-[16px] font-semibold text-orange-600">
 											{exportData.analytics?.length || 0}
 										</p>
 									</div>
@@ -665,7 +665,7 @@ const DoctorAccountManagementPage = () => {
 				{showAuditLogs && (
 					<div className="mt-6 bg-white rounded-lg shadow">
 						<div className="px-6 py-4 border-b border-gray-200">
-							<h3 className="text-lg font-medium text-gray-900">Recent Audit Logs</h3>
+							<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">Recent Audit Logs</h3>
 						</div>
 
 						<div className="overflow-x-auto">

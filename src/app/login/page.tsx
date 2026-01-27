@@ -31,19 +31,19 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mx-auto h-20 w-20 bg-[#44CE2D] rounded-full flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">E</span>
+            <span className="text-white text-[18px] md:text-[20px] font-bold">E</span>
           </div>
-          <h2 className="mt-6 text-2xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-[18px] md:text-[20px] font-extrabold text-gray-900">
             Welcome to EezyHealth
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-[10px] md:text-[12px] text-gray-600">
             Sign in to access your healthcare dashboard
           </p>
         </div>
 
         <div className="mt-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-[10px] md:text-[12px]">
               {error}
             </div>
           )}
@@ -51,7 +51,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#44CE2D] hover:bg-[#3bb025] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#44CE2D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-[10px] md:text-[12px] font-medium rounded-md text-white bg-[#44CE2D] hover:bg-[#3bb025] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#44CE2D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {isLoading ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

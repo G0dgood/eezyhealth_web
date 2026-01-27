@@ -46,7 +46,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   return (
     <div className={`w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
       <div className="p-6 h-[80px] border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+        <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Messages</h2>
       </div>
 
       {/* Search Bar */}
@@ -73,13 +73,12 @@ const ConversationList: React.FC<ConversationListProps> = ({
             <div
               key={`patient-${patient.id}-${i}`}
               onClick={() => handlePatientSelect(patient, i)}
-              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedConversation === `patient-${i}` ? "bg-blue-50" : ""
-              }`}
+              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation === `patient-${i}` ? "bg-blue-50" : ""
+                }`}
             >
               <div className="flex items-start gap-3">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg overflow-hidden">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-[14px] md:text-[16px] overflow-hidden">
                     {patient.photo_url ? (
                       <img
                         src={patient.photo_url}

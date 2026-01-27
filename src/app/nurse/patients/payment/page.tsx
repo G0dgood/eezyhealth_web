@@ -368,10 +368,10 @@ export default function PaymentPage() {
       <div>
         <div className="text-center">
           <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-[20px] md:text-[24px] font-bold text-gray-900 mb-4">
             Payment Successful!
           </h1>
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-[14px] md:text-[16px] text-gray-600 mb-6">
             Your appointment has been confirmed and payment processed.
           </p>
           <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
@@ -400,7 +400,7 @@ export default function PaymentPage() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Payment</h1>
+            <h1 className="text-[20px] md:text-[24px] font-bold text-gray-900">Payment</h1>
             <p className="text-gray-600">Complete your appointment booking</p>
           </div>
         </div>
@@ -409,7 +409,7 @@ export default function PaymentPage() {
           {/* Left Panel - Payment Methods */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
                 Select Payment Method
               </h2>
 
@@ -500,7 +500,7 @@ export default function PaymentPage() {
           {/* Right Panel - Booking Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
                 Booking Summary
               </h2>
 
@@ -545,10 +545,10 @@ export default function PaymentPage() {
 
                 {/* Total */}
                 <div className="flex justify-between items-center py-4 border-t border-gray-200">
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-[14px] md:text-[16px] font-semibold text-gray-900">
                     Total:
                   </span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span className="text-[18px] md:text-[20px] font-bold text-green-600">
                     N{(consultationFee / 100).toLocaleString()}
                   </span>
                 </div>

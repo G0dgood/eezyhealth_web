@@ -72,21 +72,21 @@ const AdminBookingsWidget: React.FC = () => {
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "N/A";
     let dateStr = String(dateString);
-    
+
     // Replace " at " with space, case insensitive
     dateStr = dateStr.replace(/\s+at\s+/i, " ");
-    
+
     // Replace narrow no-break space (U+202F) and other non-standard spaces with regular space
     dateStr = dateStr.replace(/[\u202F\u00A0]/g, " ");
-    
+
     let date = new Date(dateStr);
-    
+
     // If date is invalid, try removing timezone offset if present
     if (isNaN(date.getTime()) && dateStr.includes("UTC")) {
       const cleaned = dateStr.replace(/\s*UTC[+\-]?\d*$/, "");
       date = new Date(cleaned);
     }
-    
+
     if (isNaN(date.getTime())) return "N/A";
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -106,12 +106,12 @@ const AdminBookingsWidget: React.FC = () => {
       // Handle Firebase formatted dates like "January 27, 2026 at 1:00:00 AM UTC+1"
       // Replace " at " with space, case insensitive
       dateStr = dateStr.replace(/\s+at\s+/i, " ");
-      
+
       // Replace narrow no-break space (U+202F) and other non-standard spaces with regular space
       dateStr = dateStr.replace(/[\u202F\u00A0]/g, " ");
-      
+
       date = new Date(dateStr);
-      
+
       // If date is invalid, try removing timezone offset if present (e.g. UTC+1 which might confuse some parsers)
       if (isNaN(date.getTime()) && dateStr.includes("UTC")) {
         const cleaned = dateStr.replace(/\s*UTC[+\-]?\d*$/, "");
@@ -122,9 +122,9 @@ const AdminBookingsWidget: React.FC = () => {
     } else {
       date = new Date(String(dateVal));
     }
-    
+
     if (isNaN(date.getTime())) return "N/A";
-    
+
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
@@ -198,7 +198,7 @@ const AdminBookingsWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <Calendar className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Bookings Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
@@ -218,7 +218,7 @@ const AdminBookingsWidget: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Recent Bookings</h3>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Recent Bookings</h3>
             <p className="text-xs md:text-sm text-gray-500">Latest appointment bookings</p>
           </div>
         </div>
@@ -227,19 +227,19 @@ const AdminBookingsWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-blue-600">{totalBookings}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{totalBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Total</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-green-600">{confirmedBookings}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">{confirmedBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Confirmed</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-yellow-600">{pendingBookings}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">{pendingBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-red-600">{cancelledBookings}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-red-600">{cancelledBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Cancelled</div>
         </div>
       </div>
@@ -276,7 +276,7 @@ const AdminBookingsWidget: React.FC = () => {
             </div>
 
             <div className="space-y-1.5 md:space-y-2">
-             
+
               {(booking.slot || booking.appointment_time) && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-xs">🕐</span>

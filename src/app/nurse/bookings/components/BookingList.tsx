@@ -28,7 +28,7 @@ interface Booking {
 const BookingList = () => {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-console.log('bookings------>',bookings)
+  console.log('bookings------>', bookings)
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -119,10 +119,10 @@ console.log('bookings------>',bookings)
                           {booking?.patientName || "—"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
                         {booking?.doctorName || "—"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
                         {booking?.bookingDate ? (
                           <FormattedDate timestamp={booking.bookingDate} />
                         ) : booking?.date ? (
@@ -131,7 +131,7 @@ console.log('bookings------>',bookings)
                           "—"
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
                         {booking?.slot ? (
                           <span className="capitalize">
                             {booking.slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -142,10 +142,10 @@ console.log('bookings------>',bookings)
                           "—"
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
                         {booking?.bookingChannel || "—"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
                         {booking?.specialization || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -165,15 +165,15 @@ console.log('bookings------>',bookings)
               </tbody>
             </table>
           </div>
-          {/* Pagination Controls */} 
-              <Pagination
-                currentPage={currentPage}
-                totalCount={filteredBookings.length}
-                pageSize={itemsPerPage}
-                onPageChange={setCurrentPage}
-                itemLabel="bookings"
-    
-              />  
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredBookings.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="bookings"
+
+          />
         </div>
       )}
 

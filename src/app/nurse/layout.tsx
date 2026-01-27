@@ -27,17 +27,17 @@ function NurseLayout({ children }: LayoutProps) {
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
-  
+
   // Stream Video Token Logic
   const [streamToken, setStreamToken] = useState<string>("");
   const [createStreamToken] = useCreateStreamTokenMutation();
 
   useEffect(() => {
     if (authUser && !streamToken) {
-       createStreamToken({ name: authUser.displayName || "Nurse" })
-         .unwrap()
-         .then((res) => setStreamToken(res.token))
-         .catch((err) => console.error("Failed to generate global video token", err));
+      createStreamToken({ name: authUser.displayName || "Nurse" })
+        .unwrap()
+        .then((res) => setStreamToken(res.token))
+        .catch((err) => console.error("Failed to generate global video token", err));
     }
   }, [authUser, streamToken, createStreamToken]);
 
@@ -109,32 +109,32 @@ function NurseLayout({ children }: LayoutProps) {
   return (
     <ProtectedRoute>
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
-        <VideoProvider 
-            apiKey="4g6sfwegs7he" 
-            token={streamToken} 
-            userId={authUser?.uid || ""} 
-            userName={authUser?.displayName || "Nurse"}
+        <VideoProvider
+          apiKey="4g6sfwegs7he"
+          token={streamToken}
+          userId={authUser?.uid || ""}
+          userName={authUser?.displayName || "Nurse"}
         >
-        <div id="page-wrapper">
-          <Header
-            userRole="nurse"
-            notificationCount={3}
-            onMobileMenuToggle={handleMobileMenuToggle}
-            onEditClick={handleEditClick}
-            className={transitionClasses}
-            userInfo={userInfo}
-          />
-          <RoleBasedSidenav
-            userRole="nurse"
-            isMobileOpen={isMobileSidenavOpen}
-            onMobileClose={handleMobileSidenavClose}
-          />
-          <main
-            className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
-            data-page={isMessagePage ? "message" : undefined}>
-            {children}
-          </main>
-        </div>
+          <div id="page-wrapper">
+            <Header
+              userRole="nurse"
+              notificationCount={3}
+              onMobileMenuToggle={handleMobileMenuToggle}
+              onEditClick={handleEditClick}
+              className={transitionClasses}
+              userInfo={userInfo}
+            />
+            <RoleBasedSidenav
+              userRole="nurse"
+              isMobileOpen={isMobileSidenavOpen}
+              onMobileClose={handleMobileSidenavClose}
+            />
+            <main
+              className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
+              data-page={isMessagePage ? "message" : undefined}>
+              {children}
+            </main>
+          </div>
         </VideoProvider>
 
         <Modal
@@ -151,8 +151,8 @@ function NurseLayout({ children }: LayoutProps) {
             </div>
 
             <div className="text-center w-full space-y-2">
-              <h4 className="text-xl font-semibold text-gray-900">Profile Incomplete</h4>
-              <p className="text-gray-500 max-w-xs mx-auto text-sm">
+              <h4 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Profile Incomplete</h4>
+              <p className="text-gray-500 max-w-xs mx-auto text-[10px] md:text-[12px]">
                 To ensure you can receive job offers and get paid, please complete the following details:
               </p>
             </div>
@@ -160,25 +160,25 @@ function NurseLayout({ children }: LayoutProps) {
             <div className="w-full bg-gray-50 rounded-xl p-4 border border-gray-100">
               <div className="space-y-3">
                 {!(userInfo as any)?.medical_license && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Medical License</span>
                   </div>
                 )}
                 {!(userInfo as any)?.experience_yrs && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Years of Experience</span>
                   </div>
                 )}
                 {!(userInfo as any)?.hospital && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Hospital/Clinic</span>
                   </div>
                 )}
                 {!(userInfo as any)?.about && (
-                  <div className="flex items-center text-sm text-gray-700">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-700">
                     <XCircle className="w-4 h-4 text-red-500 mr-3 flex-shrink-0" />
                     <span>Bio</span>
                   </div>

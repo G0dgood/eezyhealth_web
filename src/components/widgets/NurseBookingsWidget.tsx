@@ -251,10 +251,10 @@ const NurseBookingsWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <Calendar className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Upcoming Appointments
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className="text-[10px] md:text-[12px] text-gray-500 text-center mb-4">
             No appointments scheduled yet. Check back later for updates.
           </p>
         </div>
@@ -271,8 +271,8 @@ const NurseBookingsWidget: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Upcoming Appointments</h3>
-            <p className="text-xs md:text-sm text-gray-500">Next patient care schedule</p>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Upcoming Appointments</h3>
+            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Next patient care schedule</p>
           </div>
         </div>
       </div>
@@ -280,19 +280,19 @@ const NurseBookingsWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-blue-600">{totalUpcoming}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{totalUpcoming}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Total Upcoming</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-green-600">{completedVitals}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">{completedVitals}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Vitals Done</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-yellow-600">{pendingVitals}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">{pendingVitals}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Pending Vitals</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-red-600">{urgentCases}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-red-600">{urgentCases}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Urgent Cases</div>
         </div>
       </div>
@@ -309,10 +309,10 @@ const NurseBookingsWidget: React.FC = () => {
                   <Users size={16} className="text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
+                  <h4 className="font-medium text-[10px] md:text-[12px] md:text-base text-gray-900 truncate">
                     {appointment.patientName || "Unknown Patient"}
                   </h4>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                  <p className="text-xs md:text-[10px] md:text-[12px] text-gray-600 truncate">
                     {appointment.doctorName || "Unknown Doctor"}
                   </p>
                 </div>
@@ -335,7 +335,7 @@ const NurseBookingsWidget: React.FC = () => {
 
             <div className="space-y-1.5 md:space-y-2">
               {appointment.appointmentTime ? (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                   <span className="text-xs">🕐</span>
                   <span>
                     {formatTime(
@@ -345,14 +345,14 @@ const NurseBookingsWidget: React.FC = () => {
                 </div>
               ) : null}
               {appointment.reason && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                   <span className="text-xs">📋</span>
                   <span>
                     {appointment.reason || "Consultation"}
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                 <span className="text-xs">👨‍⚕️</span>
                 <span>Dr. {appointment.doctorName || "Unknown"}</span>
               </div>
@@ -364,25 +364,25 @@ const NurseBookingsWidget: React.FC = () => {
                 {appointment.vitalSigns.bloodPressure && (
                   <div className="bg-gray-50 p-2 rounded flex flex-col">
                     <span className="text-[10px] text-gray-500 uppercase">Blood Pressure</span>
-                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.bloodPressure} <span className="text-[10px] font-normal text-gray-500">mmHg</span></span>
+                    <span className="text-[10px] md:text-[12px] font-semibold text-gray-900">{appointment.vitalSigns.bloodPressure} <span className="text-[10px] font-normal text-gray-500">mmHg</span></span>
                   </div>
                 )}
                 {appointment.vitalSigns.heartRate && (
                   <div className="bg-gray-50 p-2 rounded flex flex-col">
                     <span className="text-[10px] text-gray-500 uppercase">Heart Rate</span>
-                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.heartRate} <span className="text-[10px] font-normal text-gray-500">bpm</span></span>
+                    <span className="text-[10px] md:text-[12px] font-semibold text-gray-900">{appointment.vitalSigns.heartRate} <span className="text-[10px] font-normal text-gray-500">bpm</span></span>
                   </div>
                 )}
                 {appointment.vitalSigns.temperature && (
                   <div className="bg-gray-50 p-2 rounded flex flex-col">
                     <span className="text-[10px] text-gray-500 uppercase">Temperature</span>
-                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.temperature} <span className="text-[10px] font-normal text-gray-500">°C</span></span>
+                    <span className="text-[10px] md:text-[12px] font-semibold text-gray-900">{appointment.vitalSigns.temperature} <span className="text-[10px] font-normal text-gray-500">°C</span></span>
                   </div>
                 )}
                 {appointment.vitalSigns.weight && (
                   <div className="bg-gray-50 p-2 rounded flex flex-col">
                     <span className="text-[10px] text-gray-500 uppercase">Weight</span>
-                    <span className="text-sm font-semibold text-gray-900">{appointment.vitalSigns.weight} <span className="text-[10px] font-normal text-gray-500">kg</span></span>
+                    <span className="text-[10px] md:text-[12px] font-semibold text-gray-900">{appointment.vitalSigns.weight} <span className="text-[10px] font-normal text-gray-500">kg</span></span>
                   </div>
                 )}
               </div>
@@ -416,20 +416,20 @@ const NurseBookingsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">Upcoming Schedule: {totalUpcoming} appointments</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
+          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Upcoming Schedule: {totalUpcoming} appointments</span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Vitals Done: {completedVitals}</span>
+              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Vitals Done: {completedVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingVitals}</span>
+              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Pending: {pendingVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Urgent: {urgentCases}</span>
+              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Urgent: {urgentCases}</span>
             </div>
           </div>
         </div>

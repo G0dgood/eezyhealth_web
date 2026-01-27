@@ -102,7 +102,7 @@ export default function NotificationsDemoPage() {
                 <Bell className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {notifications.length}
                 </p>
                 <p className="text-sm text-gray-600">Total Notifications</p>
@@ -116,7 +116,7 @@ export default function NotificationsDemoPage() {
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {unreadCount}
                 </p>
                 <p className="text-sm text-gray-600">Unread</p>
@@ -130,7 +130,7 @@ export default function NotificationsDemoPage() {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[18px] md:text-[20px] font-bold text-gray-900">
                   {notifications.filter((n) => n.isRead).length}
                 </p>
                 <p className="text-sm text-gray-600">Read</p>
@@ -141,7 +141,7 @@ export default function NotificationsDemoPage() {
 
         {/* Controls */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-4">
             Add Notifications
           </h2>
 
@@ -185,7 +185,7 @@ export default function NotificationsDemoPage() {
 
         {/* Current Notifications */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-4">
             Current Notifications
           </h2>
 
@@ -199,18 +199,18 @@ export default function NotificationsDemoPage() {
                 <div
                   key={notification.id}
                   className={`p-4 rounded-lg border ${notification.isRead
-                      ? "bg-gray-50 border-gray-200"
-                      : "bg-blue-50 border-blue-200"
+                    ? "bg-gray-50 border-gray-200"
+                    : "bg-blue-50 border-blue-200"
                     }`}>
                   <div className="flex items-start space-x-3">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center ${notification.type === "success"
-                          ? "bg-green-100"
-                          : notification.type === "error"
-                            ? "bg-red-100"
-                            : notification.type === "warning"
-                              ? "bg-yellow-100"
-                              : "bg-blue-100"
+                        ? "bg-green-100"
+                        : notification.type === "error"
+                          ? "bg-red-100"
+                          : notification.type === "warning"
+                            ? "bg-yellow-100"
+                            : "bg-blue-100"
                         }`}>
                       {notification.type === "success" && (
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -238,8 +238,8 @@ export default function NotificationsDemoPage() {
                         </span>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${notification.isRead
-                              ? "bg-gray-200 text-gray-700"
-                              : "bg-blue-200 text-blue-700"
+                            ? "bg-gray-200 text-gray-700"
+                            : "bg-blue-200 text-blue-700"
                             }`}>
                           {notification.isRead ? "Read" : "Unread"}
                         </span>

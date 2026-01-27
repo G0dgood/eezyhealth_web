@@ -142,7 +142,7 @@ export default function BookAppointmentPage() {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-[16px] md:text-[18px] sm:text-2xl font-bold text-gray-900">
             Book Appointment
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
@@ -157,8 +157,8 @@ export default function BookAppointmentPage() {
           <div
             key={doctor.id}
             className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${selectedDoctor === doctor.id
-                ? "border-green-500 ring-2 ring-green-200"
-                : "border-gray-200 hover:border-green-300"
+              ? "border-green-500 ring-2 ring-green-200"
+              : "border-gray-200 hover:border-green-300"
               }`}
             onClick={() => handleDoctorSelect(doctor.id)}>
             {/* Doctor Header */}
@@ -172,7 +172,7 @@ export default function BookAppointmentPage() {
                   className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">
+                  <h3 className="text-base sm:text-[14px] md:text-[16px] font-semibold text-gray-900 mb-1 truncate">
                     {doctor.name}
                   </h3>
                   <p className="text-green-600 font-medium mb-2 text-sm sm:text-base">
@@ -184,8 +184,8 @@ export default function BookAppointmentPage() {
                         <Star
                           key={i}
                           className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(doctor.rating)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
                             }`}
                         />
                       ))}
@@ -227,7 +227,7 @@ export default function BookAppointmentPage() {
             {/* Footer */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-100">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                <span className="text-base sm:text-lg font-bold text-green-600">
+                <span className="text-base sm:text-[14px] md:text-[16px] font-bold text-green-600">
                   {doctor.consultationFee}
                 </span>
                 <Link

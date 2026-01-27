@@ -25,7 +25,7 @@ export default function DoctorVerificationWidget({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = maxItems;
   const totalPages = Math.ceil(requests.length / itemsPerPage);
-  
+
   const paginatedRequests = requests.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -53,7 +53,7 @@ export default function DoctorVerificationWidget({
             <UserCheck className="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
               Doctor Verification Requests
             </h3>
             <p className="text-xs md:text-sm text-gray-500">
@@ -75,8 +75,8 @@ export default function DoctorVerificationWidget({
         ) : (
           <div className="flex flex-col gap-3">
             {paginatedRequests.map((request, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3 border border-gray-100"
               >
                 {/* User Info */}
@@ -111,8 +111,8 @@ export default function DoctorVerificationWidget({
             ))}
           </div>
         )}
-      {/* Pagination */}
-      {totalPages > 1 && ( 
+        {/* Pagination */}
+        {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalCount={requests.length}
@@ -120,8 +120,8 @@ export default function DoctorVerificationWidget({
             onPageChange={setCurrentPage}
             itemLabel="requests"
             className="mt-4"
-          /> 
-      )}
+          />
+        )}
       </div>
 
 

@@ -99,7 +99,7 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-blue-500 to-indigo-600",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
-      description: "All registered users",  
+      description: "All registered users",
     },
     {
       title: "Total Doctors",
@@ -108,7 +108,7 @@ const AdminStatsCards: React.FC = () => {
       gradient: "from-green-500 to-emerald-600",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
-      description: "Verified doctors" 
+      description: "Verified doctors"
     },
     {
       title: "Total Bookings",
@@ -154,7 +154,7 @@ const AdminStatsCards: React.FC = () => {
             <Users className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">System Overview</h3>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">System Overview</h3>
             <p className="text-xs md:text-sm text-gray-500">Key metrics and statistics</p>
           </div>
         </div>
@@ -179,11 +179,11 @@ const AdminStatsCards: React.FC = () => {
                     className={`w-8 h-8 md:w-10 md:h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
                     <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${item.iconColor}`} />
                   </div>
-                   
+
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
                   <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">

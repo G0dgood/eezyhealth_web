@@ -303,7 +303,7 @@ export default function Bookings() {
     // Debug: Log bookings for each day
     newWeekBookings.forEach((day) => {
       if (day.bookings.length > 0) {
-        day.bookings.forEach((booking) => {});
+        day.bookings.forEach((booking) => { });
       }
     });
     setWeekBookings(newWeekBookings);
@@ -321,7 +321,7 @@ export default function Bookings() {
 
   // Simulate loading for demonstration
   useEffect(() => {
-    const timer = setTimeout(() => {}, 2000); // Show skeleton for 2 seconds
+    const timer = setTimeout(() => { }, 2000); // Show skeleton for 2 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -385,7 +385,7 @@ export default function Bookings() {
           {/* Calendar Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
                 {currentMonth}
               </h3>
               <p className="text-sm text-gray-500">
@@ -471,11 +471,10 @@ export default function Bookings() {
                     return (
                       <div
                         key={`${day.date}-${timeSlot.key}`}
-                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${
-                          booking
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
                             ? "cursor-pointer hover:scale-105 transition-transform"
                             : ""
-                        }`}
+                          }`}
                       >
                         {booking && (
                           <div

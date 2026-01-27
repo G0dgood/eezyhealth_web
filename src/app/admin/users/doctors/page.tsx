@@ -229,7 +229,7 @@ export default function AdminDoctorsPage() {
   if (isError) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-4">
           Failed to load doctors
         </h2>
         <p className="text-gray-600 mb-6">
@@ -276,7 +276,7 @@ export default function AdminDoctorsPage() {
 
       {/* Top Doctors Section */}
       <div className="mb-12 cursor-pointer">
-        <h2 className="text-2xl font-semibold mb-6">Top Doctors</h2>
+        <h2 className="text-[18px] md:text-[20px] font-semibold mb-6">Top Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {topDoctors.map((doctor, index) => (
             <div
@@ -304,7 +304,7 @@ export default function AdminDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.title || `${doctor.title}`.trim() || "N/A"}
                 </h3>
                 <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
@@ -351,7 +351,7 @@ export default function AdminDoctorsPage() {
 
       {/* Regular Doctors Section */}
       <div>
-        <h2 className="text-2xl font-semibold mb-6">All Doctors</h2>
+        <h2 className="text-[18px] md:text-[20px] font-semibold mb-6">All Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {regularDoctors?.map((doctor: Doctor) => (
             <div
@@ -372,7 +372,7 @@ export default function AdminDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.display_name || `${doctor.title}`.trim() || "N/A"}
                 </h3>
                 <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">

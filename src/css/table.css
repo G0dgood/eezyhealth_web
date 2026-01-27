@@ -73,7 +73,7 @@ table {
 table thead tr th {
   text-align: left !important;
   padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
+  font-size: 0.70rem !important;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;

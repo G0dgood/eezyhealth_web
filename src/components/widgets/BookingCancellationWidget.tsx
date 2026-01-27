@@ -149,7 +149,7 @@ const BookingCancellationWidget: React.FC = () => {
         <div className="w-16 h-16 mb-4 bg-red-50 rounded-full flex items-center justify-center">
           <AlertTriangle className="text-red-500" size={32} />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
           Failed to load requests
         </h3>
         <p className="text-gray-500 text-center text-sm mb-4">
@@ -168,7 +168,7 @@ const BookingCancellationWidget: React.FC = () => {
         <div className="w-20 h-20 mb-6 bg-green-50 rounded-full flex items-center justify-center animate-pulse">
           <CheckCircle className="text-green-500" size={40} />
         </div>
-        <h2 className="text-xl md:text-2xl font-bold mb-3 text-gray-900">
+        <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold mb-3 text-gray-900">
           No Cancellation Requests
         </h2>
         <p className="text-gray-500 text-center max-w-md text-sm md:text-base leading-relaxed">
@@ -193,7 +193,7 @@ const BookingCancellationWidget: React.FC = () => {
       gradient: "from-red-500 to-pink-600",
       bgColor: "bg-red-50",
       iconColor: "text-red-600",
-      description: "All cancellation requests", 
+      description: "All cancellation requests",
     },
     {
       title: "Pending",
@@ -262,7 +262,7 @@ const BookingCancellationWidget: React.FC = () => {
             <AlertTriangle className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
               Cancellation Requests
             </h3>
             <p className="text-xs md:text-sm text-gray-500">
@@ -296,11 +296,11 @@ const BookingCancellationWidget: React.FC = () => {
                     className={`w-8 h-8 md:w-10 md:h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
                     <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${item.iconColor}`} />
                   </div>
-                   
+
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
                   <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
@@ -317,7 +317,7 @@ const BookingCancellationWidget: React.FC = () => {
       {/* Recent Cancellations */}
       <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-base md:text-lg font-semibold text-gray-900">
+          <h4 className="text-base md:text-[14px] md:text-[16px] font-semibold text-gray-900">
             Recent Requests
           </h4>
           <span className="text-xs md:text-sm text-gray-500">

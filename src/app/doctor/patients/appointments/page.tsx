@@ -114,7 +114,7 @@ export default function DoctorPatientAppointmentsPage() {
   if (error) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Appointments</h2>
+        <h2 className="text-[16px] md:text-[18px] font-semibold text-red-600 mb-2">Error Loading Appointments</h2>
         <p className="text-gray-600 mb-4">Failed to fetch patient appointments.</p>
         <button
           onClick={() => refetch()}
@@ -145,7 +145,7 @@ export default function DoctorPatientAppointmentsPage() {
             className="text-gray-600 hover:text-gray-800 cursor-pointer">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{patientName}</h1>
+          <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900">{patientName}</h1>
         </div>
 
         {/* Tabs */}
@@ -231,13 +231,12 @@ export default function DoctorPatientAppointmentsPage() {
                     {/* Status Column */}
                     <td>
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          appointment.status === "Upcoming"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === "Upcoming"
                             ? "bg-blue-100 text-blue-800"
                             : appointment.status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {appointment.status}
                       </span>
@@ -263,15 +262,15 @@ export default function DoctorPatientAppointmentsPage() {
             </tbody>
           </table>
         </div>
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalCount={filteredAppointments.length}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-        itemLabel="appointments"
-        className="border-t border-gray-200"
-      />
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalCount={filteredAppointments.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          itemLabel="appointments"
+          className="border-t border-gray-200"
+        />
       </div>
 
 

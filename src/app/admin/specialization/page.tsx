@@ -120,7 +120,7 @@ export default function AdminSpecializationPage() {
         )} p-6 shadow-sm relative`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
               {specialization.name}
             </h3>
             <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">

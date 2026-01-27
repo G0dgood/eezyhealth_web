@@ -199,7 +199,7 @@ const PaymentWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <CreditCard className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Payments Found
           </h3>
           <p className="text-sm text-gray-500 text-center mb-4">
@@ -219,7 +219,7 @@ const PaymentWidget: React.FC = () => {
             <CreditCard className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Payment Overview</h3>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Payment Overview</h3>
             <p className="text-xs md:text-sm text-gray-500">Your practice earnings</p>
           </div>
         </div>
@@ -228,19 +228,19 @@ const PaymentWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-green-600 truncate">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600 truncate">
             ₦{totalRevenue.toFixed(2)}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-blue-600 truncate">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600 truncate">
             ₦{thisMonthRevenue.toFixed(2)}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">This Month</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-purple-600 truncate">{completedPayments}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-purple-600 truncate">{completedPayments}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
         </div>
       </div>

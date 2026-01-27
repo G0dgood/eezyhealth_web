@@ -90,7 +90,7 @@ export default function DoctorOfMonthPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Top Performers This Month */}
         <div className="lg:col-span-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-4">
             Top Performers This Month
           </h3>
           <div className="space-y-3">
@@ -105,7 +105,7 @@ export default function DoctorOfMonthPage() {
                     <p className="text-[10px] md:text-[12px] text-gray-600">Cardiologist</p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-green-600">98.3</span>
+                <span className="text-[14px] md:text-[16px] font-bold text-green-600">98.3</span>
               </div>
             </div>
 
@@ -122,7 +122,7 @@ export default function DoctorOfMonthPage() {
                     <p className="text-[10px] md:text-[12px] text-gray-600">Cardiologist</p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-green-600">98.0</span>
+                <span className="text-[14px] md:text-[16px] font-bold text-green-600">98.0</span>
               </div>
             </div>
 
@@ -139,7 +139,7 @@ export default function DoctorOfMonthPage() {
                     <p className="text-[10px] md:text-[12px] text-gray-600">Cardiologist</p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-green-600">97.3</span>
+                <span className="text-[14px] md:text-[16px] font-bold text-green-600">97.3</span>
               </div>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function DoctorOfMonthPage() {
 
         {/* Past Doctors of The Month Table */}
         <div className="lg:col-span-2">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-4">
             Past Doctors of The Month
           </h3>
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">

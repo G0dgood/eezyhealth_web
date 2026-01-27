@@ -284,7 +284,7 @@ export default function DoctorMessagePage() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">💬</span>
               </div>
-              <p className="text-lg font-medium">Select a conversation</p>
+              <p className="text-[14px] md:text-[16px] font-medium">Select a conversation</p>
               <p className="text-sm">Choose a patient to start messaging</p>
             </div>
           </div>

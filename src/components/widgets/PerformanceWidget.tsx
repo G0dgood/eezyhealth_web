@@ -43,11 +43,11 @@ const PerformanceWidget: React.FC = () => {
             <Activity className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Performance</h3>
-            <p className="text-xs md:text-sm text-gray-500">Key performance indicators</p>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Performance</h3>
+            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Key performance indicators</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-green-600 text-xs md:text-sm font-medium">
+        <div className="flex items-center gap-2 text-green-600 text-xs md:text-[10px] md:text-[12px] font-medium">
           <TrendingUp size={14} />
           <span>All metrics up</span>
         </div>
@@ -75,10 +75,10 @@ const PerformanceWidget: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1 truncate">
+                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1 truncate">
                     {item.value}
                   </h2>
-                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1 truncate">
+                  <h3 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1 truncate">
                     {item.title}
                   </h3>
                   <p className="text-[10px] md:text-xs text-gray-500 truncate">{item.description}</p>
@@ -93,7 +93,7 @@ const PerformanceWidget: React.FC = () => {
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-1">
+            <h4 className="text-[10px] md:text-[12px] font-semibold text-gray-900 mb-1">
               Overall Performance
             </h4>
             <p className="text-xs text-gray-600">
@@ -101,7 +101,7 @@ const PerformanceWidget: React.FC = () => {
             </p>
           </div>
           <div className="text-left md:text-right">
-            <div className="text-lg font-bold text-green-600">Excellent</div>
+            <div className="text-[14px] md:text-[16px] font-bold text-green-600">Excellent</div>
             <div className="text-xs text-green-600 font-medium flex items-center gap-1">
               <TrendingUp size={12} />
               +12% improvement

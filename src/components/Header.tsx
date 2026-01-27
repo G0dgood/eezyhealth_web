@@ -80,7 +80,7 @@ export default function Header({
 
         <div className="flex items-center space-x-2">
           <span
-            className="text-base md:text-lg font-medium"
+            className="text-base md:text-[14px] md:text-[16px] font-medium"
             style={{ color: "var(--foreground)" }}
           >
             {userInfo
@@ -130,7 +130,7 @@ export default function Header({
             {/* User info - Hidden on mobile */}
             <div className="hidden sm:block">
               <p
-                className="text-sm font-medium"
+                className="text-[10px] md:text-[12px] font-medium"
                 style={{ color: "var(--foreground)" }}
               >
                 {authUserInfo?.displayName || user?.displayName || userRole}
@@ -147,7 +147,7 @@ export default function Header({
           {/* User Dropdown Menu */}
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-2xl  z-[9999] border border-gray-200 backdrop-blur-sm">
-              <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100 bg-white">
+              <div className="px-4 py-2 text-[10px] md:text-[12px] text-gray-700 border-b border-gray-100 bg-white">
                 <p className="font-medium">
                   {authUserInfo?.displayName || user?.displayName || userRole}
                 </p>
@@ -157,7 +157,7 @@ export default function Header({
               </div>
               <button
                 onClick={handleSignOut}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 bg-white cursor-pointer"
+                className="w-full text-left px-4 py-2 text-[10px] md:text-[12px] text-gray-700 hover:bg-gray-100 flex items-center space-x-2 bg-white cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>

@@ -404,7 +404,7 @@ export default function AdminPatientsPage() {
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="text-[var(--muted-foreground)]">
-                      <p className="text-lg font-medium text-[var(--foreground)]">
+                      <p className="text-[14px] md:text-[16px] font-medium text-[var(--foreground)]">
                         Failed to load patients
                       </p>
                       <Button

@@ -116,7 +116,7 @@ const StatsCards: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Appointment Statistics</h3>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Appointment Statistics</h3>
             <p className="text-xs md:text-sm text-gray-500">Your practice overview</p>
           </div>
         </div>
@@ -145,7 +145,7 @@ const StatsCards: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
                   <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">

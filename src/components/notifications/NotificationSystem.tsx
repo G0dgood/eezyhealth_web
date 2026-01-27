@@ -289,7 +289,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 			<div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
 				<div className="flex justify-between items-center mb-6">
-					<h3 className="text-xl font-semibold text-gray-900 flex items-center">
+					<h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 flex items-center">
 						<Bell className="h-6 w-6 mr-2 text-blue-600" />
 						Send Patient Notifications
 					</h3>
@@ -412,18 +412,18 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 							{/* Multi-select dropdown */}
 							<div className="relative">
 								<Dropdown
-							multiple
-							value={selectedPatients}
-							onChange={(value) => setSelectedPatients(value as string[])}
-							options={allPatients.length > 0 ? allPatients.map((patient) => ({
-								value: patient.id,
-								label: `${patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} (${patient.email})`
-							})) : []}
-							placeholder={allPatients.length > 0 ? "Select patients..." : "Loading patients..."}
-							className="w-full"
-							variant="default"
-							disabled={allPatients.length === 0}
-						/>
+									multiple
+									value={selectedPatients}
+									onChange={(value) => setSelectedPatients(value as string[])}
+									options={allPatients.length > 0 ? allPatients.map((patient) => ({
+										value: patient.id,
+										label: `${patient.display_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email} (${patient.email})`
+									})) : []}
+									placeholder={allPatients.length > 0 ? "Select patients..." : "Loading patients..."}
+									className="w-full"
+									variant="default"
+									disabled={allPatients.length === 0}
+								/>
 							</div>
 
 							{/* Add Patient Dropdown */}
@@ -485,7 +485,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 					{/* Right Column - Preview */}
 					<div className="space-y-6">
 						<div>
-							<h4 className="text-lg font-medium text-gray-900 mb-4">Preview</h4>
+							<h4 className="text-[14px] md:text-[16px] font-medium text-gray-900 mb-4">Preview</h4>
 
 							<div className="bg-gray-50 rounded-lg p-4">
 								{notificationType === "template" && selectedTemplate ? (

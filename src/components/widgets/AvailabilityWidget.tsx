@@ -118,7 +118,7 @@ const AvailabilityWidget: React.FC = () => {
             <Clock className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900">Availability Schedule</h3>
+            <h3 className="text-[14px] md:text-[16px] md:text-[16px] md:text-[18px] font-bold text-gray-900">Availability Schedule</h3>
             <p className="text-xs md:text-sm text-gray-500">Manage your working hours</p>
           </div>
         </div>
@@ -133,15 +133,15 @@ const AvailabilityWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-blue-600">{availableDays}</div>
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{availableDays}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Available Days</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-green-600">{totalHours}</div>
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">{totalHours}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Hours/Week</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
-          <div className="text-lg md:text-2xl font-bold text-purple-600">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-purple-600">
             {timeSlots.length - availableDays}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Off Days</div>

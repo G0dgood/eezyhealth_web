@@ -286,7 +286,7 @@ export default function DocumentReviewModal({
                       />
                     )}
                     <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-lg flex items-center justify-center">
-                      <span className="text-[var(--primary)] font-semibold text-lg">
+                      <span className="text-[var(--primary)] font-semibold text-[14px] md:text-[16px]">
                         {index + 1}
                       </span>
                     </div>

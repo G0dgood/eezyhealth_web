@@ -221,7 +221,7 @@ export default function PatientDetailsPage({
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full z-50 relative">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Vitals</h3>
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">Vitals</h3>
                 <Button
                   variant="ghost-neutral"
                   size="sm"

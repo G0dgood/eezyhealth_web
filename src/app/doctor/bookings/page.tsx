@@ -279,7 +279,7 @@ export default function DoctorBookingsPage() {
           {/* Calendar Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
                 {currentMonth}
               </h3>
               <p className="text-[10px] md:text-[12px] text-gray-500">

@@ -148,7 +148,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">
               {user.display_name ||
                 `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
                 "N/A"}
@@ -161,7 +161,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Shield className="h-5 w-5 mr-2" />
               Basic Information
             </h3>
@@ -256,7 +256,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Mail className="h-5 w-5 mr-2" />
               Contact Information
             </h3>
@@ -317,7 +317,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         {/* Deactivation Information - Only show if user is inactive */}
         {formData.isActive === false && (
           <div className="space-y-4 pt-6 border-t border-red-200 bg-red-50 p-4 rounded-lg">
-            <h3 className="text-lg font-medium text-red-800 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-red-800 flex items-center">
               <Shield className="h-5 w-5 mr-2 text-red-600" />
               Account Deactivation
             </h3>

@@ -31,7 +31,7 @@ export default function TodaysAppointmentsWidget({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = maxItems;
   const totalPages = Math.ceil(appointments.length / itemsPerPage);
-  
+
   const paginatedAppointments = appointments.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -58,7 +58,7 @@ export default function TodaysAppointmentsWidget({
               <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900">
+              <h3 className="text-base md:text-[14px] md:text-[16px] font-semibold text-gray-900">
                 Today&apos;s Appointments
               </h3>
               <p className="text-xs md:text-sm text-gray-500">
@@ -151,8 +151,8 @@ export default function TodaysAppointmentsWidget({
             </tbody>
           </table>
         )}
-      {/* Pagination */}
-      {totalPages > 1 && ( 
+        {/* Pagination */}
+        {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalCount={appointments.length}
@@ -160,8 +160,8 @@ export default function TodaysAppointmentsWidget({
             onPageChange={setCurrentPage}
             itemLabel="appointments"
             className="mt-4"
-          />  
-      )}
+          />
+        )}
       </div>
 
 

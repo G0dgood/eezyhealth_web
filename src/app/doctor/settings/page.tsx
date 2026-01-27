@@ -642,7 +642,7 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                 Notification Preferences
               </h3>
               <p className="text-gray-600">
@@ -733,7 +733,7 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                 Security Settings
               </h3>
               <p className="text-gray-600">
@@ -769,7 +769,7 @@ export default function DoctorSettings() {
             {/* Change Password Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Change Password
                 </h3>
                 <p className="text-gray-600">

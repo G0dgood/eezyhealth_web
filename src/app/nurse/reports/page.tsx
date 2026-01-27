@@ -70,8 +70,8 @@ export default function NurseReportsPage() {
       ) => (
         <span
           className={`px-2 py-1 text-xs rounded-full ${value === "Generated"
-              ? "bg-green-100 text-green-800"
-              : "bg-yellow-100 text-yellow-800"
+            ? "bg-green-100 text-green-800"
+            : "bg-yellow-100 text-yellow-800"
             }`}>
           {value}
         </span>
@@ -118,7 +118,7 @@ export default function NurseReportsPage() {
 
       {/* Report Type Selection */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+        <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-3">
           Report Types
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -129,20 +129,20 @@ export default function NurseReportsPage() {
                 key={type.id}
                 onClick={() => setSelectedReport(type.id)}
                 className={`p-4 border-2 rounded-lg transition-colors ${selectedReport === type.id
-                    ? "border-green-500 bg-green-50"
-                    : "border-gray-200 hover:border-gray-300"
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-200 hover:border-gray-300"
                   }`}>
                 <div className="text-center">
                   <Icon
                     className={`w-8 h-8 mx-auto mb-2 ${selectedReport === type.id
-                        ? "text-green-600"
-                        : "text-gray-600"
+                      ? "text-green-600"
+                      : "text-gray-600"
                       }`}
                   />
                   <span
                     className={`text-sm font-medium ${selectedReport === type.id
-                        ? "text-green-700"
-                        : "text-gray-700"
+                      ? "text-green-700"
+                      : "text-gray-700"
                       }`}>
                     {type.label}
                   </span>
@@ -206,7 +206,7 @@ export default function NurseReportsPage() {
 
       {/* Actions */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Reports</h3>
+        <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">Recent Reports</h3>
         <div className="flex space-x-3">
           <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
             <Filter className="w-4 h-4" />
@@ -232,7 +232,7 @@ export default function NurseReportsPage() {
 
       {/* Report Generation Form */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-4">
           Generate New Report
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

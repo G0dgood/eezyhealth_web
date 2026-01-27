@@ -6,7 +6,7 @@ interface TitleProps {
 export default function Title({ title, className = "" }: TitleProps) {
   return (
     <p
-      className={`mb-4 md:mb-6 font-inter not-italic font-medium text-lg md:text-xl leading-7 md:leading-8 tracking-[-0.5px] text-[var(--foreground)] ${className}`}>
+      className={`mb-4 md:mb-6 font-inter not-italic font-medium text-[14px] md:text-[16px] md:text-[18px] leading-7 md:leading-8 tracking-[-0.5px] text-[var(--foreground)] ${className}`}>
       {title}
     </p>
   );

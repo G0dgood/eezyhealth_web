@@ -326,7 +326,7 @@ EezyHealth Security Team
 			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 				<div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 text-center">
 					<CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-					<h3 className="text-xl font-semibold text-gray-900 mb-2">Email Sent Successfully!</h3>
+					<h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-2">Email Sent Successfully!</h3>
 					<p className="text-gray-600 mb-4">
 						The notification email has been sent to {doctorEmail}
 					</p>
@@ -340,7 +340,7 @@ EezyHealth Security Team
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 			<div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
 				<div className="flex justify-between items-center mb-6">
-					<h3 className="text-xl font-semibold text-gray-900 flex items-center">
+					<h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 flex items-center">
 						<Mail className="h-6 w-6 mr-2 text-blue-600" />
 						Send Email Notification
 					</h3>
@@ -435,7 +435,7 @@ EezyHealth Security Team
 					{/* Right Column - Preview */}
 					<div className="space-y-6">
 						<div>
-							<h4 className="text-lg font-medium text-gray-900 mb-4">Email Preview</h4>
+							<h4 className="text-[14px] md:text-[16px] font-medium text-gray-900 mb-4">Email Preview</h4>
 
 							<div className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto">
 								{selectedTemplateData ? (
