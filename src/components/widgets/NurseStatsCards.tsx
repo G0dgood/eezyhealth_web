@@ -147,7 +147,7 @@ const NurseStatsCards: React.FC = () => {
                 <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                   {stat.value}
                 </h2>
-                <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
+                <h3 className="text-xs md: !text-[10px]  !md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">
                   {stat.title}
                 </h3>
                 <p className="text-[10px] md:text-xs text-gray-500">{stat.description}</p>

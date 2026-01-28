@@ -136,7 +136,6 @@ export const doctorFirebaseApi = api.injectEndpoints({
           const { getDoctorDetails } = await import("@/lib/availability");
           const data = await getDoctorDetails(doctorId);
           return { data };
-          console.log("data", data);
         } catch (error) {
           console.error("Error fetching doctor availability:", error);
           return {

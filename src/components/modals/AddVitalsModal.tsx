@@ -139,9 +139,9 @@ export default function AddVitalsModal({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-1">Comment</label>
             <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#44CE2D] min-h-[80px]"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2  !text-[10px]  !md:text-[12px] focus:outline-none focus:ring-2 focus:ring-[#44CE2D] min-h-[80px]"
               placeholder="Add a comment"
               value={formData.comment}
               onChange={(e) => handleChange("comment", e.target.value)}
@@ -149,9 +149,9 @@ export default function AddVitalsModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Recommendation</label>
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-1">Recommendation</label>
             <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#44CE2D] min-h-[80px]"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2  !text-[10px]  !md:text-[12px] focus:outline-none focus:ring-2 focus:ring-[#44CE2D] min-h-[80px]"
               placeholder="Add a recommendation"
               value={formData.recommendation}
               onChange={(e) => handleChange("recommendation", e.target.value)}

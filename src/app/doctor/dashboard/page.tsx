@@ -22,6 +22,7 @@ import Title from "@/components/Title";
 import DoctorBookingsWidget from "@/components/widgets/DoctorBookingsWidget";
 import StatsCards from "@/components/widgets/StatsCards";
 import PerformanceWidget from "@/components/widgets/PerformanceWidget";
+import TodaysAppointmentsWidget from "@/components/widgets/TodaysAppointmentsWidget";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
 
 const getStorageKey = (userId: string) =>
@@ -31,6 +32,7 @@ const widgetMap = {
   DoctorBookingsWidget,
   StatsCards,
   PerformanceWidget,
+  TodaysAppointmentsWidget,
 };
 
 type Zone = "left" | "right";
@@ -93,6 +95,12 @@ const DoctorDashboard = () => {
         id: uuidv4(),
         zone: "left" as Zone,
         type: "StatsCards" as WidgetType,
+        visible: true,
+      },
+      {
+        id: uuidv4(),
+        zone: "right" as Zone,
+        type: "TodaysAppointmentsWidget" as WidgetType,
         visible: true,
       },
       {

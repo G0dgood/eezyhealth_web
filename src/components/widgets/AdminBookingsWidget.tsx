@@ -201,7 +201,7 @@ const AdminBookingsWidget: React.FC = () => {
           <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Bookings Found
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className=" !text-[10px]  !md:text-[12px] text-gray-500 text-center mb-4">
             No booking records found yet. Bookings will appear here once they are created.
           </p>
         </div>
@@ -219,7 +219,7 @@ const AdminBookingsWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Recent Bookings</h3>
-            <p className="text-xs md:text-sm text-gray-500">Latest appointment bookings</p>
+            <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-500">Latest appointment bookings</p>
           </div>
         </div>
       </div>
@@ -256,10 +256,10 @@ const AdminBookingsWidget: React.FC = () => {
                   <Users size={16} className="text-purple-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
+                  <h4 className="font-medium  !text-[10px]  !md:text-[12px] md:text-base text-gray-900 truncate">
                     {booking.patientName || booking.patient_name || "Unknown Patient"}
                   </h4>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                  <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-600 truncate">
                     {booking.doctorName || booking.doctor_name || "Unknown Doctor"}
                   </p>
                 </div>
@@ -278,18 +278,18 @@ const AdminBookingsWidget: React.FC = () => {
             <div className="space-y-1.5 md:space-y-2">
 
               {(booking.slot || booking.appointment_time) && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2  !text-[10px]  !md:text-[12px] text-gray-600">
                   <span className="text-xs">🕐</span>
                   {booking.slot ? <FormattedSlot slot={booking.slot} /> : <span>{booking.appointment_time}</span>}
                 </div>
               )}
               {(booking.consultationReason || booking.reason) && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2  !text-[10px]  !md:text-[12px] text-gray-600">
                   <span className="text-xs">📋</span>
                   <span>{booking.consultationReason || booking.reason}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2  !text-[10px]  !md:text-[12px] text-gray-600">
                 <span className="text-xs">📅</span>
                 <span>Booked: {formatDate(booking.createdAt || booking.createdTime)}</span>
               </div>
@@ -307,20 +307,20 @@ const AdminBookingsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
-          <span className="text-gray-600 text-xs md:text-sm">Total Bookings: {totalBookings}</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  !text-[10px]  !md:text-[12px]">
+          <span className="text-gray-600 text-xs md: !text-[10px]  !md:text-[12px]">Total Bookings: {totalBookings}</span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Confirmed: {confirmedBookings}</span>
+              <span className="text-gray-600 text-xs md: !text-[10px]  !md:text-[12px]">Confirmed: {confirmedBookings}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingBookings}</span>
+              <span className="text-gray-600 text-xs md: !text-[10px]  !md:text-[12px]">Pending: {pendingBookings}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-sm">Cancelled: {cancelledBookings}</span>
+              <span className="text-gray-600 text-xs md: !text-[10px]  !md:text-[12px]">Cancelled: {cancelledBookings}</span>
             </div>
           </div>
         </div>

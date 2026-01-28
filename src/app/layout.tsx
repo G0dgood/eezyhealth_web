@@ -44,6 +44,12 @@ export default function RootLayout({
                       richColors
                       closeButton
                       duration={4000}
+                      toastOptions={{
+                        style: {
+                          fontSize: "10px",
+                        },
+                        className: "text-xs",
+                      }}
                     />
                   </NotificationProvider>
                 </BadgeProvider>

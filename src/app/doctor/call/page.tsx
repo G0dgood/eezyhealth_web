@@ -153,7 +153,7 @@ export default function DoctorCallPage() {
 
             {/* TIMER */}
             {!waiting && (
-              <div className="absolute top-4 left-4 bg-black/60 px-3 py-1 rounded-full text-white  text-[10px]  md:text-[12px]">
+              <div className="absolute top-4 left-4 bg-black/60 px-3 py-1 rounded-full text-white  !text-[10px]  !md:text-[12px]">
                 {formatTime(duration)}
               </div>
             )}

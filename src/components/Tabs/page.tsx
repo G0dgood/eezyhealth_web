@@ -20,7 +20,7 @@ const BookingListTabs = ({
         <button
           key={tab.id}
           onClick={() => setBookingsTab(tab.id)}
-          className={`whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 
+          className={`whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold  !text-[10px]  !md:text-[12px] leading-5 
             ${bookingsTab === tab.id ? "text-white" : "text-gray-600"}`}>
           {tab.label}
           {bookingsTab === tab.id && (

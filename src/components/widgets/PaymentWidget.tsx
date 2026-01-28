@@ -160,7 +160,7 @@ const PaymentWidget: React.FC = () => {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex flex-col items-center justify-center py-8">
           <CreditCard className="text-gray-300 mb-3" size={36} />
-          <p className="text-sm text-gray-500 text-center">
+          <p className=" !text-[10px]  !md:text-[12px] text-gray-500 text-center">
             Sign in as a doctor to view payment insights.
           </p>
         </div>
@@ -202,7 +202,7 @@ const PaymentWidget: React.FC = () => {
           <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Payments Found
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className=" !text-[10px]  !md:text-[12px] text-gray-500 text-center mb-4">
             No payment records found for your practice yet.
           </p>
         </div>
@@ -220,7 +220,7 @@ const PaymentWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Payment Overview</h3>
-            <p className="text-xs md:text-sm text-gray-500">Your practice earnings</p>
+            <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-500">Your practice earnings</p>
           </div>
         </div>
       </div>
@@ -257,10 +257,10 @@ const PaymentWidget: React.FC = () => {
                   <DollarSign className="text-green-600 w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
+                  <h4 className="font-medium  !text-[10px]  !md:text-[12px] md:text-base text-gray-900 truncate">
                     ₦{payment.amount.toFixed(2)}
                   </h4>
-                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                  <p className="text-xs md: !text-[10px]  !md:text-[12px] text-gray-600 truncate">
                     {payment.patientName}
                   </p>
                 </div>
@@ -279,11 +279,11 @@ const PaymentWidget: React.FC = () => {
             </div>
 
             <div className="space-y-1 md:space-y-2">
-              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md: !text-[10px]  !md:text-[12px] text-gray-600">
                 <span className="text-xs">💳</span>
                 <span className="truncate">{payment.paymentMethod}</span>
               </div>
-              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md: !text-[10px]  !md:text-[12px] text-gray-600">
                 <span className="text-xs">📅</span>
                 <span className="truncate">{formatDate(payment.createdTime)}</span>
               </div>
@@ -303,7 +303,7 @@ const PaymentWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  !text-[10px]  !md:text-[12px]">
           <span className="text-gray-600">
             Pending Payments: {pendingPayments}
           </span>

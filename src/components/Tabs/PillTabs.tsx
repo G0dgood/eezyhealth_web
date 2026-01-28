@@ -32,7 +32,7 @@ const PillTabs = ({
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex-shrink-0 flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold text-sm leading-5 rounded-md
+          className={`flex-shrink-0 flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold  !text-[10px]  !md:text-[12px] leading-5 rounded-md
             ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
         >
           {tab.icon && <span>{tab.icon}</span>}

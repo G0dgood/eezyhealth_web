@@ -292,17 +292,17 @@ const DoctorBookingsWidget: React.FC = () => {
             <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
+            <h3 className="text-base md:text-lg font-bold text-gray-900">
               Appointment Overview
             </h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">
+            <p className="text-xs md:text-sm text-gray-500">
               Your booking statistics and recent appointments
             </p>
           </div>
         </div>
         <Link
           href="/doctor/bookings"
-          className="text-blue-600 text-xs md:text-[10px] md:text-[12px] font-medium hover:text-blue-700">
+          className="text-blue-600 text-xs md:text-sm font-medium hover:text-blue-700">
           View All
         </Link>
       </div>
@@ -330,13 +330,13 @@ const DoctorBookingsWidget: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-[10px] md:text-xs text-gray-500">{item.description}</p>
+                  <p className="text-xs text-gray-500">{item.description}</p>
                 </div>
               </div>
             </div>
@@ -347,10 +347,10 @@ const DoctorBookingsWidget: React.FC = () => {
       {/* Recent Bookings */}
       <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-base md:text-[14px] md:text-[16px] font-semibold text-gray-900">
+          <h4 className="text-base md:text-lg font-semibold text-gray-900">
             Recent Appointments
           </h4>
-          <span className="text-xs md:text-[10px] md:text-[12px] text-gray-500">
+          <span className="text-xs md:text-sm text-gray-500">
             {recentBookings.length} appointments
           </span>
         </div>
@@ -358,7 +358,7 @@ const DoctorBookingsWidget: React.FC = () => {
         {recentBookings.length === 0 ? (
           <div className="text-center py-6 md:py-8 text-gray-500">
             <Calendar className="mx-auto mb-2 text-gray-300" size={24} />
-            <p className="text-[10px] md:text-[12px]">No appointments found</p>
+            <p className="text-xs">No appointments found</p>
           </div>
         ) : (
           recentBookings.map((booking: Booking) => (
@@ -371,17 +371,17 @@ const DoctorBookingsWidget: React.FC = () => {
                     <User className="text-blue-600" size={16} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-[10px] md:text-[12px] md:text-base text-gray-900 truncate">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
                       {booking.patientName || booking.first_name || "Patient"}
                     </h4>
-                    <p className="text-xs md:text-[10px] md:text-[12px] text-gray-600 truncate">
+                    <p className="text-xs md:text-sm text-gray-600 truncate">
                       {booking.specialization || "Specialization"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto ml-0 sm:ml-2">
                   <span
-                    className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
+                    className={`px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-medium rounded-full ${getStatusColor(
                       booking.bookingStatus || "unknown"
                     )}`}>
                     {booking.bookingStatus || "Unknown"}
@@ -390,22 +390,22 @@ const DoctorBookingsWidget: React.FC = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Calendar size={14} />
                   <span>
                     {formatDate(booking.bookingDate || booking.date || "")}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Clock size={14} />
                   <FormattedSlot slot={booking.slot || booking.bookingTime || ""} />
                 </div>
-                <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   {getChannelIcon(booking.bookingChannel || booking.channel || "")}
                   <span>{getChannelText(booking.bookingChannel || booking.channel || "")}</span>
                 </div>
                 {booking.patientAddress ? (
-                  <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
+                  <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                     <MapPin size={14} />
                     <span className="line-clamp-1">{String(booking.patientAddress)}</span>
                   </div>
@@ -430,25 +430,25 @@ const DoctorBookingsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
-          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs md:text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Total Appointments: {totalBookings}
           </span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+              <span className="text-gray-600 text-xs md:text-sm">
                 Confirmed: {confirmedBookings}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Pending: {pendingBookings}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingBookings}</span>
             </div>
             {cancelledBookings > 0 && (
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+                <span className="text-gray-600 text-xs md:text-sm">
                   Cancelled: {cancelledBookings}
                 </span>
               </div>

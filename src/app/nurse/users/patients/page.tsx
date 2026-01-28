@@ -341,21 +341,21 @@ export default function NurseUsersPatientsPage() {
         <div className="flex space-x-2">
           <Link
             href={`/nurse/users/patients/${row.id}`}
-            className="text-blue-600 hover:text-blue-700 font-medium  text-[10px]  md:text-[12px] flex items-center space-x-1 cursor-pointer"
+            className="text-blue-600 hover:text-blue-700 font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Eye className="w-3 h-3" />
             <span>View</span>
           </Link>
           <button
             onClick={() => openEditPatientModal(row)}
-            className="text-[#44CE2D] hover:text-[#3bb025] font-medium  text-[10px]  md:text-[12px] flex items-center space-x-1 cursor-pointer"
+            className="text-[#44CE2D] hover:text-[#3bb025] font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Edit className="w-3 h-3" />
             <span>Edit</span>
           </button>
           <button
             onClick={() => openDeletePatientModal(row)}
-            className="text-red-600 hover:text-red-700 font-medium  text-[10px]  md:text-[12px] flex items-center space-x-1 cursor-pointer"
+            className="text-red-600 hover:text-red-700 font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Trash2 className="w-3 h-3" />
             <span>Delete</span>
@@ -442,7 +442,7 @@ export default function NurseUsersPatientsPage() {
         </div>
 
         {/* Results summary */}
-        <div className="mt-4  text-[10px]  md:text-[12px] text-gray-600">
+        <div className="mt-4  !text-[10px]  !md:text-[12px] text-gray-600">
           Showing {patients.length} of {totalPatients} patients
           {Object.keys(filters).length > 0 && (
             <span className="ml-2 text-[#44CE2D]">(Filtered results)</span>

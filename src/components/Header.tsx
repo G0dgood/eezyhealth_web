@@ -4,7 +4,7 @@ import { Menu, LogOut, User, Edit } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 
 interface HeaderProps {
@@ -28,6 +28,7 @@ export default function Header({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     try {
@@ -91,14 +92,16 @@ export default function Header({
       </div>
 
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onEditClick}
-          className="rounded bg-white flex items-center justify-center p-2 hover:bg-gray-50 transition-colors cursor-pointer"
-          aria-label="Edit dashboard layout"
-          title="Edit dashboard layout"
-        >
-          <Edit size={20} />
-        </button>
+        {userRole && pathname === `/${userRole.toLowerCase()}` && (
+          <button
+            onClick={onEditClick}
+            className="rounded bg-white flex items-center justify-center p-2 hover:bg-gray-50 transition-colors cursor-pointer"
+            aria-label="Edit dashboard layout"
+            title="Edit dashboard layout"
+          >
+            <Edit size={20} />
+          </button>
+        )}
         <NotificationBell />
 
         <div className="relative" ref={userMenuRef}>
@@ -128,15 +131,15 @@ export default function Header({
               )}
             </div>
             {/* User info - Hidden on mobile */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:block text-right max-w-[150px]">
               <p
-                className="text-[10px] md:text-[12px] font-medium"
+                className="text-[10px] md:text-[12px] font-medium truncate"
                 style={{ color: "var(--foreground)" }}
               >
                 {authUserInfo?.displayName || user?.displayName || userRole}
               </p>
               <p
-                className="text-xs"
+                className="text-xs truncate"
                 style={{ color: "var(--muted-foreground)" }}
               >
                 {authUserInfo?.email || user?.email || "User"}
@@ -148,10 +151,10 @@ export default function Header({
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-2xl  z-[9999] border border-gray-200 backdrop-blur-sm">
               <div className="px-4 py-2 text-[10px] md:text-[12px] text-gray-700 border-b border-gray-100 bg-white">
-                <p className="font-medium">
+                <p className="font-medium truncate">
                   {authUserInfo?.displayName || user?.displayName || userRole}
                 </p>
-                <p className="text-gray-500">
+                <p className="text-gray-500 truncate">
                   {authUserInfo?.email || user?.email}
                 </p>
               </div>

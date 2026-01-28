@@ -361,7 +361,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                     : "Uploading..."}
                 </p>
                 <p
-                  className=" text-[10px]  md:text-[12px] dark:text-gray-400 text-center"
+                  className=" !text-[10px]  !md:text-[12px] dark:text-gray-400 text-center"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   {progress === 0
@@ -370,7 +370,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
                 </p>
                 {jsonData.length > 0 && progress === 0 && (
                   <p
-                    className=" text-[10px]  md:text-[12px] dark:text-green-400 mt-2"
+                    className=" !text-[10px]  !md:text-[12px] dark:text-green-400 mt-2"
                     style={{ color: '#22C55E' }}
                   >
                     ✓ File loaded successfully ({jsonData.length} records)

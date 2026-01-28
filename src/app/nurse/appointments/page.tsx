@@ -66,10 +66,10 @@ export default function NurseAppointmentsPage() {
       render: (value: string | number) => (
         <span
           className={`px-2 py-1 text-xs rounded-full ${value === "Confirmed"
-              ? "bg-green-100 text-green-800"
-              : value === "Pending"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
+            ? "bg-green-100 text-green-800"
+            : value === "Pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-red-100 text-red-800"
             }`}>
           {value}
         </span>
@@ -128,7 +128,7 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className=" text-[10px]  md:text-[12px] text-gray-600">Today&apos;s Appointments</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Today&apos;s Appointments</p>
               <p className="text-[18px] md:text-[20px] font-bold text-blue-600">5</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -140,7 +140,7 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className=" text-[10px]  md:text-[12px] text-gray-600">Pending Confirmations</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Pending Confirmations</p>
               <p className="text-[18px] md:text-[20px] font-bold text-yellow-600">2</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -152,7 +152,7 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className=" text-[10px]  md:text-[12px] text-gray-600">Completed Today</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Completed Today</p>
               <p className="text-[18px] md:text-[20px] font-bold text-green-600">3</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
