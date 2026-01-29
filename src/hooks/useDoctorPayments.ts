@@ -1,4 +1,4 @@
-import { useGetPaymentsByDoctorIdQuery } from '@/store/api';
+import { useGetPaymentsByDoctorIdQuery } from '@/store/paymentApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useDoctorPayments = () => {

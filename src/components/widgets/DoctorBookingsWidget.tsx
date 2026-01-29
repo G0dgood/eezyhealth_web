@@ -16,11 +16,14 @@ import {
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+import FormattedSlot from "@/components/common/FormattedSlot";
 
 interface Booking {
   id: string;
+  bookingId?: string;
   userId: string;
   patientName?: string;
+  patientDisplayName?: string;
   first_name?: string;
   photo_url?: string;
   timestamp?: string;
@@ -31,14 +34,20 @@ interface Booking {
   doctorId?: string;
   doctorName?: string;
   specialization?: string;
-  bookingDate?: string;
+  bookingDate?: string | { seconds: number; nanoseconds: number };
   bookingTime?: string;
+  slot?: string;
   bookingStatus?: string;
   channel?: string;
+  bookingChannel?: string;
+  consultationReason?: string;
   reason?: string;
   contactNumber?: string;
+  createdAt?: string;
   createdTime?: string;
   updatedTime?: string;
+  updatedAt?: string;
+  patientAddress?: string;
   cancellationRequest?: {
     reason: string;
     status: string;
@@ -64,19 +73,42 @@ const DoctorBookingsWidget: React.FC = () => {
     id: booking.id || `booking-${Math.random()}`,
   }));
 
-  // Debug logging
-  console.log("DoctorBookingsWidget - doctorId:", doctorId);
-  console.log("DoctorBookingsWidget - isLoading:", isLoading);
-  console.log("DoctorBookingsWidget - error:", error);
-  console.log("DoctorBookingsWidget - bookingsData:", bookingsData);
-  console.log("DoctorBookingsWidget - bookings:", bookings);
+
+
+  const parseBookingDate = (dateVal: string | { seconds: number; nanoseconds: number } | number | undefined): Date | null => {
+    if (!dateVal) return null;
+    let date: Date;
+    if (typeof dateVal === 'object' && 'seconds' in dateVal) {
+      date = new Date(dateVal.seconds * 1000);
+    } else if (typeof dateVal === 'string') {
+      let dateStr = dateVal;
+      // Replace " at " with space, case insensitive
+      dateStr = dateStr.replace(/\s+at\s+/i, " ");
+      // Replace narrow no-break space (U+202F) and other non-standard spaces with regular space
+      dateStr = dateStr.replace(/[\u202F\u00A0]/g, " ");
+
+      date = new Date(dateStr);
+
+      // If date is invalid, try removing timezone offset if present
+      if (isNaN(date.getTime()) && dateStr.includes("UTC")) {
+        const cleaned = dateStr.replace(/\s*UTC[+\-]?\d*$/, "");
+        date = new Date(cleaned);
+      }
+    } else if (typeof dateVal === 'number') {
+      date = new Date(dateVal);
+    } else {
+      date = new Date(String(dateVal));
+    }
+    return isNaN(date.getTime()) ? null : date;
+  };
 
   // Calculate statistics
   const totalBookings = bookings.length;
   const todayBookings = bookings.filter((booking: Booking) => {
-    const bookingDate = booking.bookingDate || booking.date || "";
-    const today = new Date().toISOString().split("T")[0];
-    return bookingDate === today;
+    const date = parseBookingDate(booking.bookingDate || booking.date);
+    if (!date) return false;
+    const today = new Date();
+    return date.toISOString().split("T")[0] === today.toISOString().split("T")[0];
   }).length;
 
   const confirmedBookings = bookings.filter(
@@ -96,14 +128,14 @@ const DoctorBookingsWidget: React.FC = () => {
   // Get recent bookings (last 5)
   const recentBookings = [...bookings]
     .sort((a: Booking, b: Booking) => {
-      const dateA = new Date(a.bookingDate || a.date || "").getTime();
-      const dateB = new Date(b.bookingDate || b.date || "").getTime();
+      const dateA = parseBookingDate(a.createdAt || a.createdTime || a.bookingDate || a.date)?.getTime() || 0;
+      const dateB = parseBookingDate(b.createdAt || b.createdTime || b.bookingDate || b.date)?.getTime() || 0;
       return dateB - dateA;
     })
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
+    const statusLower = status?.toLowerCase() || "";
     switch (statusLower) {
       case "confirmed":
       case "accepted":
@@ -112,13 +144,16 @@ const DoctorBookingsWidget: React.FC = () => {
         return "bg-yellow-100 text-yellow-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
+      case "completed":
+      case "success":
+        return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status: string) => {
-    const statusLower = status.toLowerCase();
+    const statusLower = status?.toLowerCase() || "";
     switch (statusLower) {
       case "confirmed":
       case "accepted":
@@ -127,58 +162,37 @@ const DoctorBookingsWidget: React.FC = () => {
         return <Clock size={14} className="text-yellow-600" />;
       case "cancelled":
         return <XCircle size={14} className="text-red-600" />;
+      case "completed":
+      case "success":
+        return <CheckCircle size={14} className="text-blue-600" />;
       default:
         return <AlertCircle size={14} className="text-gray-600" />;
     }
   };
 
   const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-      case "1":
-        return <Video size={14} className="text-blue-600" />;
-      case "voiceCall":
-      case "3":
-        return <Phone size={14} className="text-green-600" />;
-      case "chat":
-      case "2":
-        return <MessageCircle size={14} className="text-purple-600" />;
-      case "physical":
-      case "4":
-        return <MapPin size={14} className="text-orange-600" />;
-      default:
-        return <Video size={14} className="text-blue-600" />;
-    }
+    const ch = channel?.toLowerCase() || "";
+    if (ch.includes("video") || ch === "1") return <Video size={14} className="text-blue-600" />;
+    if (ch.includes("voice") || ch === "3") return <Phone size={14} className="text-green-600" />;
+    if (ch.includes("chat") || ch === "2") return <MessageCircle size={14} className="text-purple-600" />;
+    if (ch.includes("person") || ch.includes("physical") || ch === "4") return <MapPin size={14} className="text-orange-600" />;
+    return <Video size={14} className="text-blue-600" />;
   };
 
   const getChannelText = (channel: string) => {
-    switch (channel) {
-      case "videoCall":
-      case "1":
-        return "Video Call";
-      case "voiceCall":
-      case "3":
-        return "Voice Call";
-      case "chat":
-      case "2":
-        return "Chat";
-      case "physical":
-      case "4":
-        return "In-Person";
-      default:
-        return "Video Call";
-    }
+    const ch = channel?.toLowerCase() || "";
+    if (ch.includes("video") || ch === "1") return "Video Call";
+    if (ch.includes("voice") || ch === "3") return "Voice Call";
+    if (ch.includes("chat") || ch === "2") return "Chat";
+    if (ch.includes("person") || ch.includes("physical") || ch === "4") return "In-Person";
+    return channel || "Video Call";
   };
 
   const formatDate = (
-    bookingDate: string | { seconds: number; nanoseconds: number }
+    bookingDate: string | { seconds: number; nanoseconds: number } | number | undefined
   ) => {
-    const date =
-      typeof bookingDate === "string"
-        ? new Date(bookingDate)
-        : typeof bookingDate === "object" && "seconds" in bookingDate
-        ? new Date(bookingDate.seconds * 1000)
-        : new Date(bookingDate as string);
+    const date = parseBookingDate(bookingDate);
+    if (!date) return "N/A";
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -198,38 +212,6 @@ const DoctorBookingsWidget: React.FC = () => {
     });
   };
 
-  const formatTime = (slot: string) => {
-    // Convert slot to readable time format
-    const timeSlotMap: Record<string, string> = {
-      midnight_12am: "12:00 AM",
-      early_morning_1am: "1:00 AM",
-      early_morning_2am: "2:00 AM",
-      early_morning_3am: "3:00 AM",
-      early_morning_4am: "4:00 AM",
-      early_morning_5am: "5:00 AM",
-      morning_6am: "6:00 AM",
-      morning_7am: "7:00 AM",
-      morning_8am: "8:00 AM",
-      morning_9am: "9:00 AM",
-      morning_10am: "10:00 AM",
-      morning_11am: "11:00 AM",
-      afternoon_12pm: "12:00 PM",
-      afternoon_1pm: "1:00 PM",
-      afternoon_2pm: "2:00 PM",
-      afternoon_3pm: "3:00 PM",
-      afternoon_4pm: "4:00 PM",
-      evening_5pm: "5:00 PM",
-      evening_6pm: "6:00 PM",
-      evening_7pm: "7:00 PM",
-      evening_8pm: "8:00 PM",
-      night_9pm: "9:00 PM",
-      night_10pm: "10:00 PM",
-      night_11pm: "11:00 PM",
-    };
-
-    return timeSlotMap[slot] || slot;
-  };
-
   const statsData = [
     {
       title: "Total Bookings",
@@ -238,8 +220,7 @@ const DoctorBookingsWidget: React.FC = () => {
       gradient: "from-blue-500 to-indigo-600",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
-      description: "All appointments",
-      trend: "+8%",
+      description: "All appointments"
     },
     {
       title: "Today's Appointments",
@@ -248,8 +229,7 @@ const DoctorBookingsWidget: React.FC = () => {
       gradient: "from-green-500 to-emerald-600",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
-      description: "Scheduled today",
-      trend: "+12%",
+      description: "Scheduled today"
     },
     {
       title: "Confirmed",
@@ -258,8 +238,7 @@ const DoctorBookingsWidget: React.FC = () => {
       gradient: "from-purple-500 to-violet-600",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600",
-      description: "Ready to proceed",
-      trend: "+15%",
+      description: "Ready to proceed"
     },
     {
       title: "Pending",
@@ -268,8 +247,7 @@ const DoctorBookingsWidget: React.FC = () => {
       gradient: "from-orange-500 to-amber-600",
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600",
-      description: "Awaiting confirmation",
-      trend: "+5%",
+      description: "Awaiting confirmation"
     },
   ];
 
@@ -292,8 +270,6 @@ const DoctorBookingsWidget: React.FC = () => {
   }
 
   if (error && !bookingsData) {
-    console.log("DoctorBookingsWidget error:", error);
-    console.log("DoctorBookingsWidget data:", bookingsData);
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
         Failed to load bookings. Please try again later.
@@ -304,38 +280,35 @@ const DoctorBookingsWidget: React.FC = () => {
 
   // Show data even if there's an error, as long as we have data
   if (error && bookingsData && bookingsData.length > 0) {
-    console.log("DoctorBookingsWidget - Showing data despite error:", {
-      error,
-      bookingsData,
-    });
+
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Calendar className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Calendar className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-base md:text-lg font-bold text-gray-900">
               Appointment Overview
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs md:text-sm text-gray-500">
               Your booking statistics and recent appointments
             </p>
           </div>
         </div>
         <Link
           href="/doctor/bookings"
-          className="text-blue-600 text-sm font-medium hover:text-blue-700">
+          className="text-blue-600 text-xs md:text-sm font-medium hover:text-blue-700">
           View All
         </Link>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         {statsData.map((item, index) => {
           const IconComponent = item.icon;
           return (
@@ -347,24 +320,20 @@ const DoctorBookingsWidget: React.FC = () => {
                 className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
               {/* Content */}
-              <div className="relative p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div className="relative p-3 md:p-4">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
                   <div
-                    className={`w-8 h-8 ${item.bgColor} rounded-lg flex items-center justify-center`}>
-                    <IconComponent className={`w-4 h-4 ${item.iconColor}`} />
+                    className={`w-8 h-8 md:w-10 md:h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
+                    <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${item.iconColor}`} />
                   </div>
-                  {item.trend && (
-                    <div className="text-xs font-medium flex items-center gap-1 text-green-600">
-                      ↗ {item.trend}
-                    </div>
-                  )}
+
                 </div>
 
-                <div className="mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                <div className="mb-1 md:mb-2">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
                   <p className="text-xs text-gray-500">{item.description}</p>
@@ -376,43 +345,43 @@ const DoctorBookingsWidget: React.FC = () => {
       </div>
 
       {/* Recent Bookings */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-gray-900">
+          <h4 className="text-base md:text-lg font-semibold text-gray-900">
             Recent Appointments
           </h4>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs md:text-sm text-gray-500">
             {recentBookings.length} appointments
           </span>
         </div>
 
         {recentBookings.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Calendar className="mx-auto mb-2 text-gray-300" size={32} />
-            <p>No appointments found</p>
+          <div className="text-center py-6 md:py-8 text-gray-500">
+            <Calendar className="mx-auto mb-2 text-gray-300" size={24} />
+            <p className="text-xs">No appointments found</p>
           </div>
         ) : (
           recentBookings.map((booking: Booking) => (
             <div
               key={booking.id}
-              className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 md:mb-3 gap-2">
+                <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <User className="text-blue-600" size={16} />
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 truncate">
                       {booking.patientName || booking.first_name || "Patient"}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs md:text-sm text-gray-600 truncate">
                       {booking.specialization || "Specialization"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto ml-0 sm:ml-2">
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                    className={`px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-medium rounded-full ${getStatusColor(
                       booking.bookingStatus || "unknown"
                     )}`}>
                     {booking.bookingStatus || "Unknown"}
@@ -420,25 +389,25 @@ const DoctorBookingsWidget: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="space-y-1.5 md:space-y-2">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Calendar size={14} />
                   <span>
                     {formatDate(booking.bookingDate || booking.date || "")}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                   <Clock size={14} />
-                  <span>{formatTime(booking.bookingTime || "")}</span>
+                  <FormattedSlot slot={booking.slot || booking.bookingTime || ""} />
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  {getChannelIcon(booking.channel || "")}
-                  <span>{getChannelText(booking.channel || "")}</span>
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                  {getChannelIcon(booking.bookingChannel || booking.channel || "")}
+                  <span>{getChannelText(booking.bookingChannel || booking.channel || "")}</span>
                 </div>
                 {booking.patientAddress ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                     <MapPin size={14} />
-                    <span>{String(booking.patientAddress)}</span>
+                    <span className="line-clamp-1">{String(booking.patientAddress)}</span>
                   </div>
                 ) : null}
               </div>
@@ -461,25 +430,25 @@ const DoctorBookingsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs md:text-sm">
+          <span className="text-gray-600 text-xs md:text-sm">
             Total Appointments: {totalBookings}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-xs md:text-sm">
                 Confirmed: {confirmedBookings}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600">Pending: {pendingBookings}</span>
+              <span className="text-gray-600 text-xs md:text-sm">Pending: {pendingBookings}</span>
             </div>
             {cancelledBookings > 0 && (
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                <span className="text-gray-600">
+                <span className="text-gray-600 text-xs md:text-sm">
                   Cancelled: {cancelledBookings}
                 </span>
               </div>

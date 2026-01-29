@@ -1,18 +1,10 @@
 "use client";
 import Header from "@/components/Header";
 import RoleBasedSidenav from "@/components/RoleBasedSidenav";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Create context for edit mode
-const EditModeContext = createContext<{
-  isEditing: boolean;
-  setIsEditing: (editing: boolean) => void;
-}>({
-  isEditing: false,
-  setIsEditing: () => { },
-});
+import { EditModeContext } from "@/contexts/EditModeContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,7 +36,7 @@ function AdminLayout({ children }: LayoutProps) {
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
         <div id="page-wrapper">
           <Header
-            userRole="ADMIN"
+            userRole="admin"
             notificationCount={3}
             onMobileMenuToggle={handleMobileMenuToggle}
             onEditClick={handleEditClick}
@@ -52,16 +44,15 @@ function AdminLayout({ children }: LayoutProps) {
             userInfo={userInfo}
           />
           <RoleBasedSidenav
-            userRole="ADMIN"
+            userRole="admin"
             isMobileOpen={isMobileSidenavOpen}
             onMobileClose={handleMobileSidenavClose}
           />
-          <main className={`${transitionClasses}`}>{children}</main>
+          <main className={`p-4 md:p-6 ${transitionClasses}`}>{children}</main>
         </div>
       </EditModeContext.Provider>
     </ProtectedRoute>
   );
 }
 
-export { EditModeContext };
 export default AdminLayout;

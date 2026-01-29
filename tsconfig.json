@@ -18,10 +18,9 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@bprogress/*": ["node_modules/@bprogress/*"]
+      "@/*": ["./src/*"],
+      "@bprogress/*": ["./node_modules/@bprogress/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

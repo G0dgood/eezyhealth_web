@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Input from "./Input";
+
 interface FormInputProps {
   label: string;
   type?: "text" | "email" | "password" | "tel" | "date" | "time";
@@ -21,16 +24,15 @@ export default function FormInput({
 }: FormInputProps) {
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
-      <input
-        type={type}
+      <Input
+        label={label}
+        type={type as any}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+        required={required}
+        showPasswordToggle={type === "password"}
+        fullWidth
       />
     </div>
   );

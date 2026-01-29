@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, MoreVertical, Video, MessageCircle, Phone } from "lucide-react";
+import Link from "next/link";
+import { Plus, Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar } from "lucide-react";
+import Pagination from "@/components/Pagination";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -19,8 +21,9 @@ import {
 } from "@/components/modals";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
+import { useUpdateBookingStatusMutation } from "@/store/bookingApi";
 import { showError, showSuccess, showInfo } from "@/utils/toast";
-import { convertSlotToTime } from "@/components/Options";
+import { convertSlotToTime, NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default function DoctorAppointmentsPage() {
@@ -33,7 +36,11 @@ export default function DoctorAppointmentsPage() {
     data: bookingsData,
     isLoading,
     error,
+    refetch,
   } = useBookingsByDoctorId(doctorId);
+
+  const [updateBookingStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateBookingStatusMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,8 +52,6 @@ export default function DoctorAppointmentsPage() {
     useState(false);
   const [selectedAppointment, setSelectedAppointment] =
     useState<DoctorAppointment | null>(null);
-  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<"top" | "bottom">("bottom");
 
   // Prevent body scrolling when modals are open
   useEffect(() => {
@@ -80,17 +85,42 @@ export default function DoctorAppointmentsPage() {
     time: string;
     reason: string;
   }) => {
-    console.log("Adding appointment:", appointmentData);
     // TODO: Implement appointment creation
   };
 
-  const handleConsultationNote = (note: string) => {
-    console.log("Adding consultation note:", note);
-    // TODO: Implement consultation note addition
+  const handleConsultationNote = async (data: {
+    note: string;
+    recommendation: string;
+    diagnosis: string;
+    prescriptions: string;
+  }) => {
+    if (!selectedAppointment?.id) return;
+
+    try {
+      const prescriptionsArray = data.prescriptions
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      await updateBookingStatus({
+        bookingId: selectedAppointment.id,
+        newStatus: selectedAppointment.status,
+        comment: data.note,
+        recommendation: data.recommendation,
+        diagnosis: data.diagnosis,
+        prescriptions: prescriptionsArray,
+      }).unwrap();
+
+      await refetch();
+      showSuccess("Success", "Consultation details saved successfully!");
+      closeAllModals();
+    } catch (error) {
+      console.error("Failed to save details:", error);
+      showError("Error", "Failed to save consultation details.");
+    }
   };
 
   const handleCancelAppointment = (reason: string) => {
-    console.log("Canceling appointment:", reason);
     // TODO: Implement appointment cancellation
   };
 
@@ -103,34 +133,38 @@ export default function DoctorAppointmentsPage() {
     return bookings.map((booking, index) => {
       // Debug: Log booking structure to understand the ID field
       if (index === 0) {
-        console.log("Sample booking structure:", booking);
-        console.log("Available ID fields:", {
-          id: booking.id,
-          bookingId: booking.bookingId,
-          documentId: booking.documentId,
-          uid: booking.uid
-        });
       }
-      // Handle Firestore timestamp conversion
-      let appointmentDate: string;
-      if (
-        booking.bookingDate &&
-        typeof booking.bookingDate === "object" &&
-        booking.bookingDate !== null
-      ) {
-        const timestamp = booking.bookingDate as {
-          seconds: number;
-          nanoseconds: number;
-        };
-        const date = new Date(timestamp.seconds * 1000);
-        appointmentDate = date.toLocaleDateString("en-GB"); // DD-MM-YYYY format
-      } else {
-        appointmentDate = String(booking.bookingDate || booking.date || "");
+      // Handle Firestore timestamp conversion and string dates
+      let appointmentDate: string = "";
+      const rawDate = booking.bookingDate || booking.date;
+
+      if (rawDate) {
+        if (typeof rawDate === "object" && rawDate !== null) {
+          const seconds = (rawDate as any).seconds || (rawDate as any)._seconds;
+          if (typeof seconds === "number") {
+            const date = new Date(seconds * 1000);
+            appointmentDate = date.toLocaleDateString("en-GB"); // DD-MM-YYYY format
+          }
+        } else if (typeof rawDate === "string") {
+          const date = new Date(rawDate);
+          if (!isNaN(date.getTime())) {
+            appointmentDate = date.toLocaleDateString("en-GB");
+          } else {
+            appointmentDate = rawDate;
+          }
+        }
       }
 
       return {
-        id: String(booking.id || booking.bookingId || booking.documentId || booking.uid || `booking-${index}`),
+        id: String(
+          booking.id ||
+          booking.bookingId ||
+          booking.documentId ||
+          booking.uid ||
+          `booking-${index}`
+        ),
         patientName: String(booking.patientName || "Unknown Patient"),
+        patientId: String(booking.patientId || booking.userId || ""),
         date: appointmentDate,
         time: convertSlotToTime(String(booking.slot || "")),
         channel: (() => {
@@ -155,7 +189,14 @@ export default function DoctorAppointmentsPage() {
         bloodPressure: "120/80 mmHg",
         heartRate: "72 bpm",
         reason: String(booking.reason || "No reason provided"),
-        consultationNote: String(booking.consultationNote || ""),
+        consultationNote: String(
+          booking.consultationNote || booking.doctorComment || ""
+        ),
+        doctorRecommendation: String(booking.doctorRecommendation || ""),
+        diagnosis: String(booking.diagnosis || ""),
+        prescriptions: Array.isArray(booking.prescriptions)
+          ? (booking.prescriptions as string[])
+          : [],
       };
     });
   };
@@ -174,17 +215,25 @@ export default function DoctorAppointmentsPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
 
+  const statusDisplayMap: Record<AppointmentStatus, string> = {
+    pending: "Scheduled",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+
   const getStatusBadge = (status: AppointmentStatus) => {
     const statusClasses = {
-      pending: "bg-orange-100 text-orange-800",
+      pending: "bg-yellow-100 text-yellow-800",
       completed: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
+      cancelled:
+        "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20",
     };
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        className={`px-2 py-1 text-xs rounded-full ${statusClasses[status]}`}
+      >
+        {statusDisplayMap[status]}
       </span>
     );
   };
@@ -203,69 +252,31 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
-  const handleActionMenuToggle = (
-    appointmentId: string,
-    event: React.MouseEvent
-  ) => {
-    const button = event.currentTarget as HTMLElement;
-    const rect = button.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const menuHeight = 200; // Approximate height of the menu
-
-    // Find the table container to determine table boundaries
-    const tableContainer = button.closest("table")?.parentElement;
-    const tableRect = tableContainer?.getBoundingClientRect();
-
-    // Check if there's enough space below within the table
-    const spaceBelowInTable = tableRect
-      ? tableRect.bottom - rect.bottom
-      : viewportHeight - rect.bottom;
-    const spaceBelowInViewport = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    // Face up if close to end of table OR close to bottom of viewport
-    if (
-      (spaceBelowInTable < menuHeight && spaceAbove > menuHeight) ||
-      (spaceBelowInViewport < menuHeight && spaceAbove > menuHeight)
-    ) {
-      setMenuPosition("top");
-    } else {
-      setMenuPosition("bottom");
-    }
-
-    setActionMenuOpen(actionMenuOpen === appointmentId ? null : appointmentId);
-  };
-
   const handleViewDetails = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsDetailModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleViewNote = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsConsultationNoteModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleReschedule = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsRescheduleModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const handleRescheduleSubmit = (rescheduleData: {
     date: string;
     time: string;
   }) => {
-    console.log("Rescheduling appointment:", rescheduleData);
     // TODO: Implement appointment rescheduling
   };
 
   const handleCancel = (appointment: DoctorAppointment) => {
     setSelectedAppointment(appointment);
     setIsCancelModalOpen(true);
-    setActionMenuOpen(null);
   };
 
   const closeAllModals = () => {
@@ -302,18 +313,16 @@ export default function DoctorAppointmentsPage() {
       <Title title="Appointment" />
 
       {/* Search and Add Appointment */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-        <div className="flex-1 max-w-md">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search..."
-          />
-        </div>
+      <div className="flex-1 mb-6">
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search..."
+        />
       </div>
 
       {/* Appointments Table */}
-      <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
         {isLoading ? (
           <TableSkeleton rows={8} columns={6} />
         ) : (
@@ -330,31 +339,26 @@ export default function DoctorAppointmentsPage() {
                 </tr>
               </thead>
               <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-                {currentAppointments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-8 text-center text-sm text-[var(--muted-foreground)]">
-                      No appointments found
-                    </td>
-                  </tr>
+                {currentAppointments?.length === 0 ? (
+                  <NoRecordFound colSpan={6} />
                 ) : (
-                  currentAppointments.map((appointment) => (
+                  currentAppointments?.map((appointment) => (
                     <tr
                       key={appointment.id}
-                      className="hover:bg-[var(--muted)]">
+                      className="hover:bg-[var(--muted)]"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
                           {appointment.patientName}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                           {appointment.date}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[var(--foreground)]">
+                        <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                           {appointment.time}
                         </div>
                       </td>
@@ -365,50 +369,49 @@ export default function DoctorAppointmentsPage() {
                         {getStatusBadge(appointment.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap relative">
-                        <button
-                          onClick={(e) =>
-                            handleActionMenuToggle(appointment.id, e)
-                          }
-                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-
-                        {actionMenuOpen === appointment.id && (
-                          <div
-                            className={`absolute right-0 w-48 bg-[var(--card)] rounded-md shadow-lg z-9999 border border-[var(--border)] ${menuPosition === "top"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
-                              }`}>
-                            <div className="py-1">
+                        <div className="flex items-center space-x-6">
+                          <Link
+                            href={`/doctor/patients/appointments?patient=${encodeURIComponent(
+                              appointment.patientName
+                            )}&patientId=${appointment.patientId || ""}`}
+                            className="link-green flex items-center space-x-1"
+                          >
+                            <User className="w-4 h-4" />
+                            <span>Appointments</span>
+                          </Link>
+                          <button
+                            onClick={() => handleViewDetails(appointment)}
+                            className="link-green flex items-center space-x-1"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>Detail</span>
+                          </button>
+                          <button
+                            onClick={() => handleViewNote(appointment)}
+                            className="link-green flex items-center space-x-1"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Consultation Details</span>
+                          </button>
+                          {appointment.status === "pending" && (
+                            <>
                               <button
-                                onClick={() => handleViewDetails(appointment)}
-                                className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                                View Details
+                                onClick={() => handleReschedule(appointment)}
+                                className="text-orange-600 hover:text-orange-800 transition-colors"
+                                title="Reschedule Appointment"
+                              >
+                                <Calendar className="w-4 h-4" />
                               </button>
-                              {appointment.status === "completed" && (
-                                <button
-                                  onClick={() => handleViewNote(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                                  View Note
-                                </button>
-                              )}
-                              {appointment.status === "pending" && (
-                                <button
-                                  onClick={() => handleReschedule(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                                  Reschedule Appointment
-                                </button>
-                              )}
-                              {appointment.status === "pending" && (
-                                <button
-                                  onClick={() => handleCancel(appointment)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] cursor-pointer">
-                                  Cancel Appointment
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                              <button
+                                onClick={() => handleCancel(appointment)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Cancel Appointment"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -419,64 +422,13 @@ export default function DoctorAppointmentsPage() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="bg-[var(--card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border)] sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-md text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Page {currentPage} of {totalPages}
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                            ? "z-10 bg-[#44CE2D] border-[#44CE2D] text-white"
-                            : "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-                          }`}>
-                        {page}
-                      </button>
-                    )
-                  )}
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[var(--border)] bg-[var(--card)] text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                    Next
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalCount={filteredAppointments.length}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          itemLabel="appointments"
+        />
       </div>
 
       {/* Appointment Detail Modal */}
@@ -491,7 +443,13 @@ export default function DoctorAppointmentsPage() {
         isOpen={isConsultationNoteModalOpen}
         onClose={closeAllModals}
         onSubmit={handleConsultationNote}
-        initialNote={selectedAppointment?.consultationNote || ""}
+        initialData={{
+          note: selectedAppointment?.consultationNote,
+          recommendation: selectedAppointment?.doctorRecommendation,
+          diagnosis: selectedAppointment?.diagnosis,
+          prescriptions: selectedAppointment?.prescriptions,
+        }}
+        isSubmitting={isUpdatingStatus}
       />
 
       {/* Reschedule Modal */}

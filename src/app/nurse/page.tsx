@@ -16,7 +16,7 @@ import { Edit, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Skeleton from "react-loading-skeleton";
-import { EditModeContext } from "./layout";
+import { EditModeContext } from "@/contexts/EditModeContext";
 
 // Import nurse-specific widgets
 import NurseBookingsWidget from "@/components/widgets/NurseBookingsWidget";
@@ -24,7 +24,6 @@ import NurseStatsCards from "@/components/widgets/NurseStatsCards";
 import NurseCalendarWidget from "@/components/widgets/NurseCalendarWidget";
 import BookingCancellationWidget from "@/components/widgets/BookingCancellationWidget";
 import NursePaymentWidget from "@/components/widgets/NursePaymentWidget";
-import AvailabilityWidget from "@/components/widgets/AvailabilityWidget";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
 
 const getStorageKey = (userId: string) =>
@@ -36,7 +35,6 @@ const widgetMap = {
   NurseCalendarWidget,
   BookingCancellationWidget,
   NursePaymentWidget,
-  AvailabilityWidget,
 };
 
 type Zone = "left" | "right";
@@ -114,12 +112,6 @@ const NurseDashboard = () => {
         id: uuidv4(),
         zone: "left" as Zone,
         type: "NursePaymentWidget" as WidgetType,
-        visible: true,
-      },
-      {
-        id: uuidv4(),
-        zone: "left" as Zone,
-        type: "AvailabilityWidget" as WidgetType,
         visible: true,
       },
       {
@@ -259,7 +251,7 @@ const NurseDashboard = () => {
     isEditing: boolean;
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+      useSortable({ id, disabled: !isEditing });
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -292,11 +284,10 @@ const NurseDashboard = () => {
               onClick={handleRemoveClick}
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
-              className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${
-                isDarkMode
-                  ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
-                  : "bg-white"
-              }`}
+              className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${isDarkMode
+                ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
+                : "bg-white"
+                }`}
               aria-label="Remove widget"
               type="button"
               title="Remove widget"
@@ -306,7 +297,7 @@ const NurseDashboard = () => {
             </button>
           </div>
         )}
-        <div {...attributes} {...listeners}>
+        <div {...attributes} {...(isEditing ? listeners : undefined)}>
           {children}
         </div>
       </div>
@@ -363,47 +354,42 @@ const NurseDashboard = () => {
           <Skeleton height={40} width={120} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
-          <div className="col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-left-zone">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
+          <div className="col-span-1 md:col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone">
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
-                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                      : "bg-white border-[#E5E7EB]"
-                  }`}
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
+                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                    : "bg-white border-[#E5E7EB]"
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/3 mb-4 ${
-                        isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                      }`}
+                      className={`h-4 rounded w-1/3 mb-4 ${isDarkMode
+                        ? "bg-[var(--dark-bg-tertiary)]"
+                        : "bg-gray-200"
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
+                        className={`h-8 rounded ${isDarkMode
                             ? "bg-[var(--dark-bg-tertiary)]"
                             : "bg-gray-200"
-                        }`}
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-8 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded w-2/3 ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-8 rounded w-2/3 ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -411,53 +397,47 @@ const NurseDashboard = () => {
               ))}
             </div>
           </div>
-          <div className="col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-right-zone">
+          <div className="col-span-1 md:col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone">
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
-                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                      : "bg-white border-[#E5E7EB]"
-                  }`}
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
+                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                    : "bg-white border-[#E5E7EB]"
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/2 mb-4 ${
-                        isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                      }`}
+                      className={`h-4 rounded w-1/2 mb-4 ${isDarkMode
+                        ? "bg-[var(--dark-bg-tertiary)]"
+                        : "bg-gray-200"
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded w-3/4 ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded w-3/4 ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -511,18 +491,16 @@ const NurseDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-150px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-150px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("right")}
           </div>

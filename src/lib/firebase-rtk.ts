@@ -7,6 +7,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
+  setDoc,
   doc,
   orderBy,
   limit,
@@ -28,6 +29,7 @@ export const getFirestoreInstance = () => ({
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   doc,
   orderBy,
   limit,
@@ -36,7 +38,6 @@ export const getFirestoreInstance = () => ({
 });
 
 // Helper function to serialize Firebase data
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const serializeFirebaseData = (data: unknown): unknown => {
   if (data === null || data === undefined) {
     return data;
@@ -55,7 +56,6 @@ export const serializeFirebaseData = (data: unknown): unknown => {
     }
     
     // Handle regular objects
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const serialized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       serialized[key] = serializeFirebaseData(value);
@@ -103,7 +103,6 @@ export const createFirebaseDocument = async <T = Record<string, unknown>>(
     const db = getFirebaseInstance();
     
     const collectionRef = collection(db, collectionName);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docRef = await addDoc(collectionRef, data as any);
     
     return { id: docRef.id, data };
@@ -124,10 +123,27 @@ export const updateFirebaseDocument = async <T = Record<string, unknown>>(
     const db = getFirebaseInstance();
     
     const documentRef = doc(db, collectionName, documentId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await updateDoc(documentRef, data as any);
   } catch (error) {
     console.error(`Error updating document in ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+// Generic Firebase document setter (upsert)
+export const setFirebaseDocument = async <T = Record<string, unknown>>(
+  collectionName: string,
+  documentId: string,
+  data: Partial<T>
+): Promise<void> => {
+  try {
+    const { doc, setDoc } = getFirestoreInstance();
+    const db = getFirebaseInstance();
+    
+    const documentRef = doc(db, collectionName, documentId);
+    await setDoc(documentRef, data as any, { merge: true });
+  } catch (error) {
+    console.error(`Error setting document in ${collectionName}:`, error);
     throw error;
   }
 };

@@ -37,3 +37,34 @@ export const getDayName = (date: Date): string => {
   const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   return dayNames[date.getDay()];
 };
+
+/**
+ * Formats a Firebase date (Timestamp, ISO string, or Date object) to a readable string
+ * @param date - The date to format
+ * @returns Formatted date string (e.g., "Oct 27, 2023")
+ */
+export const formatFirebaseDate = (date: any): string => {
+  if (!date) return "";
+
+  let dateObj: Date;
+
+  if (date instanceof Date) {
+    dateObj = date;
+  } else if (typeof date === "string") {
+    dateObj = new Date(date);
+  } else if (typeof date === "object" && "seconds" in date) {
+    // Handle raw Firestore timestamp if it somehow leaks through
+    dateObj = new Date(date.seconds * 1000);
+  } else {
+    return "";
+  }
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return "Invalid Date";
+
+  return dateObj.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};

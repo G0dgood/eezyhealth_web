@@ -1,6 +1,6 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Video } from "lucide-react";
 import { SVGLoader } from "./SVGLoader";
-import { Star } from "lucide-react";
+import { Star, MessageCircle, Phone, Calendar, User } from "lucide-react";
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -19,13 +19,13 @@ const getRoleBadge = (role: string) => {
   const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
 
   switch (role) {
-    case "ADMIN":
+    case "admin":
       return `${baseClasses} bg-red-100 text-red-800`;
-    case "DOCTOR":
+    case "doctor":
       return `${baseClasses} bg-blue-100 text-blue-800`;
-    case "NURSE":
+    case "nurse":
       return `${baseClasses} bg-green-100 text-green-800`;
-    case "PATIENT":
+    case "patient":
       return `${baseClasses} bg-purple-100 text-purple-800`;
     default:
       return `${baseClasses} bg-gray-100 text-gray-800`;
@@ -175,9 +175,8 @@ const renderStars = (rating: number) => {
     stars.push(
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
-        }`}
+        className={`w-4 h-4 ${i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+          }`}
       />
     );
   }
@@ -191,7 +190,9 @@ const formatTime = (timeSlot: string) => {
     .trim();
 };
 
-const convertSlotToTime = (slot: string): string => {
+const convertSlotToTime = (slot: string | null | undefined): string => {
+  if (!slot || typeof slot !== "string") return "09:00 AM"; // Default fallback
+
   // Convert slot formats to match timeSlots array format
   if (slot.includes("night_11pm")) return "11:00 PM";
   if (slot.includes("night_11:30pm")) return "11:30 PM";
@@ -316,7 +317,39 @@ const getContrastingColor = (color: string) => {
   return invertedColor;
 };
 
+const getBookingColor = (channel: string) => {
+  switch (channel) {
+    case "videoCall":
+      return "bg-green-500";
+    case "chat":
+      return "bg-blue-500";
+    case "voiceCall":
+      return "bg-purple-500";
+    case "physical":
+      return "bg-orange-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const getChannelIcon = (channel: string) => {
+  switch (channel) {
+    case "videoCall":
+      return <Video className="w-3 h-3" />;
+    case "chat":
+      return <MessageCircle className="w-3 h-3" />;
+    case "voiceCall":
+      return <Phone className="w-3 h-3" />;
+    case "physical":
+      return <User className="w-3 h-3" />;
+    default:
+      return <Calendar className="w-3 h-3" />;
+  }
+};
+
 export {
+  getChannelIcon,
+  getBookingColor,
   getTypeColor,
   SVGLoaderFetch,
   NoRecordFound,

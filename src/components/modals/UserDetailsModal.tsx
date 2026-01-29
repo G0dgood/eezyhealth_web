@@ -6,7 +6,7 @@ interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   address?: string;
   location?: string;
@@ -16,6 +16,8 @@ interface UserData {
   first_name?: string;
   last_name?: string;
   photo_url?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 interface UserDetailsModalProps {
@@ -33,12 +35,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
   const getRoleBadge = (role: string) => {
     const roleColors = {
-      ADMIN: "bg-red-100 text-red-800",
-      DOCTOR: "bg-blue-100 text-blue-800",
-      NURSE: "bg-green-100 text-green-800",
-      PATIENT: "bg-gray-100 text-gray-800",
+      admin: "bg-red-100 text-red-800",
+      doctor: "bg-blue-100 text-blue-800",
+      nurse: "bg-green-100 text-green-800",
+      patient: "bg-gray-100 text-gray-800",
     };
-    return `px-2 py-1 text-xs rounded-full font-medium ${roleColors[role as keyof typeof roleColors] || roleColors.PATIENT}`;
+    return `px-2 py-1 text-xs rounded-full font-medium ${roleColors[role as keyof typeof roleColors] || roleColors.patient}`;
   };
 
   const getStatusBadge = (isActive: boolean) => {
@@ -77,7 +79,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">
               {user.display_name ||
                 `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
                 "N/A"}
@@ -90,13 +92,13 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Shield className="h-5 w-5 mr-2" />
               Basic Information
             </h3>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Role
               </label>
               <span className={getRoleBadge(user.role)}>
@@ -105,7 +107,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Status
               </label>
               <span className={getStatusBadge(user.isActive || false)}>
@@ -114,7 +116,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Date of Birth
               </label>
               <p className="text-gray-900 flex items-center">
@@ -124,7 +126,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Joined
               </label>
               <p className="text-gray-900">
@@ -135,13 +137,13 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Mail className="h-5 w-5 mr-2" />
               Contact Information
             </h3>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Email
               </label>
               <p className="text-gray-900 flex items-center">
@@ -151,7 +153,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Phone Number
               </label>
               <p className="text-gray-900 flex items-center">
@@ -161,7 +163,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Address
               </label>
               <p className="text-gray-900 flex items-center">
@@ -171,7 +173,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Location
               </label>
               <p className="text-gray-900 flex items-center">
@@ -181,6 +183,43 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Deactivation Information - Only show if user is inactive */}
+        {user.isActive === false && (user.deactivatedAt || user.deactivationReason) && (
+          <div className="space-y-4 pt-6 border-t border-red-200 bg-red-50 p-4 rounded-lg">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-red-800 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-red-600" />
+              Account Deactivation Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {user.deactivatedAt && (
+                <div>
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
+                    Deactivated At
+                  </label>
+                  <p className="text-gray-900 flex items-center">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {formatDate(user.deactivatedAt)}
+                  </p>
+                </div>
+              )}
+
+              {user.deactivationReason && (
+                <div className="md:col-span-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
+                    Deactivation Reason
+                  </label>
+                  <div className="bg-white p-3 rounded-md border border-red-200">
+                    <p className="text-gray-900  text-[10px]  md:text-[12px] leading-relaxed">
+                      {user.deactivationReason}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end pt-4 border-t border-gray-200">

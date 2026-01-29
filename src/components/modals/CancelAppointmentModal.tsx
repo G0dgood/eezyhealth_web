@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import Modal from "./Modal";
+import Textarea from "../Textarea";
 
 interface CancelAppointmentModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
 
         {/* Warning Message */}
         <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 mb-2">
             Are you sure you want to cancel this appointment?
           </h3>
           <p className="text-gray-600">
@@ -49,7 +50,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         {/* Appointment Details */}
         {appointmentDetails && (
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="text-sm">
+            <div className=" text-[10px]  md:text-[12px]">
               <p className="font-medium text-gray-900">
                 Patient: {appointmentDetails.patientName}
               </p>
@@ -62,15 +63,15 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
 
         {/* Cancellation Reason */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
             Reason for Cancellation (Optional)
           </label>
-          <textarea
+          <Textarea
             rows={3}
             placeholder="Enter reason for cancellation..."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] resize-none"
+            fullWidth
           />
         </div>
 

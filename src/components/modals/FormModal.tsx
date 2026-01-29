@@ -36,7 +36,7 @@ export default function FormModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
         {/* Background overlay */}
         <div
           className="fixed inset-0 bg-[#00000051] bg-opacity-50 z-40"
@@ -44,7 +44,7 @@ export default function FormModal({
 
         {/* Modal panel */}
         <div
-          className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle ${sizeClasses[size]} w-full z-50 relative`}>
+          className={`relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 ${sizeClasses[size]} w-full z-50`}>
           {/* Header */}
           <div className="bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">{title}</h3>

@@ -22,8 +22,8 @@ import Title from "@/components/Title";
 import DoctorBookingsWidget from "@/components/widgets/DoctorBookingsWidget";
 import StatsCards from "@/components/widgets/StatsCards";
 import PerformanceWidget from "@/components/widgets/PerformanceWidget";
+import TodaysAppointmentsWidget from "@/components/widgets/TodaysAppointmentsWidget";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
-
 
 const getStorageKey = (userId: string) =>
   `doctor_dashboard_widget_meta_${userId}`;
@@ -32,6 +32,7 @@ const widgetMap = {
   DoctorBookingsWidget,
   StatsCards,
   PerformanceWidget,
+  TodaysAppointmentsWidget,
 };
 
 type Zone = "left" | "right";
@@ -99,6 +100,12 @@ const DoctorDashboard = () => {
       {
         id: uuidv4(),
         zone: "right" as Zone,
+        type: "TodaysAppointmentsWidget" as WidgetType,
+        visible: true,
+      },
+      {
+        id: uuidv4(),
+        zone: "right" as Zone,
         type: "PerformanceWidget" as WidgetType,
         visible: true,
       },
@@ -148,7 +155,6 @@ const DoctorDashboard = () => {
         (w) => w.id === confirmModal.widgetId
       );
       if (widgetToRemove) {
-        console.log("User confirmed removal");
         setWidgets((prev) => {
           const newWidgets = prev.filter((w) => w.id !== confirmModal.widgetId);
           return newWidgets;
@@ -206,7 +212,7 @@ const DoctorDashboard = () => {
     isEditing: boolean;
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+      useSortable({ id, disabled: !isEditing });
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -221,7 +227,7 @@ const DoctorDashboard = () => {
     const handleRemoveClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Remove button clicked for widget:", id);
+
       onRemove(id);
     };
 
@@ -234,24 +240,26 @@ const DoctorDashboard = () => {
               top: "8px",
               right: "8px",
               zIndex: 50,
-            }}>
+            }}
+          >
             <button
               onClick={handleRemoveClick}
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
               className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${isDarkMode
-                ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
-                : "bg-white"
+                  ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
+                  : "bg-white"
                 }`}
               aria-label="Remove widget"
               type="button"
               title="Remove widget"
-              style={{ pointerEvents: "auto" }}>
+              style={{ pointerEvents: "auto" }}
+            >
               <FaTimes size={14} />
             </button>
           </div>
         )}
-        <div {...attributes} {...listeners}>
+        <div {...attributes} {...(isEditing ? listeners : undefined)}>
           {children}
         </div>
       </div>
@@ -263,7 +271,8 @@ const DoctorDashboard = () => {
     return (
       <SortableContext
         items={zoneWidgets.map((w) => w.id)}
-        strategy={verticalListSortingStrategy}>
+        strategy={verticalListSortingStrategy}
+      >
         {zoneWidgets.map((w) => {
           const Component = widgetMap[w.type];
           if (!Component) return null;
@@ -272,7 +281,8 @@ const DoctorDashboard = () => {
               key={w.id}
               id={w.id}
               isEditing={isEditing}
-              onRemove={removeWidget}>
+              onRemove={removeWidget}
+            >
               <Component />
             </SortableWidget>
           );
@@ -306,80 +316,91 @@ const DoctorDashboard = () => {
           <Skeleton height={40} width={120} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
-          <div className="col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-left-zone">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
+          <div className="col-span-1 md:col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone">
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   className={`p-6 rounded-lg border shadow-sm ${isDarkMode
-                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                    : "bg-white border-[#E5E7EB]"
-                    }`}>
+                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                      : "bg-white border-[#E5E7EB]"
+                    }`}
+                >
                   <div className="animate-pulse">
                     <div
                       className={`h-4 rounded w-1/3 mb-4 ${isDarkMode
-                        ? "bg-[var(--dark-bg-tertiary)]"
-                        : "bg-gray-200"
-                        }`}></div>
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                        }`}
+                    ></div>
                     <div className="space-y-3">
                       <div
                         className={`h-8 rounded ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                       <div
                         className={`h-8 rounded ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                       <div
                         className={`h-8 rounded w-2/3 ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-right-zone">
+          <div className="col-span-1 md:col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone">
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
                   className={`p-6 rounded-lg border shadow-sm ${isDarkMode
-                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                    : "bg-white border-[#E5E7EB]"
-                    }`}>
+                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                      : "bg-white border-[#E5E7EB]"
+                    }`}
+                >
                   <div className="animate-pulse">
                     <div
                       className={`h-4 rounded w-1/2 mb-4 ${isDarkMode
-                        ? "bg-[var(--dark-bg-tertiary)]"
-                        : "bg-gray-200"
-                        }`}></div>
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                        }`}
+                    ></div>
                     <div className="space-y-3">
                       <div
                         className={`h-6 rounded ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                       <div
                         className={`h-6 rounded ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                       <div
                         className={`h-6 rounded ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                       <div
                         className={`h-6 rounded w-3/4 ${isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                          }`}></div>
+                            ? "bg-[var(--dark-bg-tertiary)]"
+                            : "bg-gray-200"
+                          }`}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -393,16 +414,17 @@ const DoctorDashboard = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 md:mb-6 gap-2">
         <Title
-          title={`Welcome Dr. ${userInfo?.first_name || ""} ${userInfo?.last_name || ""
+          title={`Welcome ${userInfo?.first_name || ""} ${userInfo?.last_name || ""
             }`}
         />
         <button
           onClick={() => setIsEditing(true)}
           className="rounded bg-white flex items-center justify-center"
           aria-label="Edit dashboard layout"
-          title="Edit dashboard layout">
+          title="Edit dashboard layout"
+        >
           <Edit size={20} />
         </button>
       </div>
@@ -411,12 +433,14 @@ const DoctorDashboard = () => {
         <div className="flex flex-wrap gap-3 mb-4">
           <button
             onClick={handleSave}
-            className="px-4 py-2 !bg-green-600 !text-white rounded">
+            className="px-4 py-2 !bg-green-600 !text-white rounded"
+          >
             Save
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="px-4 py-2 !bg-red-600 !text-white rounded">
+            className="px-4 py-2 !bg-red-600 !text-white rounded"
+          >
             Cancel
           </button>
 
@@ -424,14 +448,10 @@ const DoctorDashboard = () => {
             <button
               key={type}
               onClick={() =>
-                addWidget(
-                  type,
-                  type === "PerformanceWidget"
-                    ? "right"
-                    : "left"
-                )
+                addWidget(type, type === "PerformanceWidget" ? "right" : "left")
               }
-              className="px-4 py-2 !bg-blue-600 !text-white rounded">
+              className="px-4 py-2 !bg-blue-600 !text-white rounded"
+            >
               + Add {type}
             </button>
           ))}
@@ -439,15 +459,17 @@ const DoctorDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-              }`}>
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
+          >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-              }`}>
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
+          >
             {renderZone("right")}
           </div>
         </div>

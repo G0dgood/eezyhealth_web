@@ -6,14 +6,17 @@ import {
   onAuthStateChange,
   signInWithGoogle,
   signOutUser,
+  db,
+  fetchUserData,
 } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface UserInfo {
   uid: string;
   email: string;
   display_name: string;
   photo_url?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE";
+  role: "admin" | "doctor" | "nurse";
   phone_number?: string;
   address?: string;
   date_of_birth?: string | { seconds: number; nanoseconds: number }; // Firestore timestamp
@@ -31,6 +34,12 @@ interface UserInfo {
   dateOfBirth?: string;
   specialization?: string;
   bio?: string;
+  about?: string;
+  experience_yrs?: string;
+  hospital?: string;
+  license?: string;
+  gender?: string;
+  title?: string;
   preferences?: {
     notifications: boolean;
     darkMode: boolean;
@@ -42,8 +51,10 @@ interface AuthContextType {
   user: User | null;
   userInfo: UserInfo | null;
   loading: boolean;
+  userInfoLoading: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  setUserInfo: (userInfo: UserInfo | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,6 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userInfoLoading, setUserInfoLoading] = useState(true);
 
   useEffect(() => {
     // Check localStorage for existing user info
@@ -72,27 +84,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const parsedUserInfo = JSON.parse(storedUserInfo);
         setUserInfo(parsedUserInfo);
+        setUserInfoLoading(false);
       } catch (error) {
         console.error("Error parsing stored user info:", error);
         localStorage.removeItem("userInfo-eezy-health");
       }
+    } else {
+      // If no local storage, wait for auth to init
+      setUserInfoLoading(true);
     }
 
     const unsubscribe = onAuthStateChange((user) => {
       setUser(user);
       setLoading(false);
+      if (!user) {
+        setUserInfoLoading(false);
+        setUserInfo(null);
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Fetch fresh user info from Firestore when user changes
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (user) {
+        setUserInfoLoading(true);
+        try {
+          // Use fetchUserData to be consistent with login logic (handles docId != uid)
+          const data = await fetchUserData(user.uid);
+          
+          if (data) {
+            // Ensure essential fields are present
+            const fullUserInfo = {
+              ...data,
+              uid: user.uid,
+              email: user.email || data.email,
+              displayName: user.displayName || data.displayName || data.display_name,
+              photoURL: user.photoURL || data.photoURL || data.photo_url,
+            };
+
+            setUserInfo(fullUserInfo as UserInfo);
+            localStorage.setItem(
+              "userInfo-eezy-health",
+              JSON.stringify(fullUserInfo)
+            );
+          } else {
+              console.warn("User document not found via fetchUserData");
+          }
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+        } finally {
+            setUserInfoLoading(false);
+        }
+      }
+    };
+
+    fetchUserInfo();
+  }, [user]);
+
   const signIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error("Sign in error:", error);
-      throw error;
-    }
+    await signInWithGoogle();
   };
 
   const signOut = async () => {
@@ -101,6 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear localStorage and user info
       localStorage.removeItem("userInfo-eezy-health");
       setUserInfo(null);
+      setUserInfoLoading(false);
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
@@ -111,8 +165,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     userInfo,
     loading,
+    userInfoLoading,
     signIn,
     signOut,
+    setUserInfo,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

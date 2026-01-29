@@ -5,7 +5,10 @@ import { Plus, MoreVertical, Shield, X, AlertCircle } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import Button from "@/components/Button";
 import {
   getSpecializationCollection,
   createSpecialization,
@@ -15,7 +18,9 @@ import {
 import { toast } from "sonner";
 import { SVGLoader } from "@/components/SVGLoader";
 import { SpecializationSkeleton } from "@/components/ui/specialization-skeleton";
-import { useGetDoctorsBySpecializationCountQuery } from "@/store/api";
+import { useGetDoctorsBySpecializationCountQuery } from "@/store/doctorApi";
+import Pagination from "@/components/Pagination";
+import CreateSpecialtyModal from "@/components/modals/CreateSpecialtyModal";
 
 interface Specialization {
   id: string;
@@ -86,7 +91,6 @@ export default function AdminSpecializationPage() {
         setSpecializations(data);
       } catch (err) {
         setError("Failed to load specializations");
-        console.error("Error fetching specializations:", err);
       } finally {
         setIsLoading(false);
       }
@@ -116,7 +120,7 @@ export default function AdminSpecializationPage() {
         )} p-6 shadow-sm relative`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
               {specialization.name}
             </h3>
             <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
@@ -124,34 +128,40 @@ export default function AdminSpecializationPage() {
             </span>
           </div>
           <div className="relative">
-            <button
-              className="text-gray-400 hover:text-gray-600 p-1"
-              onClick={() => openEditModal(specialization)}>
-              <Shield className="w-4 h-4" />
-            </button>
+            <Button
+              variant="ghost-neutral"
+              size="sm"
+              icon={<Shield className="w-4 h-4" />}
+              iconOnly
+              onClick={() => openEditModal(specialization)}
+              className="text-gray-400 hover:text-gray-600 h-auto p-1"
+            />
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm leading-relaxed">
+        <p className="text-gray-600 text-[10px] md:text-[12px] leading-relaxed">
           {specialization.description}
         </p>
 
         <div className="flex justify-end mt-4 space-x-2">
-          <button
+          <Button
+            variant="ghost-neutral"
+            size="sm"
             onClick={() => openEditModal(specialization)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2"
+          >
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost-danger"
+            size="sm"
             onClick={() => handleDeleteSpecialty(specialization.id)}
             disabled={isDeleting}
-            className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50">
-            {isDeleting ? (
-              <SVGLoader width={"30px"} height={"40px"} color={"#22c55e"} />
-            ) : (
-              "Delete"
-            )}
-          </button>
+            loading={isDeleting}
+            className="px-2"
+          >
+            Delete
+          </Button>
         </div>
       </div>
     );
@@ -179,7 +189,6 @@ export default function AdminSpecializationPage() {
         setError(null);
         toast.success("Specialization created successfully!");
       } catch (error) {
-        console.error("Error creating specialization:", error);
         setError("Failed to create specialization");
         toast.error("Failed to create specialization. Please try again.");
       } finally {
@@ -206,10 +215,10 @@ export default function AdminSpecializationPage() {
           prev?.map((spec) =>
             spec?.id === editingSpecialization?.id
               ? {
-                  ...spec,
-                  name: editingSpecialization?.name,
-                  description: editingSpecialization?.description,
-                }
+                ...spec,
+                name: editingSpecialization?.name,
+                description: editingSpecialization?.description,
+              }
               : spec
           )
         );
@@ -284,12 +293,13 @@ export default function AdminSpecializationPage() {
               />
             </div>
 
-            <button
+            <Button
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-              <Plus className="w-5 h-5" />
-              <span>Create New Specialty</span>
-            </button>
+              variant="primary"
+              icon={<Plus className="w-5 h-5" />}
+            >
+              Create New Specialty
+            </Button>
           </div>
 
           {/* Specialization Cards */}
@@ -315,90 +325,27 @@ export default function AdminSpecializationPage() {
           )}
 
           {/* Pagination  */}
-          {!isLoading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}>
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                  }`}>
-                  Next
-                </button>
-              </div>
-            </div>
+          {!isLoading && !error && (
+            <Pagination
+              currentPage={currentPage}
+              totalCount={filteredSpecializations.length}
+              pageSize={itemsPerPage}
+              onPageChange={setCurrentPage}
+              itemLabel="specializations"
+            />
           )}
         </div>
       </div>
 
       {/* Create New Specialty Modal */}
-      <Modal
+      <CreateSpecialtyModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Specialty"
-        size="md">
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Specialty
-            </label>
-            <input
-              type="text"
-              placeholder="Specialty"
-              value={newSpecialty.name}
-              onChange={(e) =>
-                setNewSpecialty({ ...newSpecialty, name: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              placeholder="Specialty Description"
-              value={newSpecialty.description}
-              onChange={(e) =>
-                setNewSpecialty({
-                  ...newSpecialty,
-                  description: e.target.value,
-                })
-              }
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              onClick={handleCreateSpecialty}
-              disabled={isCreating}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {isCreating ? "Creating..." : "Create"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        newSpecialty={newSpecialty}
+        setNewSpecialty={setNewSpecialty}
+        handleCreateSpecialty={handleCreateSpecialty}
+        isCreating={isCreating}
+      />
 
       {/* Edit Specialization Modal */}
       <Modal
@@ -408,10 +355,8 @@ export default function AdminSpecializationPage() {
         size="md">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Specialty Name
-            </label>
-            <input
+            <Input
+              label="Specialty Name"
               type="text"
               placeholder="Specialty Name"
               value={editingSpecialization?.name || ""}
@@ -420,15 +365,15 @@ export default function AdminSpecializationPage() {
                   prev ? { ...prev, name: e.target.value } : null
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              fullWidth
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
+            <Textarea
               placeholder="Specialty Description"
               value={editingSpecialization?.description || ""}
               onChange={(e) =>
@@ -437,26 +382,25 @@ export default function AdminSpecializationPage() {
                 )
               }
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
             />
           </div>
 
           <div className="flex justify-end space-x-3">
-            <button
+            <Button
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+              variant="outline-neutral"
+            >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleEditSpecialty}
               disabled={isUpdating}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {isUpdating ? (
-                <SVGLoader width={"30px"} height={"40px"} color={"#22c55e"} />
-              ) : (
-                "Update"
-              )}
-            </button>
+              loading={isUpdating}
+              variant="primary"
+            >
+              Update
+            </Button>
           </div>
         </div>
       </Modal>

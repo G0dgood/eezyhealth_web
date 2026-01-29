@@ -28,11 +28,11 @@ export function getUserPrivileges(): {
 
 
  
-  const isSuperAdmin = privileges?.role === "SUPER_ADMIN";
-  const isAdmin = privileges?.role === "ADMIN";
-  const isSupervisor = privileges?.role === "SUPERVISOR";
-  const isTeamLead = privileges?.role === "TEAM_LEAD";
-  const isITSupport = privileges?.role === "IT_SUPPORT";
+  const isSuperAdmin = privileges?.role === "super_admin";
+  const isAdmin = privileges?.role === "admin";
+  const isSupervisor = privileges?.role === "supervisor";
+  const isTeamLead = privileges?.role === "team_lead";
+  const isITSupport = privileges?.role === "it_support";
 
   
   

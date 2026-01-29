@@ -1,0 +1,25 @@
+
+/* Stream Chat Overrides */
+:root {
+  --str-chat__primary-color: #44CE2D;
+  --str-chat__active-primary-color: #3bb025;
+  --str-chat__surface-color: #ffffff;
+  --str-chat__secondary-surface-color: #f1f5f9;
+  --str-chat__message-bubble-background-color-mine: #44CE2D;
+  --str-chat__message-text-color-mine: #ffffff;
+}
+
+.str-chat__channel-header {
+  border-bottom: 1px solid var(--border);
+  height: 80px;
+  padding: 1rem;
+}
+
+.str-chat__main-panel {
+  background-color: white;
+}
+
+.str-chat__message-input {
+  border-top: 1px solid var(--border);
+  padding: 1rem;
+}

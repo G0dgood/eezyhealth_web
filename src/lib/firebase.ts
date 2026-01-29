@@ -1,12 +1,40 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, setDoc, addDoc } from 'firebase/firestore';
+
 import { getDatabase, ref, get } from 'firebase/database';
 import { firebaseConfig } from './config';
 import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
+import { getMessaging, Messaging } from 'firebase/messaging';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const functions = getFunctions(app);
+
+export let messaging: Messaging | null = null;
+if (typeof window !== "undefined") {
+  try {
+    messaging = getMessaging(app);
+  } catch (err) {
+    console.log("Firebase Messaging not supported in this browser or environment", err);
+  }
+}
+
+// Initialize a secondary Firebase app for admin operations (like creating users without logging out)
+// We use a unique name 'secondary' to avoid conflict with the default app
+let secondaryApp;
+try {
+  secondaryApp = initializeApp(firebaseConfig, "secondary");
+} catch (e) {
+    // If the app is already initialized, get the existing instance
+    // This can happen in development with hot reloading
+    secondaryApp = getApp("secondary");
+  }
+
+// Get auth instance for the secondary app
+export const secondaryAuth = getAuth(secondaryApp);
+
 
 // Suppress Firebase console errors in development
 if (process.env.NODE_ENV === 'development') {
@@ -80,6 +108,11 @@ if (process.env.NODE_ENV === 'development') {
     if (errorMessage.includes('payload.0.bookingDate') && errorMessage.includes('non-serializable')) {
       return; // Don't log bookingDate serialization errors
     }
+
+    // Filter out Stream internal coordinator logs
+    if (errorMessage.includes('[coordinator]') || errorMessage.includes('/ring')) {
+      return; // Don't log Stream internal coordinator logs
+    }
     
     originalConsoleError.apply(console, args);
   };
@@ -150,12 +183,12 @@ export const fetchUserData = async (uid: string) => {
 // Fetch all users from Realtime Database
 export const fetchAllUsers = async () => {
   try {
-    console.log('Attempting to fetch users from Realtime Database...');
+    
     const usersRef = ref(realtimeDb, 'users');
-    console.log('Database reference created:', usersRef.toString());
+ 
     
     const snapshot = await get(usersRef);
-    console.log('Snapshot received:', snapshot.exists() ? 'Data exists' : 'No data');
+ 
     
     if (snapshot.exists()) {
       const usersData = snapshot.val(); 
@@ -170,6 +203,28 @@ export const fetchAllUsers = async () => {
       return [];
     }
   } catch (error) {  
+    throw error;
+  }
+};
+
+// Helper function to create a document in Firestore
+export const createFirebaseDocument = async (collectionName: string, data: any) => {
+  try {
+    const collectionRef = collection(db, collectionName);
+    
+    // If data has a uid or id, use it as the document ID
+    if (data.uid || data.id) {
+      const docId = data.uid || data.id;
+      const docRef = doc(db, collectionName, docId);
+      await setDoc(docRef, data);
+      return docRef;
+    } else {
+      // Otherwise allow Firestore to generate the ID
+      const docRef = await addDoc(collectionRef, data);
+      return docRef;
+    }
+  } catch (error) {
+    console.error(`Error creating document in ${collectionName}:`, error);
     throw error;
   }
 };

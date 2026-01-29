@@ -8,7 +8,8 @@ import SearchInput from "@/components/SearchInput";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
-import { useGetPaymentsQuery } from "@/store/api";
+import Pagination from "@/components/Pagination";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 import { toast } from "sonner";
 
 interface Payment {
@@ -222,7 +223,7 @@ export default function NursePaymentPage() {
                               <div className="flex items-center">
                                 <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                                     {payment?.patientName || payment?.patient_name || "Unknown Patient"}
                                   </div>
                                   <div className="text-xs text-gray-500">
@@ -232,12 +233,12 @@ export default function NursePaymentPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                                 {formatCurrency(payment?.amount, payment?.currency)}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
                                 {payment?.paymentMethod || payment?.payment_method || "Card Payment"}
                               </div>
                             </td>
@@ -246,7 +247,7 @@ export default function NursePaymentPage() {
                                 {getStatusText(payment)}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] text-gray-500">
                               {formatDate(payment?.createdAt || payment?.paymentDate)}
                             </td>
                           </tr>
@@ -256,39 +257,16 @@ export default function NursePaymentPage() {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalCount={filteredPayments.length}
+                pageSize={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}>
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                    }`}>
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

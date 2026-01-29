@@ -10,7 +10,7 @@ import {
   UserPlus,
   MoreVertical,
 } from "lucide-react";
-import { useGetUsersQuery } from "@/store/api";
+import { useGetUsersQuery } from "@/store/authApi";
 import Link from "next/link";
 
 interface UserData {
@@ -19,7 +19,7 @@ interface UserData {
   display_name?: string;
   first_name?: string;
   last_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   isActive?: boolean;
   createdTime?: string;
@@ -60,13 +60,13 @@ const AdminUsersWidget: React.FC = () => {
   // Calculate user statistics
   const totalUsers = users.length;
   const totalDoctors = users.filter(
-    (user: UserData) => user.role === "DOCTOR"
+    (user: UserData) => user.role === "doctor"
   ).length;
   const totalNurses = users.filter(
-    (user: UserData) => user.role === "NURSE"
+    (user: UserData) => user.role === "nurse"
   ).length;
   const totalPatients = users.filter(
-    (user: UserData) => user.role === "PATIENT"
+    (user: UserData) => user.role === "patient"
   ).length;
   const activeUsers = users.filter(
     (user: UserData) => user.isActive !== false
@@ -87,30 +87,32 @@ const AdminUsersWidget: React.FC = () => {
   };
 
   const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "DOCTOR":
-        return <Stethoscope size={16} className="text-green-600" />;
-      case "NURSE":
-        return <UserCheck size={16} className="text-blue-600" />;
-      case "ADMIN":
-        return <Shield size={16} className="text-purple-600" />;
-      case "PATIENT":
-        return <Users size={16} className="text-gray-600" />;
+    const normalizedRole = role.toLowerCase();
+    switch (normalizedRole) {
+      case "doctor":
+        return <Stethoscope size={16} className="text-blue-600" />;
+      case "nurse":
+        return <UserCheck size={16} className="text-green-600" />;
+      case "admin":
+        return <Shield size={16} className="text-red-600" />;
+      case "patient":
+        return <Users size={16} className="text-purple-600" />;
       default:
         return <Users size={16} className="text-gray-600" />;
     }
   };
 
   const getRoleColor = (role: string) => {
-    switch (role) {
-      case "DOCTOR":
-        return "bg-green-100 text-green-800";
-      case "NURSE":
+    const normalizedRole = role.toLowerCase();
+    switch (normalizedRole) {
+      case "admin":
+        return "bg-red-100 text-red-800";
+      case "doctor":
         return "bg-blue-100 text-blue-800";
-      case "ADMIN":
+      case "nurse":
+        return "bg-green-100 text-green-800";
+      case "patient":
         return "bg-purple-100 text-purple-800";
-      case "PATIENT":
-        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -153,16 +155,16 @@ const AdminUsersWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <Users className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Users Found
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className="text-[10px] md:text-[12px] text-gray-500 text-center mb-4">
             No user records found yet. Users will appear here once they
             register.
           </p>
           <Link
             href="/admin/users"
-            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-sm font-medium">
+            className="px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors text-[10px] md:text-[12px] font-medium">
             View All Users
           </Link>
         </div>
@@ -171,52 +173,52 @@ const AdminUsersWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-            <Users className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Users className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Recent Users</h3>
-            <p className="text-sm text-gray-500">Latest registered users</p>
+            <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Recent Users</h3>
+            <p className="text-[10px] md:text-[12px] text-gray-500">Latest registered users</p>
           </div>
         </div>
         <Link
           href="/admin/users"
-          className="text-blue-600 text-sm font-medium hover:text-blue-700">
+          className="text-blue-600 text-[10px] md:text-[12px] font-medium hover:text-blue-700">
           View All
         </Link>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-2xl font-bold text-gray-900">{totalUsers}</div>
-          <div className="text-xs text-gray-600">Total</div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-gray-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-gray-900">{totalUsers}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Total</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">
             {totalDoctors}
           </div>
-          <div className="text-xs text-gray-600">Doctors</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Doctors</div>
         </div>
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{totalNurses}</div>
-          <div className="text-xs text-gray-600">Nurses</div>
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{totalNurses}</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Nurses</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-purple-600">
             {totalPatients}
           </div>
-          <div className="text-xs text-gray-600">Patients</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Patients</div>
         </div>
-        <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">
+        <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">
             {activeUsers}
           </div>
-          <div className="text-xs text-gray-600">Active</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Active</div>
         </div>
       </div>
 
@@ -226,19 +228,19 @@ const AdminUsersWidget: React.FC = () => {
           <div
             key={user.uid}
             className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                   {getRoleIcon(user.role)}
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-gray-900 truncate">
                     {user.display_name || user.first_name || "Unknown User"}
                   </h4>
-                  <p className="text-sm text-gray-600">{user.email}</p>
+                  <p className="text-[10px] md:text-[12px] text-gray-600 truncate">{user.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-12 sm:ml-0">
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(
                     user.role
@@ -259,12 +261,12 @@ const AdminUsersWidget: React.FC = () => {
 
             <div className="space-y-2">
               {user.phone_number && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                   <span className="text-xs">📞</span>
                   <span>{user.phone_number}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                 <span className="text-xs">📅</span>
                 <span>Joined: {formatDate(user.createdTime)}</span>
               </div>
@@ -287,9 +289,9 @@ const AdminUsersWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
           <span className="text-gray-600">Total Users: {totalUsers}</span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               <span className="text-gray-600">Doctors: {totalDoctors}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Input from "@/components/Input";
 import {
   Activity,
   Plus,
@@ -74,20 +75,20 @@ export default function NurseVitalSignsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Vital Signs</h1>
+        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2">Vital Signs</h1>
         <p className="text-gray-600">Monitor and record patient vital signs</p>
       </div>
 
       {/* Search and Actions */}
       <div className="flex items-center justify-between mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
+          <Input
             type="text"
             placeholder="Search patient vitals..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            icon={<Search className="w-5 h-5 text-gray-400" />}
+            fullWidth
           />
         </div>
 
@@ -104,9 +105,10 @@ export default function NurseVitalSignsPage() {
         columns={columns}
         data={vitalsData}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={vitalsData.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="vital signs"
       />
 
       {/* Vital Signs Overview Cards */}
@@ -114,8 +116,8 @@ export default function NurseVitalSignsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Average Heart Rate</p>
-              <p className="text-2xl font-bold text-red-600">74 bpm</p>
+              <p className="text-[10px] md:text-[12px] text-gray-600">Average Heart Rate</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-red-600">74 bpm</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <Heart className="w-6 h-6 text-red-600" />
@@ -126,8 +128,8 @@ export default function NurseVitalSignsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Average BP</p>
-              <p className="text-2xl font-bold text-blue-600">123/91</p>
+              <p className="text-[10px] md:text-[12px] text-gray-600">Average BP</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">123/91</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Activity className="w-6 h-6 text-blue-600" />
@@ -138,8 +140,8 @@ export default function NurseVitalSignsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Average Weight</p>
-              <p className="text-2xl font-bold text-green-600">71 kg</p>
+              <p className="text-[10px] md:text-[12px] text-gray-600">Average Weight</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-green-600">71 kg</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Scale className="w-6 h-6 text-green-600" />
@@ -150,8 +152,8 @@ export default function NurseVitalSignsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Average Temp</p>
-              <p className="text-2xl font-bold text-orange-600">29.9 °C</p>
+              <p className="text-[10px] md:text-[12px] text-gray-600">Average Temp</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-orange-600">29.9 °C</p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Thermometer className="w-6 h-6 text-orange-600" />

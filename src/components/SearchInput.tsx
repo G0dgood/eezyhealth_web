@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import Input from "./Input";
 
 interface SearchInputProps {
   value: string;
@@ -14,14 +15,15 @@ export default function SearchInput({
   className = "",
 }: SearchInputProps) {
   return (
-    <div className={`relative max-w-md bg-white ${className}`}>
-      <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-      <input
+    <div className={`relative max-w-md !rounded-md bg-white ${className}`}>
+      <Input
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent cursor-pointer transition-all duration-200"
+        icon={<Search className="w-5 h-5 text-gray-400" />}
+        fullWidth
+        className="cursor-pointer"
       />
     </div>
   );

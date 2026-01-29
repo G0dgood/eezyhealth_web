@@ -2,16 +2,43 @@
 
 import React from "react";
 import { CreditCard, TrendingUp, DollarSign, AlertCircle } from "lucide-react";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 interface PaymentData {
-  id: string;
-  amount: number;
-  status: string;
-  patient_name?: string;
-  doctor_name?: string;
-  createdTime?: string;
-  payment_method?: string;
+  amount: string;
+  bookingDate: string;
+  channel: string;
+  createdAt: string;
+  currency: string;
+  doctorId: string;
+  doctorPhotoUrl: string;
+  patientId: string;
+  patientName: string;
+  paymentDate: string;
+  paymentMethod: string;
+  paymentReference: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  paymentStatus: string;
+  reason: string;
+  slot: string;
+  transactionId: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  updatedAt: string;
+  id?: string;
 }
 
 const AdminPaymentsWidget: React.FC = () => {
@@ -34,33 +61,40 @@ const AdminPaymentsWidget: React.FC = () => {
     payments = (paymentsData as { data: PaymentData[] }).data;
   }
 
+  // Helper to parse amount string "10,000" -> 10000
+  const parseAmount = (amountStr: string | number | undefined) => {
+    if (typeof amountStr === 'number') return amountStr;
+    if (!amountStr) return 0;
+    return parseFloat(amountStr.replace(/,/g, ''));
+  };
+
   // Get recent payments (last 5)
   const recentPayments = [...payments]
     .sort((a: PaymentData, b: PaymentData) => {
-      const dateA = new Date(a.createdTime || 0).getTime();
-      const dateB = new Date(b.createdTime || 0).getTime();
+      const dateA = new Date(a.createdAt || a.paymentDate || 0).getTime();
+      const dateB = new Date(b.createdAt || b.paymentDate || 0).getTime();
       return dateB - dateA;
     })
     .slice(0, 5);
 
   // Calculate payment statistics
   const totalRevenue = payments
-    .filter((payment: PaymentData) => payment.status === "completed")
+    .filter((payment: PaymentData) => payment.paymentStatus === "completed" || payment.paymentStatus === "success")
     .reduce(
-      (sum: number, payment: PaymentData) => sum + Number(payment.amount || 0),
+      (sum: number, payment: PaymentData) => sum + parseAmount(payment.amount),
       0
     );
 
   const completedPayments = payments.filter(
-    (payment: PaymentData) => payment.status === "completed"
+    (payment: PaymentData) => payment.paymentStatus === "completed" || payment.paymentStatus === "success"
   ).length;
 
   const pendingPayments = payments.filter(
-    (payment: PaymentData) => payment.status === "pending"
+    (payment: PaymentData) => payment.paymentStatus === "pending"
   ).length;
 
   const failedPayments = payments.filter(
-    (payment: PaymentData) => payment.status === "failed"
+    (payment: PaymentData) => payment.paymentStatus === "failed"
   ).length;
 
   const averagePayment =
@@ -78,8 +112,10 @@ const AdminPaymentsWidget: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase() || "";
+    switch (statusLower) {
       case "completed":
+      case "success":
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
@@ -91,8 +127,10 @@ const AdminPaymentsWidget: React.FC = () => {
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase() || "";
+    switch (statusLower) {
       case "completed":
+      case "success":
         return <TrendingUp size={14} className="text-green-600" />;
       case "pending":
         return <AlertCircle size={14} className="text-yellow-600" />;
@@ -134,10 +172,10 @@ const AdminPaymentsWidget: React.FC = () => {
           <div className="w-16 h-16 mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <CreditCard className="text-gray-400" size={32} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
             No Payments Found
           </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
+          <p className=" text-[10px]  md:text-[12px] text-gray-500 text-center mb-4">
             No payment records found yet. Payments will appear here once they
             are processed.
           </p>
@@ -147,95 +185,95 @@ const AdminPaymentsWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <CreditCard className="text-white" size={20} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <CreditCard className="text-white" size={16} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Recent Payments</h3>
-            <p className="text-sm text-gray-500">Latest payment transactions</p>
+            <h3 className="text-[14px] md:text-[16px] md:text-[16px] md:text-[18px] font-bold text-gray-900">Recent Payments</h3>
+            <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-500">Latest payment transactions</p>
           </div>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
+          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">
             ₦{totalRevenue.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-600">Total Revenue</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
         </div>
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">
             {completedPayments}
           </div>
-          <div className="text-xs text-gray-600">Completed</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
         </div>
-        <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-600">
+        <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">
             {pendingPayments}
           </div>
-          <div className="text-xs text-gray-600">Pending</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
         </div>
-        <div className="text-center p-3 bg-red-50 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">
+        <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
+          <div className="text-[14px]text-[18px] md:text-[20px]-[16px] md:text-[18px] md:text-[20px] font-bold text-red-600">
             {failedPayments}
           </div>
-          <div className="text-xs text-gray-600">Failed</div>
+          <div className="text-[10px] md:text-xs text-gray-600">Failed</div>
         </div>
       </div>
 
       {/* Recent Payments List */}
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {recentPayments.map((payment: PaymentData, index: number) => (
           <div
             key={payment.id || `payment-${index}`}
-            className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+            className="border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <div className="flex items-start justify-between mb-2 md:mb-3">
+              <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <DollarSign size={16} className="text-green-600" />
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">
-                    ₦{Number(payment.amount || 0).toFixed(2)}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium  text-[10px]  md:text-[12px] md:text-base text-gray-900 truncate">
+                    ₦{parseAmount(payment.amount).toFixed(2)}
                   </h4>
-                  <p className="text-sm text-gray-600">
-                    {payment.patient_name || "Unknown Patient"}
+                  <p className="text-xs md: text-[10px]  md:text-[12px] text-gray-600 truncate">
+                    {payment.patientName || "Unknown Patient"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                    payment.status
+                  className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
+                    payment.paymentStatus
                   )}`}
                 >
-                  {payment.status}
+                  {payment.paymentStatus}
                 </span>
-                {getStatusIcon(payment.status)}
+                {getStatusIcon(payment.paymentStatus)}
               </div>
             </div>
 
-            <div className="space-y-2">
-              {payment.doctor_name && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-xs">👨‍⚕️</span>
-                  <span>{payment.doctor_name}</span>
+            <div className="space-y-1.5 md:space-y-2">
+              {payment.doctorId && (
+                <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
+                  <span className="text-[10px] md:text-xs">👨‍⚕️</span>
+                  <span className="truncate">{payment.doctorId}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="text-xs">💳</span>
-                <span>{payment.payment_method || "Card Payment"}</span>
+              <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
+                <span className="text-[10px] md:text-xs">💳</span>
+                <span>{payment.paymentMethod || "Card Payment"}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="text-xs">📅</span>
-                <span>{formatDate(payment.createdTime)}</span>
+              <div className="flex items-center gap-2 text-xs md: text-[10px]  md:text-[12px] text-gray-600">
+                <span className="text-[10px] md:text-xs">📅</span>
+                <span>{formatDate(payment.createdAt || payment.paymentDate)}</span>
               </div>
             </div>
 
@@ -244,7 +282,7 @@ const AdminPaymentsWidget: React.FC = () => {
                 <CreditCard size={14} />
                 <span>
                   Payment ID:{" "}
-                  {payment.id ? payment.id.slice(0, 8) + "..." : "N/A"}
+                  {payment.paymentReference?.reference || payment.transactionId?.reference || (payment.id ? payment.id.slice(0, 8) + "..." : "N/A")}
                 </span>
               </div>
             </div>
@@ -254,24 +292,24 @@ const AdminPaymentsWidget: React.FC = () => {
 
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  text-[10px]  md:text-[12px]">
+          <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
             Average Payment: ₦{averagePayment.toFixed(2)}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">
                 Completed: {completedPayments}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600">Pending: {pendingPayments}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Pending: {pendingPayments}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600">Failed: {failedPayments}</span>
+              <span className="text-gray-600 text-xs md: text-[10px]  md:text-[12px]">Failed: {failedPayments}</span>
             </div>
           </div>
         </div>

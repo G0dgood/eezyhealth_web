@@ -14,6 +14,14 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "eezyhealth",
   description: "Healthcare Management System",
+  icons: {
+    icon: [
+      { url: "/logowhite.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" }
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/logowhite.svg",
+  },
 };
 
 export default function RootLayout({
@@ -36,6 +44,12 @@ export default function RootLayout({
                       richColors
                       closeButton
                       duration={4000}
+                      toastOptions={{
+                        style: {
+                          fontSize: "10px",
+                        },
+                        className: "text-xs",
+                      }}
                     />
                   </NotificationProvider>
                 </BadgeProvider>

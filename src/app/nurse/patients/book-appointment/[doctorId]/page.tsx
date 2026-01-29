@@ -14,12 +14,14 @@ import Link from "next/link";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useSearchParams } from "next/navigation";
-import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/api";
+import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi";
 import { toast } from "sonner";
 import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
 import { BookingConfirmationModal } from "@/components/modals";
 import { DoctorBookingSkeleton } from "@/components/ui/doctor-booking-skeleton";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 
 interface Doctor {
   id: string;
@@ -313,7 +315,7 @@ export default function DoctorBookingPage({
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {doctor.title || "Dr."} {doctorName}
             </h2>
-            <p className="text-lg text-gray-600 mb-2">
+            <p className="text-[14px] md:text-[16px] text-gray-600 mb-2">
               {doctor.specialization || "General Practitioner"}
             </p>
             <p className="text-gray-500 mb-3">
@@ -329,24 +331,24 @@ export default function DoctorBookingPage({
 
             {/* Contact Info */}
             <div className="space-y-2 text-left mb-4">
-              <div className="flex items-center text-sm text-gray-800">
+              <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-800">
                 <Mail className="w-4 h-4 mr-2" />
                 <span className="truncate">{doctor.email}</span>
               </div>
               {doctor.phone_number && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-800">
                   <Phone className="w-4 h-4 mr-2" />
                   <span>{doctor.phone_number}</span>
                 </div>
               )}
               {doctor.hospital && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-800">
                   <User className="w-4 h-4 mr-2" />
                   <span className="truncate">{doctor.hospital}</span>
                 </div>
               )}
               {doctor.address && (
-                <div className="flex items-center text-sm text-gray-800">
+                <div className="flex items-center  !text-[10px]  !md:text-[12px] text-gray-800">
                   <MapPin className="w-4 h-4 mr-2" />
                   <span className="truncate">{doctor.address}</span>
                 </div>
@@ -357,7 +359,7 @@ export default function DoctorBookingPage({
             {doctor.about && (
               <div className="text-left">
                 <h3 className="font-semibold text-gray-900 mb-2">About</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-gray-600  !text-[10px]  !md:text-[12px] leading-relaxed">
                   {doctor.about}
                 </p>
               </div>
@@ -367,31 +369,34 @@ export default function DoctorBookingPage({
 
         {/* Right Panel - Appointment Booking */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">
+          <h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
             Book Appointment
           </h3>
 
           {/* Communication Channel */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
               Communication Channel
             </label>
-            <select
+            <Dropdown
               value={selectedChannel}
-              onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer">
-              <option value="">Select Channel</option>
-              {communicationChannels?.map((channel) => (
-                <option key={channel} value={channel}>
-                  {channel}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSelectedChannel(value)}
+              options={[
+                { value: "", label: "Select Channel" },
+                ...(communicationChannels?.map((channel) => ({
+                  value: channel,
+                  label: channel
+                })) || [])
+              ]}
+              placeholder="Select Channel"
+              className="w-full"
+              variant="default"
+            />
           </div>
 
           {/* Available Date */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
               Select Available Date
             </label>
             <div className="border border-gray-200 rounded-lg p-4">
@@ -429,15 +434,14 @@ export default function DoctorBookingPage({
                   <button
                     key={index}
                     onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                      dayData.selected
-                        ? "bg-green-500 text-white"
-                        : dayData.currentMonth
+                    className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg transition-colors cursor-pointer ${dayData.selected
+                      ? "bg-green-500 text-white"
+                      : dayData.currentMonth
                         ? dayData.hasAvailability
                           ? "hover:bg-green-100 text-green-700 border-2 border-green-300"
                           : "hover:bg-gray-100 text-gray-900"
                         : "text-gray-400"
-                    }`}>
+                      }`}>
                     {dayData.day}
                   </button>
                 ))}
@@ -448,7 +452,7 @@ export default function DoctorBookingPage({
           {/* Show availability for selected day */}
           {selectedDayAvailability && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
                 Available Times for{" "}
                 {selectedDate ? getDayName(selectedDate) : ""}
               </label>
@@ -459,13 +463,12 @@ export default function DoctorBookingPage({
                       key={timeSlot}
                       onClick={() => setSelectedTime(timeSlot)}
                       disabled={status !== "available"}
-                      className={`p-2 text-sm rounded-lg border transition-colors cursor-pointer ${
-                        selectedTime === timeSlot
-                          ? "bg-green-500 text-white border-green-500"
-                          : status === "available"
+                      className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg border transition-colors cursor-pointer ${selectedTime === timeSlot
+                        ? "bg-green-500 text-white border-green-500"
+                        : status === "available"
                           ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
                           : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                      }`}>
+                        }`}>
                       {timeSlot
                         .replace(/_/g, " ")
                         .replace(/([A-Z])/g, " $1")
@@ -479,18 +482,19 @@ export default function DoctorBookingPage({
 
           {/* Reason for Consultation */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
               Reason for consultation
             </label>
-            <textarea
+            <Textarea
               value={consultationReason}
               onChange={(e) => setConsultationReason(e.target.value)}
               placeholder="Reason for consultation"
               rows={3}
               maxLength={500}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              fullWidth
+              className="resize-none"
             />
-            <div className="text-right text-sm text-gray-500 mt-1">
+            <div className="text-right  !text-[10px]  !md:text-[12px] text-gray-500 mt-1">
               {consultationReason?.length}/500
             </div>
           </div>
@@ -499,11 +503,10 @@ export default function DoctorBookingPage({
           <button
             onClick={handleContinue}
             disabled={!selectedDate || !selectedTime || !selectedChannel}
-            className={`w-full py-3 px-6 rounded-lg transition-colors font-medium cursor-pointer ${
-              selectedDate && selectedTime && selectedChannel
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}>
+            className={`w-full py-3 px-6 rounded-lg transition-colors font-medium cursor-pointer ${selectedDate && selectedTime && selectedChannel
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}>
             Continue
           </button>
         </div>

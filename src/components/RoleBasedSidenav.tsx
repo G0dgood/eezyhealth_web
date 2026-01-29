@@ -12,7 +12,7 @@ import Image from "next/image";
 import { getNavigationItems, NavItem } from "@/utils/navigationItems";
 
 interface RoleBasedSidenavProps {
-  userRole: "NURSE" | "DOCTOR" | "ADMIN";
+  userRole: "nurse" | "doctor" | "admin";
   isMobileOpen: boolean;
   onMobileClose: () => void;
 }
@@ -40,7 +40,7 @@ export default function RoleBasedSidenav({
 
   // Auto-expand dropdown when on sub-pages
   useEffect(() => {
-    if (userRole === "ADMIN" && pathname.startsWith("/admin/users")) {
+    if (userRole === "admin" && pathname.startsWith("/admin/users")) {
       setExpandedItems(prev => new Set(prev).add("users"));
     }
   }, [pathname, userRole]);
@@ -121,7 +121,7 @@ export default function RoleBasedSidenav({
               {item.icon}
             </div>
             <span
-              className={`text-sm font-medium transition-colors whitespace-nowrap duration-200 ${isItemActive ? "text-white" : ""
+              className={` text-[10px]  md:text-[12px] font-medium transition-colors whitespace-nowrap duration-200 ${isItemActive ? "text-white" : ""
                 }`}
               style={{
                 color: isItemActive ? "white" : "var(--foreground)",
@@ -195,7 +195,7 @@ export default function RoleBasedSidenav({
                       {subItem.icon}
                     </div>
                     <span
-                      className={`text-sm transition-colors duration-200 ${isSubItemActive ? "text-white" : ""
+                      className={` text-[10px]  md:text-[12px] transition-colors duration-200 ${isSubItemActive ? "text-white" : ""
                         }`}
                       style={{
                         color: isSubItemActive
@@ -235,7 +235,7 @@ export default function RoleBasedSidenav({
     <>
       {/* Sidenav */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[266px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[230px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         style={{
           gridArea: "sidenav",

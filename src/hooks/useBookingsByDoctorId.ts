@@ -57,13 +57,17 @@ export const useBookingsByDoctorId = (doctorId: string | null): UseBookingsByDoc
     setError(null);
 
     try {
-      const bookingsCollectionRef = collection(db, 'Bookings');
-      
-      // Create a query to filter by doctorId
-      const q = query(bookingsCollectionRef, where("doctorId", "==", doctorId));
-      
-      // Execute the query
-      const snapshot = await getDocs(q);
+      // Try 'Bookings' first
+      let bookingsCollectionRef = collection(db, 'Bookings');
+      let q = query(bookingsCollectionRef, where("doctorId", "==", doctorId));
+      let snapshot = await getDocs(q);
+
+      // If empty, try 'bookings'
+      if (snapshot.empty) {
+        bookingsCollectionRef = collection(db, 'bookings');
+        q = query(bookingsCollectionRef, where("doctorId", "==", doctorId));
+        snapshot = await getDocs(q);
+      }
       
       // Map the results to an array of booking data with proper serialization
       const bookingsData: BookingData[] = snapshot.docs.map(doc => {
@@ -98,6 +102,10 @@ export const useBookingsByDoctorId = (doctorId: string | null): UseBookingsByDoc
             requestedAt: string;
             adminResponse?: string;
           } | undefined,
+          consultationNote: (serializedData.consultationNote || serializedData.doctorComment) as string,
+          doctorRecommendation: serializedData.doctorRecommendation as string,
+          diagnosis: serializedData.diagnosis as string,
+          prescriptions: serializedData.prescriptions as string[],
         };
       });
       

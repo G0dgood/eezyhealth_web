@@ -1,38 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
+import {
+  User,
+  Bell,
+  Shield,
+  Sun,
+  Moon,
+} from "lucide-react";
+import Button from "@/components/Button";
 import Breadcrumb from "@/components/Breadcrumb";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { Toggle } from "@/components/Toggle";
 import { validateField } from "@/utils/fieldValidation";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 import { PageSkeleton } from "@/components/SkeletonLoader";
-import CustomToggle from "@/components/CustomToggle";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+import { useUpdateUserProfileMutation } from "@/store/authApi";
+
+
+import PillTabs from "@/components/Tabs/PillTabs";
 
 export default function AdminSettings() {
-  const { userInfo, loading, signOut } = useAuth();
+  const { userInfo, loading, signOut, setUserInfo } = useAuth();
+  const [updateUser] = useUpdateUserProfileMutation();
   const [activeTab, setActiveTab] = useState("profile");
   const { theme, setTheme, toggleTheme } = useTheme();
 
   const router = useRouter();
 
-
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
-
-  // Function to check if image URL is valid for Next.js Image component
-  const isValidImageUrl = (url: string) => {
-    if (!url) return false;
-    // Check if it's a valid HTTP/HTTPS URL
-    try {
-      const urlObj = new URL(url);
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
 
   // Sync profileImage with userInfo when it changes
   useEffect(() => {
@@ -85,7 +88,7 @@ export default function AdminSettings() {
   const handleProfileDataChange = (field: string, value: string) => {
     // Clear error for this field when user starts typing
     if (profileErrors[field]) {
-      setProfileErrors(prev => {
+      setProfileErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -117,7 +120,11 @@ export default function AdminSettings() {
   });
 
   // Session timeout state
-  const [sessionTimeoutId, setSessionTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const logoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
   const [timeUntilLogout, setTimeUntilLogout] = useState<number>(0);
   const [isSessionWarning, setIsSessionWarning] = useState(false);
 
@@ -129,57 +136,70 @@ export default function AdminSettings() {
   });
 
   // Profile validation state
-  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>(
+    {}
+  );
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [profileChanges, setProfileChanges] = useState(false);
 
   // Session timeout functions
-  const startSessionTimeout = () => {
-    // Clear existing timeout
-    if (sessionTimeoutId) {
-      clearTimeout(sessionTimeoutId);
-    }
+  const clearAllTimeouts = () => {
+    if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
+    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+  };
+
+  const startSessionTimeout = useCallback(() => {
+    clearAllTimeouts();
 
     const timeoutMinutes = parseInt(securitySettings.sessionTimeout);
+
+    // Validate timeout: must be a number and at least 1 minute
+    if (isNaN(timeoutMinutes) || timeoutMinutes < 1) {
+      return;
+    }
+
     const timeoutMs = timeoutMinutes * 60 * 1000;
 
-    // Set warning 2 minutes before logout
-    const warningTime = timeoutMs - (2 * 60 * 1000);
+    // Set warning 2 minutes before logout, or at 80% if timeout is small
+    const warningTime = timeoutMs > 3 * 60 * 1000 ? timeoutMs - 2 * 60 * 1000 : Math.floor(timeoutMs * 0.8);
 
     // Start countdown for warning
-    const warningTimeoutId = setTimeout(() => {
+    warningTimeoutRef.current = setTimeout(() => {
       setIsSessionWarning(true);
-      setTimeUntilLogout(120); // 2 minutes in seconds
+      const secondsRemaining = Math.floor((timeoutMs - warningTime) / 1000);
+      setTimeUntilLogout(secondsRemaining);
 
       // Start countdown timer
-      const countdownInterval = setInterval(() => {
-        setTimeUntilLogout(prev => {
+      countdownIntervalRef.current = setInterval(() => {
+        setTimeUntilLogout((prev) => {
           if (prev <= 1) {
-            clearInterval(countdownInterval);
+            if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-
     }, warningTime);
 
     // Set actual logout timeout
-    const logoutTimeoutId = setTimeout(() => {
+    logoutTimeoutRef.current = setTimeout(() => {
       handleSessionTimeout();
     }, timeoutMs);
+  }, [securitySettings.sessionTimeout]);
 
-    setSessionTimeoutId(logoutTimeoutId);
-  };
+  const resetSessionTimeout = useCallback(() => {
+    const now = Date.now();
+    // Throttle: only reset if 30 seconds have passed since last activity
+    if (now - lastActivityRef.current < 30000) return;
 
-  const resetSessionTimeout = () => {
-    if (sessionTimeoutId) {
-      clearTimeout(sessionTimeoutId);
-    }
+    lastActivityRef.current = now;
+
+    // Only clear and restart if we are in warning mode OR enough time passed
+    // But for simplicity and correctness, we restart the timer
     setIsSessionWarning(false);
-    setTimeUntilLogout(0);
     startSessionTimeout();
-  };
+  }, [startSessionTimeout]);
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -209,11 +229,9 @@ export default function AdminSettings() {
 
     // Cleanup on unmount
     return () => {
-      if (sessionTimeoutId) {
-        clearTimeout(sessionTimeoutId);
-      }
+      clearAllTimeouts();
     };
-  }, []);
+  }, [startSessionTimeout]);
 
   // Reset session timeout on user activity
   useEffect(() => {
@@ -222,19 +240,26 @@ export default function AdminSettings() {
     };
 
     // Add event listeners for user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleUserActivity, true);
     });
 
     // Cleanup event listeners
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleUserActivity, true);
       });
     };
-  }, [securitySettings.sessionTimeout]);
+  }, [resetSessionTimeout]);
 
   // Update session timeout when settings change
   useEffect(() => {
@@ -243,25 +268,57 @@ export default function AdminSettings() {
     }
   }, [securitySettings.sessionTimeout]);
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create a temporary URL for the selected file
-      const tempUrl = URL.createObjectURL(file);
-      setProfileImage(tempUrl);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
 
-      // Clean up the temporary URL when component unmounts
-      return () => URL.revokeObjectURL(tempUrl);
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        // Update user in database
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+
+        // Update local storage and context
+        if (userInfo && setUserInfo) {
+          const updatedUserInfo = { ...userInfo, photo_url: url, photoURL: url };
+          setUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
+
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
   const handleProfileSave = async () => {
     // Validate all fields
     const errors: Record<string, string> = {};
-    const requiredFields = ['fullName', 'email', 'mobileNumber', 'firstName', 'lastName', 'address', 'location'];
+    const requiredFields = [
+      "fullName",
+      "email",
+      "mobileNumber",
+      "firstName",
+      "lastName",
+      "address",
+      "location",
+    ];
 
-    requiredFields.forEach(field => {
-      const error = validateField(field, profileData[field as keyof typeof profileData] as string);
+    requiredFields.forEach((field) => {
+      const error = validateField(
+        field,
+        profileData[field as keyof typeof profileData] as string
+      );
       if (error) {
         errors[field] = error;
       }
@@ -281,7 +338,7 @@ export default function AdminSettings() {
       // Simulate API call to update profile
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Update profile data (in real app, this would call Firebase) 
+      // Update profile data (in real app, this would call Firebase)
       toast.success("Profile updated successfully!");
       setProfileChanges(false);
     } catch (error) {
@@ -291,13 +348,10 @@ export default function AdminSettings() {
     }
   };
 
-
-
   const handleNotificationSave = async () => {
     try {
       // Simulate API call to update notification preferences
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
 
       toast.success("Notification preferences updated successfully!");
     } catch {
@@ -342,271 +396,204 @@ export default function AdminSettings() {
     },
   ];
 
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                {profileImage && isValidImageUrl(profileImage) ? (
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    <UserCircle className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 bg-[#22c55e] text-white p-2 rounded-full cursor-pointer hover:bg-[#1a9f4a] transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-[#22c55e] font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+            />
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Full Name"
+                  required
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     handleProfileDataChange("fullName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.fullName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.fullName}
+                  helperText={profileErrors.fullName}
                   placeholder="Enter your full name"
-                />
-                {profileErrors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.fullName}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Admin ID
-                </label>
-                <input
-                  type="text"
-                  value={profileData.adminId}
-                  onChange={(e) =>
-                    handleProfileDataChange("adminId", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
+
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
                   Role
                 </label>
-                <select
+                <Dropdown
                   value={profileData.role}
-                  onChange={(e) =>
-                    handleProfileDataChange("role", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("role", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
-                  <option value="System Administrator">
-                    System Administrator
-                  </option>
-                  <option value="IT Manager">IT Manager</option>
-                  <option value="Security Admin">Security Admin</option>
-                  <option value="User Manager">User Manager</option>
-                  <option value="Data Administrator">Data Administrator</option>
-                </select>
+                  options={[
+                    { value: "System Administrator", label: "System Administrator" },
+                    { value: "IT Manager", label: "IT Manager" },
+                    { value: "Security Admin", label: "Security Admin" },
+                    { value: "User Manager", label: "User Manager" },
+                    { value: "Data Administrator", label: "Data Administrator" },
+                  ]}
+                  placeholder="Select Role"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Email"
+                  required
                   type="email"
                   value={profileData.email}
                   onChange={(e) =>
                     handleProfileDataChange("email", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.email
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.email}
+                  helperText={profileErrors.email}
                   placeholder="Enter your email address"
+                  fullWidth
                 />
-                {profileErrors.email && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.email}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Mobile Number"
+                  required
                   type="tel"
                   value={profileData.mobileNumber}
                   onChange={(e) =>
                     handleProfileDataChange("mobileNumber", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.mobileNumber
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.mobileNumber}
+                  helperText={profileErrors.mobileNumber}
                   placeholder="Enter your mobile number"
+                  fullWidth
                 />
-                {profileErrors.mobileNumber && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.mobileNumber}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
                   Department
                 </label>
-                <select
+                <Dropdown
                   value={profileData.department}
-                  onChange={(e) =>
-                    handleProfileDataChange("department", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("department", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
-                  <option value="IT & Administration">
-                    IT & Administration
-                  </option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Quality Assurance">Quality Assurance</option>
-                </select>
+                  options={[
+                    { value: "IT & Administration", label: "IT & Administration" },
+                    { value: "Human Resources", label: "Human Resources" },
+                    { value: "Finance", label: "Finance" },
+                    { value: "Operations", label: "Operations" },
+                    { value: "Quality Assurance", label: "Quality Assurance" },
+                  ]}
+                  placeholder="Select Department"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
                   Access Level
                 </label>
-                <select
+                <Dropdown
                   value={profileData.accessLevel}
-                  onChange={(e) =>
-                    handleProfileDataChange("accessLevel", e.target.value)
+                  onChange={(value) =>
+                    handleProfileDataChange("accessLevel", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 cursor-pointer">
-                  <option value="Full Access">Full Access</option>
-                  <option value="Limited Access">Limited Access</option>
-                  <option value="Read Only">Read Only</option>
-                  <option value="User Management">User Management</option>
-                </select>
+                  options={[
+                    { value: "Full Access", label: "Full Access" },
+                    { value: "Limited Access", label: "Limited Access" },
+                    { value: "Read Only", label: "Read Only" },
+                    { value: "User Management", label: "User Management" },
+                  ]}
+                  placeholder="Select Access Level"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
             </div>
 
             {/* Additional Profile Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="First Name"
+                  required
                   type="text"
                   value={profileData.firstName}
                   onChange={(e) =>
                     handleProfileDataChange("firstName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.firstName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.firstName}
+                  helperText={profileErrors.firstName}
                   placeholder="Enter your first name"
+                  fullWidth
                 />
-                {profileErrors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.firstName}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Last Name"
+                  required
                   type="text"
                   value={profileData.lastName}
                   onChange={(e) =>
                     handleProfileDataChange("lastName", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.lastName
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.lastName}
+                  helperText={profileErrors.lastName}
                   placeholder="Enter your last name"
+                  fullWidth
                 />
-                {profileErrors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.lastName}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Address"
+                  required
                   type="text"
                   value={profileData.address}
                   onChange={(e) =>
                     handleProfileDataChange("address", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.address
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.address}
+                  helperText={profileErrors.address}
                   placeholder="Enter your address"
+                  fullWidth
                 />
-                {profileErrors.address && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.address}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  label="Location"
+                  required
                   type="text"
                   value={profileData.location}
                   onChange={(e) =>
                     handleProfileDataChange("location", e.target.value)
                   }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${profileErrors.location
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-[#22c55e] focus:border-[#22c55e]"
-                    }`}
+                  error={profileErrors.location}
+                  helperText={profileErrors.location}
                   placeholder="Enter your location"
+                  fullWidth
                 />
-                {profileErrors.location && (
-                  <p className="text-red-500 text-sm mt-1">{profileErrors.location}</p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
-                </label>
-                <input
+                <Input
+                  label="Date of Birth"
                   type="text"
                   value={
                     profileData.dateOfBirth
@@ -621,20 +608,22 @@ export default function AdminSettings() {
                       : ""
                   }
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-2">
                   Status
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                    className={`px-3 py-2 rounded-lg text-[10px] md:text-[12px] font-medium ${profileData.isActive
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
-                      }`}>
+                      }`}
+                  >
                     {profileData.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -643,31 +632,28 @@ export default function AdminSettings() {
 
             {/* Bio Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your bio
-              </label>
-              <textarea
+              <Textarea
+                label="Your bio"
                 value={profileData.bio}
                 onChange={(e) => handleProfileDataChange("bio", e.target.value)}
                 rows={4}
                 maxLength={400}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 resize-none"
+                helperText={`${profileData?.bio?.length || 0} characters`}
               />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {profileData?.bio?.length} characters
-              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3">
-              <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <Button variant="neutral">
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                variant="primary"
+                isLoading={isProfileSaving}
+              >
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -682,7 +668,7 @@ export default function AdminSettings() {
                   <h3 className="font-medium text-gray-900">
                     New User Registrations
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Get notified when new users register in the system.
                   </p>
                 </div>
@@ -690,7 +676,7 @@ export default function AdminSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newUserRegistrations}
                     onChange={(checked) => {
-                      console.log("Admin notification toggle:", { checked, current: notificationPrefs.newUserRegistrations });
+
                       setNotificationPrefs({
                         ...notificationPrefs,
                         newUserRegistrations: checked,
@@ -704,7 +690,7 @@ export default function AdminSettings() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
                   <h3 className="font-medium text-gray-900">Security Alerts</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Get notified about security breaches or suspicious
                     activities.
                   </p>
@@ -728,7 +714,7 @@ export default function AdminSettings() {
                   <h3 className="font-medium text-gray-900">
                     User Account Updates
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Get notified when user accounts are modified or updated.
                   </p>
                 </div>
@@ -751,7 +737,7 @@ export default function AdminSettings() {
                   <h3 className="font-medium text-gray-900">
                     System Maintenance
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Receive notifications about scheduled maintenance and
                     updates.
                   </p>
@@ -772,11 +758,12 @@ export default function AdminSettings() {
 
             {/* Save Button */}
             <div className="flex justify-end">
-              <button
+              <Button
                 onClick={handleNotificationSave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                className="bg-[#22c55e] hover:bg-[#1a9f4a] text-white"
+              >
                 Save Preference
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -787,7 +774,7 @@ export default function AdminSettings() {
             {/* Security Settings Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Security Settings
                 </h3>
                 <p className="text-gray-600">
@@ -799,7 +786,7 @@ export default function AdminSettings() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">Session Timeout</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Auto-logout after inactivity
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -807,10 +794,10 @@ export default function AdminSettings() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
+                  <Input
                     type="number"
-                    min="5"
-                    max="120"
+                    min={5}
+                    max={120}
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
                       setSecuritySettings({
@@ -818,17 +805,18 @@ export default function AdminSettings() {
                         sessionTimeout: e.target.value,
                       })
                     }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200 text-center"
+                    className="w-20 text-center"
+                    fullWidth={false}
                   />
-                  <span className="text-sm text-gray-600">minutes</span>
+                  <span className="text-[10px] md:text-[12px] text-gray-600">minutes</span>
                 </div>
               </div>
 
               {/* Dark Mode */}
-              <div className="flex items-center justify-between py-4 border-b border-gray-200">
+              {/* <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Dark Mode</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
                     Enable dark theme for the admin interface
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -847,13 +835,45 @@ export default function AdminSettings() {
                     }}
                   />
                 </div>
+              </div> */}
+
+              {/* Theme Preference */}
+              <div className="flex items-center justify-between py-4 border-b border-gray-200">
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">
+                    Theme Preference
+                  </h4>
+                  <p className="text-[10px] md:text-[12px] text-gray-600">
+                    Choose between light and dark mode
+                  </p>
+                </div>
+                <div className="flex items-end justify-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Sun
+                      className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
+                        }`}
+                    />
+                    <span className="text-[10px] md:text-[12px] text-gray-600">Light</span>
+                  </div>
+                  <Toggle
+                    checked={theme === "dark"}
+                    onChange={() => toggleTheme()}
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Moon
+                      className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
+                        }`}
+                    />
+                    <span className="text-[10px] md:text-[12px] text-gray-600">Dark</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Change Password Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Change Password
                 </h3>
                 <p className="text-gray-600">
@@ -863,10 +883,8 @@ export default function AdminSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password
-                  </label>
-                  <input
+                  <Input
+                    label="Current Password"
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -876,15 +894,14 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Enter Current Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
-                  </label>
-                  <input
+                  <Input
+                    label="New Password"
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -894,15 +911,14 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
+                  <Input
+                    label="Confirm New Password"
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -912,31 +928,38 @@ export default function AdminSettings() {
                       })
                     }
                     placeholder="Confirm New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
               </div>
 
+
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3">
-                <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                <Button
+                  variant="outline-neutral"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handlePasswordUpdate}
-                  className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                  className="bg-[#22c55e] hover:bg-[#1a9f4a] text-white"
+                >
                   Update Password
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Save Security Settings Button */}
             <div className="flex justify-end">
-              <button
+              <Button
                 onClick={handleSecuritySave}
-                className="px-6 py-2 bg-[#22c55e] text-white rounded-lg hover:bg-[#1a9f4a] transition-colors cursor-pointer">
+                variant="primary"
+              >
                 Save Settings
-              </button>
+              </Button>
             </div>
           </div>
         );
@@ -968,21 +991,13 @@ export default function AdminSettings() {
 
       {/* Settings Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${activeTab === tab.id
-                  ? "border-[#22c55e] text-[#22c55e]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}>
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
+        <div className="border-b border-gray-200 p-4">
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            layoutId="admin-settings-active-tab"
+          />
         </div>
 
         {/* Tab Content */}

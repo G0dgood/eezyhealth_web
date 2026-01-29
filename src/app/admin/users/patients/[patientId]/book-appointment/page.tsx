@@ -119,7 +119,7 @@ export default function BookAppointmentPage() {
   const handleDoctorSelect = (doctorId: string) => {
     setSelectedDoctor(doctorId);
     // Here you can navigate to the actual booking page or open a booking modal
-    console.log("Selected doctor:", doctorId);
+
   };
 
   return (
@@ -142,10 +142,10 @@ export default function BookAppointmentPage() {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-[16px] md:text-[18px] sm:text-2xl font-bold text-gray-900">
             Book Appointment
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className=" text-[10px]  md:text-[12px] sm:text-base text-gray-600">
             Select a doctor to book your appointment
           </p>
         </div>
@@ -156,11 +156,10 @@ export default function BookAppointmentPage() {
         {availableDoctors.map((doctor) => (
           <div
             key={doctor.id}
-            className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
-              selectedDoctor === doctor.id
-                ? "border-green-500 ring-2 ring-green-200"
-                : "border-gray-200 hover:border-green-300"
-            }`}
+            className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${selectedDoctor === doctor.id
+              ? "border-green-500 ring-2 ring-green-200"
+              : "border-gray-200 hover:border-green-300"
+              }`}
             onClick={() => handleDoctorSelect(doctor.id)}>
             {/* Doctor Header */}
             <div className="p-4 sm:p-6 border-b border-gray-100">
@@ -173,10 +172,10 @@ export default function BookAppointmentPage() {
                   className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">
+                  <h3 className="text-base sm:text-[14px] md:text-[16px] font-semibold text-gray-900 mb-1 truncate">
                     {doctor.name}
                   </h3>
-                  <p className="text-green-600 font-medium mb-2 text-sm sm:text-base">
+                  <p className="text-green-600 font-medium mb-2  text-[10px]  md:text-[12px] sm:text-base">
                     {doctor.specialty}
                   </p>
                   <div className="flex items-center space-x-2 mb-2">
@@ -184,19 +183,18 @@ export default function BookAppointmentPage() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                            i < Math.floor(doctor.rating)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
-                          }`}
+                          className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(doctor.rating)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                            }`}
                         />
                       ))}
                     </div>
-                    <span className="text-xs sm:text-sm text-gray-600">
+                    <span className="text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                       {doctor.rating} ({doctor.totalReviews})
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <p className="text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                     {doctor.experience} experience
                   </p>
                 </div>
@@ -205,22 +203,22 @@ export default function BookAppointmentPage() {
 
             {/* Doctor Details */}
             <div className="p-4 sm:p-6 space-y-2 sm:space-y-3">
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.availableSlots}</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">
                   Available: {doctor.availableTimes.slice(0, 2).join(", ")}
                   {doctor.availableTimes.length > 2 && "..."}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.location}</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-xs sm: text-[10px]  md:text-[12px] text-gray-600">
                 <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="truncate">{doctor.phone}</span>
               </div>
@@ -229,12 +227,12 @@ export default function BookAppointmentPage() {
             {/* Footer */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-100">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                <span className="text-base sm:text-lg font-bold text-green-600">
+                <span className="text-base sm:text-[14px] md:text-[16px] font-bold text-green-600">
                   {doctor.consultationFee}
                 </span>
                 <Link
                   href={`/admin/users/patients/book-appointment/${doctor.id}`}
-                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer text-sm sm:text-base text-center">
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer  text-[10px]  md:text-[12px] sm:text-base text-center">
                   Book Now
                 </Link>
               </div>

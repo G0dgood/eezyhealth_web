@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Calendar, Filter, Plus, Search } from "lucide-react";
 import DataTable from "@/components/DataTable";
+import Input from "@/components/Input";
 
 export default function NurseAppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,13 +65,12 @@ export default function NurseAppointmentsPage() {
       label: "STATUS",
       render: (value: string | number) => (
         <span
-          className={`px-2 py-1 text-xs rounded-full ${
-            value === "Confirmed"
-              ? "bg-green-100 text-green-800"
-              : value === "Pending"
+          className={`px-2 py-1 text-xs rounded-full ${value === "Confirmed"
+            ? "bg-green-100 text-green-800"
+            : value === "Pending"
               ? "bg-yellow-100 text-yellow-800"
               : "bg-red-100 text-red-800"
-          }`}>
+            }`}>
           {value}
         </span>
       ),
@@ -81,7 +81,7 @@ export default function NurseAppointmentsPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Appointments</h1>
+        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2">Appointments</h1>
         <p className="text-gray-600">
           Manage and schedule patient appointments
         </p>
@@ -89,14 +89,14 @@ export default function NurseAppointmentsPage() {
 
       {/* Search and Actions */}
       <div className="flex items-center justify-between mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
+        <div className="flex-1 max-w-md">
+          <Input
             type="text"
             placeholder="Search appointments..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            startIcon={<Search className="w-5 h-5 text-gray-400" />}
+            fullWidth
           />
         </div>
 
@@ -117,9 +117,10 @@ export default function NurseAppointmentsPage() {
         columns={columns}
         data={appointmentsData}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={appointmentsData.length}
+        pageSize={10}
+        onPageChange={setCurrentPage}
+        itemLabel="appointments"
       />
 
       {/* Quick Stats */}
@@ -127,8 +128,8 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Today&apos;s Appointments</p>
-              <p className="text-2xl font-bold text-blue-600">5</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Today&apos;s Appointments</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">5</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-blue-600" />
@@ -139,8 +140,8 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Pending Confirmations</p>
-              <p className="text-2xl font-bold text-yellow-600">2</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Pending Confirmations</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-yellow-600">2</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-yellow-600" />
@@ -151,8 +152,8 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Completed Today</p>
-              <p className="text-2xl font-bold text-green-600">3</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Completed Today</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-green-600">3</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-green-600" />

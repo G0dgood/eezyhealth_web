@@ -5,11 +5,12 @@ import { Filter } from "lucide-react";
 import Title from "@/components/Title";
 import FilterModal from "@/components/modals/FilterModal";
 import SearchInput from "@/components/SearchInput";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
 import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import moment from "moment";
+import Button from "@/components/Button";
 
 interface Booking {
   id: string;
@@ -21,6 +22,7 @@ interface Booking {
   status: "pending" | "completed" | "cancelled";
   channel: "chat" | "videoCall" | "voiceCall";
 }
+import Pagination from "@/components/Pagination";
 
 export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,6 +49,11 @@ export default function BookingsPage() {
       return matchesSearch;
     }
   );
+
+  const formatStatusText = (status: string) => {
+    if (status === "pending") return "Scheduled";
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
   const paginatedData = filteredData?.slice(
     (currentPage - 1) * itemsPerPage,
@@ -88,7 +95,7 @@ export default function BookingsPage() {
     const baseClasses = "px-3 py-1 rounded-full text-xs font-medium text-white";
 
     switch (status) {
-      case "Pending":
+      case "pending":
         return `${baseClasses} bg-orange-500`;
       case "Accepted":
         return `${baseClasses} bg-green-500`;
@@ -204,26 +211,26 @@ export default function BookingsPage() {
 
         <div className="flex space-x-2">
           {/* Refresh Button */}
-          <button
+          <Button
+            variant="neutral"
             onClick={() => {
               toast.info("Refreshing bookings...");
               refetch();
             }}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
+            className="flex items-center gap-2 bg-gray-600 text-white hover:bg-gray-700 border-transparent"
+          >
             <span>Refresh</span>
-          </button>
+          </Button>
 
           {/* Filter Button */}
-          <button
+          <Button
+            variant={hasActiveFilters ? "primary" : "neutral"}
             onClick={() => setIsFilterModalOpen(true)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
-              hasActiveFilters
-                ? "border-[#44CE2D] bg-[#44CE2D] text-white"
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-            }`}>
-            <Filter className="w-4 h-4" />
+            className="flex items-center gap-2"
+            icon={<Filter className="w-4 h-4" />}
+          >
             <span>filter</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -231,7 +238,7 @@ export default function BookingsPage() {
       {bookings && bookings.length > 0 && (
         <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Total Bookings
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -239,7 +246,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Pending
             </div>
             <div className="text-2xl font-bold text-orange-600">
@@ -247,7 +254,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Completed
             </div>
             <div className="text-2xl font-bold text-green-600">
@@ -255,7 +262,7 @@ export default function BookingsPage() {
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
               Cancelled
             </div>
             <div className="text-2xl font-bold text-red-600">
@@ -300,7 +307,7 @@ export default function BookingsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData?.length === 0 ||
-                paginatedData?.length === undefined ? (
+                  paginatedData?.length === undefined ? (
                   <NoRecordFound colSpan={8} />
                 ) : (
                   paginatedData?.map(
@@ -317,46 +324,47 @@ export default function BookingsPage() {
                     }) => (
                       <tr key={booking.id} className="hover:bg-gray-50">
                         <td>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                             {booking?.patientName}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {formatFirebaseTimestamp(booking?.bookingDate)}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {booking?.bookingChannel}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {isFirebaseTimestamp(booking?.slot)
                               ? formatFirebaseTimestampWithTime(booking.slot)
                               : booking?.slot || "N/A"}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-[10px] md:text-[12px] text-gray-900">
                             {booking?.doctorName}
                           </div>
                         </td>
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {booking.specialization}
                           </div>
                         </td>
                         <td>
                           <span
-                            className={getStatusBadge(booking.bookingStatus)}>
-                            {booking?.bookingStatus?.charAt(0).toUpperCase() +
-                              booking?.bookingStatus?.slice(1)}
+                            className={getStatusBadge(booking.bookingStatus)}
+                          >
+                            {formatStatusText(booking.bookingStatus)}
                           </span>
                         </td>
+
                         <td>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-[10px] md:text-[12px] text-gray-500">
                             {getChannelText(booking.bookingChannel)}
                           </div>
                         </td>
@@ -371,26 +379,14 @@ export default function BookingsPage() {
       )}
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-            Previous
-          </button>
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed">
-            Next
-          </button>
-        </div>
+      <div className="mt-6">
+        <Pagination
+          currentPage={currentPage}
+          totalCount={filteredData?.length || 0}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          itemLabel="bookings"
+        />
       </div>
 
       {/* Filter Modal */}

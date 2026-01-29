@@ -18,8 +18,7 @@ export const updateUserByUid = async (uid: string, updatedData: Record<string, u
       const userDocRef = doc(db, 'users', docSnapshot.id);
 
       // Update the user document
-      await updateDoc(userDocRef, updatedData);
-      console.log(`User ${uid} updated successfully`);
+      await updateDoc(userDocRef, updatedData); 
     });
   } catch (error) {
     console.error('Error updating user:', error);

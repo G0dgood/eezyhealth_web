@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, Calendar, Shield, Save, X } from "lucide-react";
 import Modal from "./Modal";
 import { toast } from "sonner";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
 
 interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  role: "admin" | "doctor" | "nurse" | "patient";
   phone_number?: string;
   address?: string;
   location?: string;
@@ -17,6 +20,8 @@ interface UserData {
   first_name?: string;
   last_name?: string;
   photo_url?: string;
+  deactivatedAt?: string;
+  deactivationReason?: string;
 }
 
 interface UserEditModalProps {
@@ -50,6 +55,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         date_of_birth: user.date_of_birth || "",
         isActive: user.isActive,
         email: user.email,
+        deactivatedAt: user.deactivatedAt || "",
+        deactivationReason: user.deactivationReason || "",
       });
       setErrors({});
     }
@@ -72,13 +79,18 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       newErrors.phone_number = "Phone number is invalid";
     }
 
+    // Validate deactivation reason when user is being deactivated
+    if (formData.isActive === false && !formData.deactivationReason?.trim()) {
+      newErrors.deactivationReason = "Deactivation reason is required when deactivating a user";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -94,7 +106,23 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+
+      // If user is being reactivated (isActive changes to true), clear deactivation fields
+      if (field === "isActive" && value === true) {
+        newData.deactivatedAt = "";
+        newData.deactivationReason = "";
+      }
+
+      // If user is being deactivated (isActive changes to false), set deactivatedAt to current timestamp
+      if (field === "isActive" && value === false && !prev.deactivatedAt) {
+        newData.deactivatedAt = new Date().toISOString();
+      }
+
+      return newData;
+    });
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
@@ -120,7 +148,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
             )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">
               {user.display_name ||
                 `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
                 "N/A"}
@@ -133,167 +161,202 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Shield className="h-5 w-5 mr-2" />
               Basic Information
             </h3>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Display Name
-              </label>
-              <input
+              <Input
+                label="Display Name"
                 type="text"
                 value={formData.display_name || ""}
                 onChange={(e) => handleInputChange("display_name", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.display_name ? "border-red-500" : "border-gray-300"
-                }`}
+                variant={errors.display_name ? "error" : "default"}
+                helperText={errors.display_name}
                 placeholder="Display Name"
+                fullWidth
               />
-              {errors.display_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.display_name}</p>
+            </div>
+
+            <div>
+              <Input
+                label="First Name"
+                type="text"
+                value={formData.first_name || ""}
+                onChange={(e) => handleInputChange("first_name", e.target.value)}
+                placeholder="First Name"
+                fullWidth
+              />
+            </div>
+
+            <div>
+              <Input
+                label="Last Name"
+                type="text"
+                value={formData.last_name || ""}
+                onChange={(e) => handleInputChange("last_name", e.target.value)}
+                placeholder="Last Name"
+                fullWidth
+              />
+            </div>
+
+            <div>
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <Dropdown
+                value={formData.role || "patient"}
+                onChange={(value) => handleInputChange("role", value)}
+                options={[
+                  { value: "patient", label: "Patient" },
+                  { value: "nurse", label: "Nurse" },
+                  { value: "doctor", label: "Doctor" },
+                  { value: "admin", label: "Admin" },
+                ]}
+                placeholder="Select Role"
+                className="w-full"
+                variant="default"
+              />
+            </div>
+
+            <div>
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
+                Account Status
+              </label>
+              <Dropdown
+                value={formData.isActive ? "true" : "false"}
+                onChange={(value) => handleInputChange("isActive", value === "true")}
+                options={[
+                  { value: "true", label: "Active" },
+                  { value: "false", label: "Deactivated" },
+                ]}
+                placeholder="Select Status"
+                className={`w-full ${formData.isActive === false ? "border-red-300 bg-red-50" : ""}`}
+                variant="default"
+              />
+              {formData.isActive === false && (
+                <p className="text-red-600 text-xs mt-1 flex items-center">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Deactivating will require a reason below
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                value={formData.first_name || ""}
-                onChange={(e) => handleInputChange("first_name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
-                placeholder="First Name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                value={formData.last_name || ""}
-                onChange={(e) => handleInputChange("last_name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
-                placeholder="Last Name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              <select
-                value={formData.role || "PATIENT"}
-                onChange={(e) => handleInputChange("role", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
-                <option value="PATIENT">Patient</option>
-                <option value="NURSE">Nurse</option>
-                <option value="DOCTOR">Doctor</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={formData.isActive ? "true" : "false"}
-                onChange={(e) => handleInputChange("isActive", e.target.value === "true")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]">
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date of Birth
-              </label>
-              <input
+              <Input
+                label="Date of Birth"
                 type="date"
                 value={formData.date_of_birth || ""}
                 onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
+                fullWidth
               />
             </div>
           </div>
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900 flex items-center">
               <Mail className="h-5 w-5 mr-2" />
               Contact Information
             </h3>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
+              <Input
+                label="Email *"
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
+                variant={errors.email ? "error" : "default"}
+                helperText={errors.email}
                 placeholder="Email"
                 required
+                fullWidth
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              <input
+              <Input
+                label="Phone Number"
                 type="tel"
                 value={formData.phone_number || ""}
                 onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] ${
-                  errors.phone_number ? "border-red-500" : "border-gray-300"
-                }`}
+                variant={errors.phone_number ? "error" : "default"}
+                helperText={errors.phone_number}
                 placeholder="Phone Number"
+                fullWidth
               />
-              {errors.phone_number && (
-                <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
-              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
                 Address
               </label>
-              <textarea
+              <Textarea
                 value={formData.address || ""}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="Address"
                 rows={3}
+                fullWidth
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
+              <Input
+                label="Location"
                 type="text"
                 value={formData.location || ""}
                 onChange={(e) => handleInputChange("location", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D]"
                 placeholder="City, Country"
+                fullWidth
               />
             </div>
           </div>
         </div>
+
+        {/* Deactivation Information - Only show if user is inactive */}
+        {formData.isActive === false && (
+          <div className="space-y-4 pt-6 border-t border-red-200 bg-red-50 p-4 rounded-lg">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-red-800 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-red-600" />
+              Account Deactivation
+            </h3>
+            <p className=" text-[10px]  md:text-[12px] text-red-700 bg-red-100 p-3 rounded-md">
+              <strong>Important:</strong> You are deactivating this user account. Please provide a clear reason for this action as it will be recorded in the system audit trail.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Input
+                  label="Deactivated At"
+                  type="datetime-local"
+                  value={formData.deactivatedAt ? new Date(formData.deactivatedAt).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => handleInputChange("deactivatedAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
+                  placeholder="Deactivation Date"
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-1">
+                  Deactivation Reason *
+                </label>
+                <Textarea
+                  value={formData.deactivationReason || ""}
+                  onChange={(e) => handleInputChange("deactivationReason", e.target.value)}
+                  placeholder="Please provide a reason for deactivating this user account..."
+                  rows={3}
+                  fullWidth
+                  required
+                />
+
+                {errors.deactivationReason && (
+                  <p className="text-red-500  text-[10px]  md:text-[12px] mt-1">{errors.deactivationReason}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">

@@ -1,9 +1,12 @@
 import React from "react";
 import { Search } from "lucide-react";
-import { useState, useEffect } from "react";
+import Input from "@/components/Input";
+import { useState, useEffect, useMemo } from "react";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { useGetBookingsQuery } from "@/store/api";
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import FormattedDate from "@/utils/FormattedDate";
+import Pagination from "@/components/Pagination";
 
 interface Booking {
   bookingId?: string;
@@ -11,6 +14,11 @@ interface Booking {
   doctorName?: string;
   date?: string;
   time?: string;
+  bookingDate?: {
+    _seconds: number;
+    _nanoseconds: number;
+  } | string;
+  slot?: string;
   bookingChannel?: string;
   specialization?: string;
   bookingStatus?: string;
@@ -20,47 +28,54 @@ interface Booking {
 const BookingList = () => {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-  console.log("bookings---", bookings?.bookings);
+  console.log('bookings------>', bookings)
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [bookingsData, setBookingsData] = useState<Booking[] | undefined>(bookings?.bookings);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Update bookingsData when bookings change
-  useEffect(() => {
-    setBookingsData(bookings?.bookings);
-  }, [bookings?.bookings]);
+  // Filter bookings based on search term
+  const filteredBookings = useMemo(() => {
+    const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
 
-  console.log("bookingsData---", bookingsData);
+    if (!data || data.length === 0) return [];
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
+    if (!searchTerm.trim()) return data;
 
-    if (term === "") {
-      setBookingsData(bookings?.bookings);
-      return;
-    }
-
-    const filteredBookings = bookings?.bookings?.filter((booking: Booking) => {
-      return booking.bookingStatus?.toLowerCase().includes(term) || false;
-      // booking.doctorName?.toLowerCase().includes(term) ||
-      // booking.specialization?.toLowerCase().includes(term) ||
-      // booking.bookingChannel?.toLowerCase().includes(term)
+    return data.filter((booking: Booking) => {
+      return (
+        booking.bookingStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.bookingChannel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.slot?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
+  }, [bookings, searchTerm]);
 
-    setBookingsData(filteredBookings);
-  };
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const paginatedBookings = filteredBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   return (
     <div>
       <div className="relative flex-1 max-w-md mb-6">
-        <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-        <input
+        <Input
           type="text"
-          placeholder="Search patient, doctor, specialty or type"
+          placeholder="Search patient, doctor, specialty, channel or time slot"
           value={searchTerm}
-          onChange={handleSearch}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          startIcon={<Search className="w-5 h-5 text-gray-400" />}
+          fullWidth
         />
       </div>
       {/* Bookings Table */}
@@ -79,47 +94,69 @@ const BookingList = () => {
           ]}
         />
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th>Patient Name</th>
-                  <th>Doctor</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Channel</th>
-                  <th>Specialty</th>
-                  <th>Status</th>
+                  <th >Patient Name</th>
+                  <th >Doctor</th>
+                  <th >Date</th>
+                  <th >Time</th>
+                  <th >Channel</th>
+                  <th >Specialty</th>
+                  <th >Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {bookingsData?.length === 0 ||
-                bookingsData?.length === undefined ? (
+                {paginatedBookings?.length === 0 ? (
                   <NoRecordFound colSpan={7} />
                 ) : (
-                  bookingsData.map((booking: Booking, index: number) => (
+                  paginatedBookings.map((booking: Booking, index: number) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-green-600 font-medium">
-                          {booking?.patientName}
+                          {booking?.patientName || "—"}
                         </span>
                       </td>
-                      <td> {booking?.doctorName}</td>
-                      <td>{booking?.date}</td>
-                      <td>{booking?.time}</td>
-                      <td>{booking?.bookingChannel}</td>
-                      <td> {booking?.specialization}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.doctorName || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.bookingDate ? (
+                          <FormattedDate timestamp={booking.bookingDate} />
+                        ) : booking?.date ? (
+                          <FormattedDate timestamp={booking.date} />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.slot ? (
+                          <span className="capitalize">
+                            {booking.slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </span>
+                        ) : booking?.time ? (
+                          booking.time
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.bookingChannel || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.specialization || "—"}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            booking.bookingStatus === "Accepted"
-                              ? "bg-green-100 text-green-800"
-                              : booking.status === "Pending"
+                          className={`px-2 py-1 text-xs rounded-full ${booking.bookingStatus === "Accepted"
+                            ? "bg-green-100 text-green-800"
+                            : (booking.bookingStatus === "pending" || booking.bookingStatus === "Pending" || booking.status === "Pending")
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
-                          }`}>
-                          {booking.bookingStatus || "Unknown"}
+                            }`}>
+                          {booking.bookingStatus || "-"}
                         </span>
                       </td>
                     </tr>
@@ -128,8 +165,18 @@ const BookingList = () => {
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredBookings.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="bookings"
+
+          />
         </div>
       )}
+
     </div>
   );
 };

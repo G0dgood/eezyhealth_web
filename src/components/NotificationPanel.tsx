@@ -34,7 +34,7 @@ export default function NotificationPanel({
   return (
     <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-2xl py-1 z-[9999] border border-gray-200">
       {/* Header */}
-      <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+      <div className="px-4 py-2  text-[10px]  md:text-[12px] text-gray-700 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h3 className="font-medium">Notifications</h3>
           <button
@@ -50,16 +50,15 @@ export default function NotificationPanel({
         {notifications.length === 0 ? (
           <div className="px-4 py-6 text-center text-gray-500">
             <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">No notifications</p>
+            <p className=" text-[10px]  md:text-[12px]">No notifications</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  !notification.isRead ? "bg-blue-50" : ""
-                }`}
+                className={`px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? "bg-blue-50" : ""
+                  }`}
                 onClick={() => onMarkAsRead(notification.id)}>
                 <div className="flex items-start space-x-3">
                   {/* Icon */}
@@ -69,7 +68,7 @@ export default function NotificationPanel({
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    <h4 className=" text-[10px]  md:text-[12px] font-medium text-gray-900 mb-1">
                       {notification.title}
                     </h4>
                     <p className="text-xs text-gray-600 mb-2 line-clamp-2">

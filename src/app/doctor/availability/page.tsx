@@ -5,14 +5,16 @@ import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import {
   useGetDoctorAvailabilityQuery,
   useSaveDoctorAvailabilityMutation,
-} from "@/store/api";
+} from "@/store/doctorFirebaseApi";
 import { showSuccess, showError } from "@/utils/toast";
 import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
+import Dropdown from "@/components/Dropdown";
 
 interface TimeSlot {
   time: string;
@@ -36,7 +38,7 @@ interface DoctorProfile {
 // Clean invalid keys from availability data
 const cleanAvailability = (
   availability: Record<string, Record<string, unknown>>,
-  timeSlots: { key: string; from: string; to: string }[]
+  timeSlots: { key: string; from: string; to: string }[],
 ) => {
   const validKeys = timeSlots.map((slot) => slot.key);
   const cleaned: Record<string, Record<string, unknown>> = {};
@@ -50,7 +52,7 @@ const cleanAvailability = (
         cleanedDaySlots[slotKey] = daySlots[slotKey];
       } else {
         console.warn(
-          `Removing invalid slot key: ${slotKey} for day: ${dayName}`
+          `Removing invalid slot key: ${slotKey} for day: ${dayName}`,
         );
       }
     });
@@ -90,6 +92,55 @@ export default function DoctorAvailabilityPage() {
 
   // RTK Query hooks
   const {
+    data: bookingsData,
+    isLoading: isLoadingBookings,
+    error: bookingsError,
+  } = useBookingsByDoctorId(doctorId);
+
+  const bookedSlots = useMemo(() => {
+    if (!bookingsData) return {};
+    const booked: Record<string, Record<string, boolean>> = {};
+
+    bookingsData.forEach((booking: any) => {
+      // Convert timestamp to Date object
+      let bookingDate: Date;
+      if (booking.bookingDate?._seconds) {
+        bookingDate = new Date(booking.bookingDate._seconds * 1000);
+      } else {
+        bookingDate = new Date(booking.bookingDate);
+      }
+
+      // Format date to match standard format
+      const year = bookingDate.getFullYear();
+      const month = String(bookingDate.getMonth() + 1).padStart(2, "0");
+      const day = String(bookingDate.getDate()).padStart(2, "0");
+      const dateKey = `${year}-${month}-${day}`; // Format: YYYY-MM-DD
+
+      // Get day name (Sunday, Monday, etc.)
+      const dayName = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][bookingDate.getDay()];
+
+      if (!booked[dateKey]) {
+        booked[dateKey] = {};
+      }
+
+      // Mark the slot as booked
+      if (booking.slot) {
+        booked[dateKey][booking.slot] = true;
+      }
+    });
+
+    return booked;
+  }, [bookingsData]);
+
+  const {
     data: doctorDetails,
     isLoading: isLoadingDetails,
     error,
@@ -98,14 +149,12 @@ export default function DoctorAvailabilityPage() {
     skip: !doctorId,
   });
 
-  console.log("doctorDetails---", doctorDetails);
-
   const [saveAvailability, { isLoading: isSaving }] =
     useSaveDoctorAvailabilityMutation();
 
   // Migration function to convert 30-minute slots to 1-hour slots
   const migrateAvailabilityToHourly = (
-    availability: Record<string, Record<string, unknown>>
+    availability: Record<string, Record<string, unknown>>,
   ) => {
     // If availability is empty, return as is
     if (Object.keys(availability).length === 0) {
@@ -197,30 +246,29 @@ export default function DoctorAvailabilityPage() {
   const rawDoctorAvailability =
     (doctorDetails as DoctorProfile)?.availability || {};
 
+  // console.log("rawDoctorAvailability", rawDoctorAvailability);
+
   // Apply migration to convert 30-minute slots to 1-hour slots
-  const migratedAvailability = useMemo(() => migrateAvailabilityToHourly(
-    rawDoctorAvailability
-  ), [rawDoctorAvailability]);
+  const migratedAvailability = useMemo(
+    () => migrateAvailabilityToHourly(rawDoctorAvailability),
+    [rawDoctorAvailability],
+  );
+
+  // console.log("migratedAvailability", migratedAvailability);
 
   // Clean invalid keys from availability data
-  const doctorAvailability = useMemo(() => cleanAvailability(migratedAvailability, timeSlots), [migratedAvailability, timeSlots]);
-
-  // Debug logging
-  console.log("doctorDetails---", doctorDetails);
-  console.log("rawDoctorAvailability---", rawDoctorAvailability);
-  console.log("migratedAvailability---", migratedAvailability);
-  console.log("doctorAvailability (cleaned)---", doctorAvailability);
-  console.log("selectedSlots (current state)---", selectedSlots);
-  console.log(
-    "hasInitializedAvailability---",
-    hasInitializedAvailability.current
+  const doctorAvailability = useMemo(
+    () => cleanAvailability(migratedAvailability, timeSlots),
+    [migratedAvailability, timeSlots],
   );
+
+  // console.log("doctorAvailability", doctorAvailability);
 
   // Check if we have any existing availability
   const hasExistingAvailability =
     Object.keys(doctorAvailability).length > 0 &&
     Object.values(doctorAvailability).some(
-      (daySlots) => Object.keys(daySlots).length > 0
+      (daySlots) => Object.keys(daySlots).length > 0,
     );
 
   // Initialize calendar with current week
@@ -236,14 +284,10 @@ export default function DoctorAvailabilityPage() {
       const migratedAvailability = migrateAvailabilityToHourly(rawAvailability);
       const cleanedAvailability = cleanAvailability(
         migratedAvailability,
-        timeSlots
+        timeSlots,
       );
 
       if (Object.keys(cleanedAvailability).length > 0) {
-        console.log(
-          "Initializing selectedSlots with existing availability:",
-          cleanedAvailability
-        );
         setSelectedSlots(cleanedAvailability);
         hasInitializedAvailability.current = true;
       }
@@ -257,10 +301,6 @@ export default function DoctorAvailabilityPage() {
       Object.keys(doctorAvailability).length > 0 &&
       !hasInitializedAvailability.current
     ) {
-      console.log(
-        "Secondary initialization with doctorAvailability:",
-        doctorAvailability
-      );
       setSelectedSlots(doctorAvailability);
       hasInitializedAvailability.current = true;
     }
@@ -282,7 +322,7 @@ export default function DoctorAvailabilityPage() {
     if (error) {
       showError(
         "Availability Error",
-        "Failed to load availability. Please try again."
+        "Failed to load availability. Please try again.",
       );
     }
   }, [error]);
@@ -299,13 +339,6 @@ export default function DoctorAvailabilityPage() {
       const timeSlot = timeSlots[slotIndex];
       const slotKey = timeSlotToKey(timeSlot);
 
-      console.log(`Toggling slot: ${dayName} - ${slotKey}`, {
-        currentSelectedSlots: prevSlots,
-        daySlots,
-        slotKey,
-        timeSlotKey: timeSlot.key,
-      });
-
       // Check if the slot is currently selected in the UI state
       const isCurrentlySelected = daySlots[slotKey];
 
@@ -318,11 +351,9 @@ export default function DoctorAvailabilityPage() {
         if (Object.keys(newDaySlots).length === 0) {
           const newPrevSlots = { ...prevSlots };
           delete newPrevSlots[dayName];
-          console.log("Removed entire day:", dayName);
           return newPrevSlots;
         }
 
-        console.log("Removed slot:", slotKey, "from day:", dayName);
         return {
           ...prevSlots,
           [dayName]: newDaySlots,
@@ -336,7 +367,7 @@ export default function DoctorAvailabilityPage() {
             [slotKey]: "available", // Mark it as available
           },
         };
-        console.log("Added slot:", slotKey, "to day:", dayName);
+
         return newSlots;
       }
     });
@@ -377,10 +408,6 @@ export default function DoctorAvailabilityPage() {
       // Merge existing availability with new selections
       const mergedAvailability = { ...doctorAvailability, ...selectedSlots };
 
-      console.log("Saving merged availability:", mergedAvailability);
-      console.log("Existing availability:", doctorAvailability);
-      console.log("New selections:", selectedSlots);
-
       await saveAvailability({
         doctorId,
         selectedSlots: mergedAvailability,
@@ -393,7 +420,7 @@ export default function DoctorAvailabilityPage() {
     } catch (error: unknown) {
       showError(
         "Error",
-        error instanceof Error ? error.message : "Failed to save availability"
+        error instanceof Error ? error.message : "Failed to save availability",
       );
     } finally {
       setIsLoading(false);
@@ -488,7 +515,7 @@ export default function DoctorAvailabilityPage() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="text-sm font-medium text-gray-700">
+                <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-700">
                   Consultation duration:
                 </div>
                 <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
@@ -532,25 +559,29 @@ export default function DoctorAvailabilityPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-gray-700">
+              <label className=" !text-[10px]  !md:text-[12px] font-medium text-gray-700">
                 Consultation duration:
               </label>
-              <select
+              <Dropdown
                 value={consultationDuration}
-                onChange={(e) => setConsultationDuration(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] bg-white">
-                <option value="15 minutes">15 minutes</option>
-                <option value="30 minutes">30 minutes</option>
-                <option value="45 minutes">45 minutes</option>
-                <option value="1 hour">1 hour</option>
-              </select>
+                onChange={(value) => setConsultationDuration(value)}
+                options={[
+                  { value: "15 minutes", label: "15 minutes" },
+                  { value: "30 minutes", label: "30 minutes" },
+                  { value: "45 minutes", label: "45 minutes" },
+                  { value: "1 hour", label: "1 hour" },
+                ]}
+                placeholder="Select Duration"
+                className="w-48"
+                variant="default"
+              />
             </div>
           </div>
 
           <div className="flex gap-3">
             {!hasExistingAvailability &&
               Object.keys(rawDoctorAvailability).length > 0 && (
-                <div className="text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
+                <div className=" !text-[10px]  !md:text-[12px] text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
                   ⚠️ Your previous consultation duration is being converted to
                   1-hour slots
                 </div>
@@ -558,7 +589,8 @@ export default function DoctorAvailabilityPage() {
             <button
               onClick={handleSaveAvailability}
               disabled={isLoading || isSaving}
-              className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Save className="w-4 h-4" />
               {isLoading || isSaving ? "Saving..." : "Save Availability"}
             </button>
@@ -571,17 +603,17 @@ export default function DoctorAvailabilityPage() {
         {/* Calendar Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
               {currentMonth}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className=" !text-[10px]  !md:text-[12px] text-gray-500">
               {currentWeekStart.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
               })}{" "}
               -{" "}
               {new Date(
-                currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000
+                currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000,
               ).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -601,17 +633,20 @@ export default function DoctorAvailabilityPage() {
                 const year = today.getFullYear();
                 setCurrentMonth(`${monthName}, ${year}`);
               }}
-              className="px-3 py-1 text-sm bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
+              className="px-3 py-1  !text-[10px]  !md:text-[12px] bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors"
+            >
               Today
             </button>
             <button
               onClick={() => navigateWeek("prev")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <ChevronLeft className="w-4 h-4 text-gray-600 cursor-pointer" />
             </button>
             <button
               onClick={() => navigateWeek("next")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <ChevronRight className="w-4 h-4 text-gray-600 cursor-pointer" />
             </button>
           </div>
@@ -622,11 +657,12 @@ export default function DoctorAvailabilityPage() {
           <div className="min-w-[800px]">
             {/* Day Headers */}
             <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="p-3 text-sm font-medium text-gray-500 bg-gray-50"></div>
-              {availability.map((day, index) => (
+              <div className="p-3  !text-[10px]  !md:text-[12px] font-medium text-gray-500 bg-gray-50"></div>
+              {availability?.map((day, index) => (
                 <div
                   key={String(`${day.dayName}-${day.date}-${index}`)}
-                  className="p-3 text-sm font-medium text-gray-900 bg-gray-50 text-center">
+                  className="p-3  !text-[10px]  !md:text-[12px] font-medium text-gray-900 bg-gray-50 text-center"
+                >
                   <div className="font-semibold">{day.dayName}</div>
                   <div className="text-xs text-gray-500">{day.date}</div>
                 </div>
@@ -641,9 +677,10 @@ export default function DoctorAvailabilityPage() {
                   return (
                     <div
                       key={String(timeSlot.key)}
-                      className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap">
+                      className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 whitespace-nowrap"
+                    >
                       {/* Time Label */}
-                      <div className="p-3 text-sm text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
+                      <div className="p-3  !text-[10px]  !md:text-[12px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
                         {availability[0].timeSlots[slotIndex].time}
                       </div>
 
@@ -655,7 +692,7 @@ export default function DoctorAvailabilityPage() {
                           const isExistingSlot = Boolean(
                             doctorAvailability &&
                             doctorAvailability[day?.dayName] &&
-                            doctorAvailability[day?.dayName][slotKey]
+                            doctorAvailability[day?.dayName][slotKey],
                           );
                           const isSelectedSlot =
                             selectedSlots[day?.dayName] &&
@@ -663,60 +700,66 @@ export default function DoctorAvailabilityPage() {
 
                           // Debug logging for specific slots
                           if (day?.dayName === "Thursday" && slotIndex === 2) {
-                            console.log("Thursday slot 2 debug:", {
-                              dayName: day?.dayName,
-                              slotIndex,
-                              timeSlot,
-                              slotKey,
-                              doctorAvailabilityForDay:
-                                doctorAvailability[day?.dayName],
-                              isExistingSlot,
-                              availableSlots: Object.keys(
-                                doctorAvailability[day?.dayName] || {}
-                              ),
-                            });
                           }
 
                           // Debug logging for slot 3 (should match early_morning_3am)
                           if (day?.dayName === "Thursday" && slotIndex === 3) {
-                            console.log("Thursday slot 3 debug:", {
-                              dayName: day?.dayName,
-                              slotIndex,
-                              timeSlot,
-                              slotKey,
-                              doctorAvailabilityForDay:
-                                doctorAvailability[day?.dayName],
-                              isExistingSlot,
-                              availableSlots: Object.keys(
-                                doctorAvailability[day?.dayName] || {}
-                              ),
-                            });
                           }
 
-                          const slotStyle = getSlotStyle(
-                            isExistingSlot,
-                            isSelectedSlot
+                          // Check if slot is booked
+                          const year = new Date(currentWeekStart).getFullYear();
+                          const month = String(
+                            new Date(currentWeekStart).getMonth() + 1,
+                          ).padStart(2, "0");
+                          // Calculate date for this specific day column
+                          // day.date is in format "Month Day" e.g. "Jan 27"
+                          // We need to construct YYYY-MM-DD
+                          const currentDayDate = new Date(currentWeekStart);
+                          currentDayDate.setDate(
+                            currentWeekStart.getDate() + dayIndex,
                           );
+                          const currentYear = currentDayDate.getFullYear();
+                          const currentMonth = String(
+                            currentDayDate.getMonth() + 1,
+                          ).padStart(2, "0");
+                          const currentDay = String(
+                            currentDayDate.getDate(),
+                          ).padStart(2, "0");
+                          const dateKey = `${currentYear}-${currentMonth}-${currentDay}`;
+
+                          const isBooked =
+                            bookedSlots[dateKey] &&
+                            bookedSlots[dateKey][slotKey];
+
+                          const slotStyle = isBooked
+                            ? "bg-blue-100 border-blue-300 cursor-not-allowed" // Booked style
+                            : getSlotStyle(isExistingSlot, isSelectedSlot);
 
                           return (
                             <div
                               key={String(`${day.dayName}-${slotKey}`)}
-                              className={`p-3 border-r border-gray-200 last:border-r-0 cursor-pointer transition-colors hover:bg-gray-50 ${slotStyle}`}
+                              className={`p-3 border-r border-gray-200 last:border-r-0 transition-colors hover:bg-gray-50 ${slotStyle} ${isBooked ? "" : "cursor-pointer"}`}
                               onClick={() =>
+                                !isBooked &&
                                 handleTimeSlotClick(dayIndex, slotIndex)
-                              }>
+                              }
+                            >
                               <div className="w-full h-6 flex items-center justify-center">
-                                {isExistingSlot || isSelectedSlot ? (
+                                {isBooked ? (
+                                  <span className="text-xs text-blue-600 font-medium">
+                                    Booked
+                                  </span>
+                                ) : isExistingSlot || isSelectedSlot ? (
                                   <div className="w-2 h-2 rounded-full bg-current opacity-75"></div>
                                 ) : null}
                               </div>
                             </div>
                           );
-                        }
+                        },
                       )}
                     </div>
                   );
-                }
+                },
               )
             ) : (
               <CalendarSkeleton />

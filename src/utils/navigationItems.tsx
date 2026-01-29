@@ -11,6 +11,7 @@ import {
   BarChart3,
   Bell,
   Activity,
+  MessageCircle,
 } from "lucide-react";
 
 export interface NavItem {
@@ -24,18 +25,20 @@ export interface NavItem {
   roles?: string[];
 }
 
-export const getNavItems = (role: string): NavItem[] => {
+export const getNavItems = (rawRole: string): NavItem[] => {
+  const role = rawRole.toLowerCase();
+
   const baseItems: NavItem[] = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: <Grid3X3 className="w-5 h-5" />,
       href: `/${role.toLowerCase()}`,
-      roles: ["NURSE", "DOCTOR", "ADMIN"],
+      roles: ["nurse", "doctor", "admin"],
     },
   ];
 
-  if (role === "NURSE") {
+  if (role === "nurse") {
     return [
       ...baseItems,
       {
@@ -43,6 +46,12 @@ export const getNavItems = (role: string): NavItem[] => {
         label: "Patients",
         icon: <Users className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/patients`,
+      },
+      {
+        id: "message",
+        label: "Message",
+        icon: <MessageCircle className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/message`,
       },
       {
         id: "bookings",
@@ -69,7 +78,7 @@ export const getNavItems = (role: string): NavItem[] => {
         href: `/${role.toLowerCase()}/settings`,
       },
     ];
-  } else if (role === "DOCTOR") {
+  } else if (role === "doctor") {
     return [
       ...baseItems,
       {
@@ -79,16 +88,16 @@ export const getNavItems = (role: string): NavItem[] => {
         href: `/${role.toLowerCase()}/appointments`,
       },
       {
+        id: "message",
+        label: "Message",
+        icon: <MessageCircle className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/message`,
+      },
+      {
         id: "bookings",
         label: "Bookings",
         icon: <Calendar className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/bookings`,
-      },
-      {
-        id: "message",
-        label: "Message",
-        icon: <Bell className="w-5 h-5" />,
-        href: `/${role.toLowerCase()}/message`,
       },
       {
         id: "availability",
@@ -115,7 +124,7 @@ export const getNavItems = (role: string): NavItem[] => {
         href: `/${role.toLowerCase()}/settings`,
       },
     ];
-  } else if (role === "ADMIN") {
+  } else if (role === "admin") {
     return [
       ...baseItems,
       {
@@ -144,6 +153,19 @@ export const getNavItems = (role: string): NavItem[] => {
             href: `/${role.toLowerCase()}/users/nurses`,
             dynamicCount: true,
           },
+          {
+            id: "patients",
+            label: "Patients",
+            icon: <Users className="w-4 h-4" />,
+            href: `/${role.toLowerCase()}/users/patients`,
+            dynamicCount: true,
+          },
+          // {
+          //   id: "doctor-account-management",
+          //   label: "Doctor Account Management",
+          //   icon: <Shield className="w-4 h-4" />,
+          //   href: `/${role.toLowerCase()}/doctors/account-management`,
+          // },
         ],
       },
       {
@@ -151,14 +173,12 @@ export const getNavItems = (role: string): NavItem[] => {
         label: "Bookings",
         icon: <Calendar className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/bookings`,
-        dynamicCount: true,
       },
       {
         id: "booking-cancellation",
         label: "Booking Cancellation",
         icon: <CalendarX className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/booking-cancellation`,
-        dynamicCount: true,
       },
       {
         id: "specialization",
@@ -177,7 +197,6 @@ export const getNavItems = (role: string): NavItem[] => {
         label: "Payment",
         icon: <CreditCard className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/payment`,
-        dynamicCount: true,
       },
       {
         id: "document",
@@ -198,23 +217,30 @@ export const getNavItems = (role: string): NavItem[] => {
 };
 
 // Helper function to get navigation items for a specific role
-export const getNavigationItems = (userRole: "NURSE" | "DOCTOR" | "ADMIN"): NavItem[] => {
+export const getNavigationItems = (
+  userRole: "nurse" | "doctor" | "admin"
+): NavItem[] => {
   return getNavItems(userRole);
 };
 
 // Helper function to get all available roles
 export const getAvailableRoles = (): string[] => {
-  return ["NURSE", "DOCTOR", "ADMIN"];
+  return ["nurse", "doctor", "admin"];
 };
 
 // Helper function to check if a role has access to a specific navigation item
-export const hasAccessToNavItem = (userRole: string, navItem: NavItem): boolean => {
+export const hasAccessToNavItem = (
+  userRole: string,
+  navItem: NavItem
+): boolean => {
   if (!navItem.roles) return true;
   return navItem.roles.includes(userRole);
 };
 
 // Helper function to get navigation items filtered by role access
-export const getFilteredNavItems = (userRole: "NURSE" | "DOCTOR" | "ADMIN"): NavItem[] => {
+export const getFilteredNavItems = (
+  userRole: "nurse" | "doctor" | "admin"
+): NavItem[] => {
   const navItems = getNavItems(userRole);
-  return navItems.filter(item => hasAccessToNavItem(userRole, item));
+  return navItems.filter((item) => hasAccessToNavItem(userRole, item));
 };

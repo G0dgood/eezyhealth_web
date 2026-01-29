@@ -35,7 +35,7 @@ export const searchPatients = async (
 ): Promise<{ patients: PatientSearchResult[]; lastDoc: QueryDocumentSnapshot | null }> => {
   try {
     const usersCollectionRef = collection(db, 'users');
-    const constraints: QueryConstraint[] = [where('role', '==', 'PATIENT'), where('isActive', '==', true)];
+    const constraints: QueryConstraint[] = [where('role', '==', 'patient'), where('isActive', '==', true)];
     
     // Add filters
     if (filters.name) {

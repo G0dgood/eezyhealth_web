@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, fetchUserData } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { toast } from "sonner";
+import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
+import { connectStreamChatUser, storeStreamChatInfo, StreamChatInfo } from "@/lib/streamChat";
 
 export const useAuthLogic = () => {
   const router = useRouter();
+  const { setUserInfo } = useAuth();
+  const [generateTokenForUser] = useGenerateTokenForUserMutation();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,11 +38,11 @@ export const useAuthLogic = () => {
     if (userInfo) {
       const parsedUserInfo = JSON.parse(userInfo);
       // Redirect based on role
-      if (parsedUserInfo.role === "ADMIN") {
+      if (parsedUserInfo.role === "admin") {
         router.push("/admin");
-      } else if (parsedUserInfo.role === "DOCTOR") {
+      } else if (parsedUserInfo.role === "doctor") {
         router.push("/doctor");
-      } else if (parsedUserInfo.role === "NURSE") {
+      } else if (parsedUserInfo.role === "nurse") {
         router.push("/nurse");
       }
     }
@@ -54,46 +63,85 @@ export const useAuthLogic = () => {
       // Store user information locally
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
 
+      // Update global auth context
+      setUserInfo({ ...userData, uid: user.uid } as any);
+
+      // Initialize Stream Chat
+      try {
+        const tokenResponse = await generateTokenForUser({ 
+          userId: user.uid, 
+        }).unwrap();
+
+        const streamToken = tokenResponse.streamToken || tokenResponse.token;
+        if (streamToken) {
+          await connectStreamChatUser(
+            user.uid,
+            userData.display_name || userData.name || '',
+            userData.photo_url || userData.profileImage || '',
+            streamToken
+          );
+
+          const chatInfo: StreamChatInfo = {
+            chatApiKey: "4g6sfwegs7he",
+            chatUserId: user.uid,
+            chatUserName: userData.display_name || userData.name || '',
+            chatUserToken: streamToken,
+            userRole: userData.role || 'patient',
+          };
+          
+          storeStreamChatInfo(chatInfo);
+        }
+      } catch (streamError) {
+        console.error('Stream Chat initialization failed:', streamError);
+      }
+
       // Navigate based on role
-      if (userData.role === "ADMIN") {
+      if (userData.role === "admin") {
         router.push("/admin");
-      } else if (userData.role === "DOCTOR") {
+      } else if (userData.role === "doctor") {
         router.push("/doctor");
-      } else if (userData.role === "NURSE") {
+      } else if (userData.role === "nurse") {
         router.push("/nurse");
+      } else if (userData.role === "patient") {
+        throw new Error("Patient login is not allowed on this portal.");
       } else {
         throw new Error("Invalid user role");
       }
     } catch (error: unknown) {
       // Suppress Firebase console errors by not logging them
       // The error is already handled by Firebase internally
-      
+
       // Handle Firebase Auth errors specifically
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const firebaseError = error as { code: string; message?: string };
-        
+
         switch (firebaseError.code) {
-          case 'auth/popup-closed-by-user':
+          case "auth/popup-closed-by-user":
             toast.error("Sign-in was cancelled. Please try again.");
             break;
-          case 'auth/popup-blocked':
-            toast.error("Pop-up was blocked. Please allow pop-ups and try again.");
+          case "auth/popup-blocked":
+            toast.error(
+              "Pop-up was blocked. Please allow pop-ups and try again."
+            );
             break;
-          case 'auth/cancelled-popup-request':
+          case "auth/cancelled-popup-request":
             toast.error("Sign-in was cancelled. Please try again.");
             break;
-          case 'auth/network-request-failed':
+          case "auth/network-request-failed":
             toast.error("Network error. Please check your connection.");
             break;
-          case 'auth/account-exists-with-different-credential':
-            toast.error("An account already exists with this email using a different sign-in method.");
+          case "auth/account-exists-with-different-credential":
+            toast.error(
+              "An account already exists with this email using a different sign-in method."
+            );
             break;
           default:
             toast.error("Google sign-in failed. Please try again.");
         }
       } else {
         // Handle non-Firebase errors
-        const errorMessage = error instanceof Error ? error.message : "Sign-in failed";
+        const errorMessage =
+          error instanceof Error ? error.message : "Sign-in failed";
         toast.error(errorMessage);
       }
     } finally {
@@ -107,7 +155,11 @@ export const useAuthLogic = () => {
 
     try {
       // Sign in the user with email and password using Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       // Fetch user information from Firestore
@@ -116,52 +168,91 @@ export const useAuthLogic = () => {
       // Store user information locally
       localStorage.setItem("userInfo-eezy-health", JSON.stringify(userData));
 
+      // Update global auth context
+      setUserInfo({ ...userData, uid: user.uid } as any);
+
+      // Initialize Stream Chat
+      try {
+        const tokenResponse = await generateTokenForUser({ 
+          userId: user.uid, 
+        }).unwrap();
+
+        const streamToken = tokenResponse.streamToken || tokenResponse.token;
+        if (streamToken) {
+          await connectStreamChatUser(
+            user.uid,
+            userData.display_name || userData.name || '',
+            userData.photo_url || userData.profileImage || '',
+            streamToken
+          );
+
+          const chatInfo: StreamChatInfo = {
+            chatApiKey: "4g6sfwegs7he",
+            chatUserId: user.uid,
+            chatUserName: userData.display_name || userData.name || '',
+            chatUserToken: streamToken,
+            userRole: userData.role || 'patient',
+          };
+          
+          storeStreamChatInfo(chatInfo);
+        }
+      } catch (streamError) {
+        console.error('Stream Chat initialization failed:', streamError);
+      }
+
       // Navigate based on role
-      if (userData.role === "ADMIN") {
+      if (userData.role === "admin") {
         router.push("/admin");
-      } else if (userData.role === "DOCTOR") {
+      } else if (userData.role === "doctor") {
         router.push("/doctor");
-      } else if (userData.role === "NURSE") {
+      } else if (userData.role === "nurse") {
         router.push("/nurse");
+      } else if (userData.role === "patient") {
+        throw new Error("Patient login is not allowed on this portal.");
       } else {
         throw new Error("Invalid user role");
       }
     } catch (error: unknown) {
       // Suppress Firebase console errors by not logging them
       // The error is already handled by Firebase internally
-      
+
       // Handle Firebase Auth errors specifically
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const firebaseError = error as { code: string; message?: string };
-        
+
         switch (firebaseError.code) {
-          case 'auth/invalid-credential':
+          case "auth/invalid-credential":
             toast.error("Invalid email or password. Please try again.");
             break;
-          case 'auth/user-not-found':
+          case "auth/user-not-found":
             toast.error("User not found. Please check your credentials.");
             break;
-          case 'auth/wrong-password':
+          case "auth/wrong-password":
             toast.error("Incorrect password. Please try again.");
             break;
-          case 'auth/too-many-requests':
+          case "auth/too-many-requests":
             toast.error("Too many failed attempts. Please try again later.");
             break;
-          case 'auth/network-request-failed':
+          case "auth/network-request-failed":
             toast.error("Network error. Please check your connection.");
             break;
-          case 'auth/user-disabled':
-            toast.error("This account has been disabled. Please contact support.");
+          case "auth/user-disabled":
+            toast.error(
+              "This account has been disabled. Please contact support."
+            );
             break;
-          case 'auth/invalid-email':
+          case "auth/invalid-email":
             toast.error("Please enter a valid email address.");
             break;
           default:
-            toast.error("Login failed. Please check your credentials and try again.");
+            toast.error(
+              "Login failed. Please check your credentials and try again."
+            );
         }
       } else {
         // Handle non-Firebase errors
-        const errorMessage = error instanceof Error ? error.message : "Login failed";
+        const errorMessage =
+          error instanceof Error ? error.message : "Login failed";
         toast.error(errorMessage);
       }
     } finally {

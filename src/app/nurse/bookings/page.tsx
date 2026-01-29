@@ -8,7 +8,7 @@ import Title from "@/components/Title";
 
 export default function NurseBookingsPage() {
   const [bookingsTab, setBookingsTab] = useState<"Booking" | "Booking List">(
-    "Booking"
+    "Booking",
   );
 
   return (

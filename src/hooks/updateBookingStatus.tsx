@@ -26,18 +26,13 @@ export const updateBookingStatus = async (bookingId: string, newStatus: string) 
 			'cancellationRequest.status': newStatus,
 			bookingStatus: newStatus === "approved" ? "Approved" : "Declined"
 		});
-		console.log(`Booking ${bookingId} updated to ${newStatus}`);
+
 	} catch (error) {
-		console.error(`Error updating booking status:`, error);
 		throw error;
 	}
 };
 
 // Usage example
 getBookingsCollection()
-	.then(data => {
-		console.log('Bookings fetched:', data);
-	})
-	.catch(error => {
-		console.error('Error fetching bookings collection:', error);
-	});
+	.then(data => { })
+	.catch(error => { });

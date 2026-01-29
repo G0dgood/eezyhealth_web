@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Calendar, Clock } from "lucide-react";
 import Modal from "./Modal";
+import Input from "../Input";
 
 interface RescheduleModalProps {
   isOpen: boolean;
@@ -36,39 +37,31 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Reschedule Appointment" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            New Date
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="dd/mm/yy"
-              value={formData.date}
-              onChange={(e) => handleInputChange("date", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-              required
-            />
-            <Calendar className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2" />
-          </div>
+          <Input
+            label="New Date"
+            type="text"
+            placeholder="dd/mm/yy"
+            value={formData.date}
+            onChange={(e) => handleInputChange("date", e.target.value)}
+            icon={<Calendar className="w-4 h-4 text-gray-400" />}
+            required
+            fullWidth
+          />
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            New Time
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Select Time"
-              value={formData.time}
-              onChange={(e) => handleInputChange("time", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]"
-              required
-            />
-            <Clock className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2" />
-          </div>
+          <Input
+            label="New Time"
+            type="text"
+            placeholder="Select Time"
+            value={formData.time}
+            onChange={(e) => handleInputChange("time", e.target.value)}
+            icon={<Clock className="w-4 h-4 text-gray-400" />}
+            required
+            fullWidth
+          />
         </div>
-        
+
         <div className="flex justify-end space-x-3">
           <button
             type="button"

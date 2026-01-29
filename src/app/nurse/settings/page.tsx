@@ -1,15 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User, Bell, Shield, Camera, Moon, Sun } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Dropdown from "@/components/Dropdown";
+import { useRouter } from "next/navigation";
+import { User, Bell, Shield, Camera, Moon, Sun, UserCircle } from "lucide-react";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
+import { Toggle } from "@/components/Toggle";
 import { useUserInfo } from "@/hooks/useUserInfo";
-import { useUpdateUserMutation } from "@/store/api";
+import { useUpdateUserMutation, useUpdateUserProfileMutation } from "@/store/authApi";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+import { motion } from "framer-motion";
+
+import PillTabs from "@/components/Tabs/PillTabs";
 
 export default function NurseSettingsPage() {
+  const router = useRouter();
+  const { signOut, setUserInfo: setAuthUserInfo, userInfo: authUserInfo } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const notificationContext = useNotifications();
+
   const [activeTab, setActiveTab] = useState("profile");
   const [profileImage, setProfileImage] = useState("/api/placeholder/120/120");
 
@@ -17,10 +33,7 @@ export default function NurseSettingsPage() {
   const userInfo = useUserInfo();
 
   // RTK Query mutation for updating user
-  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-
-  // Theme context
-  const { theme, toggleTheme } = useTheme();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
 
   // Profile form state - initialize with user data
   const [profileData, setProfileData] = useState({
@@ -55,6 +68,54 @@ export default function NurseSettingsPage() {
     confirmPassword: "",
   });
 
+  // Session timeout tracking
+  useEffect(() => {
+    const timeoutMinutes = parseInt(securitySettings.sessionTimeout);
+    if (!timeoutMinutes || timeoutMinutes <= 0) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        // Auto-logout user
+        try {
+          await signOut();
+          toast.warning("Session expired due to inactivity");
+          router.push("/login");
+        } catch (error) {
+          console.error("Error during auto-logout:", error);
+          // Fallback: manually clear and redirect
+          localStorage.removeItem("token");
+          localStorage.removeItem("userInfo-eezy-health");
+          window.location.href = "/login";
+        }
+      }, timeoutMinutes * 60 * 1000);
+    };
+
+    // Set initial timeout
+    resetTimeout();
+
+    // Reset timeout on user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach((event) => {
+      document.addEventListener(event, resetTimeout, true);
+    });
+
+    // Cleanup
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((event) => {
+        document.removeEventListener(event, resetTimeout, true);
+      });
+    };
+  }, [securitySettings.sessionTimeout, signOut, router]);
+
+  // Refs to track last loaded data to prevent overwriting user edits
+  const lastLoadedProfileData = useRef<string>("");
+  const lastLoadedNotificationPrefs = useRef<string>("");
+  const lastLoadedSecuritySettings = useRef<string>("");
+
   // Initialize profile data with user information
   useEffect(() => {
     if (userInfo) {
@@ -69,13 +130,13 @@ export default function NurseSettingsPage() {
         bio: String(userInfo.about || ""),
       };
 
-      // Only update if data has actually changed
-      setProfileData((prev) => {
-        const hasChanged = Object.keys(newProfileData).some(
-          key => prev[key as keyof typeof prev] !== newProfileData[key as keyof typeof newProfileData]
-        );
-        return hasChanged ? newProfileData : prev;
-      });
+      const profileDataStr = JSON.stringify(newProfileData);
+
+      // Only update if the SOURCE data is different from what we last loaded
+      if (profileDataStr !== lastLoadedProfileData.current) {
+        setProfileData(newProfileData);
+        lastLoadedProfileData.current = profileDataStr;
+      }
 
       // Set profile image if available
       if (userInfo.photo_url || userInfo.image) {
@@ -90,16 +151,22 @@ export default function NurseSettingsPage() {
         userInfo.notification_preferences &&
         typeof userInfo.notification_preferences === "object"
       ) {
-        setNotificationPrefs((prev) => {
-          const newPrefs = {
+        const newPrefs = {
+          ...notificationPrefs, // Keep existing defaults for missing keys
+          ...(userInfo.notification_preferences as Record<string, unknown>),
+        };
+
+        // We need to compare only the parts that come from userInfo
+        const relevantPrefs = userInfo.notification_preferences as Record<string, unknown>;
+        const prefsStr = JSON.stringify(relevantPrefs);
+
+        if (prefsStr !== lastLoadedNotificationPrefs.current) {
+          setNotificationPrefs(prev => ({
             ...prev,
-            ...(userInfo.notification_preferences as Record<string, unknown>),
-          };
-          const hasChanged = Object.keys(newPrefs).some(
-            key => prev[key as keyof typeof prev] !== newPrefs[key as keyof typeof newPrefs]
-          );
-          return hasChanged ? newPrefs : prev;
-        });
+            ...relevantPrefs
+          }));
+          lastLoadedNotificationPrefs.current = prefsStr;
+        }
       }
 
       // Initialize security settings if available
@@ -111,16 +178,16 @@ export default function NurseSettingsPage() {
           string,
           unknown
         >;
-        setSecuritySettings((prev) => {
-          const newSettings = {
+
+        const securityStr = JSON.stringify(securityData);
+
+        if (securityStr !== lastLoadedSecuritySettings.current) {
+          setSecuritySettings(prev => ({
             ...prev,
-            ...securityData,
-          };
-          const hasChanged = Object.keys(newSettings).some(
-            key => prev[key as keyof typeof prev] !== newSettings[key as keyof typeof newSettings]
-          );
-          return hasChanged ? newSettings : prev;
-        });
+            ...securityData
+          }));
+          lastLoadedSecuritySettings.current = securityStr;
+        }
 
         // Set theme preference if available in security settings
         if (
@@ -134,14 +201,35 @@ export default function NurseSettingsPage() {
     }
   }, [userInfo]);
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
+
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "nurse",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+
+        // Update local storage and context
+        if (authUserInfo && setAuthUserInfo) {
+          const updatedUserInfo = { ...authUserInfo, photo_url: url, photoURL: url };
+          setAuthUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
+
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
@@ -163,6 +251,7 @@ export default function NurseSettingsPage() {
         hospital: profileData.hospitalClinic,
         about: profileData.bio,
         photo_url: profileImage,
+        role: userInfo.role || "nurse",
         updatedAt: new Date().toISOString(),
       };
 
@@ -181,7 +270,8 @@ export default function NurseSettingsPage() {
 
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Failed to update profile. Please try again.");
+      console.error("Profile update error:", error);
+      toast.error(`Failed to update profile: ${(error as any)?.data?.error || (error as any)?.message || "Unknown error"}`);
     }
   };
 
@@ -208,6 +298,15 @@ export default function NurseSettingsPage() {
         "userInfo-eezy-health",
         JSON.stringify(updatedUserInfo)
       );
+
+      // Sync with NotificationContext if available
+      if (notificationContext?.updateNotificationPrefs) {
+        await notificationContext.updateNotificationPrefs({
+          newPatientBookings: notificationPrefs.newAppointments,
+          appointmentReminders: notificationPrefs.patientReschedulings,
+          patientMessages: notificationPrefs.appointmentUpdates,
+        });
+      }
 
       toast.success("Notification preferences updated successfully!");
     } catch (error) {
@@ -287,7 +386,6 @@ export default function NurseSettingsPage() {
 
       toast.success("Password updated successfully!");
     } catch (error) {
-      console.error("Error updating password:", error);
       toast.error("Failed to update password. Please try again.");
     }
   };
@@ -316,51 +414,34 @@ export default function NurseSettingsPage() {
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                <Image
-                  src={profileImage}
-                  alt="Profile"
-                  width={128}
-                  height={128}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                />
-                <label className="absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-green-600 font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+              buttonClassName="bg-green-500 hover:bg-green-600"
+              textClassName="text-green-600"
+            />
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, fullName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Medical License
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.medicalLicense}
                   onChange={(e) =>
@@ -369,51 +450,54 @@ export default function NurseSettingsPage() {
                       medicalLicense: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Specialization
                 </label>
-                <select
+                <Dropdown
                   value={profileData.specialization}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setProfileData({
                       ...profileData,
-                      specialization: e.target.value,
+                      specialization: value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer"
-                >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                </select>
+                  options={[
+                    { value: "Cardiology", label: "Cardiology" },
+                    { value: "Dermatology", label: "Dermatology" },
+                    { value: "Neurology", label: "Neurology" },
+                    { value: "Pediatrics", label: "Pediatrics" },
+                    { value: "Orthopedics", label: "Orthopedics" },
+                  ]}
+                  placeholder="Select Specialization"
+                  className="w-full"
+                  variant="default"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Email
                 </label>
-                <input
+                <Input
                   type="email"
                   value={profileData.email}
                   onChange={(e) =>
                     setProfileData({ ...profileData, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Mobile Number
                 </label>
-                <input
+                <Input
                   type="tel"
                   value={profileData.mobileNumber}
                   onChange={(e) =>
@@ -422,15 +506,15 @@ export default function NurseSettingsPage() {
                       mobileNumber: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Years of Experience
                 </label>
-                <input
+                <Input
                   type="number"
                   value={profileData.yearsOfExperience}
                   onChange={(e) =>
@@ -439,15 +523,15 @@ export default function NurseSettingsPage() {
                       yearsOfExperience: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                   Hospital/Clinic
                 </label>
-                <input
+                <Input
                   type="text"
                   value={profileData.hospitalClinic}
                   onChange={(e) =>
@@ -456,26 +540,26 @@ export default function NurseSettingsPage() {
                       hospitalClinic: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  fullWidth
                 />
               </div>
             </div>
 
             {/* Bio Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                 Your bio
               </label>
-              <textarea
+              <Textarea
                 value={profileData?.bio}
                 onChange={(e) =>
                   setProfileData({ ...profileData, bio: e.target.value })
                 }
                 rows={4}
                 maxLength={400}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                fullWidth
               />
-              <div className="text-right text-sm text-gray-500 mt-1">
+              <div className="text-right  text-[10px]  md:text-[12px] text-gray-500 mt-1">
                 {profileData?.bio?.length} characters
               </div>
             </div>
@@ -506,38 +590,19 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     New Appointments
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Get notified immediately when a new appointment is booked.
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
+                    Get notified when a new patient books an appointment.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.newAppointments}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        newAppointments: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.newAppointments
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.newAppointments
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.newAppointments}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      newAppointments: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Patient Reschedulings */}
@@ -546,77 +611,39 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Patient Reschedulings
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get notified when a patient changes their appointment time.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.patientReschedulings}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        patientReschedulings: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.patientReschedulings
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.patientReschedulings
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.patientReschedulings}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      patientReschedulings: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Account Updates */}
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Account Updates</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Receive notifications about changes to your account (e.g.,
                     password changes, profile updates).
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.accountUpdates}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        accountUpdates: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.accountUpdates
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.accountUpdates
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.accountUpdates}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      accountUpdates: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Appointment Updates */}
@@ -625,39 +652,20 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Updates
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Get alerts for modifications made to existing appointments
-                    by staff.
+                    by patient.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.appointmentUpdates}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        appointmentUpdates: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.appointmentUpdates
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.appointmentUpdates
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.appointmentUpdates}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      appointmentUpdates: checked,
+                    })
+                  }
+                />
               </div>
 
               {/* Appointment Cancellations */}
@@ -666,38 +674,19 @@ export default function NurseSettingsPage() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Cancellations (By Doctor)
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Receive confirmations of your appointment cancellations.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationPrefs.appointmentCancellations}
-                    onChange={(e) =>
-                      setNotificationPrefs({
-                        ...notificationPrefs,
-                        appointmentCancellations: e.target.checked,
-                      })
-                    }
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-11 h-6 rounded-full transition-colors ${
-                      notificationPrefs.appointmentCancellations
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                        notificationPrefs.appointmentCancellations
-                          ? "translate-x-5"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </label>
+                <Toggle
+                  checked={notificationPrefs.appointmentCancellations}
+                  onChange={(checked) =>
+                    setNotificationPrefs({
+                      ...notificationPrefs,
+                      appointmentCancellations: checked,
+                    })
+                  }
+                />
               </div>
             </div>
 
@@ -720,7 +709,7 @@ export default function NurseSettingsPage() {
             {/* Security Settings Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Security Settings
                 </h3>
                 <p className="text-gray-600">
@@ -734,45 +723,28 @@ export default function NurseSettingsPage() {
                   <h4 className="font-medium text-gray-900">
                     Theme Preference
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Choose between light and dark mode
                   </p>
                 </div>
                 <div className="flex items-end justify-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Sun
-                      className={`w-4 h-4 ${
-                        theme === "light" ? "text-yellow-500" : "text-gray-400"
-                      }`}
-                    />
-                    <span className="text-sm text-gray-600">Light</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={theme === "dark"}
-                      onChange={() => toggleTheme()}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                        theme === "dark" ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform transform ${
-                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                      className={`w-4 h-4 ${theme === "light" ? "text-yellow-500" : "text-gray-400"
                         }`}
-                      ></div>
-                    </div>
-                  </label>
+                    />
+                    <span className=" text-[10px]  md:text-[12px] text-gray-600">Light</span>
+                  </div>
+                  <Toggle
+                    checked={theme === "dark"}
+                    onChange={() => toggleTheme()}
+                  />
                   <div className="flex items-center space-x-2">
                     <Moon
-                      className={`w-4 h-4 ${
-                        theme === "dark" ? "text-blue-500" : "text-gray-400"
-                      }`}
+                      className={`w-4 h-4 ${theme === "dark" ? "text-blue-500" : "text-gray-400"
+                        }`}
                     />
-                    <span className="text-sm text-gray-600">Dark</span>
+                    <span className=" text-[10px]  md:text-[12px] text-gray-600">Dark</span>
                   </div>
                 </div>
               </div>
@@ -781,12 +753,12 @@ export default function NurseSettingsPage() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">Session Timeout</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-[10px]  md:text-[12px] text-gray-600">
                     Auto-logout after inactivity
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
+                  <Input
                     type="number"
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
@@ -795,9 +767,9 @@ export default function NurseSettingsPage() {
                         sessionTimeout: e.target.value,
                       })
                     }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
+                    className="w-20 text-center"
                   />
-                  <span className="text-sm text-gray-600">minutes</span>
+                  <span className=" text-[10px]  md:text-[12px] text-gray-600">minutes</span>
                 </div>
               </div>
             </div>
@@ -805,7 +777,7 @@ export default function NurseSettingsPage() {
             {/* Change Password Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Change Password
                 </h3>
                 <p className="text-gray-600">
@@ -815,10 +787,10 @@ export default function NurseSettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -828,15 +800,16 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     New Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -846,15 +819,16 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block  text-[10px]  md:text-[12px] font-medium text-gray-700 mb-2">
                     Confirm New Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -864,7 +838,8 @@ export default function NurseSettingsPage() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    showPasswordToggle
+                    fullWidth
                   />
                 </div>
               </div>
@@ -919,23 +894,13 @@ export default function NurseSettingsPage() {
 
       {/* Settings Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
+        <div className="border-b border-gray-200 p-4">
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            layoutId="nurse-settings-active-tab"
+          />
         </div>
 
         {/* Tab Content */}

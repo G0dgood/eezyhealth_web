@@ -1,33 +1,34 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { 
-  useGetFirebasePatientsQuery,
+import { useGetFirebasePatientsQuery } from "@/store/patientApi";
+import {
   useGetFirebaseDoctorsQuery,
-  useGetFirebaseBookingsQuery,
-  useGetBookingCancellationsQuery,
-  useGetPaymentsQuery,
-  useGetUsersByRoleQuery
-} from "@/store/api";
+  useGetFirebaseNurseProfilesQuery
+} from "@/store/doctorFirebaseApi";
+import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
+import { useGetBookingCancellationsQuery } from "@/store/bookingCancellationApi";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
 
 interface BadgeCounts {
   // Users
   allUsers: number;
   doctors: number;
   nurses: number;
-  
+  patients: number;
+
   // Bookings
   totalBookings: number;
   pendingBookings: number;
   cancelledBookings: number;
-  
+
   // Payments
   totalPayments: number;
   pendingPayments: number;
-  
+
   // Documents
   pendingDocuments: number;
-  
+
   // Messages/Notifications
   unreadMessages: number;
   notifications: number;
@@ -48,6 +49,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     allUsers: 0,
     doctors: 0,
     nurses: 0,
+    patients: 0,
     totalBookings: 0,
     pendingBookings: 0,
     cancelledBookings: 0,
@@ -57,46 +59,46 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     unreadMessages: 0,
     notifications: 0,
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Real API calls using RTK Query hooks
-  const { 
-    data: patientsData, 
-    isLoading: patientsLoading, 
-    error: patientsError 
-  } = useGetFirebasePatientsQuery();
-  
-  const { 
-    data: doctorsData, 
-    isLoading: doctorsLoading, 
-    error: doctorsError 
-  } = useGetFirebaseDoctorsQuery();
-  
-  const { 
-    data: bookingsData, 
-    isLoading: bookingsLoading, 
-    error: bookingsError 
-  } = useGetFirebaseBookingsQuery();
-  
-  const { 
-    data: cancellationsData, 
-    isLoading: cancellationsLoading, 
-    error: cancellationsError 
-  } = useGetBookingCancellationsQuery();
-  
-  const { 
-    data: paymentsData, 
-    isLoading: paymentsLoading, 
-    error: paymentsError 
+  const {
+    data: patientsData,
+    isLoading: patientsLoading,
+    error: patientsError
+  } = useGetFirebasePatientsQuery({});
+
+  const {
+    data: doctorsData,
+    isLoading: doctorsLoading,
+    error: doctorsError
+  } = useGetFirebaseDoctorsQuery({});
+
+  const {
+    data: bookingsData,
+    isLoading: bookingsLoading,
+    error: bookingsError
+  } = useGetFirebaseBookingsQuery({});
+
+  const {
+    data: cancellationsData,
+    isLoading: cancellationsLoading,
+    error: cancellationsError
+  } = useGetBookingCancellationsQuery({});
+
+  const {
+    data: paymentsData,
+    isLoading: paymentsLoading,
+    error: paymentsError
   } = useGetPaymentsQuery({ limit: 1000 });
-  
-  const { 
-    data: nursesData, 
-    isLoading: nursesLoading, 
-    error: nursesError 
-  } = useGetUsersByRoleQuery('NURSE');
+
+  const {
+    data: nursesData,
+    isLoading: nursesLoading,
+    error: nursesError
+  } = useGetFirebaseNurseProfilesQuery({});
 
   // Calculate badge counts from real data
   useEffect(() => {
@@ -105,26 +107,28 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
         // Calculate user counts
         const allUsers = (patientsData?.length || 0) + (doctorsData?.length || 0) + (nursesData?.length || 0);
         const doctors = doctorsData?.length || 0;
-        const nurses = nursesData?.length || 0;
-        
+        const nurses = Array.isArray(nursesData) ? nursesData.length : 0;
+        const patients = patientsData?.length || 0;
+
         // Calculate booking counts
         const totalBookings = bookingsData?.length || 0;
-        const pendingBookings = bookingsData?.filter((booking: any) => 
+        const pendingBookings = bookingsData?.filter((booking: any) =>
           booking.status === 'pending' || booking.status === 'confirmed'
         ).length || 0;
         const cancelledBookings = cancellationsData?.length || 0;
-        
+
         // Calculate payment counts
         const totalPayments = paymentsData?.length || 0;
-        const pendingPayments = paymentsData?.filter((payment: any) => 
+        const pendingPayments = paymentsData?.filter((payment: any) =>
           payment.status === 'pending'
         ).length || 0;
-        
+
         // Set badge counts
         setBadgeCounts({
           allUsers,
           doctors,
           nurses,
+          patients,
           totalBookings,
           pendingBookings,
           cancelledBookings,
@@ -134,20 +138,19 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
           unreadMessages: 0, // Add message count when available
           notifications: 0, // Add notification count when available
         });
-        
+
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to calculate badge counts');
-        console.error('Error calculating badge counts:', err);
       }
     };
 
     // Check if any API calls are still loading
-    const isLoading = patientsLoading || doctorsLoading || nursesLoading || bookingsLoading || 
-                     cancellationsLoading || paymentsLoading;
-    
+    const isLoading = patientsLoading || doctorsLoading || nursesLoading || bookingsLoading ||
+      cancellationsLoading || paymentsLoading;
+
     setLoading(isLoading);
-    
+
     // Calculate counts when data is available
     if (!isLoading) {
       calculateBadgeCounts();
@@ -160,7 +163,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
   const refreshBadges = async () => {
     // RTK Query automatically handles refetching when components re-render
     // This function is kept for compatibility but doesn't need to do anything
-    console.log('Badge refresh requested - RTK Query handles automatic refetching');
+
   };
 
   const updateBadgeCount = (key: keyof BadgeCounts, count: number) => {
@@ -205,11 +208,13 @@ export const getBadgeCount = (badgeCounts: BadgeCounts, itemId: string, subItemI
         return badgeCounts.doctors;
       case 'nurses':
         return badgeCounts.nurses;
+      case 'patients':
+        return badgeCounts.patients;
       default:
         return 0;
     }
   }
-  
+
   // Handle main items
   switch (itemId) {
     case 'bookings':

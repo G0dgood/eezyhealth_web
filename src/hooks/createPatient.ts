@@ -6,7 +6,7 @@ export interface CreatePatientData {
   email: string;
   phone: string;
   dateOfBirth: string;
-  gender: 'male' | 'female';
+  gender: "male" | "female";
   address?: string;
   emergencyContact?: {
     name: string;
@@ -22,21 +22,20 @@ export interface CreatePatientData {
 
 export const createPatient = async (patientData: CreatePatientData) => {
   try {
-    const usersCollectionRef = collection(db, 'users');
-    
+    const usersCollectionRef = collection(db, "users");
+
     const patientDoc = {
       ...patientData,
-      role: 'PATIENT',
-      status: 'ACTIVE',
+      role: "patient",
+      status: "ACTIVE",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       isActive: true,
-      // Generate a unique patient ID
       patientId: `P${Date.now()}`,
     };
 
     const docRef = await addDoc(usersCollectionRef, patientDoc);
-    
+
     return {
       id: docRef.id,
       ...patientDoc,
@@ -44,19 +43,51 @@ export const createPatient = async (patientData: CreatePatientData) => {
       updatedAt: new Date(),
     };
   } catch (error) {
-    console.error('Error creating patient:', error);
+    console.error("Error creating patient:", error);
     throw error;
   }
 };
 
-// Usage example:
-// createPatient({
-//   name: "John Doe",
-//   email: "john@example.com",
-//   phone: "+1234567890",
-//   dateOfBirth: "1990-01-01",
-//   gender: "male"
-// })
-//   .then(patient => console.log('Patient created:', patient))
-//   .catch(error => console.error('Error:', error));
+export interface CreateNurseData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  specialization?: string;
+  hospital?: string;
+  experience_yrs?: string;
+  address?: string;
+  about?: string;
+}
+
+export const createNurse = async (nurseData: CreateNurseData) => {
+  try {
+    const usersCollectionRef = collection(db, "users");
+
+    const displayName = `${nurseData.first_name} ${nurseData.last_name}`.trim();
+
+    const nurseDoc = {
+      ...nurseData,
+      display_name: displayName,
+      role: "nurse" as const,
+      status: "ACTIVE",
+      isActive: true,
+      createdTime: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      nurseId: `N${Date.now()}`,
+    };
+
+    const docRef = await addDoc(usersCollectionRef, nurseDoc);
+
+    return {
+      id: docRef.id,
+      ...nurseDoc,
+      createdTime: new Date().toISOString(),
+      updatedAt: new Date(),
+    };
+  } catch (error) {
+    console.error("Error creating nurse:", error);
+    throw error;
+  }
+};
 

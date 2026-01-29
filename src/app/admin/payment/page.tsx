@@ -4,27 +4,51 @@ import { useState } from "react";
 import { CreditCard } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchInput from "@/components/SearchInput";
+import Pagination from "@/components/Pagination";
 import { NoRecordFound } from "@/components/Options";
 import { PaymentTableSkeleton } from "@/components/ui/payment-table-skeleton";
 import {
   PaymentHeaderSkeleton,
   PaymentSearchSkeleton,
 } from "@/components/ui/payment-header-skeleton";
-import { useGetPaymentsQuery } from "@/store/api";
+import { useGetPaymentsQuery } from "@/store/paymentApi";
+import Dropdown from "@/components/Dropdown";
 
 interface PaymentData {
-  id: string;
-  amount: number;
+  amount: string;
+  bookingDate: string;
+  channel: string;
+  createdAt: string;
   currency: string;
-  status: "pending" | "completed" | "failed" | "cancelled";
+  doctorId: string;
+  doctorPhotoUrl: string;
+  patientId: string;
+  patientName: string;
+  paymentDate: string;
   paymentMethod: string;
-  patientId?: string;
-  doctorId?: string;
-  bookingId?: string;
-  description?: string;
-  transactionId?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  paymentReference: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  paymentStatus: string;
+  reason: string;
+  slot: string;
+  transactionId: {
+    message: string;
+    redirecturl: string;
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+  };
+  updatedAt: string;
+  id?: string; // Sometimes id is added by the fetching logic
 }
 
 // Utility function to safely render field values
@@ -41,6 +65,11 @@ const safeRenderField = (value: unknown, fallback: string = "N/A") => {
   if (typeof value === "boolean") {
     return value ? "Yes" : "No";
   }
+  if (typeof value === "object") {
+    // For objects like transactionId or paymentReference, try to return reference
+    // @ts-ignore
+    return value?.reference || value?.trxref || fallback;
+  }
   return fallback;
 };
 
@@ -48,6 +77,7 @@ export default function AdminPaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   // RTK hooks
   const {
@@ -56,9 +86,9 @@ export default function AdminPaymentPage() {
     error,
   } = useGetPaymentsQuery({ limit: 50 });
 
-  // Filter payments based on search query
+  // Filter payments based on search query and status
   const filteredPayments = payments.filter(
-    (payment: Record<string, unknown> & { id: string }) => {
+    (payment: any) => {
       const searchLower = searchQuery.toLowerCase();
 
       // Helper function to safely convert to string and search
@@ -67,16 +97,28 @@ export default function AdminPaymentPage() {
           return value.toLowerCase().includes(searchLower);
         } else if (typeof value === "number") {
           return value.toString().toLowerCase().includes(searchLower);
+        } else if (typeof value === "object" && value !== null) {
+             // @ts-ignore
+             return (value.reference && value.reference.toLowerCase().includes(searchLower)) ||
+                    // @ts-ignore
+                    (value.trxref && value.trxref.toLowerCase().includes(searchLower));
         }
         return false;
       };
 
-      return (
-        safeSearch(payment?.description) ||
+      const matchesSearch =
+        safeSearch(payment?.patientName) ||
+        safeSearch(payment?.doctorId) ||
         safeSearch(payment?.paymentMethod) ||
-        safeSearch(payment?.status) ||
-        safeSearch(payment?.transactionId)
-      );
+        safeSearch(payment?.transactionId) ||
+        safeSearch(payment?.paymentReference);
+
+      const matchesStatus =
+        !selectedStatus ||
+        (payment.paymentStatus &&
+          payment.paymentStatus.toLowerCase() === selectedStatus.toLowerCase());
+
+      return matchesSearch && matchesStatus;
     }
   );
 
@@ -88,28 +130,52 @@ export default function AdminPaymentPage() {
     startIndex + itemsPerPage
   );
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+  const getStatusBadge = (paymentStatus: string) => {
+    const statusClasses = {
+      completed: "bg-green-100 text-green-800",
+      success: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      failed: "bg-red-100 text-red-800",
+      cancelled: "bg-gray-100 text-gray-800",
+    };
 
-    switch (status) {
-      case "completed":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "pending":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "failed":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      case "cancelled":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
+    const statusKey = paymentStatus?.toLowerCase() || "pending";
+
+    return (
+      <span
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[statusKey as keyof typeof statusClasses] ||
+          "bg-gray-100 text-gray-800"
+          }`}
+      >
+        {paymentStatus}
+      </span>
+    );
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const getPaymentMethodIcon = (method: string) => {
+    const methodLower = method?.toLowerCase() || "";
+    if (methodLower.includes("paystack")) return <CreditCard className="w-4 h-4 text-blue-600" />;
+    if (methodLower.includes("card")) return <CreditCard className="w-4 h-4 text-blue-600" />;
+    if (methodLower.includes("bank") || methodLower.includes("transfer")) return <span className="text-green-600 font-bold">₦</span>;
+    if (methodLower.includes("cash")) return <span className="text-green-600 font-bold">₦</span>;
+    if (methodLower.includes("mobile")) return <CreditCard className="w-4 h-4 text-purple-600" />;
+    return <CreditCard className="w-4 h-4 text-gray-600" />;
+  };
+
+  const formatCurrency = (amount: number | string, currency: string) => {
+    let numericAmount = 0;
+    if (typeof amount === 'string') {
+        numericAmount = parseFloat(amount.replace(/,/g, ''));
+    } else {
+        numericAmount = amount;
+    }
+    
+    if (isNaN(numericAmount)) return `${currency} ${amount}`;
+
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency,
-    }).format(amount);
+      currency: currency || "NGN",
+    }).format(numericAmount);
   };
 
   return (
@@ -139,96 +205,123 @@ export default function AdminPaymentPage() {
           {isLoading ? (
             <PaymentSearchSkeleton />
           ) : (
-            <div className="mb-6">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search payments..."
+            <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 max-w-md">
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search payments..."
+                />
+              </div>
+              <Dropdown
+                value={selectedStatus}
+                onChange={(value) => setSelectedStatus(value)}
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "completed", label: "Completed" },
+                  { value: "pending", label: "Pending" },
+                  { value: "failed", label: "Failed" },
+                  { value: "cancelled", label: "Cancelled" },
+                ]}
+                placeholder="All Statuses"
+                className="w-40"
+                variant="default"
               />
             </div>
           )}
 
           {/* Payments Table */}
-
           {isLoading ? (
             <PaymentTableSkeleton />
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
+            <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-[var(--border)]">
+                  <thead className="bg-[var(--muted)]">
                     <tr>
-                      <th>Transaction</th>
+                      <th>Patient</th>
+                      <th>Doctor</th>
+                      <th>Service</th>
                       <th>Amount</th>
                       <th>Method</th>
                       <th>Status</th>
-                      <th>Date</th>
+                      <th>Transaction Id</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
                     {paginatedPayments?.length === 0 ||
-                    paginatedPayments?.length === undefined ? (
-                      <NoRecordFound colSpan={5} />
+                      paginatedPayments?.length === undefined ? (
+                      <NoRecordFound colSpan={7} />
                     ) : (
                       paginatedPayments?.map(
                         (payment: Record<string, unknown> & { id: string }) => (
-                          <tr key={payment.id} className="hover:bg-gray-50">
+                          <tr
+                            key={payment.id}
+                            className="hover:bg-[var(--muted)]"
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <CreditCard className="w-5 h-5 text-gray-400 mr-3" />
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {/* {safeRenderField(payment.transactionId, payment.id.slice(0, 8))} */}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {/* {safeRenderField(payment.description, )} */}
-                                    Payment transaction
-                                  </div>
+                              <div>
+                                <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
+                                  {safeRenderField(
+                                    payment.patientName,
+                                    "Unknown Patient"
+                                  )}
+                                </div>
+                                <div className="text-[10px] md:text-[12px] text-[var(--muted-foreground)]">
+                                  ID: {payment.id}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {formatCurrency(
-                                  typeof payment.amount === "number"
-                                    ? payment.amount
-                                    : 0,
-                                  typeof payment.currency === "string"
-                                    ? payment.currency
-                                    : "USD"
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                 {safeRenderField(
-                                  payment.paymentMethod,
-                                  "Unknown"
+                                  payment.doctorId,
+                                  "Unknown Doctor"
                                 )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={getStatusBadge(
-                                  typeof payment.status === "string"
-                                    ? payment.status
-                                    : "unknown"
-                                )}>
-                                {safeRenderField(payment.status, "Unknown")}
-                              </span>
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
+                                {safeRenderField(payment.slot, "N/A")}
+                              </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.createdAt &&
-                              typeof payment.createdAt === "string"
-                                ? new Date(
-                                    payment.createdAt
-                                  ).toLocaleDateString()
-                                : payment.createdAt &&
-                                  typeof payment.createdAt === "object"
-                                ? new Date(
-                                    JSON.stringify(payment.createdAt)
-                                  ).toLocaleDateString()
-                                : "N/A"}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-[10px] md:text-[12px] font-medium text-[var(--foreground)]">
+                                {formatCurrency(
+                                  payment.amount as string | number,
+                                  (payment.currency as string) || "NGN"
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                {getPaymentMethodIcon(
+                                  typeof payment.paymentMethod === "string"
+                                    ? payment.paymentMethod
+                                    : "Unknown"
+                                )}
+                                <span className="text-[10px] md:text-[12px] text-[var(--foreground)]">
+                                  {safeRenderField(
+                                    payment.paymentMethod,
+                                    "Unknown"
+                                  )}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {getStatusBadge(
+                                typeof payment.paymentStatus === "string"
+                                  ? payment.paymentStatus
+                                  : "unknown"
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
+                                {safeRenderField(
+                                  payment.transactionId,
+                                  payment.id
+                                )}
+                              </div>
                             </td>
                           </tr>
                         )
@@ -237,41 +330,20 @@ export default function AdminPaymentPage() {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              {!isLoading && !error && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalCount={filteredPayments.length}
+                  pageSize={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  itemLabel="payments"
+                  className="mt-4"
+                />
+              )}
             </div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === 1
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}>
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                  }`}>
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

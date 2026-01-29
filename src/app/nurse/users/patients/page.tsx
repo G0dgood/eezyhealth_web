@@ -28,6 +28,7 @@ import {
   PatientSearchFilters,
   PatientSearchResult,
 } from "@/hooks/searchPatients";
+import Input from "@/components/Input";
 import { createPatient, CreatePatientData } from "@/hooks/createPatient";
 import { updatePatient, UpdatePatientData } from "@/hooks/updatePatient";
 import { deletePatient } from "@/hooks/deletePatient";
@@ -340,21 +341,21 @@ export default function NurseUsersPatientsPage() {
         <div className="flex space-x-2">
           <Link
             href={`/nurse/users/patients/${row.id}`}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center space-x-1 cursor-pointer"
+            className="text-blue-600 hover:text-blue-700 font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Eye className="w-3 h-3" />
             <span>View</span>
           </Link>
           <button
             onClick={() => openEditPatientModal(row)}
-            className="text-[#44CE2D] hover:text-[#3bb025] font-medium text-sm flex items-center space-x-1 cursor-pointer"
+            className="text-[#44CE2D] hover:text-[#3bb025] font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Edit className="w-3 h-3" />
             <span>Edit</span>
           </button>
           <button
             onClick={() => openDeletePatientModal(row)}
-            className="text-red-600 hover:text-red-700 font-medium text-sm flex items-center space-x-1 cursor-pointer"
+            className="text-red-600 hover:text-red-700 font-medium  !text-[10px]  !md:text-[12px] flex items-center space-x-1 cursor-pointer"
           >
             <Trash2 className="w-3 h-3" />
             <span>Delete</span>
@@ -406,14 +407,14 @@ export default function NurseUsersPatientsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 flex-1 max-w-2xl">
             <div className="relative flex-1">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search patient by name, email, or phone"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 onKeyPress={handleSearchKeyPress}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-transparent"
+                icon={<Search className="w-5 h-5 text-gray-400" />}
+                fullWidth
               />
             </div>
             <button
@@ -441,7 +442,7 @@ export default function NurseUsersPatientsPage() {
         </div>
 
         {/* Results summary */}
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4  !text-[10px]  !md:text-[12px] text-gray-600">
           Showing {patients.length} of {totalPatients} patients
           {Object.keys(filters).length > 0 && (
             <span className="ml-2 text-[#44CE2D]">(Filtered results)</span>
@@ -454,9 +455,10 @@ export default function NurseUsersPatientsPage() {
         columns={columns}
         data={patients}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        onNext={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+        totalCount={totalPatients}
+        pageSize={20}
+        onPageChange={setCurrentPage}
+        itemLabel="patients"
       />
 
       {/* Add/Edit Patient Modal */}

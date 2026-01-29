@@ -7,7 +7,7 @@ import Title from "@/components/Title";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
+import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 import DoctorSkeletonLoader from "@/components/skeletons/DoctorSkeletonLoader";
 
@@ -107,9 +107,8 @@ export default function NursesDoctorsPage() {
       stars.push(
         <Star
           key={i}
-          className={`w-4 h-4 ${
-            i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
-          }`}
+          className={`w-4 h-4 ${i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+            }`}
         />
       );
     }
@@ -119,9 +118,8 @@ export default function NursesDoctorsPage() {
   const handleBookAppointment = (doctor: Doctor) => {
     // Navigate to booking page with doctor and patient info
     const patientId = searchParams.get("patientId");
-    const bookingUrl = `/nurse/patients/book-appointment/${
-      doctor.doctorId || doctor.id
-    }?patient=${encodeURIComponent(patientName || "")}&patientId=${patientId}`;
+    const bookingUrl = `/nurse/patients/book-appointment/${doctor.doctorId || doctor.id
+      }?patient=${encodeURIComponent(patientName || "")}&patientId=${patientId}`;
     router.push(bookingUrl);
   };
 
@@ -207,16 +205,15 @@ export default function NursesDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.title || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || ""}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
-                  {`${doctor.first_name || ""}  ${
-                    doctor.last_name || ""
-                  }`.trim() || ""}
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
+                  {`${doctor.first_name || ""}  ${doctor.last_name || ""
+                    }`.trim() || ""}
                 </p>
 
                 <div className="flex items-center justify-center mb-3">
@@ -224,24 +221,24 @@ export default function NursesDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor.email}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor.phone_number || "Phone not available"}</span>
                   </div>
 
                   {doctor.hospital && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                       <User className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.hospital}</span>
                     </div>
                   )}
 
                   {doctor.address && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                       <MapPin className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.address}</span>
                     </div>
@@ -255,7 +252,7 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer`}
+                    className={`${topDoctorMainColors[index]} t  btn-primary-green flex-1 px-3 py-2 rounded-lg  text-[10px]  md:text-[12px] font-medium cursor-pointer`}
                   >
                     Book Appointment
                   </button>
@@ -281,10 +278,10 @@ export default function NursesDoctorsPage() {
                     src={
                       (doctor.photo_url &&
                         !doctor.photo_url.startsWith("file://")) ||
-                      (doctor.image && !doctor.image.startsWith("file://"))
+                        (doctor.image && !doctor.image.startsWith("file://"))
                         ? doctor.photo_url ||
-                          doctor.image ||
-                          "/api/placeholder/120/120"
+                        doctor.image ||
+                        "/api/placeholder/120/120"
                         : "/api/placeholder/120/120"
                     }
                     alt={doctor?.display_name || "Doctor"}
@@ -299,18 +296,17 @@ export default function NursesDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.display_name || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
-                  {`${doctor.first_name || ""} ${
-                    doctor.last_name || ""
-                  }`.trim() || "N/A"}
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
+                  {`${doctor.first_name || ""} ${doctor.last_name || ""
+                    }`.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className=" text-[10px]  md:text-[12px] text-gray-600 mb-2">
                   {doctor.specialization || "N/A"}
                 </p>
                 <p className="text-xs text-gray-500 mb-3">
@@ -324,23 +320,23 @@ export default function NursesDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.email || "n/a"}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor?.phone_number || "Phone not available"}</span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <User className="w-4 h-4 mr-2" />
                     <span className="truncate">
                       {doctor?.hospital || "n/a"}
                     </span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center  text-[10px]  md:text-[12px] text-gray-800">
                     <MapPin className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.address || "n/a"}</span>
                   </div>
@@ -353,7 +349,7 @@ export default function NursesDoctorsPage() {
                       e.stopPropagation();
                       handleBookAppointment(doctor);
                     }}
-                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                    className="btn-primary-green flex-1 px-3 py-2 rounded-lg  text-[10px]  md:text-[12px] font-medium cursor-pointer"
                   >
                     Book Appointment
                   </button>

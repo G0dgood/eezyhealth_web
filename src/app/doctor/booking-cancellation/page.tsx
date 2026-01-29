@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/api";
+import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/bookingCancellationApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -162,34 +162,34 @@ export default function DoctorBookingCancellationPage() {
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {currentAppointments?.length === 0 ||
-              currentAppointments?.length === undefined ? (
+                currentAppointments?.length === undefined ? (
                 <NoRecordFound colSpan={6} />
               ) : (
                 currentAppointments?.map((appointment) => (
                   <tr key={appointment.id} className="hover:bg-[var(--muted)]">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                         {appointment.patientName}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.bookingDate?.toDate
                           ? appointment.bookingDate
-                              .toDate()
-                              .toLocaleDateString()
+                            .toDate()
+                            .toLocaleDateString()
                           : new Date(
-                              appointment.bookingDate
-                            ).toLocaleDateString()}
+                            appointment.bookingDate
+                          ).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.slot || appointment.timeSlot}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {appointment.cancellationRequest
                           ?.reasonForCancellation ||
                           appointment.cancellationRequest?.reason ||
@@ -197,10 +197,17 @@ export default function DoctorBookingCancellationPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getCancellationStatusBadge(
-                        appointment.cancellationRequest?.status ||
-                          appointment.status
-                      )}
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${(appointment.bookingStatus as string)?.toLowerCase() === "cancelled"
+                          ? "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20"
+                          : (appointment.bookingStatus as string)?.toLowerCase() === "approved"
+                            ? "bg-green-100 text-green-800"
+                            : (appointment.bookingStatus as string)?.toLowerCase() === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                          }`}>
+                        {(appointment.bookingStatus as string) || "-"}
+                      </span>
                     </td>
                   </tr>
                 ))

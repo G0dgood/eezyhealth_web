@@ -6,21 +6,29 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { User, Bell, Shield, Camera, UserCircle } from "lucide-react";
+import { User, Bell, Shield } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
-import Image from "next/image";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { Skeleton } from "@/components/ui/skeleton";
 import CustomToggle from "@/components/CustomToggle";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import { useUpdateUserMutation } from "@/store/authApi";
+import ProfilePictureSection from "@/components/ProfilePictureSection";
+import { motion } from "framer-motion";
+import PillTabs from "@/components/Tabs/PillTabs";
 
 export default function DoctorSettings() {
   const { theme, setTheme } = useTheme();
-  const { userInfo } = useAuth();
+  const { userInfo, setUserInfo } = useAuth();
   const { notificationPrefs, updateNotificationPrefs } = useNotifications();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  // RTK Query Mutation
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   const handleSettingsClick = () => {
     setLoading(true);
@@ -28,7 +36,7 @@ export default function DoctorSettings() {
 
   // Authentication check
   useEffect(() => {
-    if (loading && userInfo && userInfo.role === "DOCTOR") {
+    if (loading && userInfo && userInfo.role?.toLowerCase() === "doctor") {
       router.push("/settings");
       setLoading(false);
     } else if (loading) {
@@ -54,18 +62,6 @@ export default function DoctorSettings() {
 
   const [profileImage, setProfileImage] = useState(userInfo?.photo_url || "");
 
-  // Function to check if image URL is valid for Next.js Image component
-  const isValidImageUrl = (url: string) => {
-    if (!url) return false;
-    // Check if it's a valid HTTP/HTTPS URL
-    try {
-      const urlObj = new URL(url);
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
-
   // Sync profileImage with userInfo when it changes
   useEffect(() => {
     if (userInfo?.photo_url) {
@@ -75,21 +71,25 @@ export default function DoctorSettings() {
 
   // Profile form state
   const [profileData, setProfileData] = useState({
-    fullName: userInfo?.display_name || "n/a",
-    doctorId: userInfo?.uid || "n/a",
-    role: userInfo?.role || "n/a",
-    email: userInfo?.email || "n/a",
-    mobileNumber: userInfo?.phone_number || "n/a",
-    department: "n/a",
-    specialization: "n/a",
-    experience: "n/a",
-    bio: "n/a",
-    firstName: userInfo?.first_name || "n/a",
-    lastName: userInfo?.last_name || "n/a",
-    address: userInfo?.address || "n/a",
-    location: userInfo?.location || "n/a",
-    dateOfBirth: userInfo?.date_of_birth || "n/a",
+    fullName: userInfo?.display_name || "",
+    doctorId: userInfo?.uid || "",
+    role: userInfo?.role || "",
+    email: userInfo?.email || "",
+    mobileNumber: userInfo?.phone_number || "",
+    department: "n/a", // This seems unused or static for now
+    specialization: (userInfo as any)?.specialization || "",
+    experience: (userInfo as any)?.experience_yrs || "",
+    bio: (userInfo as any)?.about || "",
+    firstName: userInfo?.first_name || "",
+    lastName: userInfo?.last_name || "",
+    address: userInfo?.address || "",
+    location: userInfo?.location || "",
+    dateOfBirth: userInfo?.date_of_birth || "",
     isActive: userInfo?.isActive || false,
+    hospital: (userInfo as any)?.hospital || "",
+    license: (userInfo as any)?.license || "", // Medical License
+    gender: (userInfo as any)?.gender || "",
+    title: (userInfo as any)?.title || "",
   });
 
   // Sync profileData with userInfo when it changes
@@ -108,6 +108,13 @@ export default function DoctorSettings() {
         location: userInfo.location || prev.location,
         dateOfBirth: userInfo.date_of_birth || prev.dateOfBirth,
         isActive: userInfo.isActive || prev.isActive,
+        specialization: (userInfo as any).specialization || prev.specialization,
+        experience: (userInfo as any).experience_yrs || prev.experience,
+        bio: (userInfo as any).about || prev.bio,
+        hospital: (userInfo as any).hospital || prev.hospital,
+        license: (userInfo as any).license || prev.license,
+        gender: (userInfo as any).gender || prev.gender,
+        title: (userInfo as any).title || prev.title,
       }));
     }
   }, [userInfo]);
@@ -124,32 +131,88 @@ export default function DoctorSettings() {
     confirmPassword: "",
   });
 
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Create a temporary URL for the selected file
-      const tempUrl = URL.createObjectURL(file);
-      setProfileImage(tempUrl);
+  const handleProfileUrlChange = async (url: string) => {
+    setProfileImage(url);
 
-      // In a real app, you would upload this file to Firebase Storage
-      // and then update the user's profile with the new photo URL
-      console.log("Profile image selected:", file.name);
+    // Auto-save the profile image
+    if (userInfo?.uid) {
+      try {
+        await updateUser({
+          userId: userInfo.uid,
+          photo_url: url,
+          role: userInfo.role || "doctor",
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
 
-      // Clean up the temporary URL when component unmounts
-      return () => URL.revokeObjectURL(tempUrl);
+        // Update local storage and context
+        if (userInfo && setUserInfo) {
+          const updatedUserInfo = { ...userInfo, photo_url: url, photoURL: url };
+          setUserInfo(updatedUserInfo);
+          localStorage.setItem(
+            "userInfo-eezy-health",
+            JSON.stringify(updatedUserInfo)
+          );
+        }
+
+        toast.success("Profile picture updated successfully!");
+      } catch (error: any) {
+        console.error("Error auto-saving profile picture:", error);
+        const errorMessage = error?.data?.error || error?.message || error?.error || "Unknown error";
+        toast.error(`Failed to save profile picture: ${errorMessage}`);
+      }
     }
   };
 
   const handleProfileSave = async () => {
-    try {
-      // Simulate API call to update profile
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!userInfo?.uid) {
+      toast.error("User information not available");
+      return;
+    }
 
-      // Update profile data (in real app, this would call Firebase)
-      console.log("Profile saved:", profileData);
+    try {
+      // Prepare the update data
+      const updateData = {
+        display_name: profileData.fullName,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email,
+        phone_number: profileData.mobileNumber,
+        address: profileData.address,
+        location: profileData.location,
+        specialization: profileData.specialization,
+        experience_yrs: profileData.experience,
+        about: profileData.bio,
+        hospital: profileData.hospital,
+        license: profileData.license,
+        gender: profileData.gender,
+        title: profileData.title,
+        photo_url: profileImage,
+        role: userInfo.role || "doctor",
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update user in database
+      await updateUser({
+        userId: userInfo.uid,
+        ...updateData,
+      }).unwrap();
+
+      // Update localStorage with new data
+      const updatedUserInfo = { ...userInfo, ...updateData };
+      localStorage.setItem(
+        "userInfo-eezy-health",
+        JSON.stringify(updatedUserInfo)
+      );
+
+      // Update context if possible (optional, but good practice if context doesn't auto-update from localStorage listener)
+      if (setUserInfo) {
+        setUserInfo(updatedUserInfo as any);
+      }
+
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Failed to update profile. Please try again.");
+      console.error("Profile update error:", error);
+      toast.error(`Failed to update profile: ${(error as any)?.data?.error || (error as any)?.message || "Unknown error"}`);
     }
   };
 
@@ -158,7 +221,7 @@ export default function DoctorSettings() {
       // Simulate API call to update notification preferences
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("Notification preferences saved:", notificationPrefs);
+
       toast.success("Notification preferences updated successfully!");
     } catch (error) {
       if (error instanceof Error) {
@@ -177,7 +240,7 @@ export default function DoctorSettings() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
 
-      console.log("Security settings saved:", securitySettings);
+
       toast.success("Security settings updated successfully!");
     } catch (error) {
       toast.error("Failed to update security settings. Please try again.");
@@ -194,7 +257,7 @@ export default function DoctorSettings() {
       // Simulate API call to update password
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("Password updated");
+
       toast.success("Password updated successfully!");
 
       // Clear password fields
@@ -209,7 +272,7 @@ export default function DoctorSettings() {
   };
 
   // Redirect if not authenticated
-  if (!userInfo || userInfo.role !== "DOCTOR") {
+  if (!userInfo || userInfo.role?.toLowerCase() !== "doctor") {
     return null;
   }
 
@@ -311,43 +374,32 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             {/* Profile Picture Section */}
-            <div className="text-center">
-              <div className="relative inline-block">
-                {profileImage && isValidImageUrl(profileImage) ? (
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    <UserCircle className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 bg-[#44CE2D] text-white p-2 rounded-full cursor-pointer hover:bg-[#3bb025] transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-[#44CE2D] font-medium mt-2 cursor-pointer">
-                Update
-              </p>
-            </div>
+            <ProfilePictureSection
+              profileImage={profileImage}
+              onImageChange={handleProfileUrlChange}
+              buttonClassName="bg-[#44CE2D] hover:bg-[#3bb025]"
+              textClassName="text-[#44CE2D]"
+            />
+            {/* Profile Form */}
 
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                <input
+                <Input
+                  label="Title"
+                  type="text"
+                  value={profileData.title}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, title: e.target.value })
+                  }
+                  fullWidth
+                  placeholder="e.g. Dr., Prof."
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="First Name"
                   type="text"
                   value={profileData.firstName}
                   onChange={(e) =>
@@ -356,132 +408,50 @@ export default function DoctorSettings() {
                       firstName: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
-                <input
+                <Input
+                  label="Last Name"
                   type="text"
                   value={profileData.lastName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, lastName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
+                <Input
+                  label="Full Name"
                   type="text"
                   value={profileData.fullName}
                   onChange={(e) =>
                     setProfileData({ ...profileData, fullName: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Doctor ID
-                </label>
-                <input
+                <Input
+                  label="Gender"
                   type="text"
-                  value={profileData.doctorId}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <input
-                  type="text"
-                  value={profileData.role}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={profileData.email}
+                  value={profileData.gender}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, email: e.target.value })
+                    setProfileData({ ...profileData, gender: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                  fullWidth
+                  placeholder="e.g. Male, Female"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number
-                </label>
-                <input
-                  type="tel"
-                  value={profileData.mobileNumber}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      mobileNumber: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={profileData.address}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      address: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={profileData.location}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      location: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
-                </label>
-                <input
+                <Input
+                  label="Date of Birth"
                   type="text"
                   value={
                     profileData.dateOfBirth
@@ -496,17 +466,158 @@ export default function DoctorSettings() {
                       : "n/a"
                   }
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Input
+                  label="Email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, email: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Mobile Number"
+                  type="tel"
+                  value={profileData.mobileNumber}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      mobileNumber: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              {/* <div>
+                <Input
+                  label="Doctor ID"
+                  type="text"
+                  value={profileData.doctorId}
+                  disabled
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div> */}
+
+              <div>
+                <Input
+                  label="Role"
+                  type="text"
+                  value={profileData.role}
+                  disabled
+                  fullWidth
+                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Medical License"
+                  type="text"
+                  value={profileData.license}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, license: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Specialization"
+                  type="text"
+                  value={profileData.specialization}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, specialization: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Experience (Years)"
+                  type="text"
+                  value={profileData.experience}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, experience: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Hospital / Clinic"
+                  type="text"
+                  value={profileData.hospital}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, hospital: e.target.value })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Address"
+                  type="text"
+                  value={profileData.address}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      address: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Location"
+                  type="text"
+                  value={profileData.location}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      location: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Textarea
+                  label="Bio / About"
+                  rows={4}
+                  value={profileData.bio}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, bio: e.target.value })
+                  }
+                  placeholder="Tell us about yourself..."
+                  fullWidth
+                />
+              </div>
+
+              <div>
+                <label className="block  !text-[10px]  !md:text-[12px] font-medium text-gray-700 mb-2">
                   Status
                 </label>
                 <div className="flex items-center">
                   <span
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${profileData.isActive
+                    className={`px-3 py-2 rounded-lg  !text-[10px]  !md:text-[12px] font-medium ${profileData.isActive
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                       }`}>
@@ -519,8 +630,9 @@ export default function DoctorSettings() {
             <div className="flex justify-end">
               <button
                 onClick={handleProfileSave}
-                className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
-                Save Changes
+                disabled={isUpdating}
+                className={`px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors ${isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                {isUpdating ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -530,7 +642,7 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                 Notification Preferences
               </h3>
               <p className="text-gray-600">
@@ -545,7 +657,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     New Patient Bookings
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
                     Get notified when new patients book appointments with you.
                   </p>
                 </div>
@@ -553,7 +665,7 @@ export default function DoctorSettings() {
                   <ToggleSwitch
                     checked={notificationPrefs.newPatientBookings}
                     onChange={(checked) => {
-                      console.log("Doctor notification toggle:", { checked, current: notificationPrefs.newPatientBookings });
+
                       updateNotificationPrefs({
                         newPatientBookings: checked,
                       });
@@ -568,7 +680,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     Appointment Reminders
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
                     Receive reminders about upcoming appointments.
                   </p>
                 </div>
@@ -590,7 +702,7 @@ export default function DoctorSettings() {
                   <h3 className="font-medium text-gray-900">
                     Patient Messages
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
                     Get notified when patients send you messages.
                   </p>
                 </div>
@@ -621,7 +733,7 @@ export default function DoctorSettings() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                 Security Settings
               </h3>
               <p className="text-gray-600">
@@ -634,7 +746,7 @@ export default function DoctorSettings() {
               <div className="flex items-center justify-between py-4 border-b border-gray-200">
                 <div className="flex-1 pr-4">
                   <h4 className="font-medium text-gray-900">Dark Mode</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
                     Enable dark theme for the doctor interface
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -657,7 +769,7 @@ export default function DoctorSettings() {
             {/* Change Password Section */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
                   Change Password
                 </h3>
                 <p className="text-gray-600">
@@ -667,10 +779,8 @@ export default function DoctorSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password
-                  </label>
-                  <input
+                  <Input
+                    label="Current Password"
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) =>
@@ -680,15 +790,14 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Enter Current Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Password
-                  </label>
-                  <input
+                  <Input
+                    label="New Password"
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) =>
@@ -698,15 +807,14 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Enter New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
+                  <Input
+                    label="Confirm New Password"
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
@@ -716,7 +824,8 @@ export default function DoctorSettings() {
                       })
                     }
                     placeholder="Confirm New Password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D] transition-all duration-200"
+                    fullWidth
+                    showPasswordToggle
                   />
                 </div>
               </div>
@@ -759,21 +868,13 @@ export default function DoctorSettings() {
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                  ? "border-[#44CE2D] text-[#44CE2D]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}>
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
+        <div className="border-b border-gray-200 p-4">
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            layoutId="doctor-settings-active-tab"
+          />
         </div>
 
         {/* Tab Content */}

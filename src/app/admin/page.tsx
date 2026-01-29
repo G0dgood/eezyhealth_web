@@ -16,8 +16,8 @@ import { Edit, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Skeleton from "react-loading-skeleton";
-import { EditModeContext } from "./layout";
-
+import { EditModeContext } from "@/contexts/EditModeContext";
+import Button from "@/components/Button";
 // Import admin-specific widgets
 import {
   AdminStatsCards,
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
           setWidgets(filtered);
           return;
         }
-      } catch {}
+      } catch { }
     }
 
     const defaultWidgets: WidgetMeta[] = [
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
     isEditing: boolean;
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id });
+      useSortable({ id, disabled: !isEditing });
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -278,25 +278,24 @@ const AdminDashboard = () => {
               zIndex: 50,
             }}
           >
-            <button
+            <Button
               onClick={handleRemoveClick}
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
-              className={`text-red-600 hover:text-red-800 rounded-full p-2 shadow-lg border border-red-200 hover:bg-red-50 transition-colors duration-200 cursor-pointer ${
-                isDarkMode
-                  ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20"
-                  : "bg-white"
-              }`}
+              className={`rounded-full p-2 shadow-lg border hover:bg-red-50 transition-colors duration-200 ${isDarkMode
+                ? "bg-[var(--dark-bg-secondary)] border-red-300 hover:bg-red-900/20 text-red-400"
+                : "bg-white border-red-200 text-red-600 hover:text-red-800"
+                }`}
               aria-label="Remove widget"
-              type="button"
               title="Remove widget"
               style={{ pointerEvents: "auto" }}
-            >
-              <FaTimes size={14} />
-            </button>
+              icon={<FaTimes size={14} />}
+              iconOnly
+              variant="ghost"
+            />
           </div>
         )}
-        <div {...attributes} {...listeners}>
+        <div {...attributes} {...(isEditing ? listeners : undefined)}>
           {children}
         </div>
       </div>
@@ -353,47 +352,42 @@ const AdminDashboard = () => {
           <Skeleton height={40} width={120} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-200px)]">
-          <div className="col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-left-zone">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-200px)]">
+          <div className="col-span-1 md:col-span-4 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone">
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
-                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                      : "bg-white border-[#E5E7EB]"
-                  }`}
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
+                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                    : "bg-white border-[#E5E7EB]"
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/3 mb-4 ${
-                        isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                      }`}
+                      className={`h-4 rounded w-1/3 mb-4 ${isDarkMode
+                        ? "bg-[var(--dark-bg-tertiary)]"
+                        : "bg-gray-200"
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-8 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-8 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-8 rounded w-2/3 ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-8 rounded w-2/3 ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -401,53 +395,47 @@ const AdminDashboard = () => {
               ))}
             </div>
           </div>
-          <div className="col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] overflow-y-auto dashboard-right-zone">
+          <div className="col-span-1 md:col-span-2 border-[#E5E7EB] dark:border-[var(--dark-border)] rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone">
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className={`p-6 rounded-lg border shadow-sm ${
-                    isDarkMode
-                      ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
-                      : "bg-white border-[#E5E7EB]"
-                  }`}
+                  className={`p-6 rounded-lg border shadow-sm ${isDarkMode
+                    ? "bg-[var(--dark-bg-secondary)] border-[var(--dark-border)]"
+                    : "bg-white border-[#E5E7EB]"
+                    }`}
                 >
                   <div className="animate-pulse">
                     <div
-                      className={`h-4 rounded w-1/2 mb-4 ${
-                        isDarkMode
-                          ? "bg-[var(--dark-bg-tertiary)]"
-                          : "bg-gray-200"
-                      }`}
+                      className={`h-4 rounded w-1/2 mb-4 ${isDarkMode
+                        ? "bg-[var(--dark-bg-tertiary)]"
+                        : "bg-gray-200"
+                        }`}
                     ></div>
                     <div className="space-y-3">
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                       <div
-                        className={`h-6 rounded w-3/4 ${
-                          isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
-                        }`}
+                        className={`h-6 rounded w-3/4 ${isDarkMode
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
+                          }`}
                       ></div>
                     </div>
                   </div>
@@ -464,27 +452,27 @@ const AdminDashboard = () => {
     <div>
       {isEditing && (
         <div className="flex flex-wrap gap-3 mb-4">
-          <button
+          <Button
             onClick={handleSave}
-            className="px-4 py-2 !bg-green-600 !text-white rounded"
+            className="!bg-green-600 !text-white"
           >
             Save
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setIsEditing(false)}
-            className="px-4 py-2 !bg-red-600 !text-white rounded"
+            className="!bg-red-600 !text-white"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={clearStorage}
-            className="px-4 py-2 !bg-yellow-600 !text-white rounded"
+            className="!bg-yellow-600 !text-white"
           >
             Clear Storage (Debug)
-          </button>
+          </Button>
 
           {availableWidgetTypes.map((type) => (
-            <button
+            <Button
               key={type}
               onClick={() =>
                 addWidget(
@@ -492,27 +480,25 @@ const AdminDashboard = () => {
                   type === "AdminCalendarWidget" ? "right" : "left"
                 )
               }
-              className="px-4 py-2 !bg-blue-600 !text-white rounded"
+              className="!bg-blue-600 !text-white"
             >
               + Add {type}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-[calc(100vh-150px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-150px)]">
           <div
-            className={`col-span-4 rounded min-h-[400px] overflow-y-auto dashboard-left-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("left")}
           </div>
           <div
-            className={`col-span-2 rounded min-h-[400px] overflow-y-auto dashboard-right-zone ${
-              isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
-            }`}
+            className={`col-span-1 md:col-span-2 rounded min-h-[400px] md:overflow-y-auto dashboard-right-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
+              }`}
           >
             {renderZone("right")}
           </div>

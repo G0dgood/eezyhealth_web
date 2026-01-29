@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { Trophy, User } from "lucide-react";
 import Title from "@/components/Title";
+import Pagination from "@/components/Pagination";
 import {
   useGetFirebaseDoctorOfTheMonthQuery,
   useTriggerDoctorOfTheMonthMutation,
-} from "@/store/api";
+} from "@/store/doctorOfMonthApi";
 import {
   collection,
   query,
@@ -85,6 +86,7 @@ const AdminDoctorOfMonthPage = () => {
   const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true);
   const [currentMonth, setCurrentMonth] = useState("");
   const [isAutoCreating, setIsAutoCreating] = useState(false);
+  const pageSize = 10;
 
   // RTK Query hooks for Doctor of The Month
   const {
@@ -344,9 +346,7 @@ const AdminDoctorOfMonthPage = () => {
           topPerformers.length > 0 &&
           !currentDoctorOfMonth
         ) {
-          console.log(
-            "No Doctor of The Month found for current month. Auto-creating..."
-          );
+
           setIsAutoCreating(true);
           showInfo(
             "Auto-creating Doctor of The Month",
@@ -364,9 +364,7 @@ const AdminDoctorOfMonthPage = () => {
 
             if (success) {
               await triggerDoctorOfMonth(topPerformer.id).unwrap();
-              console.log(
-                `Automatically created ${topPerformer.name} as Doctor of The Month for ${currentMonth}`
-              );
+
               showSuccess(
                 `${topPerformer.name} has been automatically selected as Doctor of The Month!`
               );
@@ -404,7 +402,11 @@ const AdminDoctorOfMonthPage = () => {
     isAutoCreating,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(pastDoctors.length / 10));
+  const totalPages = Math.max(1, Math.ceil(pastDoctors.length / pageSize));
+  const paginatedPastDoctors = pastDoctors.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   // Calculate comprehensive performance score for Doctor of The Month selection
   const calculatePerformanceScore = (doctor: DoctorPerformance): number => {
@@ -472,7 +474,7 @@ const AdminDoctorOfMonthPage = () => {
       if (success) {
         // Trigger RTK Query mutation for additional processing
         await triggerDoctorOfMonth(doctorId).unwrap();
-        console.log("Doctor of The Month selection completed successfully");
+
 
         // Refetch all data
         refetchDoctorOfMonth();
@@ -507,9 +509,7 @@ const AdminDoctorOfMonthPage = () => {
 
         if (success) {
           await triggerDoctorOfMonth(topPerformer.id).unwrap();
-          console.log(
-            `Automatically selected ${topPerformer.name} as Doctor of The Month`
-          );
+
 
           // Refetch all data
           refetchDoctorOfMonth();
@@ -577,21 +577,21 @@ const AdminDoctorOfMonthPage = () => {
             <Trophy className="w-8 h-8 text-white" />
           </div>
           <div>
-            <p className="text-white/80 text-sm font-medium">Current Leader</p>
-            <p className="text-xl text-white font-bold">
+            <p className="text-white/80 text-[10px] md:text-[12px] font-medium">Current Leader</p>
+            <p className="text-[16px] md:text-[18px] text-white font-bold">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
-                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
-                : currentLeader?.name || "No data available"}
+                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
+                  : currentLeader?.name || "No data available"}
             </p>
-            <p className="text-white/80 text-sm">
+            <p className="text-white/80 text-[10px] md:text-[12px]">
               {isLoadingDoctorOfMonth || isAutoCreating
                 ? "Loading..."
                 : currentDoctorOfMonth
-                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
+                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
                     ?.specialty
-                : currentLeader?.specialty || "No data available"}
+                  : currentLeader?.specialty || "No data available"}
             </p>
             {isAutoCreating && (
               <p className="text-white/60 text-xs italic">
@@ -601,13 +601,13 @@ const AdminDoctorOfMonthPage = () => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl text-white font-bold">
+          <p className="text-[18px] md:text-[20px] text-white font-bold">
             {isLoadingDoctorOfMonth || isAutoCreating
               ? "..."
               : currentDoctorOfMonth
-              ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
+                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
                 0
-              : currentLeader?.performanceScore?.toFixed(1) || 0}
+                : currentLeader?.performanceScore?.toFixed(1) || 0}
           </p>
         </div>
       </div>
@@ -617,7 +617,7 @@ const AdminDoctorOfMonthPage = () => {
         {/* Top Performers This Month */}
         {/* <div className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
               Top Performers This Month
             </h3>
             <div className="flex items-center space-x-2">
@@ -626,14 +626,15 @@ const AdminDoctorOfMonthPage = () => {
                   Auto-creating...
                 </span>
               )}
-              <button
+              <Button
                 onClick={handleAutoSelectDoctorOfMonth}
                 disabled={
                   isTriggering || topPerformers.length === 0 || isAutoCreating
                 }
-                className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:bg-[#3bb025] transition-colors disabled:opacity-50">
+                className="bg-[#44CE2D] text-white hover:bg-[#3bb025] disabled:opacity-50 h-auto py-1 px-3 text-[10px] md:text-[12px]"
+              >
                 {isTriggering ? "Selecting..." : "Auto-Select"}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -646,7 +647,7 @@ const AdminDoctorOfMonthPage = () => {
             <div className="w-full md:w-[521px] p-8 text-center">
               <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No performance data available</p>
-              <p className="text-sm text-gray-400">
+              <p className="text-[10px] md:text-[12px] text-gray-400">
                 Performance metrics will appear here once data is available
               </p>
             </div>
@@ -665,7 +666,7 @@ const AdminDoctorOfMonthPage = () => {
                         <p className="font-medium text-gray-900">
                           {performer.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-[10px] md:text-[12px] text-gray-600">
                           {performer.specialty}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -676,15 +677,16 @@ const AdminDoctorOfMonthPage = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-[#44CE2D]">
+                      <span className="text-[14px] md:text-[16px] font-bold text-[#44CE2D]">
                         {performer.performanceScore?.toFixed(1) || 0}
                       </span>
-                      <button
+                      <Button
                         onClick={() => handleSelectDoctorOfMonth(performer.id)}
                         disabled={isTriggering}
-                        className="block mt-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50">
+                        className="block mt-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50 bg-transparent hover:bg-transparent p-0 h-auto"
+                        variant="ghost">
                         Select as DoM
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -695,41 +697,29 @@ const AdminDoctorOfMonthPage = () => {
 
         {/* Past Doctors of The Month Table */}
         <div className="lg:col-span-2">
-          <h3 className="text-lg font-semibold text-gray-900 mt-8">
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mt-8">
             Past Doctors of The Month
           </h3>
 
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      DOCTOR
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      SPECIALTY
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      MONTH
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      RATING
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CANCELLATION RATE
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      COMPLETED APPOINTMENT
-                    </th>
+                    <th>DOCTOR</th>
+                    <th>SPECIALTY</th>
+                    <th>MONT</th>
+                    <th>RATING</th>
+                    <th>CANCELLATION RATE</th>
+                    <th>COMPLETED APPOINTMENT</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {pastDoctors?.length === 0 ||
-                  pastDoctors?.length === undefined ? (
+                    pastDoctors?.length === undefined ? (
                     <NoRecordFound colSpan={6} />
                   ) : (
-                    pastDoctors.map((doctor, index) => (
+                    paginatedPastDoctors.map((doctor, index) => (
                       <tr
                         key={doctor.id || index}
                         className="hover:bg-gray-50 transition-colors"
@@ -739,59 +729,31 @@ const AdminDoctorOfMonthPage = () => {
                             <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
                               <User className="w-3 h-3 text-gray-600" />
                             </div>
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-[10px] md:text-[12px] font-medium text-gray-900">
                               {doctor.name}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.specialty}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.displayMonth}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.rating}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.cancellationRate}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {doctor.completedAppointments}%
-                        </td>
+                        <td>{doctor.specialty}  </td>
+                        <td>{doctor.displayMonth} </td>
+                        <td>{doctor.rating}% </td>
+                        <td>{doctor.cancellationRate}% </td>
+                        <td>{doctor.completedAppointments}% </td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
-
             {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-[#44CE2D] text-white rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
+            <Pagination
+
+              currentPage={currentPage}
+              totalCount={pastDoctors.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              itemLabel="doctors"
+            />
           </div>
         </div>
       </div>

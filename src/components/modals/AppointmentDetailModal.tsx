@@ -28,58 +28,58 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Appointment Detail" size="md">
       <div className="space-y-4">
         <div>
-          <span className="text-sm font-medium text-gray-700">
+          <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
             Patient Name:{" "}
           </span>
-          <span className="text-sm text-gray-900">
+          <span className=" text-[10px]  md:text-[12px] text-gray-900">
             {appointment.patientName}
           </span>
         </div>
-        
+
         <div>
-          <span className="text-sm font-medium text-gray-700">
+          <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
             Date:{" "}
           </span>
-          <span className="text-sm text-gray-900">
+          <span className=" text-[10px]  md:text-[12px] text-gray-900">
             {appointment.date}
           </span>
         </div>
-        
+
         <div>
-          <span className="text-sm font-medium text-gray-700">
+          <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
             Time:{" "}
           </span>
-          <span className="text-sm text-gray-900">
+          <span className=" text-[10px]  md:text-[12px] text-gray-900">
             {appointment.time}
           </span>
         </div>
-        
+
         <div>
-          <span className="text-sm font-medium text-gray-700">
+          <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
             Status:{" "}
           </span>
-          <span className="text-sm text-gray-900">
+          <span className=" text-[10px]  md:text-[12px] text-gray-900">
             {appointment.status}
           </span>
         </div>
-        
+
         {appointment.reason && (
           <div>
-            <span className="text-sm font-medium text-gray-700">
+            <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
               Reason:{" "}
             </span>
-            <span className="text-sm text-gray-900">
+            <span className=" text-[10px]  md:text-[12px] text-gray-900">
               {appointment.reason}
             </span>
           </div>
         )}
-        
+
         {appointment.consultationNote && (
           <div>
-            <span className="text-sm font-medium text-gray-700">
+            <span className=" text-[10px]  md:text-[12px] font-medium text-gray-700">
               Consultation Note:{" "}
             </span>
-            <span className="text-sm text-gray-900">
+            <span className=" text-[10px]  md:text-[12px] text-gray-900">
               {appointment.consultationNote}
             </span>
           </div>

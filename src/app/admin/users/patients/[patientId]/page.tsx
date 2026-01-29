@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useMemo } from "react";
 import { ArrowLeft, User, X } from "lucide-react";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
+import Pagination from "@/components/Pagination";
+import Button from "@/components/Button";
+import PillTabs from "@/components/Tabs/PillTabs";
 
 export default function PatientDetailsPage({
   params,
@@ -11,8 +14,10 @@ export default function PatientDetailsPage({
   params: Promise<{ patientId: string }>;
 }) {
   const { patientId } = use(params);
-  const [activeTab, setActiveTab] = useState("incoming");
+  const [activeTab, setActiveTab] = useState<"incoming" | "past">("incoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Sample patient data
   const patient = {
@@ -75,8 +80,13 @@ export default function PatientDetailsPage({
     },
   ];
 
-  const appointments =
+  const allAppointments =
     activeTab === "incoming" ? incomingAppointments : pastAppointments;
+
+  const appointments = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return allAppointments.slice(startIndex, startIndex + pageSize);
+  }, [allAppointments, currentPage]);
 
   const handleVitalsClick = () => {
     setIsVitalsModalOpen(true);
@@ -95,46 +105,36 @@ export default function PatientDetailsPage({
       />
 
       {/* Patient Header */}
-      <div className="flex items-center space-x-4 mb-6">
-        <Link
-          href="/admin/users/patients"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </Link>
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <User className="w-6 h-6 text-green-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{patient.name}</h1>
-            <p className="text-gray-600">Patient ID: {patient.id}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/users/patients"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer shrink-0">
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </Link>
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+              <User className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 break-words">{patient.name}</h1>
+              <p className="text-gray-600">Patient ID: {patient.id}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Appointment Tabs */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab("incoming")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                activeTab === "incoming"
-                  ? "border-green-500 text-green-600 bg-green-50"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}>
-              Incoming Appointment
-            </button>
-            <button
-              onClick={() => setActiveTab("past")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                activeTab === "past"
-                  ? "border-green-500 text-green-600 bg-green-50"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}>
-              Past Appointment
-            </button>
-          </nav>
+        <div className="border-b border-gray-200 p-4">
+          <PillTabs
+            tabs={[
+              { id: "incoming", label: "Incoming Appointment" },
+              { id: "past", label: "Past Appointment" },
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         {/* Appointments Table */}
@@ -154,7 +154,7 @@ export default function PatientDetailsPage({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   DATE
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-sm uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium  !text-[10px]  !md:text-[12px] uppercase tracking-wider">
                   TIME
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -168,30 +168,33 @@ export default function PatientDetailsPage({
             <tbody className="bg-white divide-y divide-gray-200">
               {appointments.map((appointment, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                     {appointment.doctor}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td >
                     {appointment.specialty}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td >
                     {appointment.bookingId}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td >
                     {appointment.date}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td >
                     {appointment.time}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td >
                     {appointment.channel}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
+                  <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] font-medium">
+                    <Button
+                      variant="ghost-primary"
+                      size="sm"
                       onClick={handleVitalsClick}
-                      className="text-green-600 hover:text-green-700 font-medium text-sm cursor-pointer">
+                      className="px-2"
+                    >
                       Vitals
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -200,18 +203,14 @@ export default function PatientDetailsPage({
         </div>
 
         {/* Pagination */}
-        <div className="bg-white px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">Page 1 of 10</div>
-          <div className="flex space-x-2">
-            <button
-              disabled
-              className="px-3 py-1 text-sm border border-gray-300 text-gray-400 rounded cursor-not-allowed">
-              Previous
-            </button>
-            <button className="px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50 cursor-pointer">
-              Next
-            </button>
-          </div>
+        <div className="bg-white px-6 py-3 border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage}
+            totalCount={allAppointments.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            itemLabel="appointments"
+          />
         </div>
       </div>
 
@@ -222,12 +221,14 @@ export default function PatientDetailsPage({
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full z-50 relative">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Vitals</h3>
-                <button
+                <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">Vitals</h3>
+                <Button
+                  variant="ghost-neutral"
+                  size="sm"
+                  icon={<X className="w-5 h-5" />}
+                  iconOnly
                   onClick={() => setIsVitalsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
+                />
               </div>
 
               {/* Modal Content */}

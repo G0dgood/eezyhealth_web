@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useGetPaymentsByDoctorIdQuery } from "@/store/api";
+import { useGetPaymentsByDoctorIdQuery } from "@/store/paymentApi";
 import { useAuth } from "@/contexts/AuthContext";
+import Dropdown from "@/components/Dropdown";
 import { Download, CreditCard } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -90,7 +91,8 @@ export default function DoctorPaymentPage() {
             Error loading payments. Please try again.
             <button
               onClick={() => refetch()}
-              className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
               Retry
             </button>
           </div>
@@ -134,14 +136,16 @@ export default function DoctorPaymentPage() {
 
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${
-          statusClasses[status as keyof typeof statusClasses] ||
+        className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[status as keyof typeof statusClasses] ||
           "bg-gray-100 text-gray-800"
-        }`}>
+          }`}
+      >
         {status}
       </span>
     );
   };
+
+  console.log("Filtered Payments:", payments);
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {
@@ -186,21 +190,25 @@ export default function DoctorPaymentPage() {
         </div>
 
         <div className="flex gap-3">
-          <select
+          <Dropdown
             value={selectedFilters.paymentStatus}
-            onChange={(e) =>
+            onChange={(value) =>
               setSelectedFilters({
                 ...selectedFilters,
-                paymentStatus: e.target.value as DoctorPaymentStatus | "",
+                paymentStatus: value as DoctorPaymentStatus | "",
               })
             }
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#44CE2D] focus:border-[#44CE2D]">
-            <option value="">All Statuses</option>
-            <option value="Completed">Completed</option>
-            <option value="Pending">Pending</option>
-            <option value="Failed">Failed</option>
-            <option value="Refunded">Refunded</option>
-          </select>
+            options={[
+              { value: "", label: "All Statuses" },
+              { value: "Completed", label: "Completed" },
+              { value: "Pending", label: "Pending" },
+              { value: "Failed", label: "Failed" },
+              { value: "Refunded", label: "Refunded" },
+            ]}
+            placeholder="All Statuses"
+            className="w-40"
+            variant="default"
+          />
 
           <button className="flex items-center gap-2 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors">
             <Download className="w-4 h-4" />
@@ -225,35 +233,35 @@ export default function DoctorPaymentPage() {
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {currentPayments?.length === 0 ||
-              currentPayments?.length === undefined ? (
+                currentPayments?.length === undefined ? (
                 <NoRecordFound colSpan={6} />
               ) : (
                 currentPayments?.map((payment) => (
                   <tr key={payment.id} className="hover:bg-[var(--muted)]">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-[var(--foreground)]">
+                        <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
                           {payment.patientName}
                         </div>
-                        <div className="text-sm text-[var(--muted-foreground)]">
+                        <div className=" text-[10px]  md:text-[12px] text-[var(--muted-foreground)]">
                           ID: {payment.id}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {payment.slot}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-[var(--foreground)]">
-                        ₦{payment.amount.toFixed(2)}
+                      <div className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)]">
+                        ₦{payment?.amount}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {getPaymentMethodIcon(payment.paymentMethod)}
-                        <span className="text-sm text-[var(--foreground)]">
+                        <span className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                           {payment.paymentMethod}
                         </span>
                       </div>
@@ -262,7 +270,7 @@ export default function DoctorPaymentPage() {
                       {getStatusBadge(payment.paymentStatus)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-[var(--foreground)]">
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
                         {payment.transactionId.reference}
                       </div>
                     </td>

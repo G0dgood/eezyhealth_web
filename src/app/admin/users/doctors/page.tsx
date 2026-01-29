@@ -12,7 +12,8 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
 import Image from "next/image";
-import { useGetFirebaseDoctorProfilesQuery } from "@/store/api";
+import Button from "@/components/Button";
+import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { NoRecordFound } from "@/components/Options";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 
@@ -228,17 +229,19 @@ export default function AdminDoctorsPage() {
   if (isError) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-4">
           Failed to load doctors
         </h2>
         <p className="text-gray-600 mb-6">
           Please try again or contact support if the problem persists.
         </p>
-        <button
+        <Button
           onClick={() => window.location.reload()}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+          variant="primary"
+          className="px-6 py-3"
+        >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -273,7 +276,7 @@ export default function AdminDoctorsPage() {
 
       {/* Top Doctors Section */}
       <div className="mb-12 cursor-pointer">
-        <h2 className="text-2xl font-semibold mb-6">Top Doctors</h2>
+        <h2 className="text-[18px] md:text-[20px] font-semibold mb-6">Top Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {topDoctors.map((doctor, index) => (
             <div
@@ -301,13 +304,13 @@ export default function AdminDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.title || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || ""}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
                   {`${doctor.first_name || ""}  ${doctor.last_name || ""
                     }`.trim() || ""}
                 </p>
@@ -317,24 +320,24 @@ export default function AdminDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor.email}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor.phone_number || "Phone not available"}</span>
                   </div>
 
                   {doctor.hospital && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                       <User className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.hospital}</span>
                     </div>
                   )}
 
                   {doctor.address && (
-                    <div className="flex items-center text-sm text-gray-800">
+                    <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                       <MapPin className="w-4 h-4 mr-2" />
                       <span className="truncate">{doctor.address}</span>
                     </div>
@@ -348,7 +351,7 @@ export default function AdminDoctorsPage() {
 
       {/* Regular Doctors Section */}
       <div>
-        <h2 className="text-2xl font-semibold mb-6">All Doctors</h2>
+        <h2 className="text-[18px] md:text-[20px] font-semibold mb-6">All Doctors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {regularDoctors?.map((doctor: Doctor) => (
             <div
@@ -369,17 +372,17 @@ export default function AdminDoctorsPage() {
                   />
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-gray-900">
+                <h3 className="font-bold text-[14px] md:text-[16px] mb-2 text-gray-900">
                   {doctor.display_name || `${doctor.title}`.trim() || "N/A"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
                   {doctor.display_name?.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
                   {`${doctor.first_name || ""} ${doctor.last_name || ""
                     }`.trim() || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
                   {doctor.specialization || "N/A"}
                 </p>
                 <p className="text-xs text-gray-500 mb-3">
@@ -393,23 +396,23 @@ export default function AdminDoctorsPage() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <Mail className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.email || "n/a"}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <Phone className="w-4 h-4 mr-2" />
                     <span>{doctor?.phone_number || "Phone not available"}</span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <User className="w-4 h-4 mr-2" />
                     <span className="truncate">
                       {doctor?.hospital || "n/a"}
                     </span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-800">
+                  <div className="flex items-center text-[10px] md:text-[12px] text-gray-800">
                     <MapPin className="w-4 h-4 mr-2" />
                     <span className="truncate">{doctor?.address || "n/a"}</span>
                   </div>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { toast } from "sonner";
-import { useCreateDoctorAppointmentMutation } from "@/store/api";
+import { useCreateDoctorAppointmentMutation } from "@/store/bookingApi";
 // import axios from "axios";
 import { formatTime } from "@/components/Options";
 import moment from "moment";
@@ -368,13 +368,13 @@ export default function PaymentPage() {
       <div>
         <div className="text-center">
           <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-[20px] md:text-[24px] font-bold text-gray-900 mb-4">
             Payment Successful!
           </h1>
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-[14px] md:text-[16px] text-gray-600 mb-6">
             Your appointment has been confirmed and payment processed.
           </p>
-          <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
+          <p className=" !text-[10px]  !md:text-[12px] text-gray-500">Redirecting to dashboard...</p>
         </div>
       </div>
     );
@@ -400,7 +400,7 @@ export default function PaymentPage() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Payment</h1>
+            <h1 className="text-[20px] md:text-[24px] font-bold text-gray-900">Payment</h1>
             <p className="text-gray-600">Complete your appointment booking</p>
           </div>
         </div>
@@ -409,7 +409,7 @@ export default function PaymentPage() {
           {/* Left Panel - Payment Methods */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
                 Select Payment Method
               </h2>
 
@@ -417,11 +417,10 @@ export default function PaymentPage() {
                 {paymentMethods.map((method) => (
                   <div
                     key={method.id}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      selectedPaymentMethod === method.id
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedPaymentMethod === method.id
                         ? "border-green-500 bg-green-50"
                         : "border-gray-200 hover:border-gray-300"
-                    }`}
+                      }`}
                     onClick={() => setSelectedPaymentMethod(method.id)}>
                     <div className="flex items-center space-x-4">
                       <div className="text-gray-600">{method.icon}</div>
@@ -429,7 +428,7 @@ export default function PaymentPage() {
                         <h3 className="font-medium text-gray-900">
                           {method.name}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
                           {method.description}
                         </p>
                       </div>
@@ -450,11 +449,10 @@ export default function PaymentPage() {
                   disabled={
                     !selectedPaymentMethod || isProcessing || isCreatingBooking
                   }
-                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
-                    selectedPaymentMethod && !isProcessing
+                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${selectedPaymentMethod && !isProcessing
                       ? "bg-green-600 text-white hover:bg-green-700"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}>
+                    }`}>
                   {isProcessing ? (
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -482,7 +480,7 @@ export default function PaymentPage() {
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-start space-x-2">
                     <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className="text-sm text-blue-800">
+                    <div className=" !text-[10px]  !md:text-[12px] text-blue-800">
                       <p className="font-medium">
                         Secure Payment with Paystack
                       </p>
@@ -500,7 +498,7 @@ export default function PaymentPage() {
           {/* Right Panel - Booking Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
                 Booking Summary
               </h2>
 
@@ -545,10 +543,10 @@ export default function PaymentPage() {
 
                 {/* Total */}
                 <div className="flex justify-between items-center py-4 border-t border-gray-200">
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-[14px] md:text-[16px] font-semibold text-gray-900">
                     Total:
                   </span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span className="text-[18px] md:text-[20px] font-bold text-green-600">
                     N{(consultationFee / 100).toLocaleString()}
                   </span>
                 </div>
@@ -558,7 +556,7 @@ export default function PaymentPage() {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <div className="flex items-start space-x-2">
                   <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
+                  <div className=" !text-[10px]  !md:text-[12px] text-blue-800">
                     <p className="font-medium">Secure Payment</p>
                     <p className="mt-1">
                       Your payment information is encrypted and secure. We never
