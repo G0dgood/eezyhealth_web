@@ -6,10 +6,20 @@ import { getDatabase, ref, get } from 'firebase/database';
 import { firebaseConfig } from './config';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { getMessaging, Messaging } from 'firebase/messaging';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
+
+export let messaging: Messaging | null = null;
+if (typeof window !== "undefined") {
+  try {
+    messaging = getMessaging(app);
+  } catch (err) {
+    console.log("Firebase Messaging not supported in this browser or environment", err);
+  }
+}
 
 // Initialize a secondary Firebase app for admin operations (like creating users without logging out)
 // We use a unique name 'secondary' to avoid conflict with the default app
@@ -97,6 +107,11 @@ if (process.env.NODE_ENV === 'development') {
     // Filter out Redux bookingDate serialization errors
     if (errorMessage.includes('payload.0.bookingDate') && errorMessage.includes('non-serializable')) {
       return; // Don't log bookingDate serialization errors
+    }
+
+    // Filter out Stream internal coordinator logs
+    if (errorMessage.includes('[coordinator]') || errorMessage.includes('/ring')) {
+      return; // Don't log Stream internal coordinator logs
     }
     
     originalConsoleError.apply(console, args);

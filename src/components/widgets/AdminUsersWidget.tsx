@@ -182,12 +182,12 @@ const AdminUsersWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Recent Users</h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Latest registered users</p>
+            <p className="text-[10px] md:text-[12px] text-gray-500">Latest registered users</p>
           </div>
         </div>
         <Link
           href="/admin/users"
-          className="text-blue-600 text-xs md:text-[10px] md:text-[12px] font-medium hover:text-blue-700">
+          className="text-blue-600 text-[10px] md:text-[12px] font-medium hover:text-blue-700">
           View All
         </Link>
       </div>

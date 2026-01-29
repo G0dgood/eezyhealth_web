@@ -168,7 +168,7 @@ const BookingCancellationWidget: React.FC = () => {
         <div className="w-20 h-20 mb-6 bg-green-50 rounded-full flex items-center justify-center animate-pulse">
           <CheckCircle className="text-green-500" size={40} />
         </div>
-        <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold mb-3 text-gray-900">
+        <h2 className="text-[16px] md:text-[18px]  font-bold mb-3 text-gray-900">
           No Cancellation Requests
         </h2>
         <p className="text-gray-500 text-center max-w-md  !text-[10px]  !md:text-[12px] md:text-base leading-relaxed">
@@ -300,7 +300,7 @@ const BookingCancellationWidget: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-[16px] md:text-[18px]   font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
                   <h3 className="text-xs md: !text-[10px]  !md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">

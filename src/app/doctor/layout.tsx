@@ -105,6 +105,10 @@ function DoctorLayout({ children }: LayoutProps) {
 
   // Check if we're on the message page
   const isMessagePage = pathname === "/doctor/message";
+  const isAudioCall = pathname === "/doctor/audio-call";
+  const isVideoCall = pathname === "/doctor/video-call";
+
+
 
   return (
     <ProtectedRoute>
@@ -114,6 +118,7 @@ function DoctorLayout({ children }: LayoutProps) {
           token={streamToken}
           userId={authUser?.uid || ""}
           userName={authUser?.displayName || "Doctor"}
+          userRole="doctor"
         >
           <div id="page-wrapper">
             <Header
@@ -130,8 +135,8 @@ function DoctorLayout({ children }: LayoutProps) {
               onMobileClose={handleMobileSidenavClose}
             />
             <main
-              className={`${transitionClasses} ${isMessagePage ? "" : "p-4 md:p-6"}`}
-              data-page={isMessagePage ? "message" : undefined}>
+              className={`${transitionClasses} ${isMessagePage || isAudioCall || isVideoCall ? "" : "p-4 md:p-6"}`}
+              data-page={isMessagePage ? "message" : isAudioCall ? "audio-call" : isVideoCall ? "video-call" : undefined}>
               {children}
             </main>
           </div>

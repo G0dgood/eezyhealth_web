@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   StreamVideo,
-  StreamVideoClient,
   StreamCall,
-  SpeakerLayout,
-  CallControls,
   StreamTheme,
+  Call,
+  StreamVideoClient,
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
+import VideoCallScreen from "@/components/VideoCallScreen";
+import { getVideoClient } from "@/lib/streamVideo";
 
-export default function DoctorCallPage() {
+import { notifyMissedCall } from "@/utils/notifications";
+
+export default function DoctorVideoCallPage() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -24,11 +27,39 @@ export default function DoctorCallPage() {
   const callId = params.get("callId")!;
   const patientName = params.get("patientName") || "Patient";
   const isCaller = params.get("isCaller") === "true";
+  const patientId = params.get("patientId");
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [call, setCall] = useState<any>(null);
   const [waiting, setWaiting] = useState(isCaller);
   const [duration, setDuration] = useState(0);
+  const hasJoined = useRef(false);
+  const hasRungRef = useRef(false);
+
+  const handleCancelCall = async () => {
+    if (call && patientId) {
+      // 1. Explicitly stop camera/mic
+      try {
+        await call.camera.disable();
+        await call.microphone.disable();
+      } catch (e) {
+        console.warn("Failed to disable devices", e);
+      }
+
+      // Notify missed call before ending only if call was not accepted yet
+      if (waiting) {
+        notifyMissedCall({
+          calleeId: patientId,
+          callerName: user?.displayName || "Doctor",
+          callId,
+          callType: 'video',
+        }).catch(err => console.error("Failed to notify missed call", err));
+      }
+      await call.endCall();
+    }
+  };
+
+  console.log('patientId---->', patientId)
 
   /* ----------------------------------
      INIT STREAM VIDEO CLIENT
@@ -39,6 +70,9 @@ export default function DoctorCallPage() {
     let videoClient: StreamVideoClient;
 
     const init = async () => {
+      if (hasJoined.current) return;
+      hasJoined.current = true;
+
       try {
         const response = await generateTokenForUser({ userId: user.uid }).unwrap();
         // Prefer videoToken if available, otherwise fallback to streamToken/token
@@ -49,24 +83,53 @@ export default function DoctorCallPage() {
           throw new Error("API Key is missing");
         }
 
-        videoClient = new StreamVideoClient({
+        videoClient = getVideoClient(
           apiKey,
-          user: {
+          {
             id: user.uid,
             name: user.displayName || "Doctor",
             image: user.photoURL || undefined,
           },
-          token,
-        });
+          token
+        );
 
         const streamCall = videoClient.call("default", callId);
 
-        await streamCall.join({
-          create: isCaller, //  only doctor creates if they are the caller
-        });
+        // 1. Join call as doctor
+        await streamCall.join({ create: isCaller });
+
+        // 2. Ensure patient is added BEFORE ringing
+        if (isCaller && patientId) {
+          try {
+            await streamCall.updateCallMembers({
+              update_members: [{ user_id: patientId }]
+            });
+          } catch (e) {
+            console.warn("Update members failed, trying getOrCreate fallback...", e);
+            await streamCall.getOrCreate({
+              data: { members: [{ user_id: user.uid }, { user_id: patientId }] }
+            });
+          }
+        }
+
+        // Video mode: enable camera/mic
+        try {
+          await streamCall.camera.enable();
+          await streamCall.microphone.enable();
+        } catch (e) {
+          console.warn("Could not enable camera/mic", e);
+        }
 
         if (isCaller) {
-          await streamCall.ring();
+          try {
+            if (!hasRungRef.current) {
+              console.log("Attempting to ring patient:", patientId);
+              await streamCall.ring();
+              hasRungRef.current = true;
+            }
+          } catch (e) {
+            console.error("Failed to ring call:", e);
+          }
         }
 
         streamCall.on("call.accepted", () => setWaiting(false));
@@ -85,9 +148,23 @@ export default function DoctorCallPage() {
 
     return () => {
       call?.leave();
-      videoClient?.disconnectUser();
+      // Do not disconnect singleton client
     };
   }, [user, generateTokenForUser, callId, isCaller]);
+
+  /* ----------------------------------
+     AUTO-CANCEL TIMEOUT
+  ---------------------------------- */
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (waiting) {
+      timeout = setTimeout(() => {
+        toast.info("No answer, call timed out.");
+        handleCancelCall();
+      }, 45000); // 45s timeout
+    }
+    return () => clearTimeout(timeout);
+  }, [waiting, handleCancelCall]);
 
   /* ----------------------------------
      CALL DURATION TIMER
@@ -107,7 +184,8 @@ export default function DoctorCallPage() {
 
   if (!client || !call) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black text-white">
+      <div className="flex flex-col items-center justify-center bg-black text-white "
+        style={{ height: "90dvh" }}>
         Connecting…
       </div>
     );
@@ -117,15 +195,16 @@ export default function DoctorCallPage() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme>
-          <div className="relative h-screen bg-black">
+          <div className="relative bg-black h-full"
+            style={{ height: "90dvh" }}>
 
-            {/* VIDEO */}
-            <SpeakerLayout participantsBarPosition="bottom" />
-
-            {/* CONTROLS */}
-            <div className="absolute bottom-6 w-full flex justify-center">
-              <CallControls onLeave={() => call.endCall()} />
-            </div>
+            <VideoCallScreen
+              onLeave={handleCancelCall}
+              patientName={patientName}
+              callDuration={duration}
+              isWaitingForAcceptance={waiting}
+              formatDuration={formatTime}
+            />
 
             {/* WAITING OVERLAY */}
             {waiting && (
@@ -142,19 +221,12 @@ export default function DoctorCallPage() {
                   </p>
 
                   <button
-                    onClick={() => call.endCall()}
+                    onClick={handleCancelCall}
                     className="mt-6 bg-red-600 px-6 py-3 rounded-full"
                   >
                     Cancel Call
                   </button>
                 </div>
-              </div>
-            )}
-
-            {/* TIMER */}
-            {!waiting && (
-              <div className="absolute top-4 left-4 bg-black/60 px-3 py-1 rounded-full text-white  !text-[10px]  !md:text-[12px]">
-                {formatTime(duration)}
               </div>
             )}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Send, MoreVertical, FileText, Video, Phone, ChevronLeft } from "lucide-react";
+import { Video, Phone, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,9 +9,7 @@ import { showError, showInfo } from "@/utils/toast";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGenerateTokenForUserMutation, useAddMemberToChannelMutation } from "@/store/streamChatApi";
 import { useNurseChat } from "@/hooks/useNurseChat";
-import { useIncomingCall } from "@/hooks/useIncomingCall";
 import IncomingCallModal from "@/components/IncomingCallModal";
-import moment from "moment";
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
 import { StreamVideoClient, Call } from "@stream-io/video-react-sdk";
 import {
@@ -22,67 +20,25 @@ import {
   MessageList,
   MessageInput,
   Thread,
-  LoadingIndicator,
-  MessageSimple
+  LoadingIndicator
 } from 'stream-chat-react';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../../stream-chat.css';
-import { getStreamChatInfo, storeStreamChatInfo, StreamChatInfo } from "@/lib/streamChat";
-
-const CustomMessage = (props: any) => {
-  const { message } = props;
-
-  if (message?.custom?.callId) {
-    return (
-      <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 m-2 w-64">
-        <div className="flex items-center gap-2 mb-2 text-green-600">
-          <Phone className="w-4 h-4" />
-          <span className="font-bold text-[10px] md:text-[12px]">Call Invite</span>
-        </div>
-        <p className="text-gray-600 mb-4 text-[10px] md:text-[12px]">
-          {message.text || "Click to join the call"}
-          {message.custom.testDriveLink && (
-            <a
-              href={message.custom.testDriveLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mt-2 text-blue-500 hover:underline text-xs break-all"
-            >
-              Dashboard Link (Test)
-            </a>
-          )}
-        </p>
-      </div>
-    );
-  }
-  return <MessageSimple {...props} />;
-};
-
-interface Conversation {
-  id: string;
-  patientName: string;
-  lastMessage: string;
-  timestamp: string;
-  isActive: boolean;
-  isOnline: boolean;
-  profilePicture: string;
-}
+import { getStreamChatInfo, storeStreamChatInfo } from "@/lib/streamChat";
 
 export default function NurseMessagePage() {
   const router = useRouter();
   const { user } = useAuth();
   const [generateTokenForUser] = useGenerateTokenForUserMutation();
   const [addMemberToChannel] = useAddMemberToChannelMutation();
-  const { connectAsPatient, disconnect: disconnectProxy, loading: isNurseProxyLoading } = useNurseChat();
+  const { connectAsPatient } = useNurseChat();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [messageInput, setMessageInput] = useState("");
 
   // Stream Chat states
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
   const [activeChannel, setActiveChannel] = useState<StreamChannel | null>(null);
-  const [isChatLoading, setIsChatLoading] = useState(true);
   const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(null);
   const [incomingCall, setIncomingCall] = useState<Call | null>(null);
 
@@ -157,7 +113,6 @@ export default function NurseMessagePage() {
         }
 
         if (!chatInfo || !user) {
-          setIsChatLoading(false);
           return;
         }
 
@@ -179,10 +134,8 @@ export default function NurseMessagePage() {
         }
 
         setChatClient(client);
-        setIsChatLoading(false);
       } catch (error) {
         console.error("Error connecting to Stream Chat:", error);
-        setIsChatLoading(false);
       }
     };
 
@@ -323,18 +276,12 @@ export default function NurseMessagePage() {
 
     const callId = activeChannel.id; // Use channel ID as call ID for simplicity
 
-    // Construct Dashboard Link for testing/demo
-    const callCid = `${callType}:${callId}`;
-    const testDriveLink = `https://beta.dashboard.getstream.io/organization/1244114/1341115/video/test-drive/?cid=${encodeURIComponent(callCid)}`;
-
-    // 1. Send the invite message FIRST
     try {
       await activeChannel.sendMessage({
         text: `📞 ${callType === 'video' ? 'Video' : 'Audio'} Call`,
         custom: {
           callId,
           callType,
-          testDriveLink,
         },
       } as any);
     } catch (err) {
@@ -347,23 +294,28 @@ export default function NurseMessagePage() {
     const params = new URLSearchParams({
       callId: callId || "",
       isCaller: "true",
+      callType,
       // patientId is intentionally omitted so Nurse logs in as themselves
     });
 
-    router.push(`/nurse/call?${params.toString()}`);
+    if (callType === 'audio') {
+        router.push(`/nurse/audio-call?${params.toString()}`);
+    } else {
+        router.push(`/nurse/video-call?${params.toString()}`);
+    }
   };
 
   // Listen for incoming calls
   useEffect(() => {
     if (!videoClient) return;
 
-    const unsubscribeCreated = videoClient.on('call.created', (event) => {
+    const unsubscribeCreated = videoClient.on('call.created', (event: any) => {
       console.log("Call created:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
     });
 
-    const unsubscribeRing = videoClient.on('call.ring', (event) => {
+    const unsubscribeRing = videoClient.on('call.ring', (event: any) => {
       console.log("Call ringing:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
@@ -381,7 +333,7 @@ export default function NurseMessagePage() {
 
   // Try to find active conversation based on selection
   const selectedPatient = selectedConversation
-    ? uniquePatients.find((p, i) => `patient-${i}` === selectedConversation)
+    ? uniquePatients.find((_, i) => `patient-${i}` === selectedConversation)
     : null;
 
   const activeConversation = selectedPatient
@@ -397,18 +349,31 @@ export default function NurseMessagePage() {
     : null;
 
   return (
-    <div className="h-full flex">
-      {/* Central Column - Messages/Chat List */}
-      <div className={`w-full lg:w-80 bg-white border-r border-gray-200 ${selectedConversation ? 'hidden lg:block' : 'block'}`}>
+    <div className="flex h-[calc(100vh-64px)] bg-gray-50">
+      {/* Left Column - Messages List */}
+      {chatClient && activeChannel ? (
+        <div className="w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
+          <button
+            onClick={() => {
+              setSelectedConversation("");
+              setActiveChannel(null);
+            }}
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+        </div>
+      ) : (
         <ConversationList
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          isLoading={isLoading}
           filteredPatients={filteredPatients}
           handlePatientSelect={handlePatientSelect}
           selectedConversation={selectedConversation}
+          isLoading={isLoading}
         />
-      </div>
+      )}
 
       {/* Right Column - Active Chat Interface */}
       <div className={`flex-1 bg-white flex flex-col h-full ${selectedConversation ? 'flex' : 'hidden lg:flex'}`}>
@@ -429,7 +394,7 @@ export default function NurseMessagePage() {
             </div>
 
             <Chat client={chatClient} theme="messaging light">
-              <Channel channel={activeChannel} Message={CustomMessage}>
+              <Channel channel={activeChannel}>
                 <Window>
                   <div className="relative">
                     <ChannelHeader />
@@ -483,14 +448,22 @@ export default function NurseMessagePage() {
           call={incomingCall}
           onAccept={() => {
             const callId = incomingCall.id;
+            const customData = incomingCall.state?.custom;
+            const callType = (customData?.callType as string) || 'video';
+            
             const params = new URLSearchParams({
               callId: callId || "",
-              callType: 'video',
+              callType,
               patientName: activeConversation?.patientName || "Patient",
               isAccepting: "true",
               channelId: activeChannel?.id || "",
             });
-            router.push(`/nurse/call?${params.toString()}`);
+            
+            if (callType === 'audio') {
+                router.push(`/nurse/audio-call?${params.toString()}`);
+            } else {
+                router.push(`/nurse/video-call?${params.toString()}`);
+            }
             setIncomingCall(null);
           }}
           onReject={async () => {

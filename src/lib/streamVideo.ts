@@ -1,41 +1,23 @@
-import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
-
-const STREAM_API_KEY = "4g6sfwegs7he";
+import { StreamVideoClient } from "@stream-io/video-react-sdk";
 
 let videoClient: StreamVideoClient | null = null;
 
-export const getStreamVideoClient = () => {
-  return videoClient;
-};
-
-export const connectStreamVideoUser = (
-  userId: string,
-  userName: string,
-  userImage: string,
-  userToken: string
+export const getVideoClient = (
+  apiKey: string,
+  user: { id: string; name?: string; image?: string },
+  token: string
 ) => {
-  // Check if client is already connected with the same user
-  const currentUser = (videoClient as any)?.state?.currentUser || (videoClient as any)?.user;
-  
-  if (videoClient && currentUser?.id === userId) {
-    return videoClient;
+  if (!videoClient) {
+    videoClient = new StreamVideoClient({
+      apiKey,
+      user,
+      token,
+    });
   }
-
-  if (videoClient) {
-    videoClient.disconnectUser();
-  }
-
-  const user: User = {
-    id: userId,
-    name: userName,
-    image: userImage,
-  };
-
-  videoClient = new StreamVideoClient({ apiKey: STREAM_API_KEY, user, token: userToken });
   return videoClient;
 };
 
-export const disconnectStreamVideoUser = async () => {
+export const resetVideoClient = async () => {
   if (videoClient) {
     await videoClient.disconnectUser();
     videoClient = null;

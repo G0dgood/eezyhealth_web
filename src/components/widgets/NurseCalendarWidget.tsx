@@ -106,7 +106,7 @@ const NurseCalendarWidget: React.FC = () => {
             <h3 className="text-[14px] md:text-[16px] md:tex font-bold text-gray-900">
               Today&apos;s Schedule
             </h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">{formatDate(currentDate)}</p>
+            <p className="text-[10px] md:text-[12px] text-gray-500">{formatDate(currentDate)}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 self-end md:self-auto">
@@ -165,7 +165,7 @@ const NurseCalendarWidget: React.FC = () => {
 
       {/* Today's Bookings */}
       <div className="space-y-2 md:space-y-3">
-        <h4 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-900 mb-2 md:mb-3">
+        <h4 className="text-[10px] md:text-[12px] font-semibold text-gray-900 mb-2 md:mb-3">
           Today&apos;s Bookings ({bookings.length})
         </h4>
         {bookings.map((booking) => (
@@ -175,7 +175,7 @@ const NurseCalendarWidget: React.FC = () => {
             <div className="flex items-center justify-between mb-1.5 md:mb-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
-                <span className="text-xs md:text-[10px] md:text-[12px] font-medium text-gray-900">
+                <span className="text-[10px] md:text-[12px] font-medium text-gray-900">
                   {booking.time}
                 </span>
               </div>
@@ -189,7 +189,7 @@ const NurseCalendarWidget: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <User className="w-3 h-3 md:w-4 md:h-4 text-gray-500 flex-shrink-0" />
-                <span className="text-xs md:text-[10px] md:text-[12px] text-gray-700 truncate">
+                <span className="text-[10px] md:text-[12px] text-gray-700 truncate">
                   {booking.patientName}
                 </span>
               </div>
@@ -211,7 +211,7 @@ const NurseCalendarWidget: React.FC = () => {
       <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
           <div>
-            <h4 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-900 mb-0.5 md:mb-1">
+            <h4 className="text-[10px] md:text-[12px] font-semibold text-gray-900 mb-0.5 md:mb-1">
               Schedule Summary
             </h4>
             <p className="text-[10px] md:text-xs text-gray-600">
@@ -221,7 +221,7 @@ const NurseCalendarWidget: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-2">
-            <div className="text-[10px] md:text-[12px] md:text-[14px] md:text-[16px] font-bold text-[#44CE2D]">
+            <div className="text-[10px] md:text-[12px] font-bold text-[#44CE2D]">
               {bookings.length} Appointments
             </div>
             <div className="text-[10px] md:text-xs text-gray-600">Today</div>

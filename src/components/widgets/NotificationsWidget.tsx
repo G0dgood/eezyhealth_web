@@ -140,7 +140,7 @@ const NotificationsWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Notifications</h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">
+            <p className="text-[10px] md:text-[12px] text-gray-500">
               Recent alerts and system updates
             </p>
           </div>
@@ -149,13 +149,13 @@ const NotificationsWidget: React.FC = () => {
           {unreadNotifications > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-blue-600 text-xs md:text-[10px] md:text-[12px] font-medium hover:text-blue-700">
+              className="text-blue-600 text-[10px] md:text-[12px] font-medium hover:text-blue-700">
               Mark All Read
             </button>
           )}
           <Link
             href="/notifications"
-            className="text-blue-600 text-xs md:text-[10px] md:text-[12px] font-medium hover:text-blue-700">
+            className="text-blue-600 text-[10px] md:text-[12px] font-medium hover:text-blue-700">
             View All
           </Link>
         </div>
@@ -186,7 +186,7 @@ const NotificationsWidget: React.FC = () => {
                   <h2 className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
-                  <h3 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">
+                  <h3 className="text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
                   <p className="text-[10px] md:text-xs text-gray-500">{item.description}</p>
@@ -200,10 +200,10 @@ const NotificationsWidget: React.FC = () => {
       {/* Recent Notifications */}
       <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-[10px] md:text-[12px] md:text-[14px] md:text-[16px] font-semibold text-gray-900">
+          <h4 className="text-[10px] md:text-[12px]  font-semibold text-gray-900">
             Recent Notifications
           </h4>
-          <span className="text-xs md:text-[10px] md:text-[12px] text-gray-500">
+          <span className="text-[10px] md:text-[12px] text-gray-500">
             {recentNotifications.length} notifications
           </span>
         </div>
@@ -228,7 +228,7 @@ const NotificationsWidget: React.FC = () => {
                     <h4 className="font-medium text-[10px] md:text-[12px] md:text-base text-gray-900 truncate">
                       {notification.title}
                     </h4>
-                    <p className="text-xs md:text-[10px] md:text-[12px] text-gray-600 truncate">
+                    <p className="text-[10px] md:text-[12px] text-gray-600 truncate">
                       {notification.timestamp}
                     </p>
                   </div>
@@ -280,7 +280,7 @@ const NotificationsWidget: React.FC = () => {
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
-          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+          <span className="text-gray-600 text-[10px] md:text-[12px]">
             Total Notifications: {totalNotifications}
           </span>
           <div className="flex flex-wrap items-center gap-4">

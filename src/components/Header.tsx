@@ -79,7 +79,7 @@ export default function Header({
           <Menu className="w-5 h-5 md:w-6 md:h-6" />
         </button>
 
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <span
             className="text-base md:text-lg font-medium"
             style={{ color: "var(--foreground)" }}
@@ -88,7 +88,7 @@ export default function Header({
               ? `${userRole} ${userInfo?.display_name || ""} `
               : "Hello"}
           </span>
-        </div>
+        </div> */}
       </div>
 
       <div className="flex items-center space-x-4">

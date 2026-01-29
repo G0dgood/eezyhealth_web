@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Clock, Calendar, Trash2, Save } from "lucide-react";
+import { Clock, Calendar, Save } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetDoctorAvailabilityQuery, useSaveDoctorAvailabilityMutation } from "@/store/api";
 import { toast } from "sonner";
@@ -133,10 +133,7 @@ const AvailabilityWidget: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  const handleDeleteSlot = (id: string) => {
-    setTimeSlots(timeSlots.filter((slot) => slot.id !== id));
-    setHasUnsavedChanges(true);
-  };
+
 
   const availableDays = timeSlots.filter((slot) => slot.isAvailable).length;
   const totalHours = timeSlots
@@ -226,11 +223,6 @@ const AvailabilityWidget: React.FC = () => {
                     : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                     }`}>
                   {slot.isAvailable ? "Available" : "Unavailable"}
-                </button>
-                <button
-                  onClick={() => handleDeleteSlot(slot.id)}
-                  className="p-1 hover:bg-red-100 rounded text-red-600 transition-colors">
-                  <Trash2 size={14} />
                 </button>
               </div>
             </div>

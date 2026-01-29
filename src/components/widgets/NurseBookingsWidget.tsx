@@ -272,7 +272,7 @@ const NurseBookingsWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Upcoming Appointments</h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Next patient care schedule</p>
+            <p className="text-[10px] md:text-[12px] text-gray-500">Next patient care schedule</p>
           </div>
         </div>
       </div>
@@ -312,7 +312,7 @@ const NurseBookingsWidget: React.FC = () => {
                   <h4 className="font-medium text-[10px] md:text-[12px] md:text-base text-gray-900 truncate">
                     {appointment.patientName || "Unknown Patient"}
                   </h4>
-                  <p className="text-xs md:text-[10px] md:text-[12px] text-gray-600 truncate">
+                  <p className="text-[10px] md:text-[12px] text-gray-600 truncate">
                     {appointment.doctorName || "Unknown Doctor"}
                   </p>
                 </div>
@@ -417,19 +417,19 @@ const NurseBookingsWidget: React.FC = () => {
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
-          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Upcoming Schedule: {totalUpcoming} appointments</span>
+          <span className="text-gray-600 text-[10px] md:text-[12px]">Upcoming Schedule: {totalUpcoming} appointments</span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Vitals Done: {completedVitals}</span>
+              <span className="text-gray-600 text-[10px] md:text-[12px]">Vitals Done: {completedVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Pending: {pendingVitals}</span>
+              <span className="text-gray-600 text-[10px] md:text-[12px]">Pending: {pendingVitals}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Urgent: {urgentCases}</span>
+              <span className="text-gray-600 text-[10px] md:text-[12px]">Urgent: {urgentCases}</span>
             </div>
           </div>
         </div>

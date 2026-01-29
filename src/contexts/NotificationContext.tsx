@@ -22,6 +22,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useFCMToken } from "@/hooks/useFCMToken";
 
 interface Notification {
   id: string;
@@ -70,6 +71,10 @@ export function NotificationProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
+  
+  // Initialize FCM Token management
+  useFCMToken();
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notificationPrefs, setNotificationPrefs] =

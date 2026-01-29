@@ -21,6 +21,7 @@ function NurseLayout({ children }: LayoutProps) {
   const [isMobileSidenavOpen, setIsMobileSidenavOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { user: authUser, userInfo, loading: authLoading, userInfoLoading } = useAuth();
+  
 
   const pathname = usePathname();
   const router = useRouter();
@@ -114,6 +115,7 @@ function NurseLayout({ children }: LayoutProps) {
           token={streamToken}
           userId={authUser?.uid || ""}
           userName={authUser?.displayName || "Nurse"}
+          userRole="nurse"
         >
           <div id="page-wrapper">
             <Header

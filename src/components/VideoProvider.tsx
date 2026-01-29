@@ -5,17 +5,19 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from "@stream-io/video-react-sdk";
+import { getVideoClient } from "@/lib/streamVideo";
+import { useRouter } from "next/navigation";
 
 import IncomingCallModal from "@/components/IncomingCallModal";
 import { useIncomingCall } from "@/hooks/useIncomingCall";
-import VideoCallPage from "@/components/VideoCallPage";
 
 type Props = {
   apiKey: string;
   token: string;
   userId: string;
   userName: string;
-  children?: React.ReactNode; // Allow children to render standard app content
+  userRole?: string; // 'nurse' | 'doctor' | 'patient'
+  children?: React.ReactNode;
 };
 
 export default function VideoProvider({
@@ -23,71 +25,87 @@ export default function VideoProvider({
   token,
   userId,
   userName,
+  userRole,
   children,
 }: Props) {
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const [activeCall, setActiveCall] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!token || !userId) return;
 
-    const videoClient = new StreamVideoClient({
+    const videoClient = getVideoClient(
       apiKey,
-      user: { id: userId, name: userName },
-      token,
-    });
+      { id: userId, name: userName },
+      token
+    );
 
     setClient(videoClient);
 
     return () => {
-      videoClient.disconnectUser();
+      // Do not disconnect singleton client
+      // videoClient.disconnectUser();
     };
   }, [apiKey, token, userId, userName]);
 
   const { incomingCall, setIncomingCall } = useIncomingCall(client);
 
+  // Ringtone logic
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const audio = new Audio("/ringtone.mp3");
+    audio.loop = true;
+
+    if (incomingCall) {
+      audio.play().catch((err) => console.warn("Ringtone playback failed:", err));
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [incomingCall]);
+
   const acceptCall = async () => {
     if (!incomingCall) return;
-    try {
-        await incomingCall.join();
-        setActiveCall(incomingCall);
-        setIncomingCall(null);
-    } catch (error) {
-        console.error("Error accepting call:", error);
+
+    const callId = incomingCall.id;
+    const callType = incomingCall.state.custom?.callType || 'video';
+    const patientId = incomingCall.state.members.find((m: any) => m.user_id !== userId)?.user_id;
+
+    // Navigate to the appropriate call page
+    const rolePath = userRole || 'nurse'; // Default to nurse if not specified, but should be passed
+
+    // Construct query params
+    const params = new URLSearchParams({
+      callId,
+      isAccepting: "true",
+      callType: callType as string,
+    });
+
+    if (patientId) {
+      params.append('patientId', patientId);
     }
+
+    if (callType === 'audio') {
+      router.push(`/${rolePath}/audio-call?${params.toString()}`);
+    } else {
+      router.push(`/${rolePath}/video-call?${params.toString()}`);
+    }
+    setIncomingCall(null);
   };
 
   const rejectCall = async () => {
     if (!incomingCall) return;
     try {
-        await incomingCall.leave();
-        setIncomingCall(null);
+      await incomingCall.leave({ reject: true });
+      setIncomingCall(null);
     } catch (error) {
-        console.error("Error rejecting call:", error);
+      console.error("Error rejecting call:", error);
     }
   };
 
-  // If a call is active, show the Call Page (Fullscreen)
-  if (activeCall && client) {
-    return (
-      <VideoCallPage
-        callId={activeCall.id}
-        userId={userId}
-        userName={userName}
-        token={token}
-        apiKey={apiKey}
-        isCaller={false}
-        client={client}
-      />
-    );
-  }
-
-  // Otherwise, render the app content + incoming call listener
-  // Note: We wrap children in StreamVideo so they can access video context if needed,
-  // but mostly to support the IncomingCallModal which needs context (sometimes).
-  // Actually, IncomingCallModal just takes props, so strictly speaking StreamVideo wrapper 
-  // isn't needed for the modal itself if it doesn't use hooks, but useIncomingCall DOES use client.
-  
   if (!client) return <>{children}</>;
 
   return (

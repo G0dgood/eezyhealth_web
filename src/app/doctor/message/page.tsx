@@ -212,18 +212,22 @@ export default function DoctorMessagePage() {
       callType,
       patientName,
       patientId,
-      isAccepting: "false", // Doctor initiates call
+      isCaller: "true",
       channelId: activeChannel.id || "",
     });
 
-    router.push(`/doctor/call?${params.toString()}`);
+    if (callType === 'audio') {
+        router.push(`/doctor/audio-call?${params.toString()}`);
+    } else {
+        router.push(`/doctor/video-call?${params.toString()}`);
+    }
   };
 
   return (
     <div className="flex h-[calc(100vh-64px)] bg-gray-50">
       {/* Left Column - Messages List */}
       {chatClient && activeChannel ? (
-        <div className="w-auto lg:w-[400px] bg-white border-r border-gray-200 p-4">
+        <div className="w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
           <button
             onClick={() => {
               setSelectedConversation("");

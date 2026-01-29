@@ -196,7 +196,7 @@ main {
   grid-area: main;
   overflow-y: auto; 
   width: 100%;
-  padding: 20px;
+  /* padding: 20px; */
   background-color: #F9FAFB;
   color: #171717;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -245,7 +245,7 @@ main {
   }
   
   main {
-    padding: 14px;
+    /* padding: 14px; */
     min-width: 100vw;
     transform-origin: left;
   }

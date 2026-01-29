@@ -44,10 +44,10 @@ const PerformanceWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Performance</h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Key performance indicators</p>
+            <p className="text-[10px] md:text-[12px] text-gray-500">Key performance indicators</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-green-600 text-xs md:text-[10px] md:text-[12px] font-medium">
+        <div className="flex items-center gap-2 text-green-600 text-[10px] md:text-[12px] font-medium">
           <TrendingUp size={14} />
           <span>All metrics up</span>
         </div>
@@ -75,10 +75,10 @@ const PerformanceWidget: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-[16px] md:text-[18px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1 truncate">
+                  <h2 className="text-[16px] md:text-[18px]   font-bold text-gray-900 mb-0.5 md:mb-1 truncate">
                     {item.value}
                   </h2>
-                  <h3 className="text-xs md:text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1 truncate">
+                  <h3 className="text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1 truncate">
                     {item.title}
                   </h3>
                   <p className="text-[10px] md:text-xs text-gray-500 truncate">{item.description}</p>

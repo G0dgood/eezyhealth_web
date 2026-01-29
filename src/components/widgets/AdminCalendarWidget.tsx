@@ -193,7 +193,7 @@ const AdminCalendarWidget: React.FC = () => {
           </div>
           <div>
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">Calendar</h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Appointment calendar</p>
+            <p className="text-[10px] md:text-[12px] text-gray-500">Appointment calendar</p>
           </div>
         </div>
       </div>
@@ -234,8 +234,8 @@ const AdminCalendarWidget: React.FC = () => {
             <div
               key={index}
               className={`p-2 text-[10px] md:text-[12px] rounded-lg transition-colors cursor-pointer text-center ${dayData.currentMonth
-                  ? "text-gray-900 hover:bg-gray-100"
-                  : "text-gray-400"
+                ? "text-gray-900 hover:bg-gray-100"
+                : "text-gray-400"
                 } ${dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
                 }`}>
               <div className="flex items-center justify-center">
@@ -312,7 +312,7 @@ const AdminCalendarWidget: React.FC = () => {
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
-          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+          <span className="text-gray-600 text-[10px] md:text-[12px]">
             Today: {todaysBookings.length} appointments
           </span>
           <div className="flex flex-wrap items-center gap-4">
