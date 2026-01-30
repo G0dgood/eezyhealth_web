@@ -14,6 +14,8 @@ export interface BookingData {
   isOnline?: boolean;
   date?: string;
   bookingId?: string;
+  patientId?: string;
+  doctorId?: string;
   [key: string]: unknown;
 }
 

@@ -115,36 +115,17 @@ export default function NurseVideoCallPage() {
           }
         };
 
-        if (!isAccepting) {
-          await call.join({ create: true, data: callData });
-
-          if (patientId) {
-            try {
-              await call.updateCallMembers({
-                update_members: [{ user_id: patientId }]
-              });
-            } catch (e) {
-              console.warn("Update members failed, trying getOrCreate fallback...", e);
-              await call.getOrCreate({
-                data: { members: [{ user_id: user?.uid || "" }, { user_id: patientId }] }
-              });
-            }
-
-            try {
-              if (!hasRungRef.current) {
-                console.log("Attempting to ring patient:", patientId);
-                await call.ring();
-                hasRungRef.current = true;
-              }
-            } catch (e) {
-              console.error("Failed to ring call:", e);
-            }
-          }
-        } else {
-          await call.join();
+        // 1️⃣ ACCEPT FIRST (this requires nurse already added as member)
+        try {
+          await call.accept();
+        } catch (e) {
+          console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
         }
 
-        // Enforce video mode
+        // 2️⃣ JOIN after accepting
+        await call.join();
+
+        // 3️⃣ Enable media
         try {
           await call.camera.enable();
           await call.microphone.enable();
@@ -194,9 +175,9 @@ export default function NurseVideoCallPage() {
         callId: callId || '',
         callType: 'video',
       }).catch(err => {
-         console.error("Failed to notify missed call", err);
-         const errorMessage = err instanceof Error ? err.message : String(err);
-         toast.error(`Failed to notify missed call: ${errorMessage}`);
+        console.error("Failed to notify missed call", err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        toast.error(`Failed to notify missed call: ${errorMessage}`);
       });
     }
 
@@ -204,9 +185,9 @@ export default function NurseVideoCallPage() {
       try {
         await streamCall.endCall();
       } catch (e) {
-         console.error("Failed to end call", e);
-         const errorMessage = e instanceof Error ? e.message : String(e);
-         toast.error(`Failed to end call: ${errorMessage}`);
+        console.error("Failed to end call", e);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to end call: ${errorMessage}`);
       }
     }
     router.back();

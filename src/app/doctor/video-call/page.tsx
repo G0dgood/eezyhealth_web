@@ -96,20 +96,26 @@ export default function DoctorVideoCallPage() {
         const streamCall = videoClient.call("default", callId);
 
         // 1. Join call as doctor
-        await streamCall.join({ create: isCaller });
-
-        // 2. Ensure patient is added BEFORE ringing
-        if (isCaller && patientId) {
-          try {
-            await streamCall.updateCallMembers({
-              update_members: [{ user_id: patientId }]
-            });
-          } catch (e) {
-            console.warn("Update members failed, trying getOrCreate fallback...", e);
-            await streamCall.getOrCreate({
-              data: { members: [{ user_id: user.uid }, { user_id: patientId }] }
-            });
+        const callData = {
+          members: [{ user_id: user.uid }, { user_id: patientId! }],
+          custom: {
+            callType: 'video',
+            callerName: user.displayName || "Doctor",
+            callerImage: user.photoURL || "",
+            callerId: user.uid
           }
+        };
+
+        await streamCall.join({
+          create: true,
+          data: callData
+        });
+
+        // 2. Ring ONLY ONCE
+        if (!hasRungRef.current) {
+          console.log("Attempting to ring patient:", patientId);
+          await streamCall.ring();
+          hasRungRef.current = true;
         }
 
         // Video mode: enable camera/mic
@@ -118,18 +124,6 @@ export default function DoctorVideoCallPage() {
           await streamCall.microphone.enable();
         } catch (e) {
           console.warn("Could not enable camera/mic", e);
-        }
-
-        if (isCaller) {
-          try {
-            if (!hasRungRef.current) {
-              console.log("Attempting to ring patient:", patientId);
-              await streamCall.ring();
-              hasRungRef.current = true;
-            }
-          } catch (e) {
-            console.error("Failed to ring call:", e);
-          }
         }
 
         streamCall.on("call.accepted", () => setWaiting(false));

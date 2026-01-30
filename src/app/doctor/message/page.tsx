@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Video, Phone, ChevronLeft } from "lucide-react";
+import { Video, Phone, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConversationList, { BookingData } from "@/components/doctor/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
 import { showError } from "@/utils/toast";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
+import { SVGLoader } from "@/components/SVGLoader";
 import {
   Chat,
   Channel,
@@ -51,6 +52,7 @@ export default function DoctorMessagePage() {
         if (booking.userId && !map.has(booking.userId)) {
           map.set(booking.userId, {
             userId: booking.userId,
+            patientId: booking.patientId || booking.userId, // Explicitly add patientId
             patientName: booking.patientName || "Unknown Patient",
             photo_url: booking.photo_url,
             timestamp: booking.bookingDate || booking.date, // Use booking date as timestamp
@@ -114,8 +116,8 @@ export default function DoctorMessagePage() {
     }
 
     // Determine the other user's ID (patient's ID)
-    const otherUserId = patient.userId;
-    const bookingId = patient.bookingId;
+    const otherUserId = patient.patientId || patient.userId;
+    const bookingId = `${patient.patientId}-${patient.doctorId}`;
 
     if (!otherUserId) {
       showError("Error", "Cannot start chat: Invalid patient ID");
@@ -136,10 +138,15 @@ export default function DoctorMessagePage() {
         return;
       }
 
-      // Create/Get channel using bookingId as ID (matching mobile app behavior)
-      let channel: StreamChannel;
-
-      if (bookingId) {
+      // Create/Get channel using composite ID (patientId-doctorId)
+      let channel: StreamChannel | undefined;
+      if (otherUserId && user.uid) {
+        const channelId = `${otherUserId}-${user.uid}`;
+        channel = chatClient.channel('messaging', channelId, {
+          members: [user.uid, otherUserId],
+        });
+      } else if (bookingId) {
+        // Fallback to bookingId if for some reason IDs are missing (should not happen)
         channel = chatClient.channel('messaging', bookingId, {
           members: [user.uid, otherUserId],
         });
@@ -214,6 +221,14 @@ export default function DoctorMessagePage() {
       router.push(`/doctor/video-call?${params.toString()}`);
     }
   };
+
+  if (isChatLoading) {
+    return (
+      <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-gray-50">
+        <SVGLoader width={40} height={40} color="#000" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-64px)] bg-gray-50">

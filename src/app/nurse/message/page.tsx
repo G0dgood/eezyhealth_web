@@ -173,7 +173,7 @@ export default function NurseMessagePage() {
   }, [user, generateTokenForUser]);
 
   // Handle patient selection and channel creation
-  const handlePatientSelect = async (patient: PatientData, index: number) => {
+  const handlePatientSelect = async (patient: PatientData) => {
     setSelectedConversation(patient.id);
 
     if (!chatClient || !user) {
@@ -183,7 +183,6 @@ export default function NurseMessagePage() {
 
     // Determine the other user's ID (patient's ID)
     const otherUserId = patient.uid || patient.id;
-    const bookingId = patient.bookingId;
 
     if (!otherUserId) {
       showError("Error", "Cannot start chat: Invalid patient ID");
@@ -234,9 +233,9 @@ export default function NurseMessagePage() {
         setVideoClient(_videoClient);
       }
 
-      // Create/Get channel using bookingId as ID
-      if (bookingId && patient.doctorId) {
-        const channelId = `${bookingId}`;
+      // Create/Get channel using composite ID (patientId-doctorId)
+      if (otherUserId && patient.doctorId) {
+        const channelId = `${otherUserId}-${patient.doctorId}`;
 
         let channel;
 

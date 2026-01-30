@@ -70,3 +70,19 @@
 [data-theme="dark"] .str-chat__list {
   background-color: var(--background);
 }
+
+/* Empty Channel State */
+.str-chat__empty-channel {
+  background-color: var(--str-chat__surface-color);
+  color: #6b7280;
+}
+
+[data-theme="dark"] .str-chat__empty-channel {
+  background-color: var(--background);
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .str-chat__empty-channel p {
+  color: var(--str-chat__color-text);
+}
+

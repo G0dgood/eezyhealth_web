@@ -17,9 +17,19 @@ export async function POST(request: Request) {
     // Get callee's FCM token
     let fcmToken: string | undefined;
 
+    if (!calleeId || typeof calleeId !== 'string') {
+        console.warn(`[NotifyMissed] Invalid calleeId: ${calleeId}`);
+        return NextResponse.json({ error: 'Invalid calleeId' }, { status: 400 });
+    }
+
     try {
-        console.log(`[NotifyMissed] Fetching user doc for calleeId: ${calleeId}`);
-        const userDoc = await adminDb.collection('users').doc(calleeId).get();
+        console.log(`[NotifyMissed] Fetching user doc for calleeId: "${calleeId}"`);
+        
+        // Timeout the DB request after 5 seconds to avoid long hangs
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
+        const dbPromise = adminDb.collection('users').doc(calleeId).get();
+        
+        const userDoc = await Promise.race([dbPromise, timeoutPromise]) as FirebaseFirestore.DocumentSnapshot;
         
         if (!userDoc.exists) {
             console.warn(`[NotifyMissed] User not found: ${calleeId}`);

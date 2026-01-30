@@ -15,9 +15,12 @@ export default function IncomingCallModal({
   onAccept,
   onReject,
 }: Props) {
-  const callerName = call.state.createdBy?.name || "Unknown Caller";
-  const callerImage = call.state.createdBy?.image;
-  const callType = call.state.custom?.callType === 'audio' ? 'Audio' : 'Video';
+  const custom = call.state.custom;
+  const createdBy = call.state.createdBy;
+  
+  const callerName = custom?.callerName || createdBy?.name || "Unknown Caller";
+  const callerImage = custom?.callerImage || createdBy?.image;
+  const callType = custom?.callType === 'audio' ? 'Audio' : 'Video';
 
   return (
     <div className="fixed inset-0 bg-gray-900/95 backdrop-blur-sm flex flex-col items-center justify-between py-20 z-[9999] text-white animate-in fade-in duration-300">
