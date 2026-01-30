@@ -113,6 +113,7 @@ export function createStandardError(error: unknown): AppError {
   const { message, code, status } = handleError(error);
   
   return {
+    name: 'AppError',
     message,
     code,
     status,

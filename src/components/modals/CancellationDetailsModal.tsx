@@ -52,7 +52,9 @@ export default function CancellationDetailsModal({
 					</label>
 					<p className="text-[var(--foreground)]">
 						{booking?.bookingDate
-							? new Date(booking.bookingDate).toLocaleDateString()
+							? typeof booking.bookingDate === 'object' && 'seconds' in booking.bookingDate
+								? new Date(booking.bookingDate.seconds * 1000).toLocaleDateString()
+								: new Date(booking.bookingDate as string | number | Date).toLocaleDateString()
 							: "N/A"}
 					</p>
 				</div>

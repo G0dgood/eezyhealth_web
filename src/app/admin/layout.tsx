@@ -28,7 +28,7 @@ function AdminLayout({ children }: LayoutProps) {
   };
 
   // Create the exact same transition classes for both elements
-  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-[266px]" : "translate-x-0"
+  const transitionClasses = `transition-all duration-300 ease-in-out ${isMobileSidenavOpen ? "translate-x-[230px]" : "translate-x-0"
     } lg:translate-x-0`;
 
   return (
