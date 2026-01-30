@@ -22,7 +22,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useFCMToken } from "@/hooks/useFCMToken";
+import { useFCMToken } from "@/hooks/useFcmToken";
 
 interface Notification {
   id: string;
@@ -71,7 +71,7 @@ export function NotificationProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  
+
   // Initialize FCM Token management
   useFCMToken();
 
@@ -335,6 +335,7 @@ export function NotificationProvider({
           }
         },
         (error) => {
+          console.warn("Snapshot error in messagesQuery:", error);
           // Handle case where Messages collection doesn't exist yet
         }
       );
@@ -346,7 +347,8 @@ export function NotificationProvider({
     const cancellationsQuery = query(
       collection(db, "Bookings"),
       where("doctorId", "==", doctorId),
-      where("cancellationRequest", "!=", null),
+      // where("cancellationRequest", "!=", null) removed to avoid inequality/orderBy conflict
+      // orderBy implicitly filters out documents where the field is missing
       orderBy("cancellationRequest.requestedAt", "desc"),
       limit(10)
     );
@@ -390,6 +392,9 @@ export function NotificationProvider({
         if (cancellationNotifications.length > 0) {
           setNotifications((prev) => [...cancellationNotifications, ...prev]);
         }
+      },
+      (error) => {
+        console.warn("Snapshot error in cancellationsQuery:", error);
       }
     );
 
@@ -481,7 +486,7 @@ export function NotificationProvider({
               updatedAt: Timestamp.now(),
             });
 
-          
+
           }
         } catch (error) {
           console.error("Error saving notification preferences to Firebase:", error);

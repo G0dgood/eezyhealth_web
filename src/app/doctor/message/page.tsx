@@ -46,29 +46,21 @@ export default function DoctorMessagePage() {
 
   // Get unique patients based on userId, ensuring no duplicates
   const uniquePatients: BookingData[] = bookingsData
-    ? [
-      ...new Map(
-        bookingsData
-          .filter(
-            (booking: any) =>
-              booking.userId // Ensure userId exists
-          )
-          .map((booking: any) => [
-            booking.userId,
-            {
-              userId: booking.userId,
-              patientName:
-                booking.patientName ||
-                booking.first_name ||
-                "Unknown Patient",
-              photo_url: booking.photo_url || booking.patientImage,
-              timestamp: booking.date, // Use booking date as timestamp
-              bookingId: booking.bookingId || booking.id, // Add bookingId for channel creation
-              // Add other necessary fields if available
-            },
-          ])
-      ).values(),
-    ]
+    ? Array.from(
+      bookingsData.reduce((map, booking) => {
+        if (booking.userId && !map.has(booking.userId)) {
+          map.set(booking.userId, {
+            userId: booking.userId,
+            patientName: booking.patientName || "Unknown Patient",
+            photo_url: booking.photo_url,
+            timestamp: booking.bookingDate || booking.date, // Use booking date as timestamp
+            bookingId: booking.bookingId || booking.id, // Add bookingId for channel creation
+            lastMessage: booking.consultationReason || booking.reason || "No messages yet",
+          });
+        }
+        return map;
+      }, new Map<string, any>()).values()
+    )
     : [];
 
   // Initialize Stream Chat client
@@ -217,9 +209,9 @@ export default function DoctorMessagePage() {
     });
 
     if (callType === 'audio') {
-        router.push(`/doctor/audio-call?${params.toString()}`);
+      router.push(`/doctor/audio-call?${params.toString()}`);
     } else {
-        router.push(`/doctor/video-call?${params.toString()}`);
+      router.push(`/doctor/video-call?${params.toString()}`);
     }
   };
 
@@ -227,7 +219,7 @@ export default function DoctorMessagePage() {
     <div className="flex h-[calc(100vh-64px)] bg-gray-50">
       {/* Left Column - Messages List */}
       {chatClient && activeChannel ? (
-        <div className="w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
+        <div className="hidden lg:block w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
           <button
             onClick={() => {
               setSelectedConversation("");
@@ -252,35 +244,50 @@ export default function DoctorMessagePage() {
       {/* Right Column - Active Chat Interface */}
       <div className={`flex-1 bg-white flex flex-col ${selectedConversation ? 'flex' : 'hidden lg:flex'}`}>
         {chatClient && activeChannel ? (
-          <div className="h-full stream-chat-wrapper">
-            <Chat client={chatClient} theme="messaging light">
-              <Channel channel={activeChannel}>
-                <Window>
-                  <div className="relative">
-                    <ChannelHeader />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
-                      <button
-                        onClick={() => handleStartCall('audio')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
-                        title="Voice Call"
-                      >
-                        <Phone className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleStartCall('video')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
-                        title="Video Call"
-                      >
-                        <Video className="w-5 h-5" />
-                      </button>
+          <div className="h-full stream-chat-wrapper flex flex-col">
+            {/* Mobile Back Button */}
+            <div className="lg:hidden p-4 border-b border-gray-200">
+              <button
+                onClick={() => {
+                  setSelectedConversation("");
+                  setActiveChannel(null);
+                }}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+              </button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <Chat client={chatClient} theme="messaging light">
+                <Channel channel={activeChannel}>
+                  <Window>
+                    <div className="relative">
+                      <ChannelHeader />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
+                        <button
+                          onClick={() => handleStartCall('audio')}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
+                          title="Voice Call"
+                        >
+                          <Phone className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleStartCall('video')}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
+                          title="Video Call"
+                        >
+                          <Video className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <MessageList />
-                  <MessageInput />
-                </Window>
-                <Thread />
-              </Channel>
-            </Chat>
+                    <MessageList />
+                    <MessageInput />
+                  </Window>
+                  <Thread />
+                </Channel>
+              </Chat>
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">

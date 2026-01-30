@@ -12,8 +12,8 @@ import {
 import { useGetBookingsQuery } from "@/store/bookingApi";
 import {
   convertBookingsToStandardFormat,
-  StandardBookingData,
 } from "@/utils/bookingDataConverter";
+import { StandardBookingData } from "@/types";
 import AddVitalsModal from "@/components/modals/AddVitalsModal";
 
 interface BookingData {

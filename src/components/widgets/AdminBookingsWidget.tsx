@@ -227,19 +227,19 @@ const AdminBookingsWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{totalBookings}</div>
+          <div className="text-[14px] md:text-[16px]  font-bold text-blue-600">{totalBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Total</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">{confirmedBookings}</div>
+          <div className="text-[14px] md:text-[16px]  font-bold text-green-600">{confirmedBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Confirmed</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">{pendingBookings}</div>
+          <div className="text-[14px] md:text-[16px]  font-bold text-yellow-600">{pendingBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-red-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-red-600">{cancelledBookings}</div>
+          <div className="text-[14px] md:text-[16px]  font-bold text-red-600">{cancelledBookings}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Cancelled</div>
         </div>
       </div>

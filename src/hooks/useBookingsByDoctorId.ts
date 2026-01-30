@@ -23,6 +23,7 @@ interface BookingData {
   bookingStatus?: string;
   channel?: string;
   reason?: string;
+  consultationReason?: string;
   contactNumber?: string;
   createdTime?: string;
   updatedTime?: string;
@@ -80,52 +81,44 @@ export const useBookingsByDoctorId = (
           unknown
         >;
 
-        // console.log("serializedData", serializedData);
-
         return {
           id: doc.id,
-          userId:
-            (serializedData.userId as string) ||
-            (serializedData.patientId as string) ||
-            doc.id,
-          patientName: (serializedData.patientName ||
-            serializedData.patientFullName) as string,
-          first_name: (serializedData.first_name ||
-            serializedData.patientFirstName) as string,
-          photo_url: (serializedData.photo_url ||
-            serializedData.patientPhotoUrl) as string,
-          timestamp: serializedData.timestamp as string,
-          lastMessage: serializedData.lastMessage as string,
-          isOnline: serializedData.isOnline as boolean,
-          date: serializedData.date as string,
-          patientId: serializedData.patientId as string,
+          userId: (serializedData.userId as string) || (serializedData.patientId as string),
+          patientId: (serializedData.patientId as string) || (serializedData.userId as string),
+          bookingId: doc.id,
+          
+          // Patient Details
+          patientName: (serializedData.patientFullName || serializedData.patientName || serializedData.patientDisplayName) as string,
+          first_name: (serializedData.patientFirstName || serializedData.first_name) as string,
+          photo_url: (serializedData.patientPhotoUrl || serializedData.photo_url) as string,
+          contactNumber: (serializedData.patientPhone || serializedData.contactNumber) as string,
+          
+          // Doctor Details
           doctorId: serializedData.doctorId as string,
           doctorName: serializedData.doctorName as string,
           specialization: serializedData.specialization as string,
+          
+          // Booking Details
           bookingDate: serializedData.bookingDate as string,
           bookingTime: serializedData.bookingTime as string,
           slot: serializedData.slot as string,
           bookingStatus: serializedData.bookingStatus as string,
-          channel: (serializedData.channel ||
-            serializedData.bookingChannel) as string,
-          reason: (serializedData.reason ||
-            serializedData.consultationReason) as string,
-          contactNumber: (serializedData.contactNumber ||
-            serializedData.patientPhone) as string,
-          // photo_url: (serializedData.photo_url ||
-          //   serializedData.patientPhotoUrl) as string,
-          createdTime: serializedData.createdTime as string,
-          updatedTime: serializedData.updatedTime as string,
-          cancellationRequest: serializedData.cancellationRequest as
-            | {
-                reason: string;
-                status: string;
-                requestedAt: string;
-                adminResponse?: string;
-              }
-            | undefined,
-          consultationNote: (serializedData.consultationNote ||
-            serializedData.doctorComment) as string,
+          channel: (serializedData.bookingChannel || serializedData.channel) as string,
+          
+          // Message/Reason
+          consultationReason: (serializedData.consultationReason || serializedData.reason || "") as string,
+          reason: (serializedData.reason || serializedData.consultationReason || "") as string,
+          lastMessage: (serializedData.consultationReason || serializedData.reason || serializedData.lastMessage || "") as string,
+          
+          // Meta
+          createdTime: (serializedData.createdTime || serializedData.createdAt) as string,
+          updatedTime: (serializedData.updatedTime || serializedData.updatedAt) as string,
+          timestamp: (serializedData.bookingDate || serializedData.timestamp) as string,
+          isOnline: serializedData.isOnline as boolean,
+          
+          // Legacy/Other
+          cancellationRequest: serializedData.cancellationRequest as any,
+          consultationNote: (serializedData.consultationNote || serializedData.doctorComment) as string,
           doctorRecommendation: serializedData.doctorRecommendation as string,
           diagnosis: serializedData.diagnosis as string,
           prescriptions: serializedData.prescriptions as string[],

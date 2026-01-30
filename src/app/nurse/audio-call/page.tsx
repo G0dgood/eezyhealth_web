@@ -33,10 +33,10 @@ export default function NurseAudioCallPage() {
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [streamCall, setStreamCall] = useState<Call | null>(null);
-  
+
   const [isCallAccepted, setIsCallAccepted] = useState(isAccepting);
   const [isWaitingForAcceptance, setIsWaitingForAcceptance] = useState(!isAccepting);
-  
+
   const isCallEndedRef = useRef(false);
   const hasJoined = useRef(false);
   const hasRungRef = useRef(false);
@@ -49,34 +49,34 @@ export default function NurseAudioCallPage() {
     const initClient = async () => {
       try {
         let chatInfo = getStreamChatInfo();
-        
+
         if (!chatInfo || chatInfo.chatUserId !== user.uid) {
-           const tokenResponse = await generateTokenForUser({ userId: user.uid }).unwrap();
-           const streamToken = tokenResponse.streamToken || tokenResponse.token;
-           if (streamToken) {
-             chatInfo = {
-               chatApiKey: "4g6sfwegs7he",
-               chatUserId: user.uid,
-               chatUserName: user.displayName || "Nurse",
-               chatUserToken: streamToken,
-               userRole: 'nurse',
-             };
-             storeStreamChatInfo(chatInfo);
-           }
+          const tokenResponse = await generateTokenForUser({ userId: user.uid }).unwrap();
+          const streamToken = tokenResponse.streamToken || tokenResponse.token;
+          if (streamToken) {
+            chatInfo = {
+              chatApiKey: "4g6sfwegs7he",
+              chatUserId: user.uid,
+              chatUserName: user.displayName || "Nurse",
+              chatUserToken: streamToken,
+              userRole: 'nurse',
+            };
+            storeStreamChatInfo(chatInfo);
+          }
         }
 
         if (chatInfo) {
-           // Use singleton client
-           _client = getVideoClient(
-              chatInfo.chatApiKey,
-              {
-                 id: chatInfo.chatUserId,
-                 name: chatInfo.chatUserName,
-                 image: user.photoURL || undefined,
-              },
-              chatInfo.chatUserToken
-           );
-           setClient(_client);
+          // Use singleton client
+          _client = getVideoClient(
+            chatInfo.chatApiKey,
+            {
+              id: chatInfo.chatUserId,
+              name: chatInfo.chatUserName,
+              image: user.photoURL || undefined,
+            },
+            chatInfo.chatUserToken
+          );
+          setClient(_client);
         }
       } catch (err) {
         console.error("Failed to init video client:", err);
@@ -86,18 +86,19 @@ export default function NurseAudioCallPage() {
     initClient();
 
     return () => {
-       // Do NOT disconnect singleton client
-       // if (_client) _client.disconnectUser();
+      // Do NOT disconnect singleton client
+      // if (_client) _client.disconnectUser();
     };
   }, [user, generateTokenForUser]);
 
   // 2. Initialize Call
   useEffect(() => {
     if (!client || !callId || hasJoined.current) return;
-    
+
     let myCall: Call | undefined;
 
     const initCall = async () => {
+      if (!user) return;
       hasJoined.current = true;
       const call = client.call("default", callId);
       myCall = call;
@@ -125,7 +126,7 @@ export default function NurseAudioCallPage() {
             } catch (e) {
               console.warn("Update members failed, trying getOrCreate fallback...", e);
               await call.getOrCreate({
-                data: { members: [{ user_id: user.uid }, { user_id: patientId }] }
+                data: { members: [{ user_id: user?.uid || "" }, { user_id: patientId }] }
               });
             }
 
@@ -146,10 +147,10 @@ export default function NurseAudioCallPage() {
 
         // Enforce audio-only mode
         try {
-            await call.camera.disable();
-            await call.microphone.enable();
+          await call.camera.disable();
+          await call.microphone.enable();
         } catch (e) {
-            console.warn("Could not set audio-only mode", e);
+          console.warn("Could not set audio-only mode", e);
         }
 
         setStreamCall(call);
@@ -164,7 +165,7 @@ export default function NurseAudioCallPage() {
 
     return () => {
       if (myCall && !isCallEndedRef.current) {
-         myCall.leave();
+        myCall.leave();
       }
     };
   }, [client, callId, isAccepting, patientId, user]);
@@ -173,22 +174,22 @@ export default function NurseAudioCallPage() {
     isCallEndedRef.current = true;
 
     if (streamCall) {
-       // Explicitly stop camera/mic
-       try {
-         await streamCall.camera.disable();
-         await streamCall.microphone.disable();
-       } catch (e) {
-         console.warn("Failed to disable devices", e);
-       }
+      // Explicitly stop camera/mic
+      try {
+        await streamCall.camera.disable();
+        await streamCall.microphone.disable();
+      } catch (e) {
+        console.warn("Failed to disable devices", e);
+      }
     }
 
     if (isWaitingForAcceptance && patientId && streamCall) {
-       notifyMissedCall({
-         calleeId: patientId,
-         callerName: user?.displayName || "Nurse",
-         callId: callId || '',
-         callType: 'audio',
-       }).catch(err => console.error("Failed to notify missed call", err));
+      notifyMissedCall({
+        calleeId: patientId,
+        callerName: user?.displayName || "Nurse",
+        callId: callId || '',
+        callType: 'audio',
+      }).catch(err => console.error("Failed to notify missed call", err));
     }
 
     if (streamCall) {
@@ -200,16 +201,16 @@ export default function NurseAudioCallPage() {
   useEffect(() => {
     if (!streamCall) return;
     const unsubscribeAccepted = streamCall.on("call.accepted", () => {
-       setIsCallAccepted(true);
-       setIsWaitingForAcceptance(false);
+      setIsCallAccepted(true);
+      setIsWaitingForAcceptance(false);
     });
     const unsubscribeEnded = streamCall.on("call.ended", () => {
-       toast.info("Call ended");
-       router.back();
+      toast.info("Call ended");
+      router.back();
     });
     return () => {
-       unsubscribeAccepted();
-       unsubscribeEnded();
+      unsubscribeAccepted();
+      unsubscribeEnded();
     };
   }, [streamCall, router]);
 

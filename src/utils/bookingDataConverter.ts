@@ -2,60 +2,7 @@
  * Utility functions to convert and standardize booking data formats
  */
 
-export interface StandardBookingData {
-  userId: string;
-  patientName: string;
-  doctorId: string;
-  doctorName: string;
-  specialization: string;
-  doctorPhotoUrl: string | null;
-  hospital: string;
-  photo_url: string;
-  bookingDate: {
-    _seconds: number;
-    _nanoseconds: number;
-  };
-  slot: string;
-  bookingChannel: string;
-  bookingStatus: string;
-  paymentStatus: string;
-  comments: unknown[];
-  patientAddress: string;
-  bookingId: string;
-  updatedAt?: string;
-  patientAge?: number;
-  reason?: string;
-  contactNumber?: string;
-}
-
-export interface RawBookingData {
-  userId: string;
-  patientName: string;
-  doctorId: string;
-  doctorName: string;
-  specialization: string;
-  doctorPhotoUrl?: string | null;
-  hospital: string;
-  photo_url: string;
-  bookingDate: string | { _seconds: number; _nanoseconds: number };
-  slot: string;
-  bookingChannel: string;
-  bookingStatus: string;
-  paymentStatus: string;
-  comments: unknown[];
-  patientAddress: string;
-  bookingId: string;
-  updatedAt?: string;
-  patientAge?: number | string;
-  reason?: string;
-  description?: string;
-  contactNumber?: string;
-  patient?: {
-    age?: number;
-    phone?: string;
-    name?: string;
-  };
-}
+import { StandardBookingData, RawBookingData } from "@/types";
 
 /**
  * Converts a date string to Firebase timestamp format

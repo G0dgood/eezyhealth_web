@@ -183,7 +183,7 @@ const NotificationsWidget: React.FC = () => {
                 </div>
 
                 <div className="mb-1 md:mb-2">
-                  <h2 className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-gray-900 mb-0.5 md:mb-1">
+                  <h2 className="text-[14px] md:text-[16px] font-bold text-gray-900 mb-0.5 md:mb-1">
                     {item.value}
                   </h2>
                   <h3 className="text-[10px] md:text-[12px] font-semibold text-gray-700 mb-0.5 md:mb-1">

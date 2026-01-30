@@ -83,7 +83,7 @@ export default function HomePage() {
             <p className="text-gray-700 mb-6 leading-relaxed text-[13px]">
               To continue, please sign in to your account or create a new one
               to access our healthcare management system.
-            </p> 
+            </p>
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4 mt-20">
               <div>
@@ -116,7 +116,7 @@ export default function HomePage() {
                 disabled={isLoading}
                 className="w-full bg-[#22c55e] hover:bg-[#1a9f4a] text-white font-semibold py-3 px-6 rounded-sm transition-all duration-200 flex items-center justify-center">
                 {isLoading ? (
-                  <SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
+                  <SVGLoader width={"18px"} height={"18px"} color={"#FFF"} />
                 ) : (
                   "Sign In"
                 )}
