@@ -26,9 +26,20 @@ export function useFCMToken() {
            // Get VAPID key from env or fallback (it's optional for some setups but recommended)
            // If missing, getToken might throw or work depending on project config.
            const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+
+           // Register service worker explicitly to avoid "Registration failed - push service error"
+           let serviceWorkerRegistration = undefined;
+           if ('serviceWorker' in navigator) {
+             try {
+               serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+             } catch (error) {
+               console.error('Service Worker registration failed:', error);
+             }
+           }
            
            const currentToken = await getToken(messaging, {
-             vapidKey
+             vapidKey,
+             serviceWorkerRegistration
            });
            
            if (currentToken) {
