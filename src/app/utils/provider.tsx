@@ -1,8 +1,6 @@
 "use client";
 import React from "react";
-import { ProgressProvider } from "@bprogress/next/dist/app";
-// import { Provider } from 'react-redux';
-// import { store } from '@/utils/APISlice/store';
+import { ProgressProvider } from "@bprogress/next/dist/app"; 
 
 const NewProvider = ({ children }: React.PropsWithChildren) => {
   return (
@@ -10,10 +8,8 @@ const NewProvider = ({ children }: React.PropsWithChildren) => {
       height="4px"
       color="#44CE2D"
       options={{ showSpinner: false }}
-      shallowRouting>
-      {/* <Provider store={store}>  */}
-      {children}
-      {/* </Provider> */}
+      shallowRouting> 
+      {children} 
     </ProgressProvider>
   );
 };

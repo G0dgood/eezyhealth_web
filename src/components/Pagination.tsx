@@ -61,7 +61,7 @@ export default function Pagination({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 px-5 py-3",
+				"flex flex-row items-center justify-between gap-4 border-t border-gray-200 px-5 py-3",
 				className,
 			)}
 		>

@@ -1,402 +1,182 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { Filter } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Search } from "lucide-react";
+import Input from "@/components/Input";
 import Title from "@/components/Title";
-import FilterModal from "@/components/modals/FilterModal";
-import SearchInput from "@/components/SearchInput";
-import { useGetBookingsQuery } from "@/store/bookingApi";
-import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import moment from "moment";
-import Button from "@/components/Button";
-
-interface Booking {
-  id: string;
-  patientName: string;
-  date: string;
-  time: string;
-  doctor: string;
-  specialty: string;
-  status: "pending" | "completed" | "cancelled";
-  channel: "chat" | "videoCall" | "voiceCall";
-}
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import FormattedDate from "@/utils/FormattedDate";
 import Pagination from "@/components/Pagination";
 
-export default function BookingsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [activeFilters, setActiveFilters] = useState({
-    status: "pending" as "pending" | "completed" | "cancelled" | "",
-    channel: "chat" as "chat" | "videoCall" | "voiceCall" | "",
-  });
+interface Booking {
+  bookingId?: string;
+  patientName?: string;
+  doctorName?: string;
+  date?: string;
+  time?: string;
+  bookingDate?: {
+    _seconds: number;
+    _nanoseconds: number;
+  } | string;
+  slot?: string;
+  bookingChannel?: string;
+  specialization?: string;
+  bookingStatus?: string;
+  status?: string;
+}
 
-  // Fetch bookings from API
+export default function BookingsPage() {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(bookings?.length / itemsPerPage);
 
-  // Apply search and filters
-  const filteredData = bookings?.bookings?.filter(
-    (booking: { bookingStatus: string }) => {
-      const matchesSearch = booking?.bookingStatus
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+  // Filter bookings based on search term
+  const filteredBookings = useMemo(() => {
+    const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
 
-      return matchesSearch;
-    }
-  );
+    if (!data || data.length === 0) return [];
 
-  const formatStatusText = (status: string) => {
-    if (status === "pending") return "Scheduled";
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
+    if (!searchTerm.trim()) return data;
 
-  const paginatedData = filteredData?.slice(
+    return data.filter((booking: Booking) => {
+      return (
+        booking.bookingStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.bookingChannel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.slot?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [bookings, searchTerm]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const paginatedBookings = filteredBookings.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const handleApplyFilters = (filters: {
-    status: "pending" | "completed" | "cancelled" | "";
-    channel: "chat" | "videoCall" | "voiceCall" | "";
-  }) => {
-    setActiveFilters(filters);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const handleClearFilters = () => {
-    setActiveFilters({ status: "", channel: "" });
+  // Reset to first page when search term changes
+  useEffect(() => {
     setCurrentPage(1);
-  };
-
-  // Handle API responses
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load bookings. Please try again.", {
-        action: {
-          label: "Retry",
-          onClick: () => refetch(),
-        },
-      });
-    }
-  }, [error, refetch]);
-
-  useEffect(() => {
-    if (bookings && bookings.length > 0) {
-      toast.success(`Successfully loaded ${bookings.length} bookings`);
-    }
-  }, [bookings]);
-
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium text-white";
-
-    switch (status) {
-      case "pending":
-        return `${baseClasses} bg-orange-500`;
-      case "Accepted":
-        return `${baseClasses} bg-green-500`;
-      case "Cancelled":
-        return `${baseClasses} bg-red-500`;
-      default:
-        return `${baseClasses} bg-gray-500`;
-    }
-  };
-
-  const getChannelText = (channel: string) => {
-    switch (channel) {
-      case "chat":
-        return "Chat";
-      case "videoCall":
-        return "Video call";
-      case "voiceCall":
-        return "Voice Call";
-      default:
-        return channel;
-    }
-  };
-
-  // Format Firebase timestamp
-  const formatFirebaseTimestamp = (
-    timestamp:
-      | string
-      | number
-      | { _seconds: number; _nanoseconds: number }
-      | null
-      | undefined
-  ) => {
-    if (!timestamp) return "N/A";
-
-    // Handle Firebase timestamp object
-    if (
-      typeof timestamp === "object" &&
-      "_seconds" in timestamp &&
-      timestamp._seconds
-    ) {
-      const formatted = moment.unix(timestamp._seconds).format("DD MMMM YYYY");
-      return formatted;
-    }
-
-    // Handle regular date string or number
-    if (typeof timestamp === "string" || typeof timestamp === "number") {
-      const formatted = moment(timestamp).format("DD MMMM YYYY");
-      return formatted;
-    }
-
-    return "N/A";
-  };
-
-  // Format Firebase timestamp with time
-  const formatFirebaseTimestampWithTime = (
-    timestamp:
-      | string
-      | number
-      | { _seconds: number; _nanoseconds: number }
-      | null
-      | undefined
-  ) => {
-    if (!timestamp) return "N/A";
-
-    // Handle Firebase timestamp object
-    if (
-      typeof timestamp === "object" &&
-      "_seconds" in timestamp &&
-      timestamp._seconds
-    ) {
-      const formatted = moment
-        .unix(timestamp._seconds)
-        .format("DD MMMM YYYY, h:mm A");
-      return formatted;
-    }
-
-    // Handle regular date string or number
-    if (typeof timestamp === "string" || typeof timestamp === "number") {
-      const formatted = moment(timestamp).format("DD MMMM YYYY, h:mm A");
-      return formatted;
-    }
-
-    return "N/A";
-  };
-
-  // Check if a field is a Firebase timestamp
-  const isFirebaseTimestamp = (
-    field: unknown
-  ): field is { _seconds: number; _nanoseconds: number } => {
-    if (typeof field === "object" && field !== null) {
-      const obj = field as Record<string, unknown>;
-      return "_seconds" in obj && typeof obj._seconds === "number";
-    }
-    return false;
-  };
-
-  const hasActiveFilters = activeFilters.status || activeFilters.channel;
+  }, [searchTerm]);
 
   return (
     <div>
       <Title title="Booking List" />
-
-      {/* Search and Filter Bar */}
-      <div className="mb-6 flex flex-col md:flex-row justify-between items-center space-x-4">
-        {/* Search Input */}
-        <div className="flex-1">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search patient."
-          />
-        </div>
-
-        <div className="flex space-x-2">
-          {/* Refresh Button */}
-          <Button
-            variant="neutral"
-            onClick={() => {
-              toast.info("Refreshing bookings...");
-              refetch();
-            }}
-            className="flex items-center gap-2 bg-gray-600 text-white hover:bg-gray-700 border-transparent"
-          >
-            <span>Refresh</span>
-          </Button>
-
-          {/* Filter Button */}
-          <Button
-            variant={hasActiveFilters ? "primary" : "neutral"}
-            onClick={() => setIsFilterModalOpen(true)}
-            className="flex items-center gap-2"
-            icon={<Filter className="w-4 h-4" />}
-          >
-            <span>filter</span>
-          </Button>
-        </div>
+      
+      <div className="relative flex-1 max-w-md mb-6">
+        <Input
+          type="text"
+          placeholder="Search patient, doctor, specialty, channel or time slot"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          startIcon={<Search className="w-5 h-5 text-gray-400" />}
+          fullWidth
+        />
       </div>
 
-      {/* Bookings Summary */}
-      {bookings && bookings.length > 0 && (
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
-              Total Bookings
-            </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {bookings.length}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
-              Pending
-            </div>
-            <div className="text-2xl font-bold text-orange-600">
-              {bookings.filter((b: Booking) => b.status === "pending").length}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
-              Completed
-            </div>
-            <div className="text-2xl font-bold text-green-600">
-              {bookings.filter((b: Booking) => b.status === "completed").length}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-[10px] md:text-[12px] text-gray-600 dark:text-gray-400">
-              Cancelled
-            </div>
-            <div className="text-2xl font-bold text-red-600">
-              {bookings.filter((b: Booking) => b.status === "cancelled").length}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Table */}
-
+      {/* Bookings Table */}
       {isLoading ? (
         <TableSkeleton
-          columns={8}
+          columns={7}
           rows={5}
           headerLabels={[
-            "PATIENT NAME",
-            "BOOKING DATE",
-            "BOOKING CHANNEL",
-            "SLOT",
-            "DOCTOR",
-            "SPECIALIZATION",
-            "STATUS",
-            "CHANNEL",
+            "Patient Name",
+            "Doctor",
+            "Date",
+            "Time",
+            "Channel",
+            "Specialty",
+            "Status",
           ]}
         />
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th>PATIENT NAME</th>
-                  <th>BOOKING DATE</th>
-                  <th>BOOKING CHANNEL</th>
-                  <th>SLOT</th>
-                  <th>DOCTOR</th>
-                  <th>SPECIALIZATION</th>
-                  <th>STATUS</th>
-                  <th>CHANNEL</th>
+                  <th>Patient Name</th>
+                  <th>Doctor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Channel</th>
+                  <th>Specialty</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData?.length === 0 ||
-                  paginatedData?.length === undefined ? (
-                  <NoRecordFound colSpan={8} />
+                {paginatedBookings?.length === 0 ? (
+                  <NoRecordFound colSpan={7} />
                 ) : (
-                  paginatedData?.map(
-                    (booking: {
-                      id: string;
-                      patientName: string;
-                      bookingDate: string;
-                      bookingChannel: string;
-                      doctorName: string;
-                      specialization: string;
-                      bookingStatus: string;
-                      channel: string;
-                      slot: string;
-                    }) => (
-                      <tr key={booking.id} className="hover:bg-gray-50">
-                        <td>
-                          <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
-                            {booking?.patientName}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-500">
-                            {formatFirebaseTimestamp(booking?.bookingDate)}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-500">
-                            {booking?.bookingChannel}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-500">
-                            {isFirebaseTimestamp(booking?.slot)
-                              ? formatFirebaseTimestampWithTime(booking.slot)
-                              : booking?.slot || "N/A"}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-900">
-                            {booking?.doctorName}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-500">
-                            {booking.specialization}
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            className={getStatusBadge(booking.bookingStatus)}
-                          >
-                            {formatStatusText(booking.bookingStatus)}
+                  paginatedBookings.map((booking: Booking, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-green-600 font-medium">
+                          {booking?.patientName || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.doctorName || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.bookingDate ? (
+                          <FormattedDate timestamp={booking.bookingDate} />
+                        ) : booking?.date ? (
+                          <FormattedDate timestamp={booking.date} />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.slot ? (
+                          <span className="capitalize">
+                            {booking.slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
-                        </td>
-
-                        <td>
-                          <div className="text-[10px] md:text-[12px] text-gray-500">
-                            {getChannelText(booking.bookingChannel)}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  )
+                        ) : booking?.time ? (
+                          booking.time
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.bookingChannel || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-gray-900">
+                        {booking?.specialization || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${booking.bookingStatus === "Accepted"
+                            ? "bg-green-100 text-green-800"
+                            : (booking.bookingStatus === "pending" || booking.bookingStatus === "Pending" || booking.status === "Pending")
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                            }`}>
+                          {booking.bookingStatus || "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalCount={filteredBookings.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            itemLabel="bookings"
+          />
         </div>
       )}
-
-      {/* Pagination */}
-      <div className="mt-6">
-        <Pagination
-          currentPage={currentPage}
-          totalCount={filteredData?.length || 0}
-          pageSize={itemsPerPage}
-          onPageChange={setCurrentPage}
-          itemLabel="bookings"
-        />
-      </div>
-
-      {/* Filter Modal */}
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        onApply={handleApplyFilters}
-        onClear={handleClearFilters}
-        initialFilters={activeFilters}
-      />
     </div>
   );
 }
