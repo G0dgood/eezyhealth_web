@@ -114,17 +114,17 @@ export default function NurseAudioCallPage() {
           }
         };
 
-        // 1️⃣ ACCEPT FIRST (this requires nurse already added as member)
+        //  ACCEPT FIRST (this requires nurse already added as member)
         try {
           await call.accept();
         } catch (e) {
           console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
         }
 
-        // 2️⃣ JOIN after accepting
+        //  JOIN after accepting
         await call.join();
 
-        // 3️⃣ Enforce audio-only mode
+        //  Enforce audio-only mode
         try {
           await call.camera.disable();
           await call.microphone.enable();

@@ -7,7 +7,6 @@ import Pagination from "@/components/Pagination";
 
 export default function DoctorOfMonthPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
   const pageSize = 5;
 
   // Sample data for past doctors of the month
@@ -62,24 +61,10 @@ export default function DoctorOfMonthPage() {
     },
   ];
 
-  const filteredDoctors = pastDoctors.filter((doctor) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      doctor.name.toLowerCase().includes(term) ||
-      doctor.specialty.toLowerCase().includes(term) ||
-      doctor.month.toLowerCase().includes(term)
-    );
-  });
-
-  const currentDoctors = filteredDoctors.slice(
+  const currentDoctors = pastDoctors.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
-  };
 
   return (
     <div>
@@ -92,29 +77,13 @@ export default function DoctorOfMonthPage() {
       />
 
       {/* Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Doctor of The Month
-          </h1>
-          <p className="text-gray-600">
-            Recognizing outstanding medical professionals
-          </p>
-        </div>
-
-        {/* Search Input */}
-        <div className="relative w-full md:w-64">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search doctors..."
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Doctor of The Month
+        </h1>
+        <p className="text-gray-600">
+          Recognizing outstanding medical professionals
+        </p>
       </div>
 
       {/* Top Performers and Past Winners Grid */}
@@ -207,7 +176,7 @@ export default function DoctorOfMonthPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentDoctors.map((doctor, index) => (
+                  {pastDoctors.map((doctor, index) => (
                     <tr
                       key={index}
                       className="hover:bg-gray-50 transition-colors">
@@ -246,7 +215,7 @@ export default function DoctorOfMonthPage() {
             <div className="px-6 py-4 border-t border-gray-200">
               <Pagination
                 currentPage={currentPage}
-                totalCount={filteredDoctors.length}
+                totalCount={pastDoctors.length}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}
                 itemLabel="doctors"
