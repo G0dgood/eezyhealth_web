@@ -22,8 +22,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid calleeId' }, { status: 400 });
     }
 
-    try {
-        console.log(`[NotifyMissed] Fetching user doc for calleeId: "${calleeId}"`);
+    try { 
         
         // Timeout the DB request after 5 seconds to avoid long hangs
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000));
@@ -39,8 +38,7 @@ export async function POST(request: Request) {
         const userData = userDoc.data();
         fcmToken = userData?.fcmToken;
 
-        if (!fcmToken) {
-             console.log(`[NotifyMissed] User has no FCM token: ${calleeId}`);
+        if (!fcmToken) { 
              return NextResponse.json({ message: 'User has no FCM token' }, { status: 200 });
         }
     } catch (dbError) {

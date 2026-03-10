@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Video, Phone, ChevronLeft } from "lucide-react";
+import { Phone, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,7 +52,6 @@ export default function NurseMessagePage() {
       showError("Error", "Failed to load bookings. Please try again.");
     }
   }, [error]);
-  console.log('bookingsData', bookingsData)
 
   // Map bookings to patients, ensuring uniqueness
   const uniquePatients: PatientData[] = useMemo(() => {
@@ -333,13 +332,11 @@ export default function NurseMessagePage() {
     if (!videoClient) return;
 
     const unsubscribeCreated = videoClient.on('call.created', (event: any) => {
-      console.log("Call created:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
     });
 
     const unsubscribeRing = videoClient.on('call.ring', (event: any) => {
-      console.log("Call ringing:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
     });
@@ -435,13 +432,6 @@ export default function NurseMessagePage() {
                         >
                           <Phone className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => handleStartCall('video')}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Video Call"
-                        >
-                          <Video className="w-5 h-5" />
-                        </button>
                       </div>
                     </div>
                     <MessageList />
@@ -479,7 +469,8 @@ export default function NurseMessagePage() {
           onAccept={() => {
             const callId = incomingCall.id;
             const customData = incomingCall.state?.custom;
-            const callType = (customData?.callType as string) || 'video';
+            const rawType = (customData?.callType as string | undefined) || "";
+            const callType = rawType === "video" ? "video" : "audio";
 
             const params = new URLSearchParams({
               callId: callId || "",
@@ -489,7 +480,7 @@ export default function NurseMessagePage() {
               channelId: activeChannel?.id || "",
             });
 
-            if (callType === 'audio') {
+            if (callType === "audio") {
               router.push(`/nurse/audio-call?${params.toString()}`);
             } else {
               router.push(`/nurse/video-call?${params.toString()}`);

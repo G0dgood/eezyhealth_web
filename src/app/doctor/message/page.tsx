@@ -202,12 +202,14 @@ export default function DoctorMessagePage() {
       return;
     }
 
-    // KEY FIX: Use channel ID as call ID to match mobile app's behavior
-    // The mobile app uses the channel ID (which is often the booking ID) as the room identifier.
-    const callId = activeChannel.id;
+    // KEY FIX: Generate a UNIQUE call ID for every new call attempt.
+    // Stream Call IDs have strict validation: max 64 characters, [a-zA-Z0-9-].
+    // Since channel IDs can be long, we take a substring of it and append the timestamp.
+    const shortChannelId = activeChannel.id.substring(0, 15);
+    const uniqueCallId = `${shortChannelId}-${callType}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, '');
 
     const params = new URLSearchParams({
-      callId: callId || "",
+      callId: uniqueCallId,
       callType,
       patientName,
       patientId,

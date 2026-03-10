@@ -53,7 +53,7 @@ export default function VideoProvider({
   // Ringtone logic
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const audio = new Audio("/ringtone.mp3");
     audio.loop = true;
 
@@ -69,29 +69,37 @@ export default function VideoProvider({
 
   const acceptCall = async () => {
     if (!incomingCall) return;
-    
+
     const callId = incomingCall.id;
-    const callType = incomingCall.state.custom?.callType || 'video';
+    const rawType = incomingCall.state.custom?.callType as string | undefined;
+
+    // Stream's backend sometimes holds stale custom data (like 'audio') if the room was ever used.
+    // However, our new Call IDs explicitly contain the current intent (e.g., "-video-" or "-audio-").
+    // We should give highest precedence to the embedded ID.
+    const isVideoFromString = callId.includes('-video-');
+    const isAudioFromString = callId.includes('-audio-');
+
+    const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
     const patientId = incomingCall.state.members.find((m: any) => m.user_id !== userId)?.user_id;
 
     // Navigate to the appropriate call page
     const rolePath = userRole || 'nurse'; // Default to nurse if not specified, but should be passed
-    
+
     // Construct query params
     const params = new URLSearchParams({
       callId,
       isAccepting: "true",
       callType: callType as string,
     });
-    
+
     if (patientId) {
       params.append('patientId', patientId);
     }
 
     if (callType === 'audio') {
-        router.push(`/${rolePath}/audio-call?${params.toString()}`);
+      router.push(`/${rolePath}/audio-call?${params.toString()}`);
     } else {
-        router.push(`/${rolePath}/video-call?${params.toString()}`);
+      router.push(`/${rolePath}/video-call?${params.toString()}`);
     }
     setIncomingCall(null);
   };
@@ -99,10 +107,10 @@ export default function VideoProvider({
   const rejectCall = async () => {
     if (!incomingCall) return;
     try {
-        await incomingCall.leave({ reject: true });
-        setIncomingCall(null);
+      await incomingCall.leave({ reject: true });
+      setIncomingCall(null);
     } catch (error) {
-        console.error("Error rejecting call:", error);
+      console.error("Error rejecting call:", error);
     }
   };
 

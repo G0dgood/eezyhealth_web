@@ -183,7 +183,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
 							} catch {
 								// Fallback: simulate click on the input
 								inputElement.click();
-								console.log('showPicker failed, using click fallback');
 							}
 						} else {
 							// Fallback for browsers without showPicker

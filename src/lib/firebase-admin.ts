@@ -12,11 +12,10 @@ if (!admin.apps.length) {
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         }),
-      });
-      console.log('Firebase Admin initialized with private key.');
+      }); 
     } else {
       // Fallback to default (useful for local dev if GOOGLE_APPLICATION_CREDENTIALS is set)
-      console.log('Initializing Firebase Admin with default credentials...');
+       
       admin.initializeApp();
     }
   } catch (error) {

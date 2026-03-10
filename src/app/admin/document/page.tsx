@@ -97,7 +97,7 @@ export default function DocumentPage() {
     currentPage * itemsPerPage
   );
 
-  console.log("Paginated Data:", paginatedData);
+
 
   const handleAction = (upload: Upload) => {
     setSelectedUpload(upload);

@@ -1,21 +1,20 @@
 import { collection, query, where, getDocs, doc, deleteDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export const deleteUser = async (uid: string): Promise<void> => {
-  console.log(`Attempting to delete user with UID/ID: ${uid}`);
+export const deleteUser = async (uid: string): Promise<void> => { 
   try {
     // 1. Try to find by Document ID directly
     const userDocRef = doc(db, 'users', uid);
     const userDocSnap = await getDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-       console.log(`Found user by Document ID: ${uid}. Deleting...`);
+     
        await deleteDoc(userDocRef);
        return;
     }
 
     // 2. If not found by ID, query by 'uid' field
-    console.log(`User not found by Document ID. Querying where uid == ${uid}...`);
+    
     const userCollectionRef = collection(db, 'users');
     const q = query(userCollectionRef, where('uid', '==', uid));
 
@@ -29,7 +28,7 @@ export const deleteUser = async (uid: string): Promise<void> => {
 
     // Delete the user document(s)
     const deletePromises = querySnapshot.docs.map((docSnapshot) => {
-       console.log(`Deleting document ${docSnapshot.id} matching uid ${uid}`);
+       
        return deleteDoc(doc(db, 'users', docSnapshot.id));
     });
     

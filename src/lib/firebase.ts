@@ -16,8 +16,7 @@ export let messaging: Messaging | null = null;
 if (typeof window !== "undefined") {
   try {
     messaging = getMessaging(app);
-  } catch (err) {
-    console.log("Firebase Messaging not supported in this browser or environment", err);
+  } catch (err) { 
   }
 }
 

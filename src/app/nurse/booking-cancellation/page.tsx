@@ -40,7 +40,7 @@ export default function NurseBookingCancellationPage() {
   // Use API data if available, otherwise fall back to mock data
   const dataSource = cancellations || [];
 
-  console.log('cancellations--->', cancellations)
+
 
   // Filter data based on search term
   const filteredData = useMemo(() => {

@@ -37,10 +37,15 @@ export function useFCMToken() {
              }
            }
            
-           const currentToken = await getToken(messaging, {
-             vapidKey,
-             serviceWorkerRegistration
-           });
+           const options: any = {};
+           if (serviceWorkerRegistration) {
+             options.serviceWorkerRegistration = serviceWorkerRegistration;
+           }
+           if (vapidKey) {
+             options.vapidKey = vapidKey;
+           }
+           
+           const currentToken = await getToken(messaging, options);
            
            if (currentToken) {
              setToken(currentToken);
@@ -54,12 +59,10 @@ export function useFCMToken() {
                  if (userData.fcmToken !== currentToken) {
                      await updateDoc(userRef, {
                        fcmToken: currentToken
-                     });
-                     console.log("FCM Token updated in Firestore");
+                     }); 
                  }
              }
-           } else {
-             console.log('No registration token available.');
+           } else { 
            }
         } else if (permission === 'default') {
            // We can request permission here, or let the UI trigger it.

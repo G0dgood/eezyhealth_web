@@ -71,28 +71,14 @@ export const uploadApi = api.injectEndpoints({
           } = await import("firebase/firestore");
           const { db } = await import("@/lib/firebase");
 
-          console.log("Updating document with:", {
-            uploadId,
-            doctorId,
-            name,
-            downloadUrl,
-            status,
-            comment,
-            reviewedBy,
-          });
-          console.log("STATUS TO UPDATE:", status);
-
+           
           // First, find the parent document in uploads collection that contains this document
           const uploadsRef = collection(db, "uploads");
           const q = query(uploadsRef, where("doctorId", "==", doctorId));
 
           const querySnapshot = await getDocs(q);
 
-          console.log(
-            `Found ${querySnapshot.size} upload documents for doctor ${doctorId}`
-          );
-          console.log("Looking for document with ID:", uploadId);
-
+            
           if (querySnapshot.empty) {
             return {
               error: {
@@ -119,9 +105,7 @@ export const uploadApi = api.injectEndpoints({
             const uploadData = uploadDoc.data();
 
             if (uploadData.documents && Array.isArray(uploadData.documents)) {
-              console.log(
-                `Checking ${uploadData.documents.length} documents in upload ${uploadDoc.id}`
-              );
+               
 
               // Find the document in the documents array
               // Prioritize exact ID match first, then URL, then filename
@@ -132,9 +116,7 @@ export const uploadApi = api.injectEndpoints({
                   const nameMatch =
                     docItem.fileName === name || docItem.name === name;
 
-                  console.log(
-                    `Comparing: docItem.id="${docItem.id}" with uploadId="${uploadId}", match: ${idMatch}`
-                  );
+                   
 
                   matchAttempts.push({
                     docId: docItem.id,
@@ -145,17 +127,15 @@ export const uploadApi = api.injectEndpoints({
 
                   // Prioritize ID match first (most reliable)
                   if (idMatch) {
-                    console.log(`✓ ID match found for ${docItem.id}`);
+                   
                     return true;
                   }
                   // Then try URL match if ID doesn't match
-                  if (urlMatch) {
-                    console.log(`✓ URL match found for ${docItem.id}`);
+                  if (urlMatch) { 
                     return true;
                   }
                   // Finally try filename match
-                  if (nameMatch) {
-                    console.log(`✓ Filename match found for ${docItem.id}`);
+                  if (nameMatch) { 
                     return true;
                   }
                   return false;
@@ -165,14 +145,7 @@ export const uploadApi = api.injectEndpoints({
               if (docIndex !== -1) {
                 uploadDocToUpdate = uploadDoc;
                 finalDocIndex = docIndex;
-                console.log(
-                  `Found document at index ${docIndex} in upload ${uploadDoc.id}`
-                );
-                console.log(
-                  "Current document:",
-                  uploadData.documents[docIndex]
-                );
-                console.log("Upload doc ID:", uploadDoc.id);
+                 
                 break; // Exit the loop once we found the document
               }
             }
@@ -180,16 +153,11 @@ export const uploadApi = api.injectEndpoints({
 
           if (uploadDocToUpdate && finalDocIndex !== -1) {
             const uploadData = uploadDocToUpdate.data();
-            console.log("Found upload document ID:", uploadDocToUpdate.id);
-            console.log("Document index to update:", finalDocIndex);
+             
 
             // Update the specific document in the array
             const updatedDocuments = [...uploadData.documents];
-            console.log(
-              "Current document before update:",
-              JSON.stringify(updatedDocuments[finalDocIndex], null, 2)
-            );
-            console.log("Updating with status:", status);
+             
 
             // Preserve all existing fields and only update what's needed
             const currentDoc = updatedDocuments[finalDocIndex];
@@ -201,32 +169,16 @@ export const uploadApi = api.injectEndpoints({
               reviewedAt: new Date().toISOString(),
             };
 
-            console.log(
-              "Updated document after update:",
-              JSON.stringify(updatedDocuments[finalDocIndex], null, 2)
-            );
-            console.log("Full documents array length:", updatedDocuments.length);
-
-            // Update the parent document
-            console.log(
-              `Updating Firestore document: uploads/${uploadDocToUpdate.id}`
-            );
+            
             await updateDoc(doc(db, "uploads", uploadDocToUpdate.id), {
               documents: updatedDocuments,
             });
 
-            console.log(
-              `✓ Successfully updated document ${uploadId} in Firebase`
-            );
-            console.log(
-              `✓ Update complete for doctor: ${doctorId}, document: ${uploadId}`
-            );
+            
             updated = true;
           }
 
-          if (!updated) {
-            console.error("Document not found. Match attempts:", matchAttempts);
-            console.error("Looking for:", { uploadId, downloadUrl, name });
+          if (!updated) {  
 
             return {
               error: {

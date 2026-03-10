@@ -66,7 +66,6 @@ export default function DoctorBookingsPage() {
     error,
   } = useBookingsByDoctorId(doctorId);
 
-  console.log('bookingsData------->', bookingsData)
 
   // Generate week bookings from API data or create default structure
   const generateWeekBookingsFromData = (

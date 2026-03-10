@@ -13,8 +13,7 @@ export const bookingCancellationApi = api.injectEndpoints({
 
           const bookingsCollectionRef = collection(db, "Bookings");
 
-          // Debug: Try different status values
-          console.log("Fetching cancelled bookings...");
+          // Debug: Try different status values 
 
           // Create a query to filter documents where bookingStatus is "cancelled" (lowercase)
           const bookingsQuery = query(
@@ -24,23 +23,18 @@ export const bookingCancellationApi = api.injectEndpoints({
 
           // Fetch the documents that match the query
           const snapshot = await getDocs(bookingsQuery);
-          console.log(
-            `Found ${snapshot.size} cancelled bookings with status "cancelled"`
-          );
+          
 
           // If no results, try with different casing
           if (snapshot.size === 0) {
-            console.log("Trying with different status values...");
-
+             
             // Try "Cancelled" (capitalized)
             const cancelledQuery = query(
               bookingsCollectionRef,
               where("bookingStatus", "==", "Cancelled")
             );
             const cancelledSnapshot = await getDocs(cancelledQuery);
-            console.log(
-              `Found ${cancelledSnapshot.size} bookings with status "Cancelled"`
-            );
+             
 
             if (cancelledSnapshot.size > 0) {
               const firebaseRtk = await import("@/lib/firebase-rtk");

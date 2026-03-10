@@ -145,7 +145,7 @@ export default function DoctorPaymentPage() {
     );
   };
 
-  console.log("Filtered Payments:", payments);
+
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {

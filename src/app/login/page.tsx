@@ -15,7 +15,6 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       await signIn();
-      console.log("User signed in:", signIn);
       // Redirect to home page after successful login where role-based routing happens
       router.push("/");
     } catch (error) {

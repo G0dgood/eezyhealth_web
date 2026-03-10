@@ -1,232 +1,89 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   StreamVideo,
   StreamCall,
-  Call,
-  StreamVideoClient,
   StreamTheme,
+  StreamVideoClient,
 } from "@stream-io/video-react-sdk";
-import { getStreamChatInfo, storeStreamChatInfo } from "@/lib/streamChat";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
-import { notifyMissedCall } from "@/utils/notifications";
-import AudioCallScreen from "@/components/AudioCallScreen";
 import { getVideoClient } from "@/lib/streamVideo";
 
 export default function NurseAudioCallPage() {
   const { user } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [generateTokenForUser] = useGenerateTokenForUserMutation();
 
-  const patientName = searchParams.get("patientName") || "Patient";
-  const patientId = searchParams.get("patientId");
-  const callId = searchParams.get("callId");
-  const channelId = searchParams.get("channelId");
-  const bookingId = searchParams.get("bookingId");
-  const isAccepting = searchParams.get("isAccepting") === "true";
+  const callId = searchParams.get("callId") || "";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const [streamCall, setStreamCall] = useState<Call | null>(null);
-
-  const [isCallAccepted, setIsCallAccepted] = useState(isAccepting);
-  const [isWaitingForAcceptance, setIsWaitingForAcceptance] = useState(!isAccepting);
-
-  const isCallEndedRef = useRef(false);
+  const [call, setCall] = useState<any>(null);
   const hasJoined = useRef(false);
-  const hasRungRef = useRef(false);
 
-  // 1. Initialize Video Client
   useEffect(() => {
-    if (!user) return;
-    let _client: StreamVideoClient | null = null;
+    if (!user || !callId || hasJoined.current) return;
+    hasJoined.current = true;
 
-    const initClient = async () => {
-      try {
-        let chatInfo = getStreamChatInfo();
+    const init = async () => {
+      const tokenResponse = await generateTokenForUser({ userId: user.uid }).unwrap();
+      const token = tokenResponse.videoToken || tokenResponse.streamToken || tokenResponse.token;
+      const apiKey = tokenResponse.apiKey || process.env.NEXT_PUBLIC_STREAM_API_KEY!;
 
-        if (!chatInfo || chatInfo.chatUserId !== user.uid) {
-          const tokenResponse = await generateTokenForUser({ userId: user.uid }).unwrap();
-          const streamToken = tokenResponse.streamToken || tokenResponse.token;
-          if (streamToken) {
-            chatInfo = {
-              chatApiKey: "4g6sfwegs7he",
-              chatUserId: user.uid,
-              chatUserName: user.displayName || "Nurse",
-              chatUserToken: streamToken,
-              userRole: 'nurse',
-            };
-            storeStreamChatInfo(chatInfo);
-          }
-        }
+      const videoClient = getVideoClient(
+        apiKey,
+        { id: user.uid, name: user.displayName || "Nurse", image: user.photoURL || undefined },
+        token
+      );
 
-        if (chatInfo) {
-          // Use singleton client
-          _client = getVideoClient(
-            chatInfo.chatApiKey,
-            {
-              id: chatInfo.chatUserId,
-              name: chatInfo.chatUserName,
-              image: user.photoURL || undefined,
-            },
-            chatInfo.chatUserToken
-          );
-          setClient(_client);
-        }
-      } catch (err) {
-        console.error("Failed to init video client:", err);
+      const streamCall = videoClient.call("default", callId);
+
+      // Ensure we join the call properly with members before trying to accept
+      const patientId = searchParams.get("patientId") || "";
+      const callData: any = {};
+
+      if (patientId && user.uid) {
+        callData.members = [{ user_id: user.uid }, { user_id: patientId }];
       }
-    };
-
-    initClient();
-
-    return () => {
-      // Do NOT disconnect singleton client
-      // if (_client) _client.disconnectUser();
-    };
-  }, [user, generateTokenForUser]);
-
-  // 2. Initialize Call
-  useEffect(() => {
-    if (!client || !callId || hasJoined.current) return;
-
-    let myCall: Call | undefined;
-
-    const initCall = async () => {
-      if (!user) return;
-      hasJoined.current = true;
-      const call = client.call("default", callId);
-      myCall = call;
 
       try {
-        const callData = {
-          members: patientId && user?.uid ? [{ user_id: user.uid }, { user_id: patientId }] : undefined,
-          custom: {
-            doctorName: user?.displayName || "Nurse",
-            doctorPhoto: user?.photoURL || "",
-            doctorPhotoUrl: user?.photoURL || "",
-            callType: 'audio',
-          }
-        };
+        await streamCall.join({ create: true, data: callData });
 
-        //  ACCEPT FIRST (this requires nurse already added as member)
-        try {
-          await call.accept();
-        } catch (e) {
-          console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
+        // Only accept if we are responding to an incoming call
+        if (searchParams.get("isAccepting") === "true") {
+          await streamCall.accept();
         }
 
-        //  JOIN after accepting
-        await call.join();
-
-        //  Enforce audio-only mode
-        try {
-          await call.camera.disable();
-          await call.microphone.enable();
-        } catch (e) {
-          console.warn("Could not set audio-only mode", e);
-        }
-
-        setStreamCall(call);
-      } catch (error) {
-        console.error("Error joining call:", error);
-        toast.error("Failed to join call");
-        router.back();
-      }
-    };
-
-    initCall();
-
-    return () => {
-      if (myCall && !isCallEndedRef.current) {
-        myCall.leave();
-      }
-    };
-  }, [client, callId, isAccepting, patientId, user]);
-
-  const handleEndCall = async () => {
-    isCallEndedRef.current = true;
-
-    if (streamCall) {
-      // Explicitly stop camera/mic
-      try {
+        await streamCall.microphone.enable();
         await streamCall.camera.disable();
-        await streamCall.microphone.disable();
       } catch (e) {
-        console.warn("Failed to disable devices", e);
+        console.error("Error joining audio call as nurse:", e);
       }
-    }
 
-    if (isWaitingForAcceptance && patientId && streamCall) {
-      notifyMissedCall({
-        calleeId: patientId,
-        callerName: user?.displayName || "Nurse",
-        callId: callId || '',
-        callType: 'audio',
-      }).catch(err => console.error("Failed to notify missed call", err));
-    }
-
-    if (streamCall) {
-      await streamCall.endCall();
-    }
-    router.back();
-  };
-
-  useEffect(() => {
-    if (!streamCall) return;
-    const unsubscribeAccepted = streamCall.on("call.accepted", () => {
-      setIsCallAccepted(true);
-      setIsWaitingForAcceptance(false);
-    });
-    const unsubscribeEnded = streamCall.on("call.ended", () => {
-      toast.info("Call ended");
-      router.back();
-    });
-    return () => {
-      unsubscribeAccepted();
-      unsubscribeEnded();
+      setClient(videoClient);
+      setCall(streamCall);
     };
-  }, [streamCall, router]);
 
+    init();
+  }, [user, callId, generateTokenForUser]);
 
-  if (!client || !streamCall) {
+  if (!client || !call) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <p>Initializing audio call...</p>
+      <div className="h-screen bg-black text-white flex items-center justify-center">
+        <h2>Connecting...</h2>
       </div>
     );
   }
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={streamCall}>
+      <StreamCall call={call}>
         <StreamTheme>
-          <div className="h-screen w-full bg-gray-900 text-white flex flex-col relative">
-            <AudioCallScreen onLeave={handleEndCall} />
-
-            {isWaitingForAcceptance && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
-                <div className="text-center text-white">
-                  <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl">
-                    {patientName.charAt(0)}
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">Calling {patientName}...</h2>
-                  <p className="text-gray-400 animate-pulse">Waiting for answer</p>
-
-                  <button
-                    onClick={handleEndCall}
-                    className="mt-8 bg-red-500 hover:bg-red-600 text-white rounded-full p-4"
-                  >
-                    End Call
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="h-screen bg-black text-white flex items-center justify-center">
+            <h2>Audio Call Connected</h2>
           </div>
         </StreamTheme>
       </StreamCall>

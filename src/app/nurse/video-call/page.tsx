@@ -27,8 +27,6 @@ export default function NurseVideoCallPage() {
   const patientName = searchParams.get("patientName") || "Patient";
   const patientId = searchParams.get("patientId");
   const callId = searchParams.get("callId");
-  const channelId = searchParams.get("channelId");
-  const bookingId = searchParams.get("bookingId");
   const isAccepting = searchParams.get("isAccepting") === "true";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
@@ -115,17 +113,19 @@ export default function NurseVideoCallPage() {
           }
         };
 
-        // 1️⃣ ACCEPT FIRST (this requires nurse already added as member)
-        try {
-          await call.accept();
-        } catch (e) {
-          console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
+        //  JOIN first to ensure we are part of the call object
+        await call.join({ create: true, data: callData });
+
+        //  ACCEPT SECOND (this requires we are already added as member from join)
+        if (searchParams.get("isAccepting") === "true") {
+          try {
+            await call.accept();
+          } catch (e) {
+            console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
+          }
         }
 
-        // 2️⃣ JOIN after accepting
-        await call.join();
-
-        // 3️⃣ Enable media
+        //  Enable media
         try {
           await call.camera.enable();
           await call.microphone.enable();
@@ -281,103 +281,3 @@ export default function NurseVideoCallPage() {
   );
 }
 
-// "use client";
-
-// import { useEffect, useRef, useState } from "react";
-// import { useSearchParams, useRouter } from "next/navigation";
-// import {
-//   StreamVideo,
-//   StreamCall,
-//   StreamTheme,
-//   StreamVideoClient,
-// } from "@stream-io/video-react-sdk";
-// import "@stream-io/video-react-sdk/dist/css/styles.css";
-// import { useAuth } from "@/contexts/AuthContext";
-// import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
-// import VideoCallScreen from "@/components/VideoCallScreen";
-// import { getVideoClient } from "@/lib/streamVideo";
-// import { toast } from "sonner";
-
-// export default function NurseVideoCallPage() {
-//   const { user } = useAuth();
-//   const router = useRouter();
-//   const params = useSearchParams();
-//   const [generateTokenForUser] = useGenerateTokenForUserMutation();
-
-//   const callId = params.get("callId")!;
-//   const patientName = params.get("patientName") || "Patient";
-
-//   const [client, setClient] = useState<StreamVideoClient | null>(null);
-//   const [call, setCall] = useState<any>(null);
-//   const [waiting, setWaiting] = useState(true);
-
-//   const hasInit = useRef(false);
-
-//   useEffect(() => {
-//     if (!user || hasInit.current) return;
-//     hasInit.current = true;
-
-//     const init = async () => {
-//       try {
-//         const res = await generateTokenForUser({ userId: user.uid }).unwrap();
-//         const token = res.videoToken || res.streamToken || res.token;
-
-//         const videoClient = getVideoClient(
-//           res.apiKey || "4g6sfwegs7he",
-//           {
-//             id: user.uid,
-//             name: user.displayName || "Nurse",
-//           },
-//           token
-//         );
-
-//         const streamCall = videoClient.call("default", callId);
-
-//         // JOIN FIRST ✅
-//         await streamCall.join();
-
-//         // ACCEPT SECOND ✅
-//         await streamCall.accept();
-
-//         await streamCall.camera.enable();
-//         await streamCall.microphone.enable();
-
-//         streamCall.on("call.ended", () => router.back());
-
-//         setWaiting(false);
-//         setClient(videoClient);
-//         setCall(streamCall);
-//       } catch (e) {
-//         console.error(e);
-//         toast.error("Failed to join call");
-//         router.back();
-//       }
-//     };
-
-//     init();
-//   }, [user]);
-
-//   const handleEnd = async () => {
-//     if (!call) return;
-//     await call.endCall();
-//     router.back();
-//   };
-
-//   if (!client || !call) {
-//     return <div className="h-screen flex items-center justify-center">Connecting…</div>;
-//   }
-
-//   return (
-//     <StreamVideo client={client}>
-//       <StreamCall call={call}>
-//         <StreamTheme>
-//           <VideoCallScreen
-//             patientName={patientName}
-//             onLeave={handleEnd}
-//             isWaitingForAcceptance={waiting}
-//           />
-//         </StreamTheme>
-//       </StreamCall>
-//     </StreamVideo>
-//   );
-// }
