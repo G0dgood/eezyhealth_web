@@ -470,7 +470,10 @@ export default function NurseMessagePage() {
             const callId = incomingCall.id;
             const customData = incomingCall.state?.custom;
             const rawType = (customData?.callType as string | undefined) || "";
-            const callType = rawType === "video" ? "video" : "audio";
+
+            const isVideoFromString = callId.includes('-video-');
+            const isAudioFromString = callId.includes('-audio-');
+            const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
 
             const params = new URLSearchParams({
               callId: callId || "",
