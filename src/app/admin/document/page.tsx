@@ -6,6 +6,8 @@ import Pagination from "@/components/Pagination";
 import Button from "@/components/Button";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
+import Breadcrumb from "@/components/Breadcrumb";
+import PageHeader from "@/components/PageHeader";
 import DocumentReviewModal from "@/components/modals/DocumentReviewModal";
 import { useGetUploadsQuery } from "@/store/uploadApi";
 import FormattedDate from "@/utils/FormattedDate";
@@ -144,7 +146,19 @@ export default function DocumentPage() {
 
   return (
     <div>
-      <Title title="Uploads" />
+      <div className="mb-6">
+        <Breadcrumb
+          items={[
+            { label: "Admin", href: "/admin" },
+            { label: "Documents" },
+          ]}
+        />
+      </div>
+
+      <PageHeader
+        title="Documents"
+        description="Review and manage medical and credential document uploads from doctors."
+      />
 
       {/* Search */}
       <div className="mb-6">

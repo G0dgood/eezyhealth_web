@@ -9,9 +9,31 @@ export const adminApi = api.injectEndpoints({
         params,
       }),
     }),
+
+    // ===== CONTACTS =====
+    getContacts: builder.query({
+      query: (params) => ({
+        url: "/getContacts",
+        params,
+      }),
+      providesTags: ["Contacts"],
+    }),
+
+    updateContactStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: "/updateContactStatus",
+        method: "POST",
+        body: { id, status },
+      }),
+      invalidatesTags: ["Contacts"],
+    }),
   }),
 });
 
-export const { useGetAdminDashboardQuery } = adminApi;
+export const {
+  useGetAdminDashboardQuery,
+  useGetContactsQuery,
+  useUpdateContactStatusMutation,
+} = adminApi;
 
 

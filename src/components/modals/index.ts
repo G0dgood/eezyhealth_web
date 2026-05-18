@@ -15,3 +15,4 @@ export { default as CancelAppointmentModal } from './CancelAppointmentModal';
 export { default as BookingDetailModal } from './BookingDetailModal';
 export { default as AddVitalsModal } from './AddVitalsModal';
 export { default as VitalsModal } from './VitalsModal';
+export { default as ContactDetailsModal } from './ContactDetailsModal';
