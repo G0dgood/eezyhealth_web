@@ -437,12 +437,16 @@ export default function AdminNursesPage() {
         <Title title="Nurse Management" />
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+
+<div className="flex-1 max-w-md"> 
+
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="Search nurses..."
             className="w-full sm:w-64 max-w-none"
           />
+          </div>
           <Button
             variant="primary"
             onClick={() => setIsAddModalOpen(true)}

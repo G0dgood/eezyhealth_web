@@ -26,10 +26,26 @@ export function useFCMToken() {
            // Get VAPID key from env or fallback (it's optional for some setups but recommended)
            // If missing, getToken might throw or work depending on project config.
            const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+
+           // Register service worker explicitly to avoid "Registration failed - push service error"
+           let serviceWorkerRegistration = undefined;
+           if ('serviceWorker' in navigator) {
+             try {
+               serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+             } catch (error) {
+               console.error('Service Worker registration failed:', error);
+             }
+           }
            
-           const currentToken = await getToken(messaging, {
-             vapidKey
-           });
+           const options: any = {};
+           if (serviceWorkerRegistration) {
+             options.serviceWorkerRegistration = serviceWorkerRegistration;
+           }
+           if (vapidKey) {
+             options.vapidKey = vapidKey;
+           }
+           
+           const currentToken = await getToken(messaging, options);
            
            if (currentToken) {
              setToken(currentToken);
@@ -43,12 +59,10 @@ export function useFCMToken() {
                  if (userData.fcmToken !== currentToken) {
                      await updateDoc(userRef, {
                        fcmToken: currentToken
-                     });
-                     console.log("FCM Token updated in Firestore");
+                     }); 
                  }
              }
-           } else {
-             console.log('No registration token available.');
+           } else { 
            }
         } else if (permission === 'default') {
            // We can request permission here, or let the UI trigger it.

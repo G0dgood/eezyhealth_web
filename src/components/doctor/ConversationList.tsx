@@ -1,6 +1,8 @@
 import React from "react";
 import { Search } from "lucide-react";
 import Input from "@/components/Input";
+import FormattedDate from "@/components/FormattedDate";
+import TruncatedText from "@/components/TruncatedText";
 
 export interface BookingData {
   userId: string;
@@ -12,6 +14,8 @@ export interface BookingData {
   isOnline?: boolean;
   date?: string;
   bookingId?: string;
+  patientId?: string;
+  doctorId?: string;
   [key: string]: unknown;
 }
 
@@ -40,9 +44,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
   };
 
   return (
-    <div className="w-full lg:w-[400px] bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className={`w-full lg:w-[400px] bg-white border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
       <div className="p-6 h-[80px] border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+        <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900">Messages</h2>
       </div>
 
       {/* Search Bar */}
@@ -55,7 +59,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             startIcon={<Search className="w-4 h-4 text-gray-400" />}
             fullWidth
-            className="text-[10px] md:text-[12px]"
+            className=" text-[10px]  md:text-[12px]"
           />
         </div>
       </div>
@@ -101,13 +105,15 @@ const ConversationList: React.FC<ConversationListProps> = ({
                       patient.first_name ||
                       "Unknown Patient"}
                   </h3>
-                  <span className="text-xs text-gray-500">
-                    {patient.timestamp || "Recently"}
-                  </span>
+                  <FormattedDate
+                    timestamp={patient.timestamp}
+                    className="text-xs text-gray-500"
+                  />
                 </div>
-                <p className="text-[10px] md:text-[12px] text-gray-600 truncate mt-1">
-                  {patient.lastMessage || "No messages yet"}
-                </p>
+                <TruncatedText
+                  text={patient.lastMessage || "No messages yet"}
+                  className="text-[10px] md:text-[12px] text-gray-600 mt-1"
+                />
               </div>
             </div>
           </div>

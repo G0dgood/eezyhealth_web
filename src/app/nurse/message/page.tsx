@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Video, Phone, ChevronLeft } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Phone, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,7 +43,8 @@ export default function NurseMessagePage() {
   const [incomingCall, setIncomingCall] = useState<Call | null>(null);
 
   // Fetch bookings using RTK Query
-  const { data: bookingsData, error, isLoading } = useGetFirebaseBookingsQuery({});
+  // Use undefined or a stable object to prevent infinite re-renders if passing new object literal
+  const { data: bookingsData, error, isLoading } = useGetFirebaseBookingsQuery(undefined);
 
   // Show error toast when there's an error
   useEffect(() => {
@@ -51,36 +52,57 @@ export default function NurseMessagePage() {
       showError("Error", "Failed to load bookings. Please try again.");
     }
   }, [error]);
-  console.log('bookingsData', bookingsData)
 
   // Map bookings to patients, ensuring uniqueness
-  const uniquePatients: PatientData[] = bookingsData
-    ? [
-      ...new Map(
-        bookingsData
-          .filter((booking: any) => booking.userId) // Ensure userId exists
-          .map((booking: any) => [
-            booking.userId,
-            {
-              id: booking.userId,
-              uid: booking.userId,
-              patientName: booking.patientName || booking.first_name || "Unknown Patient",
-              photo_url: booking.photo_url || booking.patientImage,
-              lastMessage: booking.lastMessage || "No messages yet",
-              isOnline: booking.isOnline || false,
-              timestamp: booking.date || "",
-              bookingId: booking.bookingId || booking.id, // Add bookingId for channel creation
-              doctorId: booking.doctorId, // Add doctorId
-            },
-          ])
-      ).values(),
-    ]
-    : [];
+  const uniquePatients: PatientData[] = useMemo(() => {
+    if (!bookingsData) return [];
+
+    // Sort bookings by created time descending (Newest first) to prioritize latest messages
+    const sortedBookings = [...bookingsData].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || a.createdTime || a.bookingDate || 0).getTime();
+      const dateB = new Date(b.createdAt || b.createdTime || b.bookingDate || 0).getTime();
+      return dateB - dateA;
+    });
+
+    const uniqueMap = new Map();
+
+    sortedBookings.forEach((booking: any) => {
+      // Create a composite key to allow same patient with different doctors
+      const compositeKey = `${booking.userId}-${booking.doctorId}`;
+
+      if (booking.userId && booking.doctorId && !uniqueMap.has(compositeKey)) {
+        uniqueMap.set(compositeKey, {
+          id: compositeKey, // Use composite key as ID
+          uid: booking.userId,
+          patientName: booking.patientName || booking.first_name || "Unknown Patient",
+          originalName: booking.patientName || booking.first_name || "Unknown Patient",
+          photo_url: booking.photo_url || booking.patientImage,
+          patientPhotoUrl: booking.patientPhotoUrl,
+          lastMessage: booking.consultationReason || booking.reason || "No messages yet",
+          isOnline: booking.isOnline || false,
+          timestamp: booking.bookingDate || booking.date || "",
+          bookingId: booking.bookingId, // Add bookingId for channel creation
+          doctorId: booking.doctorId, // Add doctorId
+          doctorName: booking.doctorName || "Doctor",
+          doctorPhotoUrl: booking.doctorPhotoUrl,
+          doctorPhoto: booking.doctorPhoto,
+        });
+      }
+    });
+
+    // Sort final list by newest timestamp first
+    return Array.from(uniqueMap.values()).sort((a: any, b: any) => {
+      const dateA = new Date(a.timestamp || 0).getTime();
+      const dateB = new Date(b.timestamp || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [bookingsData]);
 
   // Filter patients based on search term
-  const filteredPatients = uniquePatients.filter(patient =>
-    patient.patientName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPatients = useMemo(() => uniquePatients.filter(patient =>
+    patient.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.doctorName?.toLowerCase().includes(searchTerm.toLowerCase())
+  ), [uniquePatients, searchTerm]);
 
   // Initialize Stream Chat client
   useEffect(() => {
@@ -90,7 +112,6 @@ export default function NurseMessagePage() {
 
         // If chatInfo is missing or belongs to a different user, generate a new token
         if (user && (!chatInfo || chatInfo.chatUserId !== user.uid)) {
-          console.log("Chat info mismatch or missing, generating new token for", user.uid);
           try {
             const tokenResponse = await generateTokenForUser({
               userId: user.uid,
@@ -151,8 +172,8 @@ export default function NurseMessagePage() {
   }, [user, generateTokenForUser]);
 
   // Handle patient selection and channel creation
-  const handlePatientSelect = async (patient: PatientData, index: number) => {
-    setSelectedConversation(`patient-${index}`);
+  const handlePatientSelect = async (patient: PatientData) => {
+    setSelectedConversation(patient.id);
 
     if (!chatClient || !user) {
       showError("Error", "Chat not initialized. Please login again.");
@@ -161,7 +182,6 @@ export default function NurseMessagePage() {
 
     // Determine the other user's ID (patient's ID)
     const otherUserId = patient.uid || patient.id;
-    const bookingId = patient.bookingId;
 
     if (!otherUserId) {
       showError("Error", "Cannot start chat: Invalid patient ID");
@@ -212,9 +232,9 @@ export default function NurseMessagePage() {
         setVideoClient(_videoClient);
       }
 
-      // Create/Get channel using bookingId as ID
-      if (bookingId && patient.doctorId) {
-        const channelId = `${bookingId}`;
+      // Create/Get channel using composite ID (patientId-doctorId)
+      if (otherUserId && patient.doctorId) {
+        const channelId = `${otherUserId}-${patient.doctorId}`;
 
         let channel;
 
@@ -240,7 +260,9 @@ export default function NurseMessagePage() {
           }
 
           // Watch the channel without asserting members (assumes we are now a member)
-          channel = proxyClient.channel('messaging', channelId);
+          channel = proxyClient.channel('messaging', channelId, {
+            image: patient.doctorPhotoUrl || patient.doctorPhoto
+          });
         }
 
         await channel.watch();
@@ -299,9 +321,9 @@ export default function NurseMessagePage() {
     });
 
     if (callType === 'audio') {
-        router.push(`/nurse/audio-call?${params.toString()}`);
+      router.push(`/nurse/audio-call?${params.toString()}`);
     } else {
-        router.push(`/nurse/video-call?${params.toString()}`);
+      router.push(`/nurse/video-call?${params.toString()}`);
     }
   };
 
@@ -310,13 +332,11 @@ export default function NurseMessagePage() {
     if (!videoClient) return;
 
     const unsubscribeCreated = videoClient.on('call.created', (event: any) => {
-      console.log("Call created:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
     });
 
     const unsubscribeRing = videoClient.on('call.ring', (event: any) => {
-      console.log("Call ringing:", event);
       const call = videoClient.call(event.call.type, event.call.id);
       setIncomingCall(call);
     });
@@ -333,7 +353,7 @@ export default function NurseMessagePage() {
 
   // Try to find active conversation based on selection
   const selectedPatient = selectedConversation
-    ? uniquePatients.find((_, i) => `patient-${i}` === selectedConversation)
+    ? uniquePatients.find((p) => p.id === selectedConversation)
     : null;
 
   const activeConversation = selectedPatient
@@ -341,6 +361,8 @@ export default function NurseMessagePage() {
       id: selectedConversation,
       patientName: selectedPatient.patientName,
       photo_url: selectedPatient.photo_url,
+      doctorName: selectedPatient.doctorName,
+      doctorPhotoUrl: selectedPatient.doctorPhotoUrl || selectedPatient.doctorPhoto,
       lastMessage: "",
       timestamp: "",
       isActive: true,
@@ -352,7 +374,7 @@ export default function NurseMessagePage() {
     <div className="flex h-[calc(100vh-64px)] bg-gray-50">
       {/* Left Column - Messages List */}
       {chatClient && activeChannel ? (
-        <div className="w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
+        <div className="hidden lg:block w-auto lg:w-[300px] bg-white border-r border-gray-200 p-4">
           <button
             onClick={() => {
               setSelectedConversation("");
@@ -393,34 +415,32 @@ export default function NurseMessagePage() {
               </button>
             </div>
 
-            <Chat client={chatClient} theme="messaging light">
-              <Channel channel={activeChannel}>
-                <Window>
-                  <div className="relative">
-                    <ChannelHeader />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
-                      <button
-                        onClick={() => handleStartCall('audio')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
-                        title="Voice Call"
-                      >
-                        <Phone className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleStartCall('video')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
-                        title="Video Call"
-                      >
-                        <Video className="w-5 h-5" />
-                      </button>
+            <div className="flex-1 min-h-0">
+              <Chat client={chatClient} theme="messaging light">
+                <Channel channel={activeChannel}>
+                  <Window>
+                    <div className="relative">
+                      <ChannelHeader
+                        title={activeConversation?.doctorName}
+                        image={activeConversation?.doctorPhotoUrl}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
+                        <button
+                          onClick={() => handleStartCall('audio')}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
+                          title="Voice Call"
+                        >
+                          <Phone className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <MessageList />
-                  <MessageInput />
-                </Window>
-                <Thread />
-              </Channel>
-            </Chat>
+                    <MessageList />
+                    <MessageInput />
+                  </Window>
+                  <Thread />
+                </Channel>
+              </Chat>
+            </div>
           </div>
         ) : activeConversation ? (
           // Fallback to dummy UI if Stream Chat isn't ready but a conversation is selected
@@ -449,8 +469,12 @@ export default function NurseMessagePage() {
           onAccept={() => {
             const callId = incomingCall.id;
             const customData = incomingCall.state?.custom;
-            const callType = (customData?.callType as string) || 'video';
-            
+            const rawType = (customData?.callType as string | undefined) || "";
+
+            const isVideoFromString = callId.includes('-video-');
+            const isAudioFromString = callId.includes('-audio-');
+            const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
+
             const params = new URLSearchParams({
               callId: callId || "",
               callType,
@@ -458,11 +482,11 @@ export default function NurseMessagePage() {
               isAccepting: "true",
               channelId: activeChannel?.id || "",
             });
-            
-            if (callType === 'audio') {
-                router.push(`/nurse/audio-call?${params.toString()}`);
+
+            if (callType === "audio") {
+              router.push(`/nurse/audio-call?${params.toString()}`);
             } else {
-                router.push(`/nurse/video-call?${params.toString()}`);
+              router.push(`/nurse/video-call?${params.toString()}`);
             }
             setIncomingCall(null);
           }}

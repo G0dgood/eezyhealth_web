@@ -85,7 +85,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
 
 	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
 		// Check HTML5 validation on blur
-		const input = e.target;
+		const input = e.target as HTMLInputElement;
 		if (input.validity && !input.validity.valid && !internalError && variant !== 'error') {
 			// Only set internal error if variant is not already error
 			let errorMsg = '';
@@ -117,7 +117,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
 		// Prevent default browser validation message
 		e.preventDefault();
 		// Set internal error based on validity
-		const input = e.target;
+		const input = e.target as HTMLInputElement;
 		if (!internalError) {
 			let errorMsg = '';
 			if (input.validity.valueMissing && required) {
@@ -183,7 +183,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
 							} catch {
 								// Fallback: simulate click on the input
 								inputElement.click();
-								console.log('showPicker failed, using click fallback');
 							}
 						} else {
 							// Fallback for browsers without showPicker

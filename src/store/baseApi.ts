@@ -33,6 +33,7 @@ export const api = createApi({
     "Specialization",
     "PatientAppointments",
     "PatientVitals",
+    "Contacts",
   ],
   endpoints: () => ({}),
 });

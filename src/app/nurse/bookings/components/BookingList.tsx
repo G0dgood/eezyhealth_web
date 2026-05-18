@@ -28,8 +28,6 @@ interface Booking {
 const BookingList = () => {
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-  console.log('bookings------>', bookings)
-
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -99,13 +97,13 @@ const BookingList = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th >Patient Name</th>
-                  <th >Doctor</th>
-                  <th >Date</th>
-                  <th >Time</th>
-                  <th >Channel</th>
-                  <th >Specialty</th>
-                  <th >Status</th>
+                  <th>Patient Name</th>
+                  <th>Doctor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Channel</th>
+                  <th>Specialty</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -172,7 +170,6 @@ const BookingList = () => {
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
             itemLabel="bookings"
-
           />
         </div>
       )}

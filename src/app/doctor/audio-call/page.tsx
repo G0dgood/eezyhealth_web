@@ -94,20 +94,28 @@ export default function DoctorAudioCallPage() {
         const streamCall = videoClient.call("default", callId);
 
         // 1. Join call as doctor
-        await streamCall.join({ create: isCaller });
-
-        // 2. Ensure patient is added BEFORE ringing
-        if (isCaller && patientId) {
-          try {
-            await streamCall.updateCallMembers({
-              update_members: [{ user_id: patientId }]
-            });
-          } catch (e) {
-            console.warn("Update members failed, trying getOrCreate fallback...", e);
-            await streamCall.getOrCreate({
-              data: { members: [{ user_id: user.uid }, { user_id: patientId }] }
-            });
+        const callData = {
+          members: [{ user_id: user.uid }, { user_id: patientId! }],
+          custom: {
+            callType: 'audio',
+            callerName: user.displayName || "Doctor",
+            callerImage: user.photoURL || "",
+            callerId: user.uid
           }
+        };
+
+        await streamCall.join({
+          create: true,
+          data: callData
+        });
+
+        // Explicitly update to overwrite any existing callType on this channel/callId
+        await streamCall.update({ custom: callData.custom });
+
+        // 2. Ring ONLY ONCE
+        if (!hasRungRef.current) {
+          await streamCall.ring();
+          hasRungRef.current = true;
         }
 
         // Audio mode: disable camera, enable mic
@@ -118,26 +126,14 @@ export default function DoctorAudioCallPage() {
           console.warn("Could not set audio-only mode", e);
         }
 
-        if (isCaller) {
-          try {
-            if (!hasRungRef.current) {
-              console.log("Attempting to ring patient:", patientId);
-              await streamCall.ring();
-              hasRungRef.current = true;
-            }
-          } catch (e) {
-            console.error("Failed to ring call:", e);
-          }
-        }
-
         streamCall.on("call.accepted", () => setWaiting(false));
         streamCall.on("call.ended", () => router.push("/doctor/message"));
 
         setClient(videoClient);
         setCall(streamCall);
-      } catch (err) {
-        console.error(err);
-        toast.error("Unable to start call");
+      } catch (err: any) {
+        console.error("STREAM ERROR:", err);
+        toast.error(`Unable to start call: ${err?.message || 'Unknown error'}`);
         router.back();
       }
     };
@@ -178,9 +174,6 @@ export default function DoctorAudioCallPage() {
     return () => clearInterval(interval);
   }, [call, waiting]);
 
-  const formatTime = (s: number) =>
-    `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
-
   if (!client || !call) {
     return (
       <div className="flex flex-col items-center justify-center bg-black text-white "
@@ -194,41 +187,14 @@ export default function DoctorAudioCallPage() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme>
-          <div className="relative bg-black h-full"
-            style={{ height: "90dvh" }}>
-
-            <AudioCallScreen onLeave={handleCancelCall} />
-
-            {/* WAITING OVERLAY */}
-            {waiting && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center text-white z-50">
-                <div className="text-center">
-                  <div className="w-24 h-24 rounded-full bg-gray-700 mx-auto mb-4 flex items-center justify-center text-3xl">
-                    {patientName.charAt(0)}
-                  </div>
-                  <h2 className="text-2xl font-semibold">
-                    Calling {patientName}…
-                  </h2>
-                  <p className="opacity-60 animate-pulse mt-2">
-                    Waiting for answer
-                  </p>
-
-                  <button
-                    onClick={handleCancelCall}
-                    className="mt-6 bg-red-600 px-6 py-3 rounded-full"
-                  >
-                    Cancel Call
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* TIMER (Also visible for Audio call in Doctor view based on previous logic) */}
-            {!waiting && (
-              <div className="absolute top-4 left-4 bg-black/60 px-3 py-1 rounded-full text-white  !text-[10px]  !md:text-[12px]">
-                {formatTime(duration)}
-              </div>
-            )}
+          <div className="bg-black h-full" style={{ height: "90dvh" }}>
+            <AudioCallScreen
+              name={patientName}
+              isConnected={!waiting}
+              duration={duration}
+              onEnd={handleCancelCall}
+              call={call}
+            />
           </div>
         </StreamTheme>
       </StreamCall>

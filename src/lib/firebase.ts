@@ -16,8 +16,7 @@ export let messaging: Messaging | null = null;
 if (typeof window !== "undefined") {
   try {
     messaging = getMessaging(app);
-  } catch (err) {
-    console.log("Firebase Messaging not supported in this browser or environment", err);
+  } catch (err) { 
   }
 }
 
@@ -112,6 +111,18 @@ if (process.env.NODE_ENV === 'development') {
     // Filter out Stream internal coordinator logs
     if (errorMessage.includes('[coordinator]') || errorMessage.includes('/ring')) {
       return; // Don't log Stream internal coordinator logs
+    }
+    
+    // Filter out Firestore backend connection/offline warning messages
+    if (errorMessage.includes('Could not reach Cloud Firestore backend') || 
+        errorMessage.includes("Backend didn't respond within 10 seconds") ||
+        errorMessage.includes('Failed to get document because the client is offline')) {
+      return; // Don't log Firestore offline connection warnings
+    }
+    
+    // Filter out User not found errors during user fetching in development
+    if (errorMessage.includes('User not found') || errorMessage.includes('Error fetching user data')) {
+      return; // Don't log "User not found" errors to console
     }
     
     originalConsoleError.apply(console, args);

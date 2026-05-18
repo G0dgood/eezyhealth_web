@@ -1,63 +1,65 @@
-// Payment related types
-export interface Payment {
-  transactionId: string;
-  patient: string;
-  doctor: string;
-  date: string;
-  amount: string;
-  method: string;
-  status: string;
-}
-
-// Doctor Payment types
-export interface DoctorPayment {
-  id?: string;
-  amount: number;
-  bookingDate: string;
-  channel: string;
-  createdAt: string;
-  currency: string;
-  doctorId: string;
-  patientId: string;
+export interface StandardBookingData {
+  userId: string;
   patientName: string;
-  paymentDate: string;
-  paymentMethod: string;
-  paymentReference: {
-    message: string;
-    redirecturl: string;
-    reference: string;
-    status: string;
-    trans: string;
-    transaction: string;
-    trxref: string;
+  doctorId: string;
+  doctorName: string;
+  specialization: string;
+  doctorPhotoUrl: string | null;
+  hospital: string;
+  photo_url: string;
+  bookingDate: {
+    _seconds: number;
+    _nanoseconds: number;
   };
-  paymentStatus: string;
-  reason: string;
   slot: string;
-  transactionId: {
-    message: string;
-    redirecturl: string;
-    reference: string;
-    status: string;
-    trans: string;
-    transaction: string;
-    trxref: string;
+  bookingChannel: string;
+  bookingStatus: string;
+  paymentStatus: string;
+  comments: unknown[];
+  patientAddress: string;
+  bookingId: string;
+  updatedAt?: string;
+  patientAge?: number;
+  reason?: string;
+  contactNumber?: string;
+}
+
+export interface RawBookingData {
+  userId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  specialization: string;
+  doctorPhotoUrl?: string | null;
+  hospital: string;
+  photo_url: string;
+  bookingDate: string | { _seconds: number; _nanoseconds: number };
+  slot: string;
+  bookingChannel: string;
+  bookingStatus: string;
+  paymentStatus: string;
+  comments: unknown[];
+  patientAddress: string;
+  bookingId: string;
+  updatedAt?: string;
+  patientAge?: number | string;
+  reason?: string;
+  description?: string;
+  contactNumber?: string;
+  patient?: {
+    age?: number;
+    phone?: string;
+    name?: string;
   };
-  updatedAt: string;
 }
 
-export interface PaymentFilterData {
-  dateRange: string;
-  paymentStatus: DoctorPaymentStatus | "";
-}
+export type AppointmentStatus = "pending" | "completed" | "cancelled";
+export type AppointmentChannel = "videoCall" | "chat" | "voiceCall";
 
-export type DoctorPaymentStatus = "Completed" | "Pending" | "Failed" | "Refunded";
-
-// Doctor Appointment types
 export interface DoctorAppointment {
   id: string;
-  patientId?: string;
   patientName: string;
+  patientId: string;
   date: string;
   time: string;
   channel: AppointmentChannel;
@@ -69,143 +71,58 @@ export interface DoctorAppointment {
   heartRate: string;
   reason: string;
   consultationNote: string;
-  doctorRecommendation?: string;
-  diagnosis?: string;
-  prescriptions?: string[];
+  doctorRecommendation: string;
+  diagnosis: string;
+  prescriptions: string[];
 }
 
-export type AppointmentStatus = "pending" | "completed" | "cancelled";
-export type AppointmentChannel = "videoCall" | "chat" | "voiceCall";
-
-// User related types
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-}
-
-// Doctor related types
-export interface Doctor {
-  id: string;
-  name: string;
-  specialization: string;
-  email: string;
-  phone: string;
-  status: string;
-}
-
-// Patient related types
-export interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  status: string;
-}
-
-// Appointment related types
-export interface Appointment {
-  id: string;
-  patientName: string;
-  doctorName: string;
-  date: string;
-  time: string;
-  status: string;
-  type: string;
-}
-
-// Booking cancellation types
-export interface BookingCancellation {
-  doctor: string;
-  patientName: string;
-  userId: string;
-  date: string;
-  status: string;
-}
-
-// Vital signs types
-export interface VitalSigns {
-  id: string;
-  patientName: string;
-  temperature: string;
-  bloodPressure: string;
-  heartRate: string;
-  respiratoryRate: string;
-  date: string;
-}
-
-// Table column types
-export interface TableColumn<T = unknown> {
-  key: string;
-  label: string;
-  render?: (value: string | number, row: T) => React.ReactNode;
-}
-
-// Breadcrumb item type
-export interface BreadcrumbItem {
-  label: string;
-  href?: string;
-}
-
-// Modal props type
-export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  children: React.ReactNode;
-}
-
-// Form input types
-export interface FormInputProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  error?: string;
-}
-
-// Status types
-export type StatusType = 'pending' | 'approved' | 'rejected' | 'completed' | 'failed';
-
-// Payment method types
-export type PaymentMethod = 'Credit Card' | 'Bank Transfer' | 'Cash' | 'Mobile Money';
-
-// User role types
-export type UserRole = 'admin' | 'doctor' | 'nurse' | 'patient';
-
-// Define the Firebase data structure for booking cancellations
 export interface FirebaseBookingCancellation {
   id: string;
-  bookingChannel?: string;
-  bookingDate?: string; // ISO date string from Firebase
   bookingId?: string;
-  bookingStatus?: string;
-  comments?: unknown[];
-  doctorId?: string;
   doctorName?: string;
-  doctorPhotoUrl?: string;
-  hospital?: string;
-  patientAddress?: string;
   patientName?: string;
-  paymentStatus?: string;
-  photo_url?: string;
-  slot?: string;
-  specialization?: string;
   userId?: string;
+  bookingDate?: string | { seconds: number; nanoseconds: number };
+  bookingStatus?: string;
+  hospital?: string;
+  specialization?: string;
   cancellationRequest?: {
-    status?: string;
+    status: string;
     reason?: string;
-    requestedAt?: string; // ISO date string from Firebase
     adminResponse?: string;
-    respondedAt?: string; // ISO date string from Firebase
+    respondedAt?: string;
     respondedBy?: string;
   };
+  [key: string]: unknown;
+}
+
+export type DoctorPaymentStatus = "Completed" | "Pending" | "Failed" | "Refunded";
+
+export interface DoctorPayment {
+  id: string;
+  patientName: string;
+  amount: number;
+  paymentMethod: string;
+  paymentStatus: DoctorPaymentStatus;
+  transactionId: {
+    reference: string;
+  };
+  paymentReference: {
+    reference: string;
+  };
+  slot: string;
+  date?: string;
+}
+
+export interface PaymentFilterData {
+  dateRange: string;
+  paymentStatus: DoctorPaymentStatus | "";
+}
+
+export interface TableColumn<T = any> {
+  key: string;
+  label: string;
+  render?: (value: any, row: T) => any;
 }
 
 export interface AppointmentData {
@@ -215,172 +132,94 @@ export interface AppointmentData {
   reason: string;
 }
 
-// ===== ERROR HANDLING TYPES =====
-
-// Base error interface
-export interface AppError {
-  message: string;
+// Error Handling Types
+export interface AppError extends Error {
   code?: string;
   status?: number | string;
+  data?: unknown;
   details?: unknown;
 }
 
-// API error types
 export interface ApiError extends AppError {
   status: number;
-  endpoint?: string;
-  method?: string;
-  timestamp?: string;
+  data?: unknown;
 }
 
-// Firebase error types
 export interface FirebaseError extends AppError {
   code: string;
-  path?: string;
-  operation?: string;
+  message: string;
+  name: string;
 }
 
-// Network error types
 export interface NetworkError extends AppError {
-  isNetworkError: boolean;
+  isNetworkError: true;
   retryable: boolean;
 }
 
-// Validation error types
-export interface ValidationError extends AppError {
-  field: string;
-  value: unknown;
-  rule: string;
+// Type Guards
+export function isAppError(error: unknown): error is AppError {
+  return error instanceof Error;
 }
 
-// Generic error handler function type
-export type ErrorHandler = (error: unknown) => void;
-
-// Error with context
-export interface ErrorWithContext extends AppError {
-  context: {
-    component?: string;
-    action?: string;
-    userId?: string;
-    timestamp: string;
-  };
+export function isApiError(error: unknown): error is ApiError {
+  return isAppError(error) && typeof (error as ApiError).status === 'number';
 }
 
-// RTK Query error types
-export interface RTKQueryError extends AppError {
-  status: number | string; // Override the base status to allow both number and string
-  data?: unknown;
-  originalStatus?: number;
-}
-
-// ===== ERROR UTILITY TYPES =====
-
-// Type guard for checking if value is an error
-export function isError(value: unknown): value is AppError {
+export function isFirebaseError(error: unknown): error is FirebaseError {
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    'message' in value &&
-    typeof (value as AppError).message === 'string'
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as FirebaseError).code === 'string' &&
+    (error as FirebaseError).code.startsWith('auth/') ||
+    (error as FirebaseError).code.startsWith('firestore/') ||
+    (error as FirebaseError).code.startsWith('storage/')
   );
 }
 
-// Type guard for checking if value is an API error
-export function isApiError(value: unknown): value is ApiError {
-  return isError(value) && 'status' in value && typeof (value as ApiError).status === 'number';
+export function isNetworkError(error: unknown): error is NetworkError {
+  return isAppError(error) && 'isNetworkError' in error && (error as NetworkError).isNetworkError === true;
 }
 
-// Type guard for checking if value is a Firebase error
-export function isFirebaseError(value: unknown): value is FirebaseError {
-  return isError(value) && 'code' in value && typeof (value as FirebaseError).code === 'string';
+export function isValidationError(error: unknown): boolean {
+  return isAppError(error) && error.message.toLowerCase().includes('validation');
 }
 
-// Type guard for checking if value is a network error
-export function isNetworkError(value: unknown): value is NetworkError {
-  return isError(value) && 'isNetworkError' in value && (value as NetworkError).isNetworkError === true;
+export function isRTKQueryError(error: unknown): error is { status: number | string; data: unknown } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error
+  );
 }
 
-// Type guard for checking if value is a validation error
-export function isValidationError(value: unknown): value is ValidationError {
-  return isError(value) && 'field' in value && typeof (value as ValidationError).field === 'string';
+export function isError(error: unknown): error is Error {
+  return error instanceof Error;
 }
 
-// Type guard for checking if value is an RTK Query error
-export function isRTKQueryError(value: unknown): value is RTKQueryError {
-  return isError(value) && 'status' in value;
-}
-
-// ===== ERROR MESSAGE EXTRACTORS =====
-
-// Extract error message from any error type
+// Error Helpers
 export function getErrorMessage(error: unknown): string {
-  if (isError(error)) {
-    return error.message;
-  }
-  
-  if (typeof error === 'string') {
-    return error;
-  }
-  
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  if (typeof error === 'object' && error !== null) {
-    // Try to extract message from common error objects
-    const errorObj = error as Record<string, unknown>;
-    
-    if ('message' in errorObj && typeof errorObj.message === 'string') {
-      return errorObj.message;
+  if (typeof error === 'string') return error;
+  if (isAppError(error)) return error.message;
+  if (isRTKQueryError(error)) {
+    if (typeof error.data === 'string') return error.data;
+    if (typeof error.data === 'object' && error.data !== null && 'message' in error.data) {
+      return (error.data as { message: string }).message;
     }
-    
-    if ('error' in errorObj && typeof errorObj.error === 'string') {
-      return errorObj.error;
-    }
-    
-    if ('msg' in errorObj && typeof errorObj.msg === 'string') {
-      return errorObj.msg;
-    }
+    return 'An unknown error occurred';
   }
-  
   return 'An unexpected error occurred';
 }
 
-// Extract error code from any error type
 export function getErrorCode(error: unknown): string | undefined {
-  if (isError(error) && error.code) {
-    return error.code;
-  }
-  
-  if (error instanceof Error && 'code' in error) {
-    const errorWithCode = error as Error & { code: unknown };
-    return typeof errorWithCode.code === 'string' ? errorWithCode.code : String(errorWithCode.code);
-  }
-  
-  if (typeof error === 'object' && error !== null && 'code' in error) {
-    const errorObj = error as Record<string, unknown>;
-    return String(errorObj.code);
-  }
-  
+  if (isFirebaseError(error)) return error.code;
+  if (isAppError(error)) return error.code;
   return undefined;
 }
 
-// Extract error status from any error type
-export function getErrorStatus(error: unknown): number | undefined {
-  if (isApiError(error)) {
-    return error.status;
-  }
-  
-  if (error instanceof Error && 'status' in error) {
-    const errorWithStatus = error as Error & { status: unknown };
-    return typeof errorWithStatus.status === 'number' ? errorWithStatus.status : undefined;
-  }
-  
-  if (typeof error === 'object' && error !== null && 'status' in error) {
-    const errorObj = error as Record<string, unknown>;
-    const status = errorObj.status;
-    return typeof status === 'number' ? status : undefined;
-  }
-  
+export function getErrorStatus(error: unknown): number | string | undefined {
+  if (isApiError(error)) return error.status;
+  if (isRTKQueryError(error)) return error.status;
+  if (isAppError(error)) return error.status;
   return undefined;
 }

@@ -27,8 +27,6 @@ export default function NurseVideoCallPage() {
   const patientName = searchParams.get("patientName") || "Patient";
   const patientId = searchParams.get("patientId");
   const callId = searchParams.get("callId");
-  const channelId = searchParams.get("channelId");
-  const bookingId = searchParams.get("bookingId");
   const isAccepting = searchParams.get("isAccepting") === "true";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
@@ -99,13 +97,14 @@ export default function NurseVideoCallPage() {
     let myCall: Call | undefined;
 
     const initCall = async () => {
+      if (!user) return;
       hasJoined.current = true;
       const call = client.call("default", callId);
       myCall = call;
 
       try {
         const callData = {
-          members: patientId && user?.uid ? [{ user_id: user.uid }, { user_id: patientId }] : undefined,
+          members: patientId && user?.uid ? [{ user_id: user?.uid || "" }, { user_id: patientId }] : undefined,
           custom: {
             doctorName: user?.displayName || "Nurse",
             doctorPhoto: user?.photoURL || "",
@@ -114,13 +113,19 @@ export default function NurseVideoCallPage() {
           }
         };
 
-        if (!isAccepting) {
-          await call.join({ create: true, data: callData });
-        } else {
-          await call.join();
+        //  JOIN first to ensure we are part of the call object
+        await call.join({ create: true, data: callData });
+
+        //  ACCEPT SECOND (this requires we are already added as member from join)
+        if (searchParams.get("isAccepting") === "true") {
+          try {
+            await call.accept();
+          } catch (e) {
+            console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
+          }
         }
 
-        // Enforce video mode
+        //  Enable media
         try {
           await call.camera.enable();
           await call.microphone.enable();
@@ -131,7 +136,8 @@ export default function NurseVideoCallPage() {
         setStreamCall(call);
       } catch (error) {
         console.error("Error joining call:", error);
-        toast.error("Failed to join call");
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        toast.error(`Failed to join call: ${errorMessage}`);
         router.back();
       }
     };
@@ -140,7 +146,10 @@ export default function NurseVideoCallPage() {
 
     return () => {
       if (myCall && !isCallEndedRef.current) {
-        myCall.leave();
+        myCall.leave().catch(err => {
+          console.warn("Failed to leave call:", err);
+          // toast.error(`Failed to leave call: ${err.message || err}`);
+        });
       }
     };
   }, [client, callId, isAccepting, patientId, user]);
@@ -154,6 +163,8 @@ export default function NurseVideoCallPage() {
         await streamCall.microphone.disable();
       } catch (e) {
         console.warn("Failed to disable devices", e);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to disable devices: ${errorMessage}`);
       }
     }
 
@@ -163,11 +174,21 @@ export default function NurseVideoCallPage() {
         callerName: user?.displayName || "Nurse",
         callId: callId || '',
         callType: 'video',
-      }).catch(err => console.error("Failed to notify missed call", err));
+      }).catch(err => {
+        console.error("Failed to notify missed call", err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        toast.error(`Failed to notify missed call: ${errorMessage}`);
+      });
     }
 
     if (streamCall) {
-      await streamCall.endCall();
+      try {
+        await streamCall.endCall();
+      } catch (e) {
+        console.error("Failed to end call", e);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to end call: ${errorMessage}`);
+      }
     }
     router.back();
   };
@@ -259,3 +280,4 @@ export default function NurseVideoCallPage() {
     </StreamVideo>
   );
 }
+

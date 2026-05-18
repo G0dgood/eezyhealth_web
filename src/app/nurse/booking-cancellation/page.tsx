@@ -40,7 +40,7 @@ export default function NurseBookingCancellationPage() {
   // Use API data if available, otherwise fall back to mock data
   const dataSource = cancellations || [];
 
-  console.log('cancellations--->', cancellations)
+
 
   // Filter data based on search term
   const filteredData = useMemo(() => {
@@ -136,16 +136,12 @@ export default function NurseBookingCancellationPage() {
       </div>
 
       {/* Search and Actions */}
-      <div className="mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-        {/* Search Input */}
-        <div className="flex-1">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search cancellations..."
-          />
-        </div>
-
+      <div className="mb-6">
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search cancellations..."
+        />
       </div>
 
       {/* Cancellations Table */}

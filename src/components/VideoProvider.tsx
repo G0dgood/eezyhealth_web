@@ -71,7 +71,15 @@ export default function VideoProvider({
     if (!incomingCall) return;
 
     const callId = incomingCall.id;
-    const callType = incomingCall.state.custom?.callType || 'video';
+    const rawType = incomingCall.state.custom?.callType as string | undefined;
+
+    // Stream's backend sometimes holds stale custom data (like 'audio') if the room was ever used.
+    // However, our new Call IDs explicitly contain the current intent (e.g., "-video-" or "-audio-").
+    // We should give highest precedence to the embedded ID.
+    const isVideoFromString = callId.includes('-video-');
+    const isAudioFromString = callId.includes('-audio-');
+
+    const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
     const patientId = incomingCall.state.members.find((m: any) => m.user_id !== userId)?.user_id;
 
     // Navigate to the appropriate call page

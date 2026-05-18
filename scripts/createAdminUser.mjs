@@ -1,13 +1,7 @@
 import admin from "firebase-admin";
 
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.error("GOOGLE_APPLICATION_CREDENTIALS is not set.");
-  console.error(
-    "Set it to the path of your service account JSON, e.g.:"
-  );
-  console.error(
-    'export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey.json"'
-  );
+   
   process.exit(1);
 }
 
@@ -28,8 +22,7 @@ async function main() {
   try {
     let userRecord;
     try {
-      userRecord = await auth.getUserByEmail(email);
-      console.log("User already exists in Auth:", userRecord.uid);
+      userRecord = await auth.getUserByEmail(email); 
     } catch (err) {
       if (err.code === "auth/user-not-found") {
         userRecord = await auth.createUser({
@@ -38,8 +31,7 @@ async function main() {
           displayName,
           emailVerified: true,
           disabled: false,
-        });
-        console.log("Created new Auth user:", userRecord.uid);
+        }); 
       } else {
         throw err;
       }
@@ -65,10 +57,7 @@ async function main() {
     };
 
     await userDocRef.set(adminProfile, { merge: true });
-
-    console.log("Admin profile created/updated in Firestore `users` collection.");
-    console.log("You can now log in as:", email);
-    console.log("Initial password:", password);
+ 
   } catch (error) {
     console.error("Error creating admin user:", error);
     process.exit(1);

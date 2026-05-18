@@ -9,17 +9,80 @@
   --str-chat__message-text-color-mine: #ffffff;
 }
 
+[data-theme="dark"] {
+  --str-chat__surface-color: #1e293b;
+  --str-chat__secondary-surface-color: #0f172a;
+  --str-chat__primary-color: #22c55e;
+  --str-chat__active-primary-color: #3bb025;
+  --str-chat__message-bubble-background-color-mine: #22c55e;
+  --str-chat__message-text-color-mine: #ffffff;
+  --str-chat__message-bubble-background-color-received: #334155;
+  --str-chat__message-text-color-received: #f8fafc;
+  --str-chat__color-text: #f8fafc;
+}
+
 .str-chat__channel-header {
   border-bottom: 1px solid var(--border);
   height: 80px;
   padding: 1rem;
 }
 
+[data-theme="dark"] .str-chat__channel-header {
+  background-color: var(--card);
+  border-bottom-color: var(--border);
+  color: white;
+}
+
+[data-theme="dark"] .str-chat__channel-header .str-chat__header-livestream-left--title,
+[data-theme="dark"] .str-chat__channel-header .str-chat__header-livestream-left--members,
+[data-theme="dark"] .str-chat__channel-header .str-chat__header-livestream-left--subtitle {
+  color: white;
+}
+
 .str-chat__main-panel {
   background-color: white;
 }
 
+[data-theme="dark"] .str-chat__main-panel {
+  background-color: var(--background);
+}
+
 .str-chat__message-input {
   border-top: 1px solid var(--border);
-  padding: 1rem;
+  padding: 1.5rem 1rem !important;
+  min-height: 80px !important;
 }
+
+[data-theme="dark"] .str-chat__message-input {
+  background-color: var(--card);
+  border-top-color: var(--border);
+  color: white;
+}
+
+[data-theme="dark"] .str-chat__message-input .str-chat__message-textarea {
+  color: white !important;
+}
+
+.str-chat__message-input .str-chat__message-textarea-container .str-chat__message-textarea {
+  min-height: 30px !important;
+}
+
+[data-theme="dark"] .str-chat__list {
+  background-color: var(--background);
+}
+
+/* Empty Channel State */
+.str-chat__empty-channel {
+  background-color: var(--str-chat__surface-color);
+  color: #6b7280;
+}
+
+[data-theme="dark"] .str-chat__empty-channel {
+  background-color: var(--background);
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .str-chat__empty-channel p {
+  color: var(--str-chat__color-text);
+}
+

@@ -65,7 +65,7 @@ export default function Bookings() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-  // console.log("bookings", bookings);
+  
 
   // Handle error state
   useEffect(() => {

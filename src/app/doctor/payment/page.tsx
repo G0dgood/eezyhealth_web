@@ -145,7 +145,7 @@ export default function DoctorPaymentPage() {
     );
   };
 
-  console.log("Filtered Payments:", payments);
+
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {
@@ -180,8 +180,8 @@ export default function DoctorPaymentPage() {
 
       {/* Search and Filters */}
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-        <div className="flex-1 max-w-md">
+      <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
+        <div className="w-full md:flex-1 md:max-w-md">
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
@@ -189,7 +189,7 @@ export default function DoctorPaymentPage() {
           />
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 w-full md:w-auto">
           <Dropdown
             value={selectedFilters.paymentStatus}
             onChange={(value) =>

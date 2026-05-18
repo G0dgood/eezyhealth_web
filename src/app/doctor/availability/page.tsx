@@ -246,7 +246,7 @@ export default function DoctorAvailabilityPage() {
   const rawDoctorAvailability =
     (doctorDetails as DoctorProfile)?.availability || {};
 
-  // console.log("rawDoctorAvailability", rawDoctorAvailability);
+
 
   // Apply migration to convert 30-minute slots to 1-hour slots
   const migratedAvailability = useMemo(
@@ -254,7 +254,6 @@ export default function DoctorAvailabilityPage() {
     [rawDoctorAvailability],
   );
 
-  // console.log("migratedAvailability", migratedAvailability);
 
   // Clean invalid keys from availability data
   const doctorAvailability = useMemo(
@@ -262,7 +261,6 @@ export default function DoctorAvailabilityPage() {
     [migratedAvailability, timeSlots],
   );
 
-  // console.log("doctorAvailability", doctorAvailability);
 
   // Check if we have any existing availability
   const hasExistingAvailability =

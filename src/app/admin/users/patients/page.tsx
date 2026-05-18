@@ -1,105 +1,23 @@
 "use client";
-
-import { useState, useMemo, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  ArrowLeft,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, ArrowLeft, User } from "lucide-react";
+import { toast } from "sonner";
 import Input from "@/components/Input";
-import AddPatientModal, { PatientFormData } from "@/components/modals/AddPatientModal";
 import Breadcrumb from "@/components/Breadcrumb";
+import AddPatientModal, { PatientFormData } from "@/components/modals/AddPatientModal";
 import Link from "next/link";
 import { useGetFirebasePatientsQuery } from "@/store/patientApi";
-import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
 import Pagination from "@/components/Pagination";
-import Button from "@/components/Button";
-import { auth, createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
+import { createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
-interface FirebasePatient {
-  uid: string;
-  display_name?: string;
-  first_name?: string;
-  last_name?: string;
-  email: string;
-  phone_number?: string;
-  location?: string;
-  role: string;
-  isActive?: boolean;
-  date_of_birth?: string;
-  gender?: string;
-  photo_url?: string;
-  createdTime?: any;
-}
-
-interface Patient {
-  display_name: string;
-  name?: string;
-  location: string;
-  id: string;
-  email: string;
-  phone: string;
-  role: string;
-  status: string;
-  gender: string;
-  age: string | number;
-  lastConsultation: string;
-  photo_url?: string;
-}
-
-const calculateAge = (dobString?: string): string | number => {
-  if (!dobString) return "N/A";
-
-  try {
-    // Handle "DD/MM/YYYY" format
-    const parts = dobString.split('/');
-    if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; // Months are 0-indexed
-      const year = parseInt(parts[2], 10);
-
-      const birthDate = new Date(year, month, day);
-      const today = new Date();
-
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-
-      return isNaN(age) ? "N/A" : age;
-    }
-
-    // Try standard date parsing
-    const birthDate = new Date(dobString);
-    if (isNaN(birthDate.getTime())) return "N/A";
-
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
-    return age;
-  } catch (e) {
-    return "N/A";
-  }
-};
-
 export default function AdminPatientsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState<PatientFormData>({
     first_name: "",
@@ -136,7 +54,7 @@ export default function AdminPatientsPage() {
 
   const handleCloseAddModal = () => {
     resetForm();
-    setIsAddModalOpen(false);
+    setIsAddPatientModalOpen(false);
   };
 
   const handleSavePatient = async () => {
@@ -237,76 +155,67 @@ export default function AdminPatientsPage() {
     }
   };
 
-  // Fetch patients from Firebase
+  // Use RTK query to fetch patients
   const {
-    data: firebasePatients,
+    data: patientsData,
     isLoading,
     error,
     refetch,
   } = useGetFirebasePatientsQuery({});
 
-  // Map Firebase data to Patient interface
-  const dataSource: Patient[] = useMemo(() => {
-    if (!firebasePatients) return [];
+  // Use Firebase data if available
+  const dataSource = patientsData;
 
-    return (firebasePatients as unknown as FirebasePatient[]).map((p) => ({
-      id: p.uid,
-      display_name:
-        p.display_name ||
-        `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
-        "Unknown",
-      name:
-        p.display_name ||
-        `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
-        "Unknown",
-      location: p.location || "N/A",
-      email: p.email,
-      phone: p.phone_number || "N/A",
-      role: p.role,
-      status: p.isActive ? "Active" : "Inactive",
-      gender: p.gender || "N/A",
-      age: calculateAge(p.date_of_birth),
-      lastConsultation: "N/A", // Placeholder as it's not in user data
-      photo_url: p.photo_url,
-    }));
-  }, [firebasePatients]);
-
-  const itemsPerPage = 8;
-  const totalPages = Math.ceil((dataSource?.length ?? 0) / itemsPerPage);
-
-  const filteredData = useMemo(() => {
-    return dataSource.filter(
-      (patient) =>
-        patient?.display_name
+  // Filter patients based on search term
+  const filteredPatients =
+    dataSource?.filter(
+      (patient: Record<string, unknown> & { id: string }) =>
+        ((patient.display_name as string) || (patient.name as string))
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        (patient?.location && patient?.location?.includes(searchTerm)) ||
-        patient?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [dataSource, searchTerm]);
+        (patient.email as string)
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (patient.phone_number as string)?.includes(searchTerm)
+    ) || [];
 
-  // Get paginated data
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil((filteredPatients.length || 0) / 10);
 
-  // Handle API responses
+  // Handle errors and success with Sonner toast
   useEffect(() => {
     if (error) {
-      toast.error("Failed to load patients. Please try again.", {
+      toast.error("Failed to load patients", {
+        description:
+          "Please try again or contact support if the problem persists.",
         action: {
           label: "Retry",
-          onClick: () => refetch(),
+          onClick: () => {
+            toast.loading("Refreshing patients...");
+            refetch();
+          },
         },
+        duration: 10000,
       });
     }
   }, [error, refetch]);
 
-  const handleAddPatient = () => {
-    setIsAddModalOpen(true);
-  };
+  // Show info toast when search is performed
+  useEffect(() => {
+    if (searchTerm && filteredPatients.length > 0) {
+      toast.info(
+        `Found ${filteredPatients.length} patients matching "${searchTerm}"`
+      );
+    } else if (searchTerm && filteredPatients.length === 0) {
+      toast.warning(`No patients found matching "${searchTerm}"`);
+    }
+  }, [searchTerm, filteredPatients.length]);
+
+  // Show info toast when page changes
+  useEffect(() => {
+    if (currentPage > 1) {
+      toast.info(`Showing page ${currentPage} of ${totalPages}`);
+    }
+  }, [currentPage, totalPages]);
 
   return (
     <div>
@@ -330,160 +239,282 @@ export default function AdminPatientsPage() {
           <Title title="Patient Management" />
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div className="relative flex-1 w-full md:max-w-md">
-            <Input
-              type="text"
-              placeholder="Search patient"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              startIcon={<Search className="w-5 h-5 text-gray-400" />}
-              fullWidth
-              className="cursor-pointer"
-            />
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative flex-1 max-w-md hidden md:block">
+              <Input
+                type="text"
+                placeholder="Search patient"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                startIcon={<Search className="w-5 h-5 text-gray-400" />}
+                className="search-input cursor-pointer rounded-md"
+                fullWidth
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    toast.info("Search cleared");
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Clear search"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
+              <button
+                onClick={() => setIsAddPatientModalOpen(true)}
+                className="bg-[#44CE2D] hover:bg-[#3bb025] text-white px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Patient</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <Button
-              variant="neutral"
-              onClick={() => {
-                toast.info("Refreshing patients...");
-                refetch();
-              }}
-              className="flex-1 md:flex-none"
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => setIsAddModalOpen(true)}
-              icon={<Plus className="w-4 h-4" />}
-              className="flex-1 md:flex-none"
-            >
-              Add New Patient
-            </Button>
+          <div className="md:hidden w-full">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search patient"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                startIcon={<Search className="w-5 h-5 text-gray-400" />}
+                className="search-input cursor-pointer rounded-md"
+                fullWidth
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    toast.info("Search cleared");
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Clear search"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Patients Table */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg  overflow-hidden">
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[var(--border)]">
-            <thead className="bg-[var(--muted)]">
-              <tr>
-                <th >
-                  PATIENT NAME
-                </th>
-                {/* <th >
-                  USER ID
-                </th> */}
-                <th >
-                  GENDER
-                </th>
-                <th >
-                  STATUS
-                </th>
-                <th >
-                  AGE
-                </th>
-                <th >
-                  PHONE NUMBER
-                </th>
-                {/* <th >
-                  LAST CONSULTATION
-                </th> */}
-                {/* <th >
-                  ACTION
-                </th> */}
-              </tr>
-            </thead>
-            <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {error ? (
+      {isLoading ? (
+        <TableSkeleton
+          columns={6}
+          rows={5}
+          headerLabels={[
+            "Patient Info",
+            "Contact",
+            "Demographics",
+            "Location",
+            "Status",
+            "Actions",
+          ]}
+        />
+      ) : (
+        <div className="table-container bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="text-[var(--muted-foreground)]">
-                      <p className="text-[14px] md:text-[16px] font-medium text-[var(--foreground)]">
-                        Failed to load patients
-                      </p>
-                      <Button
-                        variant="primary"
-                        onClick={() => refetch()}
-                        className="mt-2"
-                      >
-                        Retry
-                      </Button>
-                    </div>
-                  </td>
+                  <th>Patient Info</th>
+                  <th>Contact</th>
+                  <th>Demographics</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ) : paginatedData?.length > 0 ? (
-                paginatedData?.map((patient, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-[var(--muted)] transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        href={`/admin/users/patients/${patient.id}`}
-                        className="text-[var(--primary)] font-medium hover:text-[var(--primary)]/80 cursor-pointer">
-                        {patient.display_name || patient.name || "N/A"}
-                      </Link>
-                    </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
-                      {patient.id}
-                    </td> */}
-                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
-                      {patient.gender || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 bg-[var(--primary)]/10 text-[var(--primary)] text-xs rounded-full">
-                        {patient.status || "Active"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
-                      {patient.age || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
-                      {patient.phone || "N/A"}
-                    </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-[10px] md:text-[12px] text-[var(--foreground)]">
-                      {patient.lastConsultation || "N/A"}
-                    </td> */}
-                    {/* <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/admin/users/patients/${patient.id}/book-appointment`}
-                          className="text-[var(--primary)] hover:text-[var(--primary)]/80 font-medium text-[10px] md:text-[12px] flex items-center space-x-1 cursor-pointer">
-                          <Calendar className="w-3 h-3" />
-                          <span>Book Appointment</span>
-                        </Link>
-                      </div>
-                    </td> */}
-                  </tr>
-                ))
-              ) : (
-                <NoRecordFound colSpan={8} />
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredPatients?.length === 0 ||
+                  filteredPatients?.length === undefined ? (
+                  <NoRecordFound colSpan={6} />
+                ) : (
+                  filteredPatients?.map(
+                    (patient: Record<string, unknown> & { id: string }) => {
+                      return (
+                        <tr key={patient.id} className="table-row-hover">
+                          {/* Patient Info Column */}
+                          <td>
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                {patient.photo_url ? (
+                                  <img
+                                    src={patient.photo_url as string}
+                                    alt={
+                                      (patient.display_name as string) ||
+                                      "Patient"
+                                    }
+                                    className="h-10 w-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="avatar-green h-10 w-10 rounded-full flex items-center justify-center">
+                                    <span className="text-[10px] md:text-[12px] font-medium">
+                                      {(
+                                        (patient.display_name as string) ||
+                                        (patient.name as string)
+                                      )
+                                        ?.charAt(0)
+                                        ?.toUpperCase() || "P"}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
+                                  {(patient.display_name as string) ||
+                                    (patient.name as string) ||
+                                    "N/A"}
+                                </div>
+                                <div className="text-[10px] md:text-[12px] text-gray-500">
+                                  ID: {patient.id.slice(0, 8)}...
+                                </div>
+                              </div>
+                            </div>
+                          </td>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+                          {/* Contact Column */}
+                          <td>
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
+                              {(patient.email as string) || "N/A"}
+                            </div>
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
+                              {(patient.phone_number as string) || "N/A"}
+                            </div>
+                          </td>
+
+                          {/* Demographics Column */}
+                          <td>
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
+                              Age:{" "}
+                              {(() => {
+                                const birthDate =
+                                  patient.date_of_birth || patient.dateOfBirth;
+                                if (!birthDate) return "N/A";
+                                try {
+                                  const birthDateObj = new Date(
+                                    birthDate as string
+                                  );
+                                  const today = new Date();
+                                  let age =
+                                    today.getFullYear() -
+                                    birthDateObj.getFullYear();
+                                  const monthDiff =
+                                    today.getMonth() - birthDateObj.getMonth();
+                                  if (
+                                    monthDiff < 0 ||
+                                    (monthDiff === 0 &&
+                                      today.getDate() < birthDateObj.getDate())
+                                  ) {
+                                    age--;
+                                  }
+                                  return age.toString();
+                                } catch (error) {
+                                  return "N/A";
+                                }
+                              })()}
+                            </div>
+                            <div className="text-[10px] md:text-[12px] text-gray-500 capitalize">
+                              {(patient.gender as string) || "N/A"}
+                            </div>
+                          </td>
+
+                          {/* Location Column */}
+                          <td>
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
+                              {(patient.address as string) || "N/A"}
+                            </div>
+                            <div className="text-[10px] md:text-[12px] text-gray-500">
+                              {(patient.city as string) || "N/A"}
+                            </div>
+                          </td>
+
+                          {/* Status Column */}
+                          <td>
+                            <div className="text-[10px] md:text-[12px] text-gray-900">
+                              {(patient.status as string) || "Active"}
+                            </div>
+                          </td>
+
+                          {/* Actions Column */}
+                          <td>
+                            <div className="flex items-center space-x-3">
+                              <Link
+                                href={`/admin/users/patients/appointments?patient=${encodeURIComponent(
+                                  (patient?.display_name as string) ||
+                                  (patient?.name as string) ||
+                                  patient?.id
+                                )}&patientId=${patient?.uid || patient?.id}`}
+                                onClick={() =>
+                                  toast.info(
+                                    `Viewing appointments for ${
+                                      (patient?.display_name as string) ||
+                                      (patient.name as string) ||
+                                      "patient"
+                                    }`
+                                  )
+                                }
+                                className="link-green flex items-center space-x-1"
+                              >
+                                <User className="w-4 h-4" />
+                                <span>Appointments</span>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination */}
           <Pagination
             currentPage={currentPage}
-            totalCount={filteredData.length}
-            pageSize={itemsPerPage}
+            totalCount={filteredPatients.length}
+            pageSize={10}
             onPageChange={setCurrentPage}
             itemLabel="patients"
-            className="mt-4"
+            className="border-t border-gray-200"
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Add Patient Modal */}
+      {/* Add New Patient Modal */}
       <AddPatientModal
-        isOpen={isAddModalOpen}
+        isOpen={isAddPatientModalOpen}
         onClose={handleCloseAddModal}
         isCreating={isCreating}
         formData={formData}

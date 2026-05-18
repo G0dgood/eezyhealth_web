@@ -28,8 +28,8 @@ import {
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import {
   convertBookingsToStandardFormat,
-  RawBookingData,
 } from "@/utils/bookingDataConverter";
+import { RawBookingData } from "@/types";
 
 interface DayBooking {
   date: string;
@@ -65,6 +65,7 @@ export default function DoctorBookingsPage() {
     isLoading,
     error,
   } = useBookingsByDoctorId(doctorId);
+
 
   // Generate week bookings from API data or create default structure
   const generateWeekBookingsFromData = (

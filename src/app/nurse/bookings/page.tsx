@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
-import BookingListTabs from "@/components/Tabs/page";
+import PillTabs from "@/components/Tabs/PillTabs";
 import BookingList from "./components/BookingList";
 import Bookings from "./components/Bookings";
 import Title from "@/components/Title";
@@ -10,6 +10,11 @@ export default function NurseBookingsPage() {
   const [bookingsTab, setBookingsTab] = useState<"Booking" | "Booking List">(
     "Booking",
   );
+
+  const tabs = [
+    { id: "Booking", label: "Booking" },
+    { id: "Booking List", label: "Booking List" },
+  ];
 
   return (
     <div>
@@ -25,9 +30,10 @@ export default function NurseBookingsPage() {
           Manage and schedule patient appointments
         </p>
         <div className="flex flex-row items-center justiful-center w-full mb-2">
-          <BookingListTabs
-            bookingsTab={bookingsTab}
-            setBookingsTab={setBookingsTab}
+          <PillTabs
+            tabs={tabs}
+            activeTab={bookingsTab}
+            onTabChange={(id) => setBookingsTab(id as "Booking" | "Booking List")}
           />
         </div>
       </div>

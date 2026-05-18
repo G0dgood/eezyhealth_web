@@ -15,8 +15,7 @@ export const bookingApi = api.injectEndpoints({
           
           try {
              bookingsData = await createFirebaseQuery("Bookings", []);
-          } catch (e) {
-             console.log("Failed to fetch from Bookings, trying bookings");
+          } catch (e) { 
           }
 
           // If empty or failed, try 'bookings'
@@ -26,8 +25,7 @@ export const bookingApi = api.injectEndpoints({
                 if (fallbackData && fallbackData.length > 0) {
                    bookingsData = fallbackData;
                 }
-             } catch (e) {
-                console.log("Failed to fetch from bookings");
+             } catch (e) { 
              }
           }
 

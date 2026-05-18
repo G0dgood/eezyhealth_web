@@ -195,27 +195,27 @@ const AdminUsersWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-gray-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-gray-900">{totalUsers}</div>
+          <div className="text-[14px] md:text-[16px] font-bold text-gray-900">{totalUsers}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Total</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-green-600">
             {totalDoctors}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Doctors</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">{totalNurses}</div>
+          <div className="text-[14px] md:text-[16px] font-bold text-blue-600">{totalNurses}</div>
           <div className="text-[10px] md:text-xs text-gray-600">Nurses</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-purple-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-purple-600">
             {totalPatients}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Patients</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-yellow-600">
             {activeUsers}
           </div>
           <div className="text-[10px] md:text-xs text-gray-600">Active</div>

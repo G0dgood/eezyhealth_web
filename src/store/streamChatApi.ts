@@ -144,8 +144,7 @@ export const streamChatApi = createApi({
 
              if (!response.ok) {
                  // If 400, it might be expecting "data" wrapper (onCall style)
-                 if (response.status === 400) {
-                     console.log("Standard HTTP failed with 400, trying onCall format...");
+                 if (response.status === 400) { 
                      const retryResponse = await fetch(
                         'https://us-central1-eezyhealth-2025.cloudfunctions.net/createNurseProxyToken',
                         {

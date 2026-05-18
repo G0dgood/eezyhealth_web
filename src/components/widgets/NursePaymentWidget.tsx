@@ -178,7 +178,7 @@ const NursePaymentWidget: React.FC = () => {
             <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900">
               Payment Overview
             </h3>
-            <p className="text-xs md:text-[10px] md:text-[12px] text-gray-500">Clinic payment status</p>
+            <p className=" text-[10px] md:text-[12px] text-gray-500">Clinic payment status</p>
           </div>
         </div>
       </div>
@@ -186,28 +186,28 @@ const NursePaymentWidget: React.FC = () => {
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="text-center p-2 md:p-3 bg-green-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-green-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-green-600">
             ₦{totalRevenue.toFixed(2)}
           </div>
-          <div className="text-[10px] md:text-xs text-gray-600">Total Revenue</div>
+          <div className="text-[10px] md: text-gray-600">Total Revenue</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-blue-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-blue-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-blue-600">
             {completedPayments}
           </div>
-          <div className="text-[10px] md:text-xs text-gray-600">Completed</div>
+          <div className="text-[10px] md: text-gray-600">Completed</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-yellow-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-yellow-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-yellow-600">
             {pendingPayments}
           </div>
-          <div className="text-[10px] md:text-xs text-gray-600">Pending</div>
+          <div className="text-[10px] md: text-gray-600">Pending</div>
         </div>
         <div className="text-center p-2 md:p-3 bg-purple-50 rounded-lg">
-          <div className="text-[14px] md:text-[16px] md:text-[18px] md:text-[20px] font-bold text-purple-600">
+          <div className="text-[14px] md:text-[16px] font-bold text-purple-600">
             {todayPayments}
           </div>
-          <div className="text-[10px] md:text-xs text-gray-600">Today</div>
+          <div className="text-[10px] md: text-gray-600">Today</div>
         </div>
       </div>
 
@@ -227,7 +227,7 @@ const NursePaymentWidget: React.FC = () => {
                   <h4 className="font-medium text-[10px] md:text-[12px] md:text-base text-gray-900 truncate">
                     ₦{parseAmount(payment?.amount).toFixed(2)}
                   </h4>
-                  <p className="text-xs md:text-[10px] md:text-[12px] text-gray-600 truncate">
+                  <p className=" text-[10px] md:text-[12px] text-gray-600 truncate">
                     {payment?.patientName ||
                       payment?.patient_name ||
                       "Unknown Patient"}
@@ -236,7 +236,7 @@ const NursePaymentWidget: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 <span
-                  className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-xs font-medium rounded-full ${getStatusColor(
+                  className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md: font-medium rounded-full ${getStatusColor(
                     payment
                   )}`}
                 >
@@ -248,21 +248,21 @@ const NursePaymentWidget: React.FC = () => {
 
             <div className="space-y-1.5 md:space-y-2">
               {payment?.doctor_name && (
-                <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
-                  <span className="text-[10px] md:text-xs">👨‍⚕️</span>
+                <div className="flex items-center gap-2  text-[10px] md:text-[12px] text-gray-600">
+                  <span className="text-[10px] md:">👨‍⚕️</span>
                   <span>{payment?.doctor_name}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
-                <span className="text-[10px] md:text-xs">💳</span>
+              <div className="flex items-center gap-2  text-[10px] md:text-[12px] text-gray-600">
+                <span className="text-[10px] md:">💳</span>
                 <span>
                   {payment?.paymentMethod ||
                     payment?.payment_method ||
                     "Card Payment"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
-                <span className="text-[10px] md:text-xs">📅</span>
+              <div className="flex items-center gap-2  text-[10px] md:text-[12px] text-gray-600">
+                <span className="text-[10px] md:">📅</span>
                 <span>
                   {formatDate(
                     payment?.createdAt ||
@@ -272,15 +272,15 @@ const NursePaymentWidget: React.FC = () => {
                 </span>
               </div>
               {payment?.bookingDate && (
-                <div className="flex items-center gap-2 text-xs md:text-[10px] md:text-[12px] text-gray-600">
-                  <span className="text-[10px] md:text-xs">📋</span>
+                <div className="flex items-center gap-2  text-[10px] md:text-[12px] text-gray-600">
+                  <span className="text-[10px] md:">📋</span>
                   <span>Appointment: {formatDate(payment?.bookingDate)}</span>
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-600">
+              <div className="flex items-center gap-2 text-[10px] md: text-gray-600">
                 <CreditCard size={14} />
                 <span>
                   Ref:{" "}
@@ -291,7 +291,7 @@ const NursePaymentWidget: React.FC = () => {
                   ...
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-[10px] md: text-gray-500">
                 <Users size={12} />
                 <span>{payment?.currency || "NGN"}</span>
               </div>
@@ -303,23 +303,23 @@ const NursePaymentWidget: React.FC = () => {
       {/* Summary Section */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-[10px] md:text-[12px]">
-          <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+          <span className="text-gray-600  text-[10px] md:text-[12px]">
             Clinic Revenue: ₦{totalRevenue.toFixed(2)}
           </span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">
+              <span className="text-gray-600  text-[10px] md:text-[12px]">
                 Completed: {completedPayments}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Pending: {pendingPayments}</span>
+              <span className="text-gray-600  text-[10px] md:text-[12px]">Pending: {pendingPayments}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              <span className="text-gray-600 text-xs md:text-[10px] md:text-[12px]">Today: {todayPayments}</span>
+              <span className="text-gray-600  text-[10px] md:text-[12px]">Today: {todayPayments}</span>
             </div>
           </div>
         </div>

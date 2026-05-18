@@ -9,7 +9,7 @@ export function useIncomingCall(client: StreamVideoClient | null) {
   useEffect(() => {
     if (!client) return;
 
-    const handleIncomingCall = (event: any) => {
+    const handleIncomingCall = (event: any) => { 
       if (event.type === "call.ring") {
         setIncomingCall(event.call);
       }

@@ -12,6 +12,7 @@ import {
   Bell,
   Activity,
   MessageCircle,
+  Contact,
 } from "lucide-react";
 
 export interface NavItem {
@@ -203,6 +204,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Document",
         icon: <Upload className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/document`,
+      },
+      {
+        id: "contacts",
+        label: "Contacts",
+        icon: <Contact className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/contacts`,
       },
       {
         id: "settings",

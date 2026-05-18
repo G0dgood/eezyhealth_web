@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Trophy, User } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Trophy, User, Search } from "lucide-react";
 import Title from "@/components/Title";
+import Input from "@/components/Input";
 import Pagination from "@/components/Pagination";
 import {
   useGetFirebaseDoctorOfTheMonthQuery,
@@ -78,6 +79,7 @@ interface MonthlyDoctorData {
 
 const AdminDoctorOfMonthPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [topPerformers, setTopPerformers] = useState<DoctorPerformance[]>([]);
   const [pastDoctors, setPastDoctors] = useState<DoctorOfTheMonth[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyDoctorData[]>([]);
@@ -402,11 +404,26 @@ const AdminDoctorOfMonthPage = () => {
     isAutoCreating,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(pastDoctors.length / pageSize));
-  const paginatedPastDoctors = pastDoctors.slice(
+  const filteredPastDoctors = useMemo(() => {
+    if (!searchTerm.trim()) return pastDoctors;
+
+    return pastDoctors.filter((doctor) =>
+      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.displayMonth.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [pastDoctors, searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPastDoctors.length / pageSize));
+  const paginatedPastDoctors = filteredPastDoctors.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Calculate comprehensive performance score for Doctor of The Month selection
   const calculatePerformanceScore = (doctor: DoctorPerformance): number => {
@@ -697,9 +714,21 @@ const AdminDoctorOfMonthPage = () => {
 
         {/* Past Doctors of The Month Table */}
         <div className="lg:col-span-2">
-          <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mt-8">
-            Past Doctors of The Month
-          </h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mt-8 mb-4 gap-4">
+            <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900">
+              Past Doctors of The Month
+            </h3>
+            <div className="w-full md:w-64">
+              <Input
+                type="text"
+                placeholder="Search doctors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                startIcon={<Search className="w-4 h-4 text-gray-400" />}
+                fullWidth
+              />
+            </div>
+          </div>
 
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
@@ -715,8 +744,8 @@ const AdminDoctorOfMonthPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {pastDoctors?.length === 0 ||
-                    pastDoctors?.length === undefined ? (
+                  {filteredPastDoctors?.length === 0 ||
+                    filteredPastDoctors?.length === undefined ? (
                     <NoRecordFound colSpan={6} />
                   ) : (
                     paginatedPastDoctors.map((doctor, index) => (
@@ -749,7 +778,7 @@ const AdminDoctorOfMonthPage = () => {
             <Pagination
 
               currentPage={currentPage}
-              totalCount={pastDoctors.length}
+              totalCount={filteredPastDoctors.length}
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               itemLabel="doctors"
