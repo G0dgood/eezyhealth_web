@@ -249,7 +249,7 @@ export default function AdminContactsPage() {
       </div>
      </div>
 
-     <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] shadow-sm overflow-hidden">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-hidden">
       <div className="overflow-x-auto">
        <table className="min-w-full divide-y divide-[var(--border)]">
         <thead className="bg-[var(--muted)]">

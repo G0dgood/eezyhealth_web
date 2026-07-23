@@ -218,7 +218,7 @@ export default function DoctorPaymentPage() {
       </div>
 
       {/* Payments Table */}
-      <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+      <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[var(--border)]">
             <thead className="bg-[var(--muted)]">

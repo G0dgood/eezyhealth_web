@@ -413,7 +413,7 @@ const DoctorAccountManagementPage = () => {
 				)}
 
 				{/* Doctors Table */}
-				<div className="bg-white rounded-lg shadow overflow-hidden">
+				<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 					<div className="px-6 py-4 border-b border-gray-200">
 						<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">Doctor Accounts</h3>
 					</div>
@@ -663,7 +663,7 @@ const DoctorAccountManagementPage = () => {
 
 				{/* Audit Logs Panel */}
 				{showAuditLogs && (
-					<div className="mt-6 bg-white rounded-lg shadow">
+					<div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
 						<div className="px-6 py-4 border-b border-gray-200">
 							<h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">Recent Audit Logs</h3>
 						</div>

@@ -294,7 +294,7 @@ export default function DoctorSettings() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar Skeleton */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg p-6">
                 <Skeleton className="h-6 w-32 mb-4" />
                 <div className="space-y-3">
                   <Skeleton className="h-12 w-full" />
@@ -306,7 +306,7 @@ export default function DoctorSettings() {
 
             {/* Main Content Skeleton */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg p-6">
                 <Skeleton className="h-6 w-40 mb-6" />
 
                 {/* Profile Section Skeleton */}
@@ -866,7 +866,7 @@ export default function DoctorSettings() {
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg border border-gray-200">
         {/* Tabs */}
         <div className="border-b border-gray-200 p-4">
           <PillTabs

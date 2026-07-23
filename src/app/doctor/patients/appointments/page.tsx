@@ -161,7 +161,7 @@ export default function DoctorPatientAppointmentsPage() {
       </div>
 
       {/* Appointments Table */}
-      <div className="table-container bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="table-container bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>

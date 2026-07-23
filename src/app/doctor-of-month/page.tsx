@@ -150,7 +150,7 @@ export default function DoctorOfMonthPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Past Doctors of The Month
           </h3>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
