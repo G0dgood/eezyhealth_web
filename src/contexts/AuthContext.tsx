@@ -9,7 +9,6 @@ import {
   db,
   fetchUserData,
 } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 
 interface UserInfo {
   uid: string;
@@ -114,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           // Use fetchUserData to be consistent with login logic (handles docId != uid)
           const data = await fetchUserData(user.uid);
-          
+
           if (data) {
             // Ensure essential fields are present
             const fullUserInfo = {
@@ -131,12 +130,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
               JSON.stringify(fullUserInfo)
             );
           } else {
-              console.warn("User document not found via fetchUserData");
+            console.warn("User document not found via fetchUserData");
           }
         } catch (error) {
           console.error("Error fetching user info:", error);
         } finally {
-            setUserInfoLoading(false);
+          setUserInfoLoading(false);
         }
       }
     };

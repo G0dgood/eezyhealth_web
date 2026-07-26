@@ -21,7 +21,9 @@ import {
   updateDoc,
   getDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, realtimeDb } from "@/lib/firebase";
+import { ref as rtdbRef, onChildAdded } from "firebase/database";
+import { toast } from "sonner";
 import { useFCMToken } from "@/hooks/useFcmToken";
 
 interface Notification {
@@ -406,6 +408,51 @@ export function NotificationProvider({
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
   }, [user?.uid, memoizedNotificationPrefs]);
+
+  // Realtime Database WebSockets Integration for instant alerts
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const listenerAttachTime = Date.now();
+    const userNotificationsRef = rtdbRef(realtimeDb, `notifications/${user.uid}`);
+
+    const unsubscribe = onChildAdded(userNotificationsRef, (snapshot) => {
+      try {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // Skip historical notifications loaded initially
+        const createdAtTime = data.createdAt ? new Date(data.createdAt).getTime() : 0;
+        if (createdAtTime <= listenerAttachTime) return;
+
+        // Create new notification object
+        const newNotification: Notification = {
+          id: snapshot.key || Date.now().toString(),
+          type: data.type === "error" || data.type === "warning" || data.type === "success" || data.type === "info" 
+            ? data.type 
+            : "info",
+          title: data.title || "New Update",
+          description: data.description || "",
+          timestamp: "Just now",
+          isRead: false,
+          category: data.category || "general",
+          data: data.data || {},
+        };
+
+        // Add to React state
+        setNotifications((prev) => [newNotification, ...prev]);
+
+        // Trigger Sonner toast
+        toast.info(newNotification.title, {
+          description: newNotification.description,
+        });
+      } catch (err) {
+        console.error("Error handling RTDB real-time event:", err);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   // Helper function to format Firebase timestamps
   const formatTimestamp = (

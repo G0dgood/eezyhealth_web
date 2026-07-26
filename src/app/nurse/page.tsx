@@ -375,8 +375,8 @@ const NurseDashboard = () => {
                     <div className="space-y-3">
                       <div
                         className={`h-8 rounded ${isDarkMode
-                            ? "bg-[var(--dark-bg-tertiary)]"
-                            : "bg-gray-200"
+                          ? "bg-[var(--dark-bg-tertiary)]"
+                          : "bg-gray-200"
                           }`}
                       ></div>
                       <div
@@ -491,7 +491,7 @@ const NurseDashboard = () => {
       )}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-150px)]">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[calc(100vh-100px)]">
           <div
             className={`col-span-1 md:col-span-4 rounded min-h-[400px] md:overflow-y-auto dashboard-left-zone ${isDarkMode ? "border-[var(--dark-border)]" : "border-[#E5E7EB]"
               }`}

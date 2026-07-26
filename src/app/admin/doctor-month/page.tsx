@@ -24,6 +24,7 @@ import {
 import { db } from "@/lib/firebase";
 import { NoRecordFound } from "@/components/Options";
 import { showSuccess, showInfo } from "@/utils/toast";
+import { SVGLoader } from "@/components/SVGLoader";
 
 interface DoctorPerformance {
   id: string;
@@ -589,44 +590,41 @@ const AdminDoctorOfMonthPage = () => {
 
       {/* Current Leader Card */}
       <div className="flex justify-between items-center p-4 w-full md:w-[521px] h-[104px] bg-[#44CE2D] rounded-2xl">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-            <Trophy className="w-8 h-8 text-white" />
+        {isLoadingDoctorOfMonth || isAutoCreating ? (
+          <div className="flex justify-center items-center w-full h-full">
+            <SVGLoader width={36} height={36} color="#FFFFFF" />
           </div>
-          <div>
-            <p className="text-white/80 text-[10px] md:text-[12px] font-medium">Current Leader</p>
-            <p className="text-[16px] md:text-[18px] text-white font-bold">
-              {isLoadingDoctorOfMonth || isAutoCreating
-                ? "Loading..."
-                : currentDoctorOfMonth
-                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
-                  : currentLeader?.name || "No data available"}
-            </p>
-            <p className="text-white/80 text-[10px] md:text-[12px]">
-              {isLoadingDoctorOfMonth || isAutoCreating
-                ? "Loading..."
-                : currentDoctorOfMonth
-                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
-                    ?.specialty
-                  : currentLeader?.specialty || "No data available"}
-            </p>
-            {isAutoCreating && (
-              <p className="text-white/60 text-xs italic">
-                Auto-creating Doctor of The Month...
+        ) : (
+          <>
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+                <Trophy className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-white/80 text-[10px] md:text-[12px] font-medium">Current Leader</p>
+                <p className="text-[16px] md:text-[18px] text-white font-bold">
+                  {currentDoctorOfMonth
+                    ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.name
+                    : currentLeader?.name || "No data available"}
+                </p>
+                <p className="text-white/80 text-[10px] md:text-[12px]">
+                  {currentDoctorOfMonth
+                    ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)
+                      ?.specialty
+                    : currentLeader?.specialty || "No data available"}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[18px] md:text-[20px] text-white font-bold">
+                {currentDoctorOfMonth
+                  ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
+                  0
+                  : currentLeader?.performanceScore?.toFixed(1) || 0}
               </p>
-            )}
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-[18px] md:text-[20px] text-white font-bold">
-            {isLoadingDoctorOfMonth || isAutoCreating
-              ? "..."
-              : currentDoctorOfMonth
-                ? (currentDoctorOfMonth as unknown as DoctorOfTheMonth)?.rating ||
-                0
-                : currentLeader?.performanceScore?.toFixed(1) || 0}
-          </p>
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Top Performers and Past Winners Grid */}
