@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { X, Info } from "lucide-react";
+import { Info } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 interface Notification {
   id: string;
@@ -27,19 +28,35 @@ export default function NotificationPanel({
   onMarkAsRead,
   onClearAll,
 }: NotificationPanelProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { openNotificationModal } = useNotifications();
+
   if (!isOpen) return null;
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Route to the notifications page for the current role section (e.g. /doctor)
+  const roleBase = pathname?.split("/")[1] || "doctor";
+  const viewAll = () => {
+    onClose();
+    router.push(`/${roleBase}/notifications`);
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    onClose();
+    openNotificationModal(notification);
+  };
+
   return (
-    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-2xl py-1 z-[9999] border border-gray-200">
+    <div className="absolute right-0 mt-2 w-80 bg-[var(--card)] text-[var(--foreground)] rounded-md shadow-2xl py-1 z-[9999] border border-[var(--border)]">
       {/* Header */}
-      <div className="px-4 py-2  text-[10px]  md:text-[12px] text-gray-700 border-b border-gray-100">
+      <div className="px-4 py-2  text-[10px]  md:text-[12px] text-[var(--foreground)] border-b border-[var(--border)]">
         <div className="flex items-center justify-between">
           <h3 className="font-medium">Notifications</h3>
           <button
             onClick={onClearAll}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer">
+            className="text-xs text-[#3bb025] hover:opacity-80 font-medium cursor-pointer">
             Clear All
           </button>
         </div>
@@ -48,38 +65,40 @@ export default function NotificationPanel({
       {/* Notifications List */}
       <div className="max-h-64 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-4 py-6 text-center text-gray-500">
-            <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+          <div className="px-4 py-6 text-center text-[var(--muted-foreground)]">
+            <Info className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] opacity-60" />
             <p className=" text-[10px]  md:text-[12px]">No notifications</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[var(--border)]">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? "bg-blue-50" : ""
+                className={`px-4 py-3 border-l-2 hover:bg-[var(--muted)] transition-colors cursor-pointer ${!notification.isRead
+                  ? "bg-[var(--muted)] border-l-[#44CE2D]"
+                  : "border-l-transparent"
                   }`}
-                onClick={() => onMarkAsRead(notification.id)}>
+                onClick={() => handleNotificationClick(notification)}>
                 <div className="flex items-start space-x-3">
                   {/* Icon */}
-                  <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Info className="w-3 h-3 text-gray-600" />
+                  <div className="w-6 h-6 bg-[var(--muted)] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Info className="w-3 h-3 text-[var(--muted-foreground)]" />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h4 className=" text-[10px]  md:text-[12px] font-medium text-gray-900 mb-1">
+                    <h4 className=" text-[10px]  md:text-[12px] font-medium text-[var(--foreground)] mb-1">
                       {notification.title}
                     </h4>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                    <p className="text-xs text-[var(--muted-foreground)] mb-2 line-clamp-2">
                       {notification.description}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-[var(--muted-foreground)]">
                         {notification.timestamp}
                       </span>
                       {!notification.isRead && (
-                        <span className="text-xs text-blue-600 font-medium">
+                        <span className="text-xs text-[#3bb025] font-medium">
                           New
                         </span>
                       )}
@@ -93,14 +112,19 @@ export default function NotificationPanel({
       </div>
 
       {/* Footer */}
-      {notifications.length > 0 && (
-        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
-          <div className="flex items-center justify-between text-xs text-gray-600">
+      <div className="border-t border-[var(--border)]">
+        {notifications.length > 0 && (
+          <div className="px-4 py-2 bg-[var(--muted)] flex items-center justify-between text-xs text-[var(--muted-foreground)]">
             <span>{unreadCount} unread</span>
             <span>{notifications.length} total</span>
           </div>
-        </div>
-      )}
+        )}
+        <button
+          onClick={viewAll}
+          className="w-full px-4 py-2 text-xs font-medium text-[#3bb025] hover:bg-[var(--muted)] transition-colors cursor-pointer text-center">
+          View all notifications
+        </button>
+      </div>
     </div>
   );
 }

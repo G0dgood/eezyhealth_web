@@ -191,60 +191,42 @@ const formatTime = (timeSlot: string) => {
 };
 
 const convertSlotToTime = (slot: string | null | undefined): string => {
-  if (!slot || typeof slot !== "string") return "09:00 AM"; // Default fallback
+  if (!slot || typeof slot !== "string") return "09:00 AM";
 
-  // Convert slot formats to match timeSlots array format
-  if (slot.includes("night_11pm")) return "11:00 PM";
-  if (slot.includes("night_11:30pm")) return "11:30 PM";
-  if (slot.includes("night_10pm")) return "10:00 PM";
-  if (slot.includes("night_10:30pm")) return "10:30 PM";
-  if (slot.includes("night_9pm")) return "09:00 PM";
-  if (slot.includes("night_9:30pm")) return "09:30 PM";
-  if (slot.includes("night_8pm")) return "08:00 PM";
-  if (slot.includes("night_8:30pm")) return "08:30 PM";
-  if (slot.includes("night_7pm")) return "07:00 PM";
-  if (slot.includes("night_7:30pm")) return "07:30 PM";
-  if (slot.includes("night_6pm")) return "06:00 PM";
-  if (slot.includes("night_6:30pm")) return "06:30 PM";
-  if (slot.includes("afternoon_5pm")) return "05:00 PM";
-  if (slot.includes("afternoon_5:30pm")) return "05:30 PM";
-  if (slot.includes("afternoon_4pm")) return "04:00 PM";
-  if (slot.includes("afternoon_4:30pm")) return "04:30 PM";
-  if (slot.includes("afternoon_3pm")) return "03:00 PM";
-  if (slot.includes("afternoon_3:30pm")) return "03:30 PM";
-  if (slot.includes("afternoon_2pm")) return "02:00 PM";
-  if (slot.includes("afternoon_2:30pm")) return "02:30 PM";
-  if (slot.includes("afternoon_1pm")) return "01:00 PM";
-  if (slot.includes("afternoon_1:30pm")) return "01:30 PM";
-  if (slot.includes("morning_12pm")) return "12:00 PM";
-  if (slot.includes("morning_12:30pm")) return "12:30 PM";
-  if (slot.includes("morning_11am")) return "11:00 AM";
-  if (slot.includes("morning_11:30am")) return "11:30 AM";
-  if (slot.includes("morning_10am")) return "10:00 AM";
-  if (slot.includes("morning_10:30am")) return "10:30 AM";
-  if (slot.includes("morning_9am")) return "09:00 AM";
-  if (slot.includes("morning_9:30am")) return "09:30 AM";
-  if (slot.includes("morning_8am")) return "08:00 AM";
-  if (slot.includes("morning_8:30am")) return "08:30 AM";
-  if (slot.includes("morning_7am")) return "07:00 AM";
-  if (slot.includes("morning_7:30am")) return "07:30 AM";
-  if (slot.includes("morning_6am")) return "06:00 AM";
-  if (slot.includes("morning_6:30am")) return "06:30 AM";
-  if (slot.includes("morning_5am")) return "05:00 AM";
-  if (slot.includes("morning_5:30am")) return "05:30 AM";
-  if (slot.includes("morning_4am")) return "04:00 AM";
-  if (slot.includes("morning_4:30am")) return "04:30 AM";
-  if (slot.includes("morning_3am")) return "03:00 AM";
-  if (slot.includes("morning_3:30am")) return "03:30 AM";
-  if (slot.includes("morning_2am")) return "02:00 AM";
-  if (slot.includes("morning_2:30am")) return "02:30 AM";
-  if (slot.includes("morning_1am")) return "01:00 AM";
-  if (slot.includes("morning_1:30am")) return "01:30 AM";
-  if (slot.includes("morning_12am")) return "12:00 AM";
-  if (slot.includes("morning_12:30am")) return "12:30 AM";
-  // If it's already in the correct format, return as is
+  const cleanSlot = slot.trim().toLowerCase();
+
+  const foundSlot = timeSlots.find((s) => s.key.toLowerCase() === cleanSlot);
+  if (foundSlot) {
+    return foundSlot.from;
+  }
+
+  if (cleanSlot.includes("midnight_12am") || cleanSlot === "12am") return "12:00 AM";
+  if (cleanSlot.includes("early_morning_1am") || cleanSlot === "1am") return "01:00 AM";
+  if (cleanSlot.includes("early_morning_2am") || cleanSlot === "2am") return "02:00 AM";
+  if (cleanSlot.includes("early_morning_3am") || cleanSlot === "3am") return "03:00 AM";
+  if (cleanSlot.includes("early_morning_4am") || cleanSlot === "4am") return "04:00 AM";
+  if (cleanSlot.includes("early_morning_5am") || cleanSlot === "5am") return "05:00 AM";
+  if (cleanSlot.includes("morning_6am")) return "06:00 AM";
+  if (cleanSlot.includes("morning_7am")) return "07:00 AM";
+  if (cleanSlot.includes("morning_8am")) return "08:00 AM";
+  if (cleanSlot.includes("morning_9am")) return "09:00 AM";
+  if (cleanSlot.includes("morning_10am")) return "10:00 AM";
+  if (cleanSlot.includes("morning_11am")) return "11:00 AM";
+  if (cleanSlot.includes("afternoon_12pm") || cleanSlot === "12pm") return "12:00 PM";
+  if (cleanSlot.includes("afternoon_1pm")) return "01:00 PM";
+  if (cleanSlot.includes("afternoon_2pm")) return "02:00 PM";
+  if (cleanSlot.includes("afternoon_3pm")) return "03:00 PM";
+  if (cleanSlot.includes("afternoon_4pm")) return "04:00 PM";
+  if (cleanSlot.includes("evening_5pm")) return "05:00 PM";
+  if (cleanSlot.includes("evening_6pm")) return "06:00 PM";
+  if (cleanSlot.includes("evening_7pm")) return "07:00 PM";
+  if (cleanSlot.includes("evening_8pm")) return "08:00 PM";
+  if (cleanSlot.includes("night_9pm")) return "09:00 PM";
+  if (cleanSlot.includes("night_10pm")) return "10:00 PM";
+  if (cleanSlot.includes("night_11pm")) return "11:00 PM";
+
   if (slot.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) return slot;
-  return "09:00 AM"; // Default fallback
+  return "09:00 AM";
 };
 
 const timeSlots = [

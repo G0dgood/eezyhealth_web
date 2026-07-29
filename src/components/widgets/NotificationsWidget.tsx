@@ -18,6 +18,7 @@ const NotificationsWidget: React.FC = () => {
   const {
     notifications,
     unreadCount,
+    openNotificationModal,
     markAsRead,
     markAllAsRead,
     removeNotification,
@@ -217,7 +218,8 @@ const NotificationsWidget: React.FC = () => {
           recentNotifications.map((notification) => (
             <div
               key={notification.id}
-              className={`border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-blue-50 border-blue-200" : ""
+              onClick={() => openNotificationModal(notification)}
+              className={`border border-gray-100 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? "bg-blue-50 border-blue-200" : ""
                 }`}>
               <div className="flex items-start justify-between mb-2 md:mb-3">
                 <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
@@ -260,13 +262,19 @@ const NotificationsWidget: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {!notification.isRead && (
                     <button
-                      onClick={() => markAsRead(notification.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markAsRead(notification.id);
+                      }}
                       className="text-blue-600 text-xs font-medium hover:text-blue-700">
                       Mark Read
                     </button>
                   )}
                   <button
-                    onClick={() => removeNotification(notification.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeNotification(notification.id);
+                    }}
                     className="text-red-600 text-xs font-medium hover:text-red-700">
                     <Trash2 size={12} />
                   </button>

@@ -87,9 +87,11 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, config
 	const socketRef = useRef<Socket | null>(null);
 	const messageQueueRef = useRef<QueuedMessage[]>([]);
 
+	const configuredUrl = process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || '';
+
 	const {
-		url = process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-		autoConnect = true,
+		url = configuredUrl,
+		autoConnect = !!configuredUrl,
 		enableOfflineMode: configEnableOfflineMode = true,
 		maxQueueSize = 100,
 		persistQueue = true,
@@ -208,12 +210,18 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, config
 		if (socketRef.current?.connected) return;
 
 		const wsUrl = customUrl || url;
+		if (!wsUrl) {
+			setStatus('disconnected');
+			return;
+		}
 
 		try {
 			setStatus('connecting');
 			const newSocket = io(wsUrl, {
 				autoConnect: true,
 				reconnection: true,
+				reconnectionAttempts: 3,
+				reconnectionDelay: 2000,
 				auth: userInfo
 					? {
 							userId: userInfo.uid,

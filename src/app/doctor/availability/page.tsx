@@ -15,6 +15,7 @@ import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
 import Dropdown from "@/components/Dropdown";
+import ConfirmModal from "@/components/widgets/ConfirmModal";
 
 interface TimeSlot {
   time: string;
@@ -88,6 +89,7 @@ export default function DoctorAvailabilityPage() {
   >({});
   // const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const hasInitializedAvailability = useRef(false);
 
   // RTK Query hooks
@@ -102,13 +104,21 @@ export default function DoctorAvailabilityPage() {
     const booked: Record<string, Record<string, boolean>> = {};
 
     bookingsData.forEach((booking: any) => {
-      // Convert timestamp to Date object
+      // Cancelled bookings free the slot again, so ignore them
+      const status = (booking?.bookingStatus || "").toLowerCase();
+      if (status === "cancelled" || status === "canceled") return;
+      if (!booking?.slot) return;
+
+      // Convert timestamp to Date object (handle possible Firestore shapes)
       let bookingDate: Date;
       if (booking.bookingDate?._seconds) {
         bookingDate = new Date(booking.bookingDate._seconds * 1000);
+      } else if (booking.bookingDate?.seconds) {
+        bookingDate = new Date(booking.bookingDate.seconds * 1000);
       } else {
         bookingDate = new Date(booking.bookingDate);
       }
+      if (isNaN(bookingDate.getTime())) return;
 
       // Format date to match standard format
       const year = bookingDate.getFullYear();
@@ -116,25 +126,12 @@ export default function DoctorAvailabilityPage() {
       const day = String(bookingDate.getDate()).padStart(2, "0");
       const dateKey = `${year}-${month}-${day}`; // Format: YYYY-MM-DD
 
-      // Get day name (Sunday, Monday, etc.)
-      const dayName = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ][bookingDate.getDay()];
-
       if (!booked[dateKey]) {
         booked[dateKey] = {};
       }
 
       // Mark the slot as booked
-      if (booking.slot) {
-        booked[dateKey][booking.slot] = true;
-      }
+      booked[dateKey][booking.slot] = true;
     });
 
     return booked;
@@ -161,6 +158,9 @@ export default function DoctorAvailabilityPage() {
       return availability;
     }
 
+    // Canonical hourly slot keys — anything already matching these is kept as-is
+    const validSlotKeys = new Set(timeSlots.map((slot) => slot.key));
+
     const migratedAvailability: Record<string, Record<string, unknown>> = {};
 
     Object.keys(availability).forEach((dayName) => {
@@ -168,6 +168,13 @@ export default function DoctorAvailabilityPage() {
       migratedAvailability[dayName] = {};
 
       Object.keys(daySlots).forEach((slotKey) => {
+        // Already a valid hourly key — keep as-is so migration is idempotent and
+        // never drops already-correct slots (fixes 24h availability losing slots).
+        if (validSlotKeys.has(slotKey)) {
+          migratedAvailability[dayName][slotKey] = daySlots[slotKey];
+          return;
+        }
+
         // Handle different slot key formats
         if (slotKey.includes("_")) {
           // Handle format like "early_morning_1am", "morning_10am", etc.
@@ -482,7 +489,7 @@ export default function DoctorAvailabilityPage() {
         date: `${monthNames[currentDate.getMonth()]} ${day}`,
         dayName: dayNames[currentDate.getDay()],
         timeSlots: timeSlots.map((timeSlot) => ({
-          time: `${timeSlot.from} -> ${timeSlot.to}`,
+          time: timeSlot.from,
           available: false,
           color: "none" as const,
         })),
@@ -585,7 +592,7 @@ export default function DoctorAvailabilityPage() {
                 </div>
               )}
             <button
-              onClick={handleSaveAvailability}
+              onClick={() => setIsSaveModalOpen(true)}
               disabled={isLoading || isSaving}
               className="px-6 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -765,6 +772,20 @@ export default function DoctorAvailabilityPage() {
           </div>
         </div>
       </div>
+
+      {/* Save Availability confirmation modal */}
+      <ConfirmModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onConfirm={() => {
+          setIsSaveModalOpen(false);
+          handleSaveAvailability();
+        }}
+        title="Save Availability"
+        message="Are you sure you want to save your availability? This will update the time slots patients can book."
+        confirmText="Save"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

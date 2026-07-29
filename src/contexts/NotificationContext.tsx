@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { useAuth } from "./AuthContext";
 import {
@@ -23,8 +24,9 @@ import {
 } from "firebase/firestore";
 import { db, realtimeDb } from "@/lib/firebase";
 import { ref as rtdbRef, onChildAdded } from "firebase/database";
-import { toast } from "sonner";
+import { toastNotification } from "@/utils/toastWithSound";
 import { useFCMToken } from "@/hooks/useFcmToken";
+import NotificationDetailModal from "@/components/modals/NotificationDetailModal";
 
 interface Notification {
   id: string;
@@ -53,6 +55,9 @@ interface NotificationContextType {
   unreadCount: number;
   isLoading: boolean;
   notificationPrefs: NotificationPreferences;
+  selectedNotification: Notification | null;
+  openNotificationModal: (notification: Notification) => void;
+  closeNotificationModal: () => void;
   updateNotificationPrefs: (prefs: Partial<NotificationPreferences>) => void;
   addNotification: (
     notification: Omit<Notification, "id" | "timestamp" | "isRead">
@@ -79,6 +84,9 @@ export function NotificationProvider({
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const toastedNotificationIds = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef<boolean>(true);
   const [notificationPrefs, setNotificationPrefs] =
     useState<NotificationPreferences>({
       newPatientBookings: true,
@@ -145,64 +153,111 @@ export function NotificationProvider({
 
     const doctorId = user.uid;
     const unsubscribes: (() => void)[] = [];
+    isInitialLoadRef.current = true;
 
-    // 1. NEW PATIENT BOOKINGS - Listen for new appointments
-    if (memoizedNotificationPrefs.newPatientBookings) {
-      const newBookingsQuery = query(
-        collection(db, "Bookings"),
-        where("doctorId", "==", doctorId),
-        orderBy("createdAt", "desc"),
-        limit(20)
-      );
+    // 1. PERSISTED NOTIFICATIONS - the SAME Firestore `notifications` collection
+    // the mobile app reads, so both platforms show the same list. Doctors get
+    // notifications where doctorId == their uid (matches the mobile query). This
+    // is authoritative and persisted (survives reloads and syncs across devices),
+    // unlike the previous ephemeral 5-second-window derivation from Bookings.
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("doctorId", "==", doctorId)
+    );
 
-      const unsubscribeNewBookings = onSnapshot(
-        newBookingsQuery,
-        (snapshot) => {
-          const newBookingNotifications: Notification[] = [];
+    const toMillis = (t: unknown): number => {
+      if (!t) return 0;
+      if (typeof t === "string") return new Date(t).getTime() || 0;
+      if (typeof t === "object" && t !== null) {
+        const obj = t as { toDate?: () => Date; seconds?: number };
+        if (typeof obj.toDate === "function") return obj.toDate().getTime();
+        if (typeof obj.seconds === "number") return obj.seconds * 1000;
+      }
+      return 0;
+    };
 
+    const unsubscribeNotifications = onSnapshot(
+      notificationsQuery,
+      (snapshot) => {
+        // Record all existing notification IDs on initial snapshot load so historical items don't trigger toasts
+        if (isInitialLoadRef.current) {
+          snapshot.docs.forEach((docSnap) => {
+            toastedNotificationIds.current.add(docSnap.id);
+          });
+          isInitialLoadRef.current = false;
+        } else {
+          // On real-time updates (e.g. appointment booking from mobile app), fire toast + sound for newly added items
           snapshot.docChanges().forEach((change) => {
             if (change.type === "added") {
-              const bookingData = change.doc.data();
-              const bookingId = change.doc.id;
-
-              // Only create notification for truly new bookings (not initial load)
-              const isNewBooking =
-                Date.now() - bookingData.createdAt?.toDate?.()?.getTime() <
-                5000;
-
-              if (isNewBooking) {
-                const notification: Notification = {
-                  id: `new_booking_${bookingId}`,
-                  type: "info",
-                  title: "New Patient Booking",
-                  description: `${bookingData.patientName || "A patient"
-                    } booked an appointment for ${formatDate(
-                      bookingData.bookingDate
-                    )} at ${bookingData.slot || bookingData.timeSlot}`,
-                  timestamp: formatTimestamp(bookingData.createdAt),
-                  isRead: false,
-                  category: "newPatientBooking",
-                  data: {
-                    bookingId,
-                    patientName: bookingData.patientName,
-                    bookingDate: bookingData.bookingDate,
-                    slot: bookingData.slot || bookingData.timeSlot,
-                  },
-                };
-
-                newBookingNotifications.push(notification);
+              const docId = change.doc.id;
+              const raw = change.doc.data() as Record<string, any>;
+              if (!raw.deleted && !toastedNotificationIds.current.has(docId)) {
+                toastedNotificationIds.current.add(docId);
+                const t = String(raw.type || "");
+                const title = raw.title || "New Notification";
+                const description = raw.description || raw.message || "";
+                const uiType: "info" | "success" | "warning" | "error" =
+                  t.includes("cancellation") || t.includes("error")
+                    ? "warning"
+                    : t.includes("booking") || t.includes("success") || t.includes("accepted")
+                      ? "info"
+                      : "info";
+                toastNotification(title, description, uiType);
               }
             }
           });
-
-          if (newBookingNotifications.length > 0) {
-            setNotifications((prev) => [...newBookingNotifications, ...prev]);
-          }
         }
-      );
 
-      unsubscribes.push(unsubscribeNewBookings);
-    }
+        const persisted: Notification[] = snapshot.docs
+          .map((d) => ({ id: d.id, raw: d.data() as Record<string, any> }))
+          .filter(({ raw }) => !raw.deleted)
+          .sort((a, b) => toMillis(b.raw.createdAt) - toMillis(a.raw.createdAt))
+          .map(({ id, raw }) => {
+            const t = String(raw.type || "");
+            const category: Notification["category"] =
+              t === "appointment_booking"
+                ? "newPatientBooking"
+                : t === "appointment_cancellation"
+                  ? "cancellation"
+                  : t === "appointment_reminder"
+                    ? "appointmentReminder"
+                    : "general";
+            const uiType: Notification["type"] = t.includes("cancellation")
+              ? "warning"
+              : "info";
+            return {
+              id,
+              type: uiType,
+              title: raw.title || "Notification",
+              description: raw.description || raw.message || "",
+              timestamp: formatTimestamp(raw.createdAt),
+              isRead: !!raw.isRead,
+              category,
+              data: raw.data || {},
+            };
+          });
+
+        // Keep any purely-derived, web-only items (reminders/cancellations) that
+        // are not part of the persisted collection; the collection is the source
+        // of truth for everything else.
+        setNotifications((prev) => {
+          const persistedIds = new Set(persisted.map((n) => n.id));
+          const ephemeral = prev.filter(
+            (n) =>
+              !persistedIds.has(n.id) &&
+              (n.id.startsWith("reminder_") || n.id.startsWith("cancellation_"))
+          );
+          return [...persisted, ...ephemeral];
+        });
+        setIsLoading(false);
+      },
+      (error) => {
+        console.warn("Snapshot error in notificationsQuery:", error);
+        setIsLoading(false);
+      }
+    );
+
+    unsubscribes.push(unsubscribeNotifications);
 
     // 2. APPOINTMENT REMINDERS - Check for upcoming appointments
     if (memoizedNotificationPrefs.appointmentReminders) {
@@ -418,34 +473,31 @@ export function NotificationProvider({
 
     const unsubscribe = onChildAdded(userNotificationsRef, (snapshot) => {
       try {
+        const key = snapshot.key;
+        if (key && toastedNotificationIds.current.has(key)) return;
+
         const data = snapshot.val();
         if (!data) return;
 
-        // Skip historical notifications loaded initially
+        // Skip historical notifications loaded initially (or older than 2 minutes)
         const createdAtTime = data.createdAt ? new Date(data.createdAt).getTime() : 0;
-        if (createdAtTime <= listenerAttachTime) return;
+        if (createdAtTime > 0 && listenerAttachTime - createdAtTime > 120000) return;
 
-        // Create new notification object
-        const newNotification: Notification = {
-          id: snapshot.key || Date.now().toString(),
-          type: data.type === "error" || data.type === "warning" || data.type === "success" || data.type === "info" 
-            ? data.type 
-            : "info",
-          title: data.title || "New Update",
-          description: data.description || "",
-          timestamp: "Just now",
-          isRead: false,
-          category: data.category || "general",
-          data: data.data || {},
-        };
+        if (key) {
+          toastedNotificationIds.current.add(key);
+        }
 
-        // Add to React state
-        setNotifications((prev) => [newNotification, ...prev]);
-
-        // Trigger Sonner toast
-        toast.info(newNotification.title, {
-          description: newNotification.description,
-        });
+        // Toast (with sound) only — the Firestore `notifications` collection
+        // listener (above) is the source of truth for the list, so we do NOT add
+        // to state here (that would double the entry). This channel just fires
+        // the instant toast + notification chime when a notification arrives.
+        const uiType =
+          data.type === "error" ||
+          data.type === "warning" ||
+          data.type === "success"
+            ? data.type
+            : "info";
+        toastNotification(data.title || "New Update", data.description || "", uiType);
       } catch (err) {
         console.error("Error handling RTDB real-time event:", err);
       }
@@ -463,8 +515,17 @@ export function NotificationProvider({
   ): string => {
     if (!timestamp) return "Just now";
 
-    if (timestamp && typeof timestamp === "object" && "toDate" in timestamp) {
-      const date = timestamp.toDate();
+    let date: Date | null = null;
+    if (typeof timestamp === "object" && "toDate" in timestamp) {
+      date = timestamp.toDate();
+    } else if (typeof timestamp === "object" && "seconds" in timestamp) {
+      date = new Date(timestamp.seconds * 1000);
+    } else if (typeof timestamp === "string") {
+      const parsed = new Date(timestamp);
+      if (!isNaN(parsed.getTime())) date = parsed;
+    }
+
+    if (date) {
       const now = new Date();
       const diffInMinutes = Math.floor(
         (now.getTime() - date.getTime()) / (1000 * 60)
@@ -481,26 +542,6 @@ export function NotificationProvider({
     }
 
     return "Just now";
-  };
-
-  // Helper function to format dates for notifications
-  const formatDate = (
-    date:
-      | string
-      | { toDate: () => Date }
-      | { seconds: number; nanoseconds: number }
-  ): string => {
-    if (!date) return "Unknown date";
-
-    if (date && typeof date === "object" && "toDate" in date) {
-      return date.toDate().toLocaleDateString();
-    }
-
-    if (typeof date === "string") {
-      return new Date(date).toLocaleDateString();
-    }
-
-    return "Unknown date";
   };
 
   // Function to update notification preferences
@@ -558,6 +599,11 @@ export function NotificationProvider({
     []
   );
 
+  // True for persisted `notifications` collection docs (real Firestore ids),
+  // false for the web-only derived reminder_/cancellation_ items.
+  const isPersisted = (id: string) =>
+    !id.startsWith("reminder_") && !id.startsWith("cancellation_");
+
   const markAsRead = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.map((notification) =>
@@ -566,22 +612,51 @@ export function NotificationProvider({
           : notification
       )
     );
+    // Persist so it sticks across the live snapshot and syncs to mobile
+    if (isPersisted(id)) {
+      updateDoc(doc(db, "notifications", id), { isRead: true }).catch(() => {});
+    }
+  }, []);
+
+  const openNotificationModal = useCallback((notification: Notification) => {
+    setSelectedNotification(notification);
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+  }, [markAsRead]);
+
+  const closeNotificationModal = useCallback(() => {
+    setSelectedNotification(null);
   }, []);
 
   const markAllAsRead = useCallback(() => {
+    const idsToPersist = notifications
+      .filter((n) => !n.isRead && isPersisted(n.id))
+      .map((n) => n.id);
     setNotifications((prev) =>
       prev.map((notification) => ({ ...notification, isRead: true }))
     );
-  }, []);
+    idsToPersist.forEach((id) => {
+      updateDoc(doc(db, "notifications", id), { isRead: true }).catch(() => {});
+    });
+  }, [notifications]);
 
   const clearAll = useCallback(() => {
+    const idsToDelete = notifications.filter((n) => isPersisted(n.id)).map((n) => n.id);
     setNotifications([]);
-  }, []);
+    // Soft-delete so cleared items don't reappear on the next snapshot (matches mobile)
+    idsToDelete.forEach((id) => {
+      updateDoc(doc(db, "notifications", id), { deleted: true }).catch(() => {});
+    });
+  }, [notifications]);
 
   const removeNotification = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.filter((notification) => notification.id !== id)
     );
+    if (isPersisted(id)) {
+      updateDoc(doc(db, "notifications", id), { deleted: true }).catch(() => {});
+    }
   }, []);
 
   const value: NotificationContextType = {
@@ -589,6 +664,9 @@ export function NotificationProvider({
     unreadCount,
     isLoading,
     notificationPrefs,
+    selectedNotification,
+    openNotificationModal,
+    closeNotificationModal,
     updateNotificationPrefs,
     addNotification,
     markAsRead,
@@ -600,6 +678,12 @@ export function NotificationProvider({
   return (
     <NotificationContext.Provider value={value}>
       {children}
+      <NotificationDetailModal
+        notification={selectedNotification}
+        isOpen={!!selectedNotification}
+        onClose={closeNotificationModal}
+        onMarkAsRead={markAsRead}
+      />
     </NotificationContext.Provider>
   );
 }
