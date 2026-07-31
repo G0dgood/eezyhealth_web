@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   StreamVideo,
   StreamCall,
@@ -15,6 +15,7 @@ import { getVideoClient } from "@/lib/streamVideo";
 
 export default function NurseAudioCallPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [generateTokenForUser] = useGenerateTokenForUserMutation();
 
@@ -23,6 +24,7 @@ export default function NurseAudioCallPage() {
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [call, setCall] = useState<any>(null);
   const hasJoined = useRef(false);
+  const unsubscribeEndedRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!user || !callId || hasJoined.current) return;
@@ -59,6 +61,10 @@ export default function NurseAudioCallPage() {
 
         await streamCall.microphone.enable();
         await streamCall.camera.disable();
+
+        unsubscribeEndedRef.current = streamCall.on("call.ended", () => {
+          router.push("/nurse/message");
+        });
       } catch (e) {
         console.error("Error joining audio call as nurse:", e);
       }
@@ -68,7 +74,24 @@ export default function NurseAudioCallPage() {
     };
 
     init();
+
+    return () => {
+      if (unsubscribeEndedRef.current) {
+        unsubscribeEndedRef.current();
+      }
+    };
   }, [user, callId, generateTokenForUser]);
+
+  const handleEnd = async () => {
+    if (call) {
+      try {
+        await call.endCall();
+      } catch (e) {
+        // ignore
+      }
+    }
+    router.push("/nurse/message");
+  };
 
   if (!client || !call) {
     return (
@@ -82,8 +105,14 @@ export default function NurseAudioCallPage() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme>
-          <div className="h-screen bg-black text-white flex items-center justify-center">
-            <h2>Audio Call Connected</h2>
+          <div className="h-screen bg-black text-white flex flex-col items-center justify-center">
+            <h2 className="text-2xl font-bold mb-8">Audio Call Connected</h2>
+            <button
+              onClick={handleEnd}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-full transition-colors"
+            >
+              End Call
+            </button>
           </div>
         </StreamTheme>
       </StreamCall>

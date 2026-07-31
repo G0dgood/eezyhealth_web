@@ -48,7 +48,7 @@ export default function VideoProvider({
     };
   }, [apiKey, token, userId, userName]);
 
-  const { incomingCall, setIncomingCall } = useIncomingCall(client);
+  const { incomingCall, setIncomingCall } = useIncomingCall(client, userId);
 
   // Ringtone logic
   useEffect(() => {

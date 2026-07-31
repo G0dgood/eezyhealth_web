@@ -17,6 +17,8 @@ import AudioCallScreen from "@/components/AudioCallScreen";
 import { notifyMissedCall } from "@/utils/notifications";
 import { getVideoClient } from "@/lib/streamVideo";
 
+import { getStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
+
 export default function DoctorAudioCallPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -34,6 +36,39 @@ export default function DoctorAudioCallPage() {
   const [duration, setDuration] = useState(0);
   const hasJoined = useRef(false);
   const hasRungRef = useRef(false);
+  const navigatedRef = useRef(false);
+
+  // Return to the chat page once when the call ends.
+  const returnToChat = async () => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+
+    // Notify other participants (like mobile/nurse) via chat message that call has ended
+    const chatInfo = getStreamChatInfo();
+    const channelId = params.get("channelId");
+    if (chatInfo && channelId) {
+      try {
+        const chatClient = getStreamChatClient();
+        await connectStreamChatUser(
+          chatInfo.chatUserId,
+          chatInfo.chatUserName,
+          user?.photoURL || "",
+          chatInfo.chatUserToken
+        );
+        const channel = chatClient.channel("messaging", channelId);
+        await channel.sendMessage({
+          text: `📞 Voice call ended`,
+          call_id: callId,
+          call_type: "voice",
+          call_status: "ended",
+        } as any);
+      } catch (chatErr) {
+        console.error("Failed to send call ended chat message:", chatErr);
+      }
+    }
+
+    router.replace("/doctor/message");
+  };
 
   const handleCancelCall = async () => {
     if (call && patientId) {
@@ -52,6 +87,7 @@ export default function DoctorAudioCallPage() {
           callerName: user?.displayName || "Doctor",
           callId,
           callType: 'audio',
+          callerId: user?.uid,
         }).catch(err => console.error("Failed to notify missed call", err));
       }
       await call.endCall();
@@ -118,6 +154,30 @@ export default function DoctorAudioCallPage() {
           hasRungRef.current = true;
         }
 
+        // Also send started invite in chat channel to notify mobile users
+        const chatInfo = getStreamChatInfo();
+        const channelId = params.get("channelId");
+        if (chatInfo && channelId) {
+          try {
+            const chatClient = getStreamChatClient();
+            await connectStreamChatUser(
+              chatInfo.chatUserId,
+              chatInfo.chatUserName,
+              user.photoURL || "",
+              chatInfo.chatUserToken
+            );
+            const channel = chatClient.channel("messaging", channelId);
+            await channel.sendMessage({
+              text: `📞 Voice call started`,
+              call_id: callId,
+              call_type: "voice",
+              call_status: "initiated",
+            } as any);
+          } catch (chatErr) {
+            console.error("Failed to send chat invite:", chatErr);
+          }
+        }
+
         // Audio mode: disable camera, enable mic
         try {
           await streamCall.camera.disable();
@@ -127,14 +187,14 @@ export default function DoctorAudioCallPage() {
         }
 
         streamCall.on("call.accepted", () => setWaiting(false));
-        streamCall.on("call.ended", () => router.push("/doctor/message"));
+        streamCall.on("call.ended", () => returnToChat());
 
         setClient(videoClient);
         setCall(streamCall);
       } catch (err: any) {
         console.error("STREAM ERROR:", err);
         toast.error(`Unable to start call: ${err?.message || 'Unknown error'}`);
-        router.back();
+        returnToChat();
       }
     };
 

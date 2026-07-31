@@ -177,7 +177,7 @@ export default function DoctorBookingPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Panel - Doctor's Profile */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="text-center">
             {/* Profile Picture */}
             <div className="w-32 h-32 mx-auto mb-4">
@@ -221,7 +221,7 @@ export default function DoctorBookingPage({
         </div>
 
         {/* Right Panel - Appointment Booking */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
             Book Appointment
           </h3>

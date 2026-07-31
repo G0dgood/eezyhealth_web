@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MoreVertical, CreditCard, Eye } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
+import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
+import Dropdown from "@/components/Dropdown";
+
+const getDoctorName = (doc: any) => {
+  if (doc.displayName) return doc.displayName;
+  if (doc.name) return doc.name;
+  if (doc.first_name) {
+    return `${doc.title || "Dr."} ${doc.first_name} ${doc.last_name || ""}`.trim();
+  }
+  return doc.email || "Unknown Doctor";
+};
+
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
@@ -32,6 +44,13 @@ export default function NursePaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+
+  // Fetch doctors for filter dropdown
+  const { data: doctorsData } = useGetFirebaseDoctorsQuery({});
+  const doctors = useMemo(() => {
+    return (doctorsData || []) as any[];
+  }, [doctorsData]);
 
   // RTK hooks
   const {
@@ -64,32 +83,43 @@ export default function NursePaymentPage() {
     }
   }, [error]);
 
-  // Filter payments based on search query (updated to match payment data structure)
-  const filteredPayments = (payments || []).filter(
-    (payment: any) => {
-      const searchLower = searchQuery.toLowerCase();
+  // Filter payments based on search query and selected doctor
+  const filteredPayments = useMemo(() => {
+    let result = payments || [];
 
-      // Helper function to safely convert to string and search
-      const safeSearch = (value: unknown): boolean => {
-        if (typeof value === "string") {
-          return value.toLowerCase().includes(searchLower);
-        } else if (typeof value === "number") {
-          return value.toString().toLowerCase().includes(searchLower);
-        }
-        return false;
-      };
-
-      return (
-        safeSearch(payment?.patientName) ||
-        safeSearch(payment?.paymentMethod) ||
-        safeSearch(payment?.paymentStatus) ||
-        safeSearch(payment?.status) ||
-        safeSearch(payment?.amount) ||
-        safeSearch(payment?.paymentReference?.reference) ||
-        safeSearch(payment?.transactionId?.reference)
+    if (selectedDoctorId) {
+      result = result.filter(
+        (payment: any) => payment?.doctorId === selectedDoctorId
       );
     }
-  );
+
+    if (!searchQuery) return result;
+
+    return result.filter(
+      (payment: any) => {
+        const searchLower = searchQuery.toLowerCase();
+
+        const safeSearch = (value: unknown): boolean => {
+          if (typeof value === "string") {
+            return value.toLowerCase().includes(searchLower);
+          } else if (typeof value === "number") {
+            return value.toString().toLowerCase().includes(searchLower);
+          }
+          return false;
+        };
+
+        return (
+          safeSearch(payment?.patientName) ||
+          safeSearch(payment?.paymentMethod) ||
+          safeSearch(payment?.paymentStatus) ||
+          safeSearch(payment?.status) ||
+          safeSearch(payment?.amount) ||
+          safeSearch(payment?.paymentReference?.reference) ||
+          safeSearch(payment?.transactionId?.reference)
+        );
+      }
+    );
+  }, [payments, searchQuery, selectedDoctorId]);
 
   // Pagination
   const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
@@ -175,13 +205,34 @@ export default function NursePaymentPage() {
           </div>
           <Title title="Payment History" />
 
-          {/* Search Section */}
-          <div className="mb-6">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search payments..."
-            />
+          {/* Search Section and Doctor Filter */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex-1 max-w-md">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search payments..."
+              />
+            </div>
+
+            {/* Doctor Dropdown */}
+            <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-300 rounded-lg">
+              <span className="text-xs text-gray-500 font-medium">Doctor:</span>
+              <Dropdown
+                value={selectedDoctorId}
+                onChange={(value) => setSelectedDoctorId(value)}
+                options={[
+                  { value: "", label: "All Doctors" },
+                  ...doctors.map((doc: any) => ({
+                    value: doc.uid || doc.doctorId || doc.id,
+                    label: getDoctorName(doc),
+                  })),
+                ]}
+                placeholder="Select Doctor"
+                className="w-64 shadow-none"
+                variant="default"
+              />
+            </div>
           </div>
 
           {/* Payments Table */}

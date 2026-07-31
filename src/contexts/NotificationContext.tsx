@@ -77,7 +77,8 @@ export function NotificationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, userInfo } = useAuth();
+  const role = userInfo?.role;
 
   // Initialize FCM Token management
   useFCMToken();
@@ -160,10 +161,16 @@ export function NotificationProvider({
     // notifications where doctorId == their uid (matches the mobile query). This
     // is authoritative and persisted (survives reloads and syncs across devices),
     // unlike the previous ephemeral 5-second-window derivation from Bookings.
-    const notificationsQuery = query(
-      collection(db, "notifications"),
-      where("doctorId", "==", doctorId)
-    );
+    const notificationsQuery = role === "nurse"
+      ? query(
+          collection(db, "notifications"),
+          orderBy("createdAt", "desc"),
+          limit(100)
+        )
+      : query(
+          collection(db, "notifications"),
+          where("doctorId", "==", doctorId)
+        );
 
     const toMillis = (t: unknown): number => {
       if (!t) return 0;
@@ -210,7 +217,7 @@ export function NotificationProvider({
 
         const persisted: Notification[] = snapshot.docs
           .map((d) => ({ id: d.id, raw: d.data() as Record<string, any> }))
-          .filter(({ raw }) => !raw.deleted)
+          .filter(({ raw }) => role === "nurse" ? !raw.deletedByNurse : !raw.deleted)
           .sort((a, b) => toMillis(b.raw.createdAt) - toMillis(a.raw.createdAt))
           .map(({ id, raw }) => {
             const t = String(raw.type || "");
@@ -231,7 +238,7 @@ export function NotificationProvider({
               title: raw.title || "Notification",
               description: raw.description || raw.message || "",
               timestamp: formatTimestamp(raw.createdAt),
-              isRead: !!raw.isRead,
+              isRead: role === "nurse" ? !!raw.isReadByNurse : !!raw.isRead,
               category,
               data: raw.data || {},
             };
@@ -462,7 +469,7 @@ export function NotificationProvider({
     return () => {
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [user?.uid, memoizedNotificationPrefs]);
+  }, [user?.uid, memoizedNotificationPrefs, role]);
 
   // Realtime Database WebSockets Integration for instant alerts
   useEffect(() => {
@@ -614,9 +621,12 @@ export function NotificationProvider({
     );
     // Persist so it sticks across the live snapshot and syncs to mobile
     if (isPersisted(id)) {
-      updateDoc(doc(db, "notifications", id), { isRead: true }).catch(() => {});
+      const updateData = role === "nurse"
+        ? { isReadByNurse: true }
+        : { isRead: true };
+      updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     }
-  }, []);
+  }, [role]);
 
   const openNotificationModal = useCallback((notification: Notification) => {
     setSelectedNotification(notification);
@@ -637,27 +647,36 @@ export function NotificationProvider({
       prev.map((notification) => ({ ...notification, isRead: true }))
     );
     idsToPersist.forEach((id) => {
-      updateDoc(doc(db, "notifications", id), { isRead: true }).catch(() => {});
+      const updateData = role === "nurse"
+        ? { isReadByNurse: true }
+        : { isRead: true };
+      updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     });
-  }, [notifications]);
+  }, [notifications, role]);
 
   const clearAll = useCallback(() => {
     const idsToDelete = notifications.filter((n) => isPersisted(n.id)).map((n) => n.id);
     setNotifications([]);
     // Soft-delete so cleared items don't reappear on the next snapshot (matches mobile)
     idsToDelete.forEach((id) => {
-      updateDoc(doc(db, "notifications", id), { deleted: true }).catch(() => {});
+      const updateData = role === "nurse"
+        ? { deletedByNurse: true }
+        : { deleted: true };
+      updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     });
-  }, [notifications]);
+  }, [notifications, role]);
 
   const removeNotification = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.filter((notification) => notification.id !== id)
     );
     if (isPersisted(id)) {
-      updateDoc(doc(db, "notifications", id), { deleted: true }).catch(() => {});
+      const updateData = role === "nurse"
+        ? { deletedByNurse: true }
+        : { deleted: true };
+      updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     }
-  }, []);
+  }, [role]);
 
   const value: NotificationContextType = {
     notifications,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar } from "lucide-react";
+import { Plus, Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar, CheckCircle } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -18,6 +18,7 @@ import {
   ConsultationNoteModal,
   RescheduleModal,
   CancelAppointmentModal,
+  Modal,
 } from "@/components/modals";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
@@ -50,6 +51,7 @@ export default function DoctorAppointmentsPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isConsultationNoteModalOpen, setIsConsultationNoteModalOpen] =
     useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] =
     useState<DoctorAppointment | null>(null);
 
@@ -60,7 +62,8 @@ export default function DoctorAppointmentsPage() {
       isAddModalOpen ||
       isRescheduleModalOpen ||
       isCancelModalOpen ||
-      isConsultationNoteModalOpen
+      isConsultationNoteModalOpen ||
+      isConfirmModalOpen
     ) {
       document.body.style.overflow = "hidden";
     } else {
@@ -76,6 +79,7 @@ export default function DoctorAppointmentsPage() {
     isRescheduleModalOpen,
     isCancelModalOpen,
     isConsultationNoteModalOpen,
+    isConfirmModalOpen,
   ]);
 
   // Handler functions for modals
@@ -178,7 +182,8 @@ export default function DoctorAppointmentsPage() {
         status: (() => {
           const status = String(booking.bookingStatus || "").toLowerCase();
           if (status === "accepted" || status === "confirmed")
-            return "completed";
+            return "confirmed";
+          if (status === "completed") return "completed";
           if (status === "pending") return "pending";
           if (status === "cancelled") return "cancelled";
           return "pending";
@@ -217,14 +222,16 @@ export default function DoctorAppointmentsPage() {
 
   const statusDisplayMap: Record<AppointmentStatus, string> = {
     pending: "Scheduled",
+    confirmed: "Confirmed",
     completed: "Completed",
     cancelled: "Cancelled",
   };
 
   const getStatusBadge = (status: AppointmentStatus) => {
     const statusClasses = {
-      pending: "bg-yellow-100 text-yellow-800",
-      completed: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+      confirmed: "bg-blue-100 text-blue-800 border border-blue-300",
+      completed: "bg-green-100 text-green-800 border border-green-300",
       cancelled:
         "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20",
     };
@@ -279,12 +286,42 @@ export default function DoctorAppointmentsPage() {
     setIsCancelModalOpen(true);
   };
 
+  const handleConfirmClick = (appointment: DoctorAppointment) => {
+    setSelectedAppointment(appointment);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmAppointment = async () => {
+    if (!selectedAppointment?.id) return;
+
+    try {
+      // Setting the status to "Accepted" triggers the onBookingUpdated Cloud
+      // Function, which sends the patient an "Appointment Confirmed" in-app
+      // notification + push notification automatically.
+      await updateBookingStatus({
+        bookingId: selectedAppointment.id,
+        newStatus: "Accepted",
+      }).unwrap();
+
+      await refetch();
+      showSuccess(
+        "Appointment Confirmed",
+        `${selectedAppointment.patientName} has been notified that their appointment is confirmed.`
+      );
+      closeAllModals();
+    } catch (error) {
+      console.error("Failed to confirm appointment:", error);
+      showError("Error", "Failed to confirm the appointment. Please try again.");
+    }
+  };
+
   const closeAllModals = () => {
     setIsAddModalOpen(false);
     setIsDetailModalOpen(false);
     setIsRescheduleModalOpen(false);
     setIsCancelModalOpen(false);
     setIsConsultationNoteModalOpen(false);
+    setIsConfirmModalOpen(false);
     setSelectedAppointment(null);
   };
 
@@ -396,6 +433,14 @@ export default function DoctorAppointmentsPage() {
                           {appointment.status === "pending" && (
                             <>
                               <button
+                                onClick={() => handleConfirmClick(appointment)}
+                                className="flex items-center space-x-1 text-[var(--primary)] hover:opacity-80 transition-opacity"
+                                title="Confirm Appointment"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Confirm</span>
+                              </button>
+                              <button
                                 onClick={() => handleReschedule(appointment)}
                                 className="text-orange-600 hover:text-orange-800 transition-colors"
                                 title="Reschedule Appointment"
@@ -476,6 +521,83 @@ export default function DoctorAppointmentsPage() {
             : undefined
         }
       />
+
+      {/* Confirm Appointment Modal */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={closeAllModals}
+        title="Confirm Appointment"
+        size="md"
+      >
+        <div className="px-6 py-5">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-11 h-11 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+              <CheckCircle className="w-6 h-6 text-[var(--primary)]" />
+            </div>
+            <p className="text-[13px] md:text-[14px] text-gray-600">
+              Review the details below and confirm this appointment. The patient
+              will be notified instantly.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-gray-100 divide-y divide-gray-100 bg-gray-50/60">
+            {[
+              { label: "Patient", value: selectedAppointment?.patientName },
+              { label: "Date", value: selectedAppointment?.date },
+              { label: "Time", value: selectedAppointment?.time },
+              {
+                label: "Channel",
+                value:
+                  selectedAppointment?.channel === "videoCall"
+                    ? "Video Consultation"
+                    : selectedAppointment?.channel === "chat"
+                      ? "Chat Consultation"
+                      : selectedAppointment?.channel === "voiceCall"
+                        ? "Voice Call"
+                        : selectedAppointment?.channel,
+              },
+              {
+                label: "Reason",
+                value: selectedAppointment?.reason,
+              },
+            ].map((row) => (
+              <div
+                key={row.label}
+                className="flex items-start justify-between gap-4 px-4 py-3"
+              >
+                <span className="text-[12px] text-gray-500">{row.label}</span>
+                <span className="text-[12px] md:text-[13px] font-medium text-gray-900 text-right">
+                  {row.value || "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 mt-6">
+            <button
+              onClick={closeAllModals}
+              disabled={isUpdatingStatus}
+              className="px-4 py-2 text-[13px] rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmAppointment}
+              disabled={isUpdatingStatus}
+              className="px-4 py-2 text-[13px] rounded-lg bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
+            >
+              {isUpdatingStatus ? (
+                "Confirming..."
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Confirm Appointment
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

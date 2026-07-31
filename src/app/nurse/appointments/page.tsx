@@ -1,58 +1,125 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Filter, Plus, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Calendar, Plus, Search } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Input from "@/components/Input";
+import { useGetBookingsQuery } from "@/store/bookingApi";
+import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
+import StatusBadge from "@/components/StatusBadge";
+
+const getDoctorName = (doc: any) => {
+  if (doc.displayName) return doc.displayName;
+  if (doc.name) return doc.name;
+  if (doc.first_name) {
+    return `${doc.title || "Dr."} ${doc.first_name} ${doc.last_name || ""}`.trim();
+  }
+  return doc.email || "Unknown Doctor";
+};
 
 export default function NurseAppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const totalPages = 10;
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
 
-  // Sample appointments data
-  const appointmentsData = [
-    {
-      patient: "Seun Simeon",
-      doctor: "Dr. Tunde Sanni",
-      date: "24-05-2024",
-      time: "08:30 AM",
-      type: "Video Consultation",
-      status: "Confirmed",
-    },
-    {
-      patient: "Felix Simeon",
-      doctor: "Dr. Mary Paul",
-      date: "24-05-2024",
-      time: "10:00 AM",
-      type: "Chat Consultation",
-      status: "Pending",
-    },
-    {
-      patient: "Kofi Simeon",
-      doctor: "Dr. Paul Moses",
-      date: "24-05-2024",
-      time: "02:00 PM",
-      type: "Voice Call",
-      status: "Confirmed",
-    },
-    {
-      patient: "Fatima Simeon",
-      doctor: "Dr. Tunde Sanni",
-      date: "25-05-2024",
-      time: "09:00 AM",
-      type: "Video Consultation",
-      status: "Confirmed",
-    },
-    {
-      patient: "Joy Simeon",
-      doctor: "Dr. Mary Sanni",
-      date: "25-05-2024",
-      time: "11:30 AM",
-      type: "Chat Consultation",
-      status: "Pending",
-    },
-  ];
+  // RTK Query calls
+  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const { data: doctorsData } = useGetFirebaseDoctorsQuery({});
+
+  const doctors = useMemo(() => {
+    return (doctorsData || []) as any[];
+  }, [doctorsData]);
+
+  // Convert raw booking data to standard format
+  const appointments = useMemo(() => {
+    const raw = Array.isArray(bookingsData) ? bookingsData : (bookingsData as any)?.bookings || [];
+    if (!raw || raw.length === 0) return [];
+
+    return raw.map((booking: any) => {
+      // Convert slot key (e.g. morning_6am -> 06:00 AM)
+      const slotToTime = (slot: string): string => {
+        const slotLower = (slot || "").toLowerCase();
+        const hourMatch = slotLower.match(/(\d+)(am|pm)/);
+        if (!hourMatch) return "06:00 AM";
+
+        const hour = parseInt(hourMatch[1]);
+        const period = hourMatch[2].toUpperCase();
+        return `${hour.toString().padStart(2, "0")}:00 ${period}`;
+      };
+
+      // Convert timestamp to Date object
+      let bookingDateObj: Date | null = null;
+      if (booking.bookingDate?._seconds) {
+        bookingDateObj = new Date(booking.bookingDate._seconds * 1000);
+      } else if (booking.bookingDate?.seconds) {
+        bookingDateObj = new Date(booking.bookingDate.seconds * 1000);
+      } else if (booking.bookingDate) {
+        bookingDateObj = new Date(booking.bookingDate);
+      }
+
+      let dateStr = "N/A";
+      let dateKey = ""; // YYYY-MM-DD
+      if (bookingDateObj && !isNaN(bookingDateObj.getTime())) {
+        const d = String(bookingDateObj.getDate()).padStart(2, "0");
+        const m = String(bookingDateObj.getMonth() + 1).padStart(2, "0");
+        const y = bookingDateObj.getFullYear();
+        dateStr = `${d}-${m}-${y}`;
+        dateKey = `${y}-${m}-${d}`;
+      }
+
+      return {
+        id: booking.bookingId || booking.id,
+        patient: booking.patientName || "Unknown Patient",
+        doctor: booking.doctorName || "Unknown Doctor",
+        doctorId: booking.doctorId || "",
+        date: dateStr,
+        dateKey: dateKey,
+        time: slotToTime(booking.slot),
+        type: booking.bookingChannel === "physical" ? "Physical Consultation" : `${booking.bookingChannel || "Video"} Consultation`,
+        status: ((s) => {
+          const status = (s || "").toLowerCase();
+          if (status === "accepted" || status === "confirmed") return "Confirmed";
+          if (status === "cancelled" || status === "rejected") return "Cancelled";
+          return "Pending";
+        })(booking.bookingStatus),
+      };
+    });
+  }, [bookingsData]);
+
+  // Filtered appointments
+  const filteredAppointments = useMemo(() => {
+    return appointments.filter((appt: any) => {
+      const matchSearch =
+        appt.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appt.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appt.type.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchDate = selectedDate ? appt.dateKey === selectedDate : true;
+      const matchDoctor = selectedDoctorId ? appt.doctorId === selectedDoctorId : true;
+
+      return matchSearch && matchDate && matchDoctor;
+    });
+  }, [appointments, searchTerm, selectedDate, selectedDoctorId]);
+
+  // Dynamic statistics
+  const stats = useMemo(() => {
+    const todayObj = new Date();
+    const y = todayObj.getFullYear();
+    const m = String(todayObj.getMonth() + 1).padStart(2, "0");
+    const d = String(todayObj.getDate()).padStart(2, "0");
+    const todayStr = `${y}-${m}-${d}`;
+
+    const todayAppts = appointments.filter((a: any) => a.dateKey === todayStr).length;
+    const pendingAppts = appointments.filter((a: any) => a.status === "Pending").length;
+    const confirmedAppts = appointments.filter((a: any) => a.status === "Confirmed").length;
+
+    return {
+      today: todayAppts,
+      pending: pendingAppts,
+      confirmed: confirmedAppts,
+    };
+  }, [appointments]);
 
   const columns = [
     { key: "patient", label: "PATIENT" },
@@ -64,15 +131,7 @@ export default function NurseAppointmentsPage() {
       key: "status",
       label: "STATUS",
       render: (value: string | number) => (
-        <span
-          className={`px-2 py-1 text-xs rounded-full ${value === "Confirmed"
-            ? "bg-green-100 text-green-800"
-            : value === "Pending"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-            }`}>
-          {value}
-        </span>
+        <StatusBadge status={String(value)} />
       ),
     },
   ];
@@ -87,8 +146,8 @@ export default function NurseAppointmentsPage() {
         </p>
       </div>
 
-      {/* Search and Actions */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex-1 max-w-md">
           <Input
             type="text"
@@ -100,28 +159,63 @@ export default function NurseAppointmentsPage() {
           />
         </div>
 
-        <div className="flex space-x-3">
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-            <Filter className="w-4 h-4" />
-            <span>Filter</span>
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>New Appointment</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Date Picker */}
+          <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+            <span className="text-xs text-gray-500 font-medium">Date:</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="text-xs text-gray-700 focus:outline-none bg-transparent cursor-pointer"
+            />
+            {selectedDate && (
+              <button
+                onClick={() => setSelectedDate("")}
+                className="text-xs text-red-500 hover:text-red-700 font-semibold"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Doctor Dropdown */}
+          <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+            <span className="text-xs text-gray-500 font-medium">Doctor:</span>
+            <select
+              value={selectedDoctorId}
+              onChange={(e) => setSelectedDoctorId(e.target.value)}
+              className="text-xs text-gray-700 focus:outline-none bg-transparent cursor-pointer"
+            >
+              <option value="">All Doctors</option>
+              {doctors.map((doc: any) => (
+                <option key={doc.uid || doc.doctorId || doc.id} value={doc.uid || doc.doctorId || doc.id}>
+                  {getDoctorName(doc)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Appointments Table */}
-      <DataTable
-        columns={columns}
-        data={appointmentsData}
-        currentPage={currentPage}
-        totalCount={appointmentsData.length}
-        pageSize={10}
-        onPageChange={setCurrentPage}
-        itemLabel="appointments"
-      />
+      {isLoading ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-full"></div>
+          <div className="h-24 bg-gray-200 rounded w-full"></div>
+          <div className="h-10 bg-gray-200 rounded w-1/3 mx-auto text-center">Loading appointments...</div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredAppointments}
+          currentPage={currentPage}
+          totalCount={filteredAppointments.length}
+          pageSize={10}
+          onPageChange={setCurrentPage}
+          itemLabel="appointments"
+        />
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -129,7 +223,7 @@ export default function NurseAppointmentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Today&apos;s Appointments</p>
-              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">5</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-blue-600">{stats.today}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-blue-600" />
@@ -141,7 +235,7 @@ export default function NurseAppointmentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Pending Confirmations</p>
-              <p className="text-[18px] md:text-[20px] font-bold text-yellow-600">2</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-yellow-600">{stats.pending}</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-yellow-600" />
@@ -152,8 +246,8 @@ export default function NurseAppointmentsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Completed Today</p>
-              <p className="text-[18px] md:text-[20px] font-bold text-green-600">3</p>
+              <p className=" !text-[10px]  !md:text-[12px] text-gray-600">Completed/Confirmed</p>
+              <p className="text-[18px] md:text-[20px] font-bold text-green-600">{stats.confirmed}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-green-600" />

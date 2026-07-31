@@ -356,7 +356,7 @@ export default function AdminDoctorsPage() {
           {regularDoctors?.map((doctor: Doctor) => (
             <div
               key={doctor.id}
-              className="bg-white rounded-lg p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200">
+              className="bg-white rounded-lg p-6 border border-gray-200 cursor-pointer hover:border-gray-300 transition-all duration-200">
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
                   <Image

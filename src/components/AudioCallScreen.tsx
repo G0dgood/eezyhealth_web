@@ -54,27 +54,30 @@
          </p>
        </div>
  
-       <div className="flex items-center gap-10">
+       <div className="flex items-center gap-8 px-8 py-4 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
          <button
            onClick={toggleMute}
-           className={`w-16 h-16 rounded-full flex items-center justify-center transition ${
-             isMuted ? "bg-red-500" : "bg-gray-700 hover:bg-gray-600"
+           title={isMuted ? "Unmute" : "Mute"}
+           className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+             isMuted ? "bg-white text-gray-900" : "bg-white/15 hover:bg-white/25 text-white"
            }`}
          >
            {isMuted ? <MicOff size={26} /> : <Mic size={26} />}
          </button>
- 
+
          <button
            onClick={onEnd}
-           className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-xl hover:bg-red-700 transition"
+           title="End call"
+           className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-xl hover:bg-red-600 transition-colors text-white"
          >
            <PhoneOff size={32} />
          </button>
- 
+
          <button
            onClick={toggleSpeaker}
-           className={`w-16 h-16 rounded-full flex items-center justify-center transition ${
-             speakerOn ? "bg-gray-700 hover:bg-gray-600" : "bg-red-500"
+           title={speakerOn ? "Speaker off" : "Speaker on"}
+           className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+             speakerOn ? "bg-white/15 hover:bg-white/25 text-white" : "bg-white text-gray-900"
            }`}
          >
            {speakerOn ? <Volume2 size={26} /> : <VolumeX size={26} />}

@@ -155,7 +155,7 @@ export default function BookAppointmentPage() {
         {availableDoctors.map((doctor) => (
           <div
             key={doctor.id}
-            className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${selectedDoctor === doctor.id
+            className={`bg-white border rounded-lg transition-all duration-200 cursor-pointer ${selectedDoctor === doctor.id
               ? "border-green-500 ring-2 ring-green-200"
               : "border-gray-200 hover:border-green-300"
               }`}

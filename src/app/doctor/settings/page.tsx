@@ -279,69 +279,50 @@ export default function DoctorSettings() {
   // Show skeleton loader while initializing
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumb Skeleton */}
-          <div className="mb-6">
-            <Skeleton className="h-6 w-48" />
+      <div>
+        {/* Breadcrumb Skeleton */}
+        <div className="mb-6">
+          <Skeleton className="h-5 w-56" />
+        </div>
+
+        {/* Card mirrors the real settings card */}
+        <div className="bg-[var(--card)] rounded-lg border border-[var(--border)]">
+          {/* Tabs Skeleton (horizontal pills) */}
+          <div className="border-b border-[var(--border)] p-4">
+            <div className="flex flex-wrap gap-3">
+              <Skeleton className="h-10 w-44 rounded-full" />
+              <Skeleton className="h-10 w-52 rounded-full" />
+              <Skeleton className="h-10 w-40 rounded-full" />
+            </div>
           </div>
 
-          {/* Title Skeleton */}
-          <div className="mb-8">
-            <Skeleton className="h-8 w-64" />
-          </div>
+          {/* Tab Content Skeleton (Profile) */}
+          <div className="p-6">
+            <div className="space-y-6">
+              {/* Profile Picture Skeleton */}
+              <div className="flex flex-col items-center gap-3">
+                <Skeleton className="w-24 h-24 rounded-full" />
+                <Skeleton className="h-9 w-40 rounded-md" />
+              </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar Skeleton */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg p-6">
-                <Skeleton className="h-6 w-32 mb-4" />
-                <div className="space-y-3">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
+              {/* Form Fields Skeleton (2-col grid) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+                ))}
+                {/* Full-width field */}
+                <div className="md:col-span-2 space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full rounded-md" />
                 </div>
               </div>
-            </div>
 
-            {/* Main Content Skeleton */}
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg p-6">
-                <Skeleton className="h-6 w-40 mb-6" />
-
-                {/* Profile Section Skeleton */}
-                <div className="space-y-6">
-                  {/* Profile Picture Skeleton */}
-                  <div className="text-center">
-                    <Skeleton className="w-24 h-24 rounded-full mx-auto mb-4" />
-                    <Skeleton className="h-4 w-32 mx-auto" />
-                  </div>
-
-                  {/* Form Fields Skeleton */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-28" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                  </div>
-
-                  {/* Save Button Skeleton */}
-                  <div className="flex justify-end">
-                    <Skeleton className="h-10 w-24" />
-                  </div>
-                </div>
+              {/* Save Button Skeleton */}
+              <div className="flex justify-end">
+                <Skeleton className="h-10 w-28 rounded-md" />
               </div>
             </div>
           </div>

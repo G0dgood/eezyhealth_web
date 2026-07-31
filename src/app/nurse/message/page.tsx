@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Phone, ChevronLeft } from "lucide-react";
+import { Phone, ChevronLeft, Video, VideoOff, PhoneOff, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,11 +20,71 @@ import {
   MessageList,
   MessageInput,
   Thread,
-  LoadingIndicator
+  LoadingIndicator,
+  MessageSimple
 } from 'stream-chat-react';
 import 'stream-chat-react/dist/css/v2/index.css';
 import '../../stream-chat.css';
 import { getStreamChatInfo, storeStreamChatInfo } from "@/lib/streamChat";
+
+const CustomMessage = (props: any) => {
+  const { message } = props;
+  // Stream renders non-message items (date separators, etc.) through this
+  // component too, where `message` can be undefined — bail out safely.
+  if (!message) {
+    return <MessageSimple {...props} />;
+  }
+  const isMine = typeof props.isMyMessage === 'function' ? props.isMyMessage(message) : (message.user?.id === props.client?.userID);
+
+  const callStatus = message.call_status || (message.text?.includes('ended') ? 'ended' : message.text?.includes('accepted') ? 'accepted' : message.text?.includes('declined') ? 'declined' : message.text?.includes('started') || message.text?.includes('Call') ? 'initiated' : null);
+  const isVideo = message.call_type === 'video' || message.text?.includes('Video') || message.text?.includes('📹');
+  const isVoice = message.call_type === 'voice' || message.call_type === 'audio' || message.text?.includes('Voice') || message.text?.includes('📞');
+
+  if (callStatus && (isVideo || isVoice)) {
+    let icon = null;
+    let title = "";
+    let bgColor = "";
+    let textColor = "";
+    let borderColor = "";
+
+    if (callStatus === 'initiated') {
+      icon = isVideo ? <Video className="w-4 h-4 mr-2 text-blue-600 animate-pulse" /> : <Phone className="w-4 h-4 mr-2 text-blue-600 animate-pulse" />;
+      title = isVideo ? "Video call started" : "Voice call started";
+      bgColor = "bg-blue-50";
+      textColor = "text-blue-800";
+      borderColor = "border-blue-200";
+    } else if (callStatus === 'ended') {
+      icon = isVideo ? <VideoOff className="w-4 h-4 mr-2 text-red-600" /> : <PhoneOff className="w-4 h-4 mr-2 text-red-600" />;
+      title = isVideo ? "Video call ended" : "Voice call ended";
+      bgColor = "bg-red-50";
+      textColor = "text-red-800";
+      borderColor = "border-red-200";
+    } else if (callStatus === 'accepted') {
+      icon = <Check className="w-4 h-4 mr-2 text-green-600" />;
+      title = isVideo ? "Video call accepted" : "Voice call accepted";
+      bgColor = "bg-green-50";
+      textColor = "text-green-800";
+      borderColor = "border-green-200";
+    } else if (callStatus === 'declined') {
+      icon = <X className="w-4 h-4 mr-2 text-gray-600" />;
+      title = isVideo ? "Video call declined" : "Voice call declined";
+      bgColor = "bg-gray-50";
+      textColor = "text-gray-800";
+      borderColor = "border-gray-200";
+    }
+
+    return (
+      <div className="flex justify-center my-2.5 px-4 w-full">
+        <div className={`flex items-center px-4 py-2 rounded-full border ${bgColor} ${textColor} ${borderColor} shadow-sm text-sm max-w-[90%]`}>
+          {icon}
+          <span className="font-semibold">{title}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <MessageSimple {...props} />;
+};
 
 export default function NurseMessagePage() {
   const router = useRouter();
@@ -434,7 +494,7 @@ export default function NurseMessagePage() {
                         </button>
                       </div>
                     </div>
-                    <MessageList />
+                    <MessageList Message={CustomMessage} />
                     <MessageInput />
                   </Window>
                   <Thread />

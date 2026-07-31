@@ -46,7 +46,7 @@ input:checked ~ .dot {
   --accent-white: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
+  --border: #edf1f5;
   --input: #e2e8f0;
   --ring: #22c55e;
   
@@ -97,8 +97,8 @@ html {
   --accent-white: #1e293b;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #475569;
-  --input: #475569;
+  --border: #2c3a4e;
+  --input: #3a4a5f;
   --ring: #22c55e;
   
   /* eezyhealth specific colors - adjusted for dark mode */
@@ -333,11 +333,10 @@ main[data-page="message"] {
   color: var(--muted-foreground);
 }
 
-[data-theme="dark"] .border-gray-200 {
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .border-gray-300 {
+/* Route the common hardcoded heavy gray borders through the themed --border
+   token in BOTH light and dark, so borders stay soft and consistent. */
+.border-gray-200,
+.border-gray-300 {
   border-color: var(--border);
 }
 

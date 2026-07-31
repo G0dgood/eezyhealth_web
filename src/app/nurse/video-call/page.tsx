@@ -9,7 +9,7 @@ import {
   StreamVideoClient,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
-import { getStreamChatInfo, storeStreamChatInfo } from "@/lib/streamChat";
+import { getStreamChatInfo, storeStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -190,6 +190,32 @@ export default function NurseVideoCallPage() {
         toast.error(`Failed to end call: ${errorMessage}`);
       }
     }
+
+    // Send call ended message to chat channel
+    if (callId && user) {
+      try {
+        const chatInfo = getStreamChatInfo();
+        if (chatInfo) {
+          const chatClient = getStreamChatClient();
+          await connectStreamChatUser(
+            chatInfo.chatUserId,
+            chatInfo.chatUserName,
+            user.photoURL || "",
+            chatInfo.chatUserToken
+          );
+          const channel = chatClient.channel("messaging", callId);
+          await channel.sendMessage({
+            text: `📹 Video call ended`,
+            call_id: callId,
+            call_type: "video",
+            call_status: "ended",
+          } as any);
+        }
+      } catch (chatErr) {
+        console.error("Failed to send call ended chat message:", chatErr);
+      }
+    }
+
     router.back();
   };
 

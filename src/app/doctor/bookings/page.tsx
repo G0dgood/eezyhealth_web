@@ -357,7 +357,7 @@ export default function DoctorBookingsPage() {
                 >
                   {/* Time Label */}
                   <div className="p-3 text-[9px] md:text-[11px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
-                    {time.from} {"->"} {time.to}
+                    {time.from}
                   </div>
 
                   {/* Day Columns */}

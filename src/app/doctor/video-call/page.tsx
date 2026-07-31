@@ -15,6 +15,8 @@ import VideoCallScreen from "@/components/VideoCallScreen";
 import { getVideoClient } from "@/lib/streamVideo";
 import { toast } from "sonner";
 
+import { getStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
+
 export default function DoctorVideoCallPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -31,6 +33,40 @@ export default function DoctorVideoCallPage() {
   const [duration, setDuration] = useState(0);
 
   const hasInit = useRef(false);
+  const navigatedRef = useRef(false);
+
+  // Always return to the chat page (once) when the call ends — never `back()`,
+  // which can pop multiple entries and land on the dashboard / leave the app.
+  const returnToChat = async () => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+
+    // Notify other participants (like mobile/nurse) via chat message that call has ended
+    const chatInfo = getStreamChatInfo();
+    const channelId = params.get("channelId");
+    if (chatInfo && channelId) {
+      try {
+        const chatClient = getStreamChatClient();
+        await connectStreamChatUser(
+          chatInfo.chatUserId,
+          chatInfo.chatUserName,
+          user?.photoURL || "",
+          chatInfo.chatUserToken
+        );
+        const channel = chatClient.channel("messaging", channelId);
+        await channel.sendMessage({
+          text: `📹 Video call ended`,
+          call_id: callId,
+          call_type: "video",
+          call_status: "ended",
+        } as any);
+      } catch (chatErr) {
+        console.error("Failed to send call ended chat message:", chatErr);
+      }
+    }
+
+    router.replace("/doctor/message");
+  };
 
   useEffect(() => {
     if (!user || hasInit.current) return;
@@ -72,20 +108,44 @@ export default function DoctorVideoCallPage() {
 
         await streamCall.ring();
 
+        // Also send started invite in chat channel to notify mobile users
+        const chatInfo = getStreamChatInfo();
+        const channelId = params.get("channelId");
+        if (chatInfo && channelId) {
+          try {
+            const chatClient = getStreamChatClient();
+            await connectStreamChatUser(
+              chatInfo.chatUserId,
+              chatInfo.chatUserName,
+              user.photoURL || "",
+              chatInfo.chatUserToken
+            );
+            const channel = chatClient.channel("messaging", channelId);
+            await channel.sendMessage({
+              text: `📹 Video call started`,
+              call_id: callId,
+              call_type: "video",
+              call_status: "initiated",
+            } as any);
+          } catch (chatErr) {
+            console.error("Failed to send chat invite:", chatErr);
+          }
+        }
+
         streamCall.on("call.accepted", async () => {
           setWaiting(false);
           await streamCall.camera.enable();
           await streamCall.microphone.enable();
         });
 
-        streamCall.on("call.ended", () => router.back());
+        streamCall.on("call.ended", () => returnToChat());
 
         setClient(videoClient);
         setCall(streamCall);
       } catch (e: any) {
         console.error("STREAM ERROR:", e);
         toast.error(`Failed to start call: ${e?.message || 'Unknown error'}`);
-        router.back();
+        returnToChat();
       }
     };
 
@@ -109,8 +169,12 @@ export default function DoctorVideoCallPage() {
 
   const handleEnd = async () => {
     if (!call) return;
-    await call.endCall();
-    router.back();
+    try {
+      await call.endCall();
+    } catch (e) {
+      // ignore — still return to chat
+    }
+    returnToChat();
   };
 
   if (!client || !call) {

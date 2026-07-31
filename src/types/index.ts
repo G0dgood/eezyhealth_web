@@ -53,7 +53,11 @@ export interface RawBookingData {
   };
 }
 
-export type AppointmentStatus = "pending" | "completed" | "cancelled";
+export type AppointmentStatus =
+  | "pending"
+  | "confirmed"
+  | "completed"
+  | "cancelled";
 export type AppointmentChannel = "videoCall" | "chat" | "voiceCall";
 
 export interface DoctorAppointment {

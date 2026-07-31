@@ -61,6 +61,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/bookings`,
       },
       {
+        id: "availability",
+        label: "Availability",
+        icon: <Activity className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/availability`,
+      },
+      {
         id: "booking-cancellation",
         label: "Booking Cancellation",
         icon: <CalendarX className="w-5 h-5" />,

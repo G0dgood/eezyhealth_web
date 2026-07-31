@@ -1,11 +1,14 @@
 "use client";
 
-import { Menu, LogOut, User, Edit } from "lucide-react";
+import { Menu, User, Edit } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
+import ConfirmModal from "./widgets/ConfirmModal";
+import UserDropdownMenu from "./UserDropdownMenu";
+import RoleBadge from "./RoleBadge";
 
 interface HeaderProps {
   userRole?: string;
@@ -26,19 +29,26 @@ export default function Header({
 }: HeaderProps) {
   const { user, userInfo: authUserInfo, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
 
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
   const handleSignOut = async () => {
+    setIsSigningOut(true);
     try {
       await signOut();
+      setIsSignOutModalOpen(false);
       // Close the dropdown
       setShowUserMenu(false);
       // Redirect to home page
       router.push("/");
     } catch (error) {
       console.error("Sign out error:", error);
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -78,6 +88,7 @@ export default function Header({
         >
           <Menu className="w-5 h-5 md:w-6 md:h-6" />
         </button>
+        <RoleBadge role={userRole || authUserInfo?.role} />
 
         {/* <div className="flex items-center space-x-2">
           <span
@@ -130,14 +141,16 @@ export default function Header({
                 <User className="w-5 h-5 text-gray-500" />
               )}
             </div>
-            {/* User info - Hidden on mobile */}
-            <div className="hidden sm:block text-right max-w-[150px]">
-              <p
-                className="text-[10px] md:text-[12px] font-medium truncate"
-                style={{ color: "var(--foreground)" }}
-              >
-                {authUserInfo?.displayName || user?.displayName || userRole}
-              </p>
+            <div className="hidden sm:block text-right max-w-[180px]">
+              <div className="flex items-center justify-end gap-2">
+
+                <p
+                  className="text-[10px] md:text-[12px] font-medium truncate"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  {authUserInfo?.displayName || user?.displayName || userRole}
+                </p>
+              </div>
               <p
                 className="text-xs truncate"
                 style={{ color: "var(--muted-foreground)" }}
@@ -148,27 +161,29 @@ export default function Header({
           </div>
 
           {/* User Dropdown Menu */}
-          {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-2xl  z-[9999] border border-gray-200 backdrop-blur-sm">
-              <div className="px-4 py-2 text-[10px] md:text-[12px] text-gray-700 border-b border-gray-100 bg-white">
-                <p className="font-medium truncate">
-                  {authUserInfo?.displayName || user?.displayName || userRole}
-                </p>
-                <p className="text-gray-500 truncate">
-                  {authUserInfo?.email || user?.email}
-                </p>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="w-full text-left px-4 py-2 text-[10px] md:text-[12px] text-gray-700 hover:bg-gray-100 flex items-center space-x-2 bg-white cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          )}
+          <UserDropdownMenu
+            isOpen={showUserMenu}
+            userRole={userRole}
+            authUserInfo={authUserInfo}
+            user={user}
+            onSignOutClick={() => {
+              setShowUserMenu(false);
+              setIsSignOutModalOpen(true);
+            }}
+          />
         </div>
       </div>
+      <ConfirmModal
+        isOpen={isSignOutModalOpen}
+        onClose={() => setIsSignOutModalOpen(false)}
+        onConfirm={handleSignOut}
+        title="Confirm Sign Out"
+        message="Are you sure you want to sign out of EezyHealth?"
+        confirmText="Yes, Sign Out"
+        cancelText="No, Keep Me Logged In"
+        isLoading={isSigningOut}
+        loaderColor="red"
+      />
     </header>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +11,7 @@ import {
   Phone,
   Video,
   MessageCircle,
+  X,
 } from "lucide-react";
 import SearchInput from "@/components/SearchInput";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
@@ -25,11 +27,16 @@ import { showError, showNetworkError } from "@/utils/toast";
 import { toast } from "sonner";
 import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
 
+interface LocalBooking extends Booking {
+  doctorName?: string;
+  doctorId?: string;
+}
+
 interface DayBooking {
   date: string;
   dayName: string;
   dayNumber: string;
-  bookings: Booking[];
+  bookings: LocalBooking[];
 }
 
 export default function Bookings() {
@@ -61,11 +68,13 @@ export default function Bookings() {
     return startOfWeek;
   });
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<LocalBooking | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedGroupBookings, setSelectedGroupBookings] = useState<LocalBooking[]>([]);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
 
-  
+
 
   // Handle error state
   useEffect(() => {
@@ -192,7 +201,9 @@ export default function Bookings() {
         // Convert to the exact sample format
         acc[dateKey].push({
           id: booking.bookingId,
-          patientName: booking.patientName,
+          patientName: booking.patientName || "Unknown Patient",
+          doctorName: booking.doctorName || "Unknown Doctor",
+          doctorId: booking.doctorId || "",
           date: dateKey,
           time: slotToTime(booking.slot),
           type:
@@ -208,14 +219,14 @@ export default function Bookings() {
             return "pending";
           })(booking.bookingStatus),
           channel: mapChannel(booking.bookingChannel),
-          patientAge: 0, // Default value
-          reason: "Consultation", // Default value
-          contactNumber: "+234 000 000 0000", // Default value
+          patientAge: booking.patientAge || 0,
+          reason: booking.reason || "Consultation",
+          contactNumber: booking.contactNumber || "",
         });
 
         return acc;
       },
-      {} as Record<string, Booking[]>,
+      {} as Record<string, LocalBooking[]>,
     );
 
     // Convert to DayBooking format
@@ -309,7 +320,7 @@ export default function Bookings() {
     setWeekBookings(newWeekBookings);
   };
 
-  const handleBookingClick = (booking: Booking) => {
+  const handleBookingClick = (booking: LocalBooking) => {
     setSelectedBooking(booking);
     setIsDetailModalOpen(true);
   };
@@ -340,11 +351,11 @@ export default function Bookings() {
     };
   }, [isDetailModalOpen]);
 
-  const getBookingAtTime = (dayIndex: number, time: string) => {
+  const getBookingsAtTime = (dayIndex: number, time: string) => {
     const day = weekBookings[dayIndex];
-    if (!day) return null;
+    if (!day) return [];
 
-    return day.bookings.find((booking) => booking.time === time);
+    return day.bookings.filter((booking) => booking.time === time);
   };
 
   const getNextTime = (currentTimeSlot: {
@@ -461,38 +472,86 @@ export default function Bookings() {
                 >
                   {/* Time Label */}
                   <div className="p-3  !text-[10px]  !md:text-[12px] text-gray-600 bg-gray-50 flex items-center justify-center border-r border-gray-200">
-                    {timeSlot.from} {"->"} {getNextTime(timeSlot)}
+                    {timeSlot.from}
                   </div>
 
                   {/* Day Columns */}
                   {weekBookings.map((day, dayIndex) => {
-                    const booking = getBookingAtTime(dayIndex, timeSlot.from);
+                    const slotBookings = getBookingsAtTime(dayIndex, timeSlot.from);
+                    const hasBookings = slotBookings.length > 0;
 
                     return (
                       <div
                         key={`${day.date}-${timeSlot.key}`}
-                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[60px] ${booking
-                            ? "cursor-pointer hover:scale-105 transition-transform"
-                            : ""
+                        className={`p-2 border-r border-gray-200 last:border-r-0 min-h-[80px] flex flex-col gap-1 justify-center ${hasBookings
+                          ? "cursor-pointer"
+                          : ""
                           }`}
+                        onClick={() => {
+                          if (slotBookings.length > 1) {
+                            setSelectedGroupBookings(slotBookings);
+                            setIsGroupModalOpen(true);
+                          }
+                        }}
                       >
-                        {booking && (
-                          <div
-                            onClick={() => handleBookingClick(booking)}
-                            className={`${getBookingColor(
-                              booking.channel,
-                            )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between`}
-                          >
-                            <div className="flex items-center gap-1 mb-1">
-                              {getChannelIcon(booking.channel)}
-                              <span className="font-medium">
-                                {booking.type}
-                              </span>
+                        {hasBookings && (
+                          slotBookings.length === 1 ? (
+                            (() => {
+                              const booking = slotBookings[0];
+                              return (
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBookingClick(booking);
+                                  }}
+                                  className={`${getBookingColor(
+                                    booking.channel,
+                                  )} text-white p-2 rounded-lg text-xs h-full flex flex-col justify-between hover:scale-105 transition-transform`}
+                                >
+                                  <div className="flex items-center gap-1 mb-1">
+                                    {getChannelIcon(booking.channel)}
+                                    <span className="font-medium text-[9px] truncate">
+                                      {booking.type}
+                                    </span>
+                                  </div>
+                                  <div className="font-semibold text-[10px] truncate">
+                                    {booking.patientName}
+                                  </div>
+                                  <div className="text-[9px] opacity-90 truncate mt-0.5">
+                                    Dr. {booking.doctorName || "Unknown"}
+                                  </div>
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <div className="flex flex-col gap-1 w-full">
+                              {slotBookings.slice(0, 3).map((booking, idx) => (
+                                <div
+                                  key={booking.id || idx}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBookingClick(booking);
+                                  }}
+                                  className={`${getBookingColor(
+                                    booking.channel,
+                                  )} text-white px-2 py-1 rounded text-[10px] flex items-center justify-between hover:scale-105 transition-transform`}
+                                  title={`Patient: ${booking.patientName}, Dr. ${booking.doctorName}`}
+                                >
+                                  <span className="font-medium truncate max-w-[80px]">
+                                    {booking.patientName}
+                                  </span>
+                                  <span className="opacity-95 text-[9px] truncate max-w-[80px] ml-1">
+                                    Dr. {booking.doctorName?.split(" ").pop() || "Doc"}
+                                  </span>
+                                </div>
+                              ))}
+                              {slotBookings.length > 3 && (
+                                <div className="text-[10px] text-center text-gray-500 font-semibold bg-gray-100 py-0.5 rounded">
+                                  + {slotBookings.length - 3} more...
+                                </div>
+                              )}
                             </div>
-                            <div className="font-semibold">
-                              {booking.patientName}
-                            </div>
-                          </div>
+                          )
                         )}
                       </div>
                     );
@@ -510,6 +569,100 @@ export default function Bookings() {
         selectedBooking={selectedBooking}
         onClose={closeDetailModal}
       />
+
+      {/* Group Booking Modal */}
+      <BookingGroupModal
+        isOpen={isGroupModalOpen}
+        bookings={selectedGroupBookings}
+        onClose={() => setIsGroupModalOpen(false)}
+        onSelectBooking={(booking) => {
+          setIsGroupModalOpen(false);
+          setSelectedBooking(booking);
+          setIsDetailModalOpen(true);
+        }}
+      />
     </div>
   );
 }
+
+interface BookingGroupModalProps {
+  isOpen: boolean;
+  bookings: LocalBooking[];
+  onClose: () => void;
+  onSelectBooking: (booking: LocalBooking) => void;
+}
+
+const BookingGroupModal: React.FC<BookingGroupModalProps> = ({
+  isOpen,
+  bookings,
+  onClose,
+  onSelectBooking,
+}) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Bookings for {bookings[0]?.time} on {bookings[0]?.date}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 overflow-y-auto max-h-[70vh]">
+          <p className="text-sm text-gray-500 mb-4">
+            There are {bookings.length} appointments scheduled for this time slot:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {bookings.map((booking) => (
+              <div
+                key={booking.id}
+                onClick={() => onSelectBooking(booking)}
+                className={`p-4 border border-gray-200 rounded-lg hover:border-green-500 cursor-pointer transition-colors duration-150 flex flex-col justify-between`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    <span className="text-xs font-semibold text-gray-700 capitalize">
+                      {booking.type}
+                    </span>
+                  </div>
+                  <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                    {booking.channel.replace("Call", " Call")}
+                  </span>
+                </div>
+                <div className="space-y-1 mt-2">
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    Patient: {booking.patientName}
+                  </h4>
+                  <p className="text-xs text-gray-600 font-medium">
+                    Doctor: {booking.doctorName || "Unknown Doctor"}
+                  </p>
+                  {booking.reason && (
+                    <p className="text-[11px] text-gray-500 italic mt-1 line-clamp-1">
+                      &quot;{booking.reason}&quot;
+                    </p>
+                  )}
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button className="text-xs text-green-600 font-semibold hover:underline">
+                    View Details →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
