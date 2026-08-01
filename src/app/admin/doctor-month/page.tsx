@@ -89,7 +89,7 @@ const AdminDoctorOfMonthPage = () => {
   const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true);
   const [currentMonth, setCurrentMonth] = useState("");
   const [isAutoCreating, setIsAutoCreating] = useState(false);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   // RTK Query hooks for Doctor of The Month
   const {
@@ -774,11 +774,14 @@ const AdminDoctorOfMonthPage = () => {
             </div>
             {/* Pagination */}
             <Pagination
-
               currentPage={currentPage}
               totalCount={filteredPastDoctors.length}
               pageSize={pageSize}
               onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
               itemLabel="doctors"
             />
           </div>

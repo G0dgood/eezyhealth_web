@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy, User, Search, Bell } from "lucide-react";
+import { User } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Pagination from "@/components/Pagination";
 
 export default function DoctorOfMonthPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(5);
 
   // Sample data for past doctors of the month
   const pastDoctors = [
@@ -61,10 +61,6 @@ export default function DoctorOfMonthPage() {
     },
   ];
 
-  const currentDoctors = pastDoctors.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
 
   return (
     <div>
@@ -155,24 +151,12 @@ export default function DoctorOfMonthPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      DOCTOR
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      SPECIALTY
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      MONTH
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      RATING
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CANCELLATION RATE
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      COMPLETED APPOINTMENT
-                    </th>
+                    <th>DOCTOR</th>
+                    <th>SPECIALTY</th>
+                    <th>MONTH</th>
+                    <th>RATING</th>
+                    <th>CANCELLATION RATE</th>
+                    <th>COMPLETED APPOINTMENT</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -218,6 +202,10 @@ export default function DoctorOfMonthPage() {
                 totalCount={pastDoctors.length}
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
                 itemLabel="doctors"
               />
             </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, Plus, ArrowLeft, Activity, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import Input from "@/components/Input";
@@ -15,6 +15,7 @@ import { auth, createFirebaseDocument, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 import AddVitalsModal from "@/components/modals/AddVitalsModal";
 import ConsultationNoteModal from "@/components/modals/ConsultationNoteModal";
+import { useApiError } from "@/hooks/useApiError";
 
 export default function NursePatientsPage() {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
@@ -165,61 +166,39 @@ export default function NursePatientsPage() {
     }
   };
 
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Use RTK query to fetch patients
   const {
     data: patientsData,
     isLoading,
     error,
     refetch,
-  } = useGetFirebasePatientsQuery({});
+  } = useGetFirebasePatientsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchTerm,
+  });
 
-  // Fallback sample data for testing (remove this in production)
-  // Use Firebase data if available, otherwise fall back to sample data
-  const dataSource = patientsData;
+  const paginatedPatients = useMemo(() => {
+    return (patientsData || []) as any[];
+  }, [patientsData]);
 
-  // Filter patients based on search term
-  const filteredPatients =
-    dataSource?.filter(
-      (patient: Record<string, unknown> & { id: string }) =>
-        ((patient.display_name as string) || (patient.name as string))
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (patient.email as string)
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (patient.phone_number as string)?.includes(searchTerm)
-    ) || [];
+  const totalCount = (patientsData as any)?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  const totalPages = Math.ceil((filteredPatients.length || 0) / 10);
-
-  // Handle errors and success with Sonner toast
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load patients", {
-        description:
-          "Please try again or contact support if the problem persists.",
-        action: {
-          label: "Retry",
-          onClick: () => {
-            toast.loading("Refreshing patients...");
-            refetch();
-          },
-        },
-        duration: 10000, // 10 seconds to give user time to retry
-      });
-    }
-  }, [error, refetch]);
+  useApiError(!!error, error, "Failed to load patients");
 
   // Show info toast when search is performed
   useEffect(() => {
-    if (searchTerm && filteredPatients.length > 0) {
+    if (searchTerm && totalCount > 0) {
       toast.info(
-        `Found ${filteredPatients.length} patients matching "${searchTerm}"`
+        `Found ${totalCount} patients matching "${searchTerm}"`
       );
-    } else if (searchTerm && filteredPatients.length === 0) {
+    } else if (searchTerm && totalCount === 0) {
       toast.warning(`No patients found matching "${searchTerm}"`);
     }
-  }, [searchTerm, filteredPatients.length]);
+  }, [searchTerm, totalCount]);
 
   // Show info toast when page changes
   useEffect(() => {
@@ -360,11 +339,11 @@ export default function NursePatientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredPatients?.length === 0 ||
-                  filteredPatients?.length === undefined ? (
+                {paginatedPatients?.length === 0 ||
+                  paginatedPatients?.length === undefined ? (
                   <NoRecordFound colSpan={6} />
                 ) : (
-                  filteredPatients?.map(
+                  paginatedPatients?.map(
                     (patient: Record<string, unknown> & { id: string }) => {
                       return (
                         <tr key={patient.id} className="table-row-hover">
@@ -539,9 +518,13 @@ export default function NursePatientsPage() {
           {/* Pagination */}
           <Pagination
             currentPage={currentPage}
-            totalCount={filteredPatients.length}
-            pageSize={10}
+            totalCount={totalCount}
+            pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
             itemLabel="patients"
             className="border-t border-gray-200"
           />

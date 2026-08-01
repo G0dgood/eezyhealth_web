@@ -7,6 +7,8 @@ import Modal from "@/components/modals/Modal";
 import SearchInput from "@/components/SearchInput";
 import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
 import Dropdown from "@/components/Dropdown";
+import StatusBadge from "@/components/StatusBadge";
+import { useApiError } from "@/hooks/useApiError";
 
 const getDoctorName = (doc: any) => {
   if (doc.displayName) return doc.displayName;
@@ -43,7 +45,7 @@ interface Payment {
 export default function NursePaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
 
   // Fetch doctors for filter dropdown
@@ -57,10 +59,17 @@ export default function NursePaymentPage() {
     data: paymentsData,
     isLoading,
     error,
-  } = useGetPaymentsQuery({ limit: 50 });
+  } = useGetPaymentsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+    doctorId: selectedDoctorId,
+  });
 
-  // Ensure payments is always an array (same logic as NursePaymentWidget)
-  let payments: unknown[] = [];
+  useApiError(!!error, error, "Failed to load payments. Please try again.");
+
+  // Ensure payments is always an array
+  let payments: any[] = [];
   if (Array.isArray(paymentsData)) {
     payments = paymentsData;
   } else if (
@@ -69,99 +78,17 @@ export default function NursePaymentPage() {
     "data" in paymentsData &&
     Array.isArray((paymentsData as { data: unknown }).data)
   ) {
-    payments = (paymentsData as { data: unknown[] }).data;
+    payments = (paymentsData as { data: any[] }).data;
   }
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : "Error loading payments. Please try again.";
-      toast.error(errorMessage);
-    }
-  }, [error]);
+  // useApiError already called above
 
-  // Filter payments based on search query and selected doctor
-  const filteredPayments = useMemo(() => {
-    let result = payments || [];
+  const paginatedPayments = useMemo(() => {
+    return payments;
+  }, [payments]);
 
-    if (selectedDoctorId) {
-      result = result.filter(
-        (payment: any) => payment?.doctorId === selectedDoctorId
-      );
-    }
+  const totalCount = (paymentsData as any)?.totalCount || 0;
 
-    if (!searchQuery) return result;
-
-    return result.filter(
-      (payment: any) => {
-        const searchLower = searchQuery.toLowerCase();
-
-        const safeSearch = (value: unknown): boolean => {
-          if (typeof value === "string") {
-            return value.toLowerCase().includes(searchLower);
-          } else if (typeof value === "number") {
-            return value.toString().toLowerCase().includes(searchLower);
-          }
-          return false;
-        };
-
-        return (
-          safeSearch(payment?.patientName) ||
-          safeSearch(payment?.paymentMethod) ||
-          safeSearch(payment?.paymentStatus) ||
-          safeSearch(payment?.status) ||
-          safeSearch(payment?.amount) ||
-          safeSearch(payment?.paymentReference?.reference) ||
-          safeSearch(payment?.transactionId?.reference)
-        );
-      }
-    );
-  }, [payments, searchQuery, selectedDoctorId]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedPayments = filteredPayments?.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
-  const getStatusBadge = (payment: any) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
-    const status = payment?.paymentStatus || payment?.status;
-
-    switch (status) {
-      case "completed":
-      case "success":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "pending":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "failed":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      case "cancelled":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
-  };
-
-  const getStatusText = (payment: any) => {
-    const status = payment?.paymentStatus || payment?.status;
-    switch (status) {
-      case "completed":
-      case "success":
-        return "Completed";
-      case "pending":
-        return "Pending";
-      case "failed":
-        return "Failed";
-      default:
-        return status || "Unknown";
-    }
-  };
 
   const formatCurrency = (amount: number | string, currency: string = "NGN") => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
@@ -180,19 +107,7 @@ export default function NursePaymentPage() {
     });
   };
 
-  // Helper function to safely render payment field values
-  const safeRenderField = (value: unknown, fallback: string = "N/A") => {
-    if (typeof value === "string") {
-      return value;
-    } else if (typeof value === "number") {
-      return value.toString();
-    } else if (typeof value === "object" && value !== null) {
-      return JSON.stringify(value);
-    } else if (value === null || value === undefined) {
-      return fallback;
-    }
-    return fallback;
-  };
+
 
   return (
     <div>
@@ -294,9 +209,7 @@ export default function NursePaymentPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={getStatusBadge(payment)}>
-                                {getStatusText(payment)}
-                              </span>
+                              <StatusBadge status={payment?.paymentStatus || payment?.status} />
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap  !text-[10px]  !md:text-[12px] text-gray-500">
                               {formatDate(payment?.createdAt || payment?.paymentDate)}
@@ -311,9 +224,13 @@ export default function NursePaymentPage() {
               {/* Pagination */}
               <Pagination
                 currentPage={currentPage}
-                totalCount={filteredPayments.length}
+                totalCount={totalCount}
                 pageSize={itemsPerPage}
                 onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setItemsPerPage(size);
+                  setCurrentPage(1);
+                }}
               />
             </div>
           )}

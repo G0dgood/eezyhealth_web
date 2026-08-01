@@ -43,6 +43,7 @@ import {
  useRespondToCancellationRequestMutation,
 } from "@/store/bookingCancellationApi";
 import { toast } from "sonner";
+import { useApiError } from "@/hooks/useApiError";
 import { NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { FirebaseBookingCancellation } from "@/types";
@@ -63,69 +64,33 @@ export default function NurseBookingCancellationPage() {
   return (doctorsData || []) as any[];
  }, [doctorsData]);
 
+ const [itemsPerPage, setItemsPerPage] = useState(10);
+
+ // Respond to cancellation request mutation
+ const [respondToCancellation, { isLoading: isResponding }] =
+  useRespondToCancellationRequestMutation();
+
  // Fetch booking cancellations from API
  const {
   data: cancellations,
   isLoading,
   error,
   refetch,
- } = useGetBookingCancellationsQuery({});
+ } = useGetBookingCancellationsQuery({
+  page: currentPage,
+  limit: itemsPerPage,
+  search: searchTerm,
+  doctorId: selectedDoctorId,
+ });
 
- // Respond to cancellation request mutation
- const [respondToCancellation, { isLoading: isResponding }] =
-  useRespondToCancellationRequestMutation();
-
- // Use API data if available, otherwise fall back to mock data
- const dataSource = cancellations || [];
-
- // Filter data based on search term and selected doctor
- const filteredData = useMemo(() => {
-  let result = dataSource;
-
-  if (selectedDoctorId) {
-   result = result.filter(
-    (cancellation: any) => cancellation.doctorId === selectedDoctorId
-   );
-  }
-
-  if (!searchTerm.trim()) return result;
-
-  return result.filter((cancellation: Record<string, unknown>) => {
-   const doctorName = cancellation.doctorName as string;
-   const patientName = cancellation.patientName as string;
-   const userId = cancellation.userId as string;
-   const status = cancellation.bookingStatus as string;
-
-   return (
-    doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    status?.toLowerCase().includes(searchTerm.toLowerCase())
-   );
-  });
- }, [dataSource, searchTerm, selectedDoctorId]);
-
- const itemsPerPage = 10;
- const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
- // Get paginated data
  const paginatedData = useMemo(() => {
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  return filteredData.slice(startIndex, endIndex);
- }, [filteredData, currentPage, itemsPerPage]);
+  return (cancellations || []) as any[];
+ }, [cancellations]);
 
- // Handle API responses
- useEffect(() => {
-  if (error) {
-   toast.error("Failed to load booking cancellations. Please try again.", {
-    action: {
-     label: "Retry",
-     onClick: () => refetch(),
-    },
-   });
-  }
- }, [error, refetch]);
+ const totalCount = (cancellations as any)?.totalCount || 0;
+ const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+ useApiError(!!error, error, "Failed to load booking cancellations. Please try again.");
 
  // Handle approve/reject cancellation requests
  const handleApproveCancellation = async (bookingId: string) => {
@@ -294,13 +259,17 @@ export default function NurseBookingCancellationPage() {
      </div>
 
      {/* Pagination */}
-     {totalPages > 1 && (
+     {totalCount > 0 && (
       <div className="bg-[var(--card)] px-4 py-3 border-t border-[var(--border)]">
        <Pagination
         currentPage={currentPage}
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         pageSize={itemsPerPage}
         onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => {
+         setItemsPerPage(size);
+         setCurrentPage(1);
+        }}
         itemLabel="cancellations"
        />
       </div>

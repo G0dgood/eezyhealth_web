@@ -11,6 +11,7 @@ import {
   useSaveDoctorAvailabilityMutation,
 } from "@/store/doctorFirebaseApi";
 import { showSuccess, showError } from "@/utils/toast";
+import { useApiError } from "@/hooks/useApiError";
 import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
@@ -322,15 +323,7 @@ export default function DoctorAvailabilityPage() {
     setCurrentWeekStart(startOfCurrentWeek);
   }, []);
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      showError(
-        "Availability Error",
-        "Failed to load availability. Please try again.",
-      );
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load availability. Please try again.");
 
   // Handle day expansion toggle (currently unused but kept for future accordion functionality)
   // const handlePress = (day: string) => {

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ConversationList, { BookingData } from "@/components/doctor/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
 import { showError } from "@/utils/toast";
+import { useApiError } from "@/hooks/useApiError";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
 import { SVGLoader } from "@/components/SVGLoader";
@@ -98,12 +99,7 @@ export default function DoctorMessagePage() {
   // Fetch bookings using RTK Query
   const { data: bookingsData, error } = useBookingsByDoctorId(doctorId);
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      showError("Booking Error", "Failed to load bookings. Please try again.");
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
   // Get unique patients based on userId, ensuring no duplicates
   const uniquePatients: BookingData[] = bookingsData

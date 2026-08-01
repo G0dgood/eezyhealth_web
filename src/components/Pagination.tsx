@@ -8,6 +8,7 @@ interface PaginationProps {
 	totalCount: number;
 	pageSize: number;
 	onPageChange: (page: number) => void;
+	onPageSizeChange?: (pageSize: number) => void;
 	className?: string;
 	itemLabel?: string;
 }
@@ -17,11 +18,12 @@ export default function Pagination({
 	totalCount,
 	pageSize,
 	onPageChange,
+	onPageSizeChange,
 	className,
 	itemLabel = "items",
 }: PaginationProps) {
 	const totalPages = Math.ceil(totalCount / pageSize);
-	const startItem = (currentPage - 1) * pageSize + 1;
+	const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
 
 	if (totalCount === 0) return null;
 
@@ -65,8 +67,28 @@ export default function Pagination({
 				className,
 			)}
 		>
-			<div className="text-xs font-medium text-gray-900">
-				Showing {startItem} of {totalCount} {itemLabel}
+			<div className="flex flex-row items-center space-x-6">
+				<div className="text-xs font-medium text-gray-900">
+					Showing {startItem} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} {itemLabel}
+				</div>
+				{onPageSizeChange && (
+					<div className="flex items-center space-x-1.5 text-xs text-gray-600">
+						<span>Rows per page:</span>
+						<select
+							value={pageSize}
+							onChange={(e) => {
+								onPageSizeChange(Number(e.target.value));
+							}}
+							className="rounded-md border border-gray-300 py-1 px-1.5 text-xs text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
+						>
+							{[5, 10, 20, 50, 100].map((size) => (
+								<option key={size} value={size}>
+									{size}
+								</option>
+							))}
+						</select>
+					</div>
+				)}
 			</div>
 			<div className="flex items-center border border-gray-300 rounded-lg">
 				<button

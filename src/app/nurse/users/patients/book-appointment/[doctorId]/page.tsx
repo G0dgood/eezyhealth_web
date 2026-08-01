@@ -59,7 +59,6 @@ export default function DoctorBookingPage({
     "Video Consultation",
     "Chat Consultation",
     "Voice Call",
-    "In-Person",
   ];
 
   // Calendar functions

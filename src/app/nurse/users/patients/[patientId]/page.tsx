@@ -17,7 +17,7 @@ export default function PatientDetailsPage({
   const [activeTab, setActiveTab] = useState<"incoming" | "past">("incoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   // Sample patient data
   const patient = {
@@ -206,6 +206,10 @@ export default function PatientDetailsPage({
             totalCount={totalAppointments}
             pageSize={pageSize}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
             itemLabel="appointments"
           />
         </div>

@@ -1,15 +1,18 @@
 import React, { useMemo, useState } from "react";
 import Modal from "./Modal";
 import { useGetPatientVitalsHistoryQuery, useSavePatientVitalsMutation } from "@/store/patientApi";
-import { ChevronDown, ChevronUp, Loader2, AlertCircle, Plus, Save, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, AlertCircle, Plus, Save, X, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import Input from "../Input";
+import Textarea from "../Textarea";
 
 interface VitalsModalProps {
   isOpen: boolean;
   onClose: () => void;
   patientId: string;
   bookingId?: string;
+  bookingDate?: any;
   patientName?: string;
 }
 
@@ -25,6 +28,24 @@ interface VitalsHistoryEntry {
   notes: VitalItem[];
 }
 
+const normalizeToDateString = (dateInput: any): string => {
+  if (!dateInput) return "";
+  try {
+    let dateObj: Date;
+    if (dateInput instanceof Date) {
+      dateObj = dateInput;
+    } else if (typeof dateInput === "object" && "seconds" in dateInput) {
+      dateObj = new Date(dateInput.seconds * 1000);
+    } else {
+      dateObj = new Date(dateInput);
+    }
+    if (isNaN(dateObj.getTime())) return "";
+    return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+  } catch {
+    return "";
+  }
+};
+
 const initialFormState = {
   temperature: "",
   bloodPressure: "",
@@ -35,7 +56,7 @@ const initialFormState = {
   recommendation: "",
 };
 
-const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, bookingId, patientName }) => {
+const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, bookingId, bookingDate, patientName }) => {
   const { user } = useAuth();
   const { data, isLoading, error } = useGetPatientVitalsHistoryQuery(patientId, {
     skip: !patientId || !isOpen,
@@ -90,7 +111,20 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
 
   const vitalsData: VitalsHistoryEntry[] = useMemo(() => {
     if (!Array.isArray(data)) return [];
-    return data
+    const filteredData = bookingId
+      ? data.filter((entry: any) => {
+          if (entry?.bookingId) {
+            return String(entry.bookingId).trim() === String(bookingId).trim();
+          }
+          if (bookingDate) {
+            const entryDateStr = normalizeToDateString(entry?.date);
+            const bookingDateStr = normalizeToDateString(bookingDate);
+            return entryDateStr !== "" && entryDateStr === bookingDateStr;
+          }
+          return false;
+        })
+      : data;
+    return filteredData
       .slice()
       .sort((a: any, b: any) => {
         const at = new Date(a?.date || 0).getTime();
@@ -215,7 +249,7 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
 
         return { date: displayDate, vitals, notes };
       });
-  }, [data]);
+  }, [data, bookingId, bookingDate]);
 
   return (
     <Modal
@@ -248,87 +282,66 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Temperature (°C)</label>
-                  <input
-                    type="number"
-                    name="temperature"
-                    value={formData.temperature}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="e.g. 36.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Blood Pressure (mmHg)</label>
-                  <input
-                    type="text"
-                    name="bloodPressure"
-                    value={formData.bloodPressure}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="e.g. 120/80"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Heart Rate (bpm)</label>
-                  <input
-                    type="number"
-                    name="heartRate"
-                    value={formData.heartRate}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="e.g. 72"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Weight (kg)</label>
-                  <input
-                    type="number"
-                    name="weight"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="e.g. 70"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Breathing Rate (breaths/min)</label>
-                  <input
-                    type="number"
-                    name="breathingRate"
-                    value={formData.breathingRate}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="e.g. 16"
-                  />
-                </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Input
+                  label="Temperature (°C)"
+                  type="number"
+                  name="temperature"
+                  value={formData.temperature}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 36.5"
+                />
+                <Input
+                  label="Blood Pressure (mmHg)"
+                  type="text"
+                  name="bloodPressure"
+                  value={formData.bloodPressure}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 120/80"
+                />
+                <Input
+                  label="Heart Rate (bpm)"
+                  type="number"
+                  name="heartRate"
+                  value={formData.heartRate}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 72"
+                />
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 70"
+                />
+                <Input
+                  label="Breathing Rate (breaths/min)"
+                  type="number"
+                  name="breathingRate"
+                  value={formData.breathingRate}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 16"
+                />
               </div>
 
               <div className="space-y-4 mb-4">
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Comment</label>
-                  <textarea
-                    name="comment"
-                    value={formData.comment}
-                    onChange={handleInputChange}
-                    rows={2}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="Add a comment..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">Recommendation</label>
-                  <textarea
-                    name="recommendation"
-                    value={formData.recommendation}
-                    onChange={handleInputChange}
-                    rows={2}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                    placeholder="Add recommendation..."
-                  />
-                </div>
+                <Textarea
+                  label="Comment"
+                  name="comment"
+                  value={formData.comment}
+                  onChange={handleInputChange}
+                  rows={2}
+                  placeholder="Add a comment..."
+                />
+                <Textarea
+                  label="Recommendation"
+                  name="recommendation"
+                  value={formData.recommendation}
+                  onChange={handleInputChange}
+                  rows={2}
+                  placeholder="Add recommendation..."
+                />
               </div>
 
               <div className="flex justify-end space-x-3">
@@ -361,8 +374,23 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
             <p>Failed to load vitals history</p>
           </div>
         ) : vitalsData.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No vitals history found.
+          <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-3">
+              <Activity className="w-6 h-6 text-green-600 animate-pulse" />
+            </div>
+            <p className="text-sm font-semibold text-gray-900 mb-1">No Vitals Recorded</p>
+            <p className="text-xs text-gray-500 text-center max-w-[280px] mb-4">
+              There are no vitals recorded for this specific booking yet.
+            </p>
+            {!isAdding && (
+              <button
+                onClick={() => setIsAdding(true)}
+                className="flex items-center space-x-1 text-xs font-semibold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Vitals Now</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PaymentTableSkeleton } from "@/components/ui/PaymentTableSkeleton";
 import { DoctorPayment, PaymentFilterData, DoctorPaymentStatus } from "@/types";
 import { NoRecordFound } from "@/components/Options";
+import { useApiError } from "@/hooks/useApiError";
 
 export default function DoctorPaymentPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,6 +40,8 @@ export default function DoctorPaymentPage() {
   );
 
   const payments = (paymentsData as unknown as DoctorPayment[]) || [];
+
+  useApiError(!!error, error, "Failed to load payments");
 
   // Show loading state
   if (isLoading) {

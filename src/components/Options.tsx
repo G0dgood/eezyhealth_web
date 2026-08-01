@@ -151,7 +151,6 @@ const communicationChannels = [
   "Video Consultation",
   "Chat Consultation",
   "Voice Call",
-  "In-Person",
 ];
 
 // Get day name from date

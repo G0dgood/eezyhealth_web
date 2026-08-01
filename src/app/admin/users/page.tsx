@@ -27,6 +27,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { createFirebaseDocument } from "@/lib/firebase-rtk";
 import { Download } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { useApiError } from "@/hooks/useApiError";
 
 interface UserData {
   uid: string;
@@ -65,7 +66,7 @@ export default function AdminUsersPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Use the correct Firebase query
   const {
@@ -73,28 +74,19 @@ export default function AdminUsersPage() {
     isLoading,
     error,
     refetch,
-  } = useGetFirebaseUsersQuery({});
+  } = useGetFirebaseUsersQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchTerm,
+    role: selectedRole,
+  });
 
-  // Handle errors
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load users", {
-        description:
-          "Please try again or contact support if the problem persists.",
-        action: {
-          label: "Retry",
-          onClick: () => refetch(),
-        },
-        duration: 8000,
-      });
-    }
-  }, [error, refetch]);
-
-
+  useApiError(!!error, error, "Failed to load users");
 
   // Handle Firebase users structure safely
-  const dataSource: UserData[] = Array.isArray(usersData)
-    ? usersData.map((user: any) => ({
+  const dataSource: UserData[] = useMemo(() => {
+    const rawData = Array.isArray(usersData) ? usersData : [];
+    return rawData.map((user: any) => ({
       uid: user.uid || user.id || "",
       email: user.email || "",
       display_name: user.display_name || "",
@@ -112,37 +104,12 @@ export default function AdminUsersPage() {
       photo_url: user.photo_url || "",
       deactivatedAt: user.deactivatedAt || "",
       deactivationReason: user.deactivationReason || "",
-    }))
-    : [];
+    }));
+  }, [usersData]);
 
-  // Filter users
-  const filteredUsers =
-    dataSource?.filter((user: UserData) => {
-      const matchesSearch =
-        (user.display_name?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        ) ||
-        (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-        (user.first_name?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        ) ||
-        (user.last_name?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        );
-
-      const matchesRole = selectedRole === "all" || user.role === selectedRole;
-
-      return matchesSearch && matchesRole;
-    }) || [];
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = useMemo(() => {
-    return filteredUsers.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
-  }, [filteredUsers, currentPage, itemsPerPage]);
+  const totalCount = (usersData as any)?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedUsers = dataSource;
 
   // Modal handlers
   const handleViewUser = (user: UserData) => {
@@ -607,9 +574,13 @@ export default function AdminUsersPage() {
           {/* Pagination */}
           <Pagination
             currentPage={currentPage}
-            totalCount={filteredUsers.length}
+            totalCount={totalCount}
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
             itemLabel="users"
             className="mt-4"
           />

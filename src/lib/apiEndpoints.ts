@@ -1,5 +1,5 @@
 // Firebase Cloud Functions Base URL
-export const FIREBASE_CLOUD_FUNCTIONS_BASE = process.env.NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL || "https://us-central1-eezyhealth-2025.cloudfunctions.net";
+export const FIREBASE_CLOUD_FUNCTIONS_BASE = process.env.NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL;
 
 // API Endpoints Configuration
 export const API_ENDPOINTS = {

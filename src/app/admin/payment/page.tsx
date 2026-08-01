@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CreditCard } from "lucide-react";
+import { useApiError } from "@/hooks/useApiError";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
@@ -76,59 +77,44 @@ const safeRenderField = (value: unknown, fallback: string = "N/A") => {
 export default function AdminPaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   // RTK hooks
   const {
-    data: payments = [],
+    data: paymentsData,
     isLoading,
     error,
-  } = useGetPaymentsQuery({ limit: 50 });
+  } = useGetPaymentsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+    status: selectedStatus,
+  });
 
-  // Filter payments based on search query and status
-  const filteredPayments = payments.filter(
-    (payment: any) => {
-      const searchLower = searchQuery.toLowerCase();
+  useApiError(!!error, error, "Failed to load payments. Please try again.");
 
-      // Helper function to safely convert to string and search
-      const safeSearch = (value: unknown): boolean => {
-        if (typeof value === "string") {
-          return value.toLowerCase().includes(searchLower);
-        } else if (typeof value === "number") {
-          return value.toString().toLowerCase().includes(searchLower);
-        } else if (typeof value === "object" && value !== null) {
-             // @ts-ignore
-             return (value.reference && value.reference.toLowerCase().includes(searchLower)) ||
-                    // @ts-ignore
-                    (value.trxref && value.trxref.toLowerCase().includes(searchLower));
-        }
-        return false;
-      };
-
-      const matchesSearch =
-        safeSearch(payment?.patientName) ||
-        safeSearch(payment?.doctorId) ||
-        safeSearch(payment?.paymentMethod) ||
-        safeSearch(payment?.transactionId) ||
-        safeSearch(payment?.paymentReference);
-
-      const matchesStatus =
-        !selectedStatus ||
-        (payment.paymentStatus &&
-          payment.paymentStatus.toLowerCase() === selectedStatus.toLowerCase());
-
-      return matchesSearch && matchesStatus;
+  // Ensure payments is always an array
+  const payments = useMemo(() => {
+    if (Array.isArray(paymentsData)) {
+      return paymentsData;
     }
-  );
+    if (
+      paymentsData &&
+      typeof paymentsData === "object" &&
+      "data" in paymentsData &&
+      Array.isArray((paymentsData as { data: unknown }).data)
+    ) {
+      return (paymentsData as { data: any[] }).data;
+    }
+    return [];
+  }, [paymentsData]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedPayments = filteredPayments?.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const paginatedPayments = useMemo(() => {
+    return payments;
+  }, [payments]);
+
+  const totalCount = (paymentsData as any)?.totalCount || 0;
 
   const getStatusBadge = (paymentStatus: string) => {
     const statusClasses = {
@@ -165,11 +151,11 @@ export default function AdminPaymentPage() {
   const formatCurrency = (amount: number | string, currency: string) => {
     let numericAmount = 0;
     if (typeof amount === 'string') {
-        numericAmount = parseFloat(amount.replace(/,/g, ''));
+      numericAmount = parseFloat(amount.replace(/,/g, ''));
     } else {
-        numericAmount = amount;
+      numericAmount = amount;
     }
-    
+
     if (isNaN(numericAmount)) return `${currency} ${amount}`;
 
     return new Intl.NumberFormat("en-US", {
@@ -334,9 +320,13 @@ export default function AdminPaymentPage() {
               {!isLoading && !error && (
                 <Pagination
                   currentPage={currentPage}
-                  totalCount={filteredPayments.length}
+                  totalCount={totalCount}
                   pageSize={itemsPerPage}
                   onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => {
+                    setItemsPerPage(size);
+                    setCurrentPage(1);
+                  }}
                   itemLabel="payments"
                   className="mt-4"
                 />

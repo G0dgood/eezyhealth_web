@@ -21,6 +21,7 @@ import { SpecializationSkeleton } from "@/components/ui/specialization-skeleton"
 import { useGetDoctorsBySpecializationCountQuery } from "@/store/doctorApi";
 import Pagination from "@/components/Pagination";
 import CreateSpecialtyModal from "@/components/modals/CreateSpecialtyModal";
+import { useApiError } from "@/hooks/useApiError";
 
 interface Specialization {
   id: string;
@@ -41,7 +42,7 @@ export default function AdminSpecializationPage() {
     description: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // State for specializations
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
@@ -167,12 +168,7 @@ export default function AdminSpecializationPage() {
     );
   };
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load specializations");
 
   const handleCreateSpecialty = async () => {
     if (newSpecialty.name && newSpecialty.description) {
@@ -331,6 +327,10 @@ export default function AdminSpecializationPage() {
               totalCount={filteredSpecializations.length}
               pageSize={itemsPerPage}
               onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setItemsPerPage(size);
+                setCurrentPage(1);
+              }}
               itemLabel="specializations"
             />
           )}

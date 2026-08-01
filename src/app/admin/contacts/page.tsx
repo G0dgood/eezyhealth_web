@@ -37,7 +37,7 @@ interface ContactMessage {
 export default function AdminContactsPage() {
  const [searchQuery, setSearchQuery] = useState("");
  const [currentPage, setCurrentPage] = useState(1);
- const [itemsPerPage] = useState(10);
+ const [itemsPerPage, setItemsPerPage] = useState(10);
  const [selectedStatus, setSelectedStatus] = useState<string>("");
  const [selectedContact, setSelectedContact] = useState<ContactMessage | null>(null);
  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -357,12 +357,15 @@ export default function AdminContactsPage() {
 
       {/* Pagination */}
       {!isLoading && !error && totalFilteredCount > 0 && (
-
        <Pagination
         currentPage={currentPage}
         totalCount={totalFilteredCount}
         pageSize={itemsPerPage}
         onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => {
+         setItemsPerPage(size);
+         setCurrentPage(1);
+        }}
         itemLabel="messages"
        />
       )}

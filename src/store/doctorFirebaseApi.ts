@@ -184,9 +184,8 @@ export const doctorFirebaseApi = api.injectEndpoints({
       ],
     }),
 
-    // Firebase-powered nurse profiles query
     getFirebaseNurseProfiles: builder.query({
-      async queryFn() {
+      async queryFn(arg: { page?: number; limit?: number; search?: string } = {}) {
         try {
           const { createFirebaseQuery, firebaseConstraints } =
             await import("@/lib/firebase-rtk");
@@ -205,7 +204,33 @@ export const doctorFirebaseApi = api.injectEndpoints({
             ]);
           }
 
-          return { data: nursesData };
+          // Apply search filter if present
+          if (arg.search) {
+            const searchLower = arg.search.toLowerCase();
+            nursesData = nursesData.filter(
+              (n: any) =>
+                n.display_name?.toLowerCase().includes(searchLower) ||
+                n.name?.toLowerCase().includes(searchLower) ||
+                n.email?.toLowerCase().includes(searchLower) ||
+                n.phone_number?.includes(searchLower)
+            );
+          }
+
+          const totalCount = nursesData.length;
+
+          // Apply page/limit slicing if provided
+          let result = nursesData;
+          if (arg.page && arg.limit) {
+            const startIndex = (arg.page - 1) * arg.limit;
+            result = nursesData.slice(startIndex, startIndex + arg.limit);
+          }
+
+          // Attach pagination properties to the array itself
+          const paginatedResult = [...result] as any;
+          paginatedResult.totalCount = totalCount;
+          paginatedResult.totalPages = arg.limit ? Math.ceil(totalCount / arg.limit) : 1;
+
+          return { data: paginatedResult };
         } catch (error) {
           console.error("Error fetching Firebase nurse profiles:", error);
           return {

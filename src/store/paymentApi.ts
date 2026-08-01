@@ -4,17 +4,59 @@ export const paymentApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // ===== PAYMENTS MANAGEMENT =====
     getPayments: builder.query({
-      async queryFn({ limit: limitCount = 10 }) {
+      async queryFn(arg: { page?: number; limit?: number; search?: string; doctorId?: string; status?: string } = {}) {
         try {
-          const { createFirebaseQuery, firebaseConstraints } = await import(
+          const { createFirebaseQuery } = await import(
             "@/lib/firebase-rtk"
           );
 
-          const paymentsData = await createFirebaseQuery("payments", [
-            firebaseConstraints.limit(limitCount),
-          ]);
+          let paymentsData = await createFirebaseQuery("payments", []);
 
-          return { data: paymentsData };
+          // Apply doctorId filter if present
+          if (arg.doctorId) {
+            const docId = arg.doctorId;
+            paymentsData = paymentsData.filter(
+              (p: any) => p.doctorId === docId
+            );
+          }
+
+          // Apply search filter if present
+          if (arg.search) {
+            const searchLower = arg.search.toLowerCase();
+            paymentsData = paymentsData.filter(
+              (p: any) =>
+                p.patientName?.toLowerCase().includes(searchLower) ||
+                p.paymentReference?.reference?.toLowerCase().includes(searchLower) ||
+                p.status?.toLowerCase().includes(searchLower) ||
+                p.paymentStatus?.toLowerCase().includes(searchLower)
+            );
+          }
+
+          // Apply status filter if present
+          if (arg.status) {
+            const statusFilter = arg.status.toLowerCase();
+            paymentsData = paymentsData.filter(
+              (p: any) =>
+                (p.paymentStatus && p.paymentStatus.toLowerCase() === statusFilter) ||
+                (p.status && p.status.toLowerCase() === statusFilter)
+            );
+          }
+
+          const totalCount = paymentsData.length;
+
+          // Apply page/limit slicing if provided
+          let result = paymentsData;
+          if (arg.page && arg.limit) {
+            const startIndex = (arg.page - 1) * arg.limit;
+            result = paymentsData.slice(startIndex, startIndex + arg.limit);
+          }
+
+          // Attach pagination properties to the array itself
+          const paginatedResult = [...result] as any;
+          paginatedResult.totalCount = totalCount;
+          paginatedResult.totalPages = arg.limit ? Math.ceil(totalCount / arg.limit) : 1;
+
+          return { data: paginatedResult };
         } catch (error) {
           console.error("Error fetching Firebase payments:", error);
           return {

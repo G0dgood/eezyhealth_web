@@ -42,7 +42,7 @@ export default function DocumentPage() {
   const [selectedUpload, setSelectedUpload] = useState<Upload | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Fetch uploads from RTK Query
   const { data: uploads, isLoading, isError, refetch } = useGetUploadsQuery({});
@@ -274,6 +274,10 @@ export default function DocumentPage() {
             totalCount={filteredData.length}
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
             itemLabel="documents"
           />
         )}

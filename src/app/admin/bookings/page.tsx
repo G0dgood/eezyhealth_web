@@ -8,6 +8,7 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useGetBookingsQuery } from "@/store/bookingApi";
 import FormattedDate from "@/utils/FormattedDate";
 import Pagination from "@/components/Pagination";
+import { useApiError } from "@/hooks/useApiError";
 
 interface Booking {
   bookingId?: string;
@@ -27,38 +28,24 @@ interface Booking {
 }
 
 export default function BookingsPage() {
-  const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({});
-
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Filter bookings based on search term
-  const filteredBookings = useMemo(() => {
-    const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
+  const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchTerm,
+  });
 
-    if (!data || data.length === 0) return [];
+  const paginatedBookings = useMemo(() => {
+    return (bookings || []) as Booking[];
+  }, [bookings]);
 
-    if (!searchTerm.trim()) return data;
+  const totalCount = (bookings as any)?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-    return data.filter((booking: Booking) => {
-      return (
-        booking.bookingStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.bookingChannel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.slot?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-  }, [bookings, searchTerm]);
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-  const paginatedBookings = filteredBookings.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
   // Reset to first page when search term changes
   useEffect(() => {
@@ -170,9 +157,13 @@ export default function BookingsPage() {
           {/* Pagination Controls */}
           <Pagination
             currentPage={currentPage}
-            totalCount={filteredBookings.length}
+            totalCount={totalCount}
             pageSize={itemsPerPage}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
             itemLabel="bookings"
           />
         </div>

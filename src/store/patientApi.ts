@@ -49,19 +49,41 @@ export const patientApi = api.injectEndpoints({
       providesTags: ["Patient"],
     }),
 
-    // Firebase-powered patient query
     getFirebasePatients: builder.query({
-      async queryFn() {
+      async queryFn(arg: { page?: number; limit?: number; search?: string } = {}) {
         try {
           const { createFirebaseQuery, firebaseConstraints } = await import(
             "@/lib/firebase-rtk"
           );
 
-          const patientsData = await createFirebaseQuery("users", [
+          let patientsData = await createFirebaseQuery("users", [
             firebaseConstraints.where("role", "==", "patient"),
           ]);
 
-          return { data: patientsData };
+          if (arg.search) {
+            const searchLower = arg.search.toLowerCase();
+            patientsData = patientsData.filter(
+              (p: any) =>
+                p.display_name?.toLowerCase().includes(searchLower) ||
+                p.name?.toLowerCase().includes(searchLower) ||
+                p.email?.toLowerCase().includes(searchLower) ||
+                p.phone_number?.includes(searchLower)
+            );
+          }
+
+          const totalCount = patientsData.length;
+
+          let result = patientsData;
+          if (arg.page && arg.limit) {
+            const startIndex = (arg.page - 1) * arg.limit;
+            result = patientsData.slice(startIndex, startIndex + arg.limit);
+          }
+
+          const paginatedResult = [...result] as any;
+          paginatedResult.totalCount = totalCount;
+          paginatedResult.totalPages = arg.limit ? Math.ceil(totalCount / arg.limit) : 1;
+
+          return { data: paginatedResult };
         } catch (error) {
           console.error("Error fetching Firebase patients:", error);
           return {
@@ -78,13 +100,45 @@ export const patientApi = api.injectEndpoints({
       providesTags: ["Patient"],
     }),
 
-    // Firebase-powered users query
     getFirebaseUsers: builder.query({
-      async queryFn() {
+      async queryFn(arg: { page?: number; limit?: number; search?: string; role?: string } = {}) {
         try {
           const { createFirebaseQuery } = await import("@/lib/firebase-rtk");
-          const usersData = await createFirebaseQuery("users");
-          return { data: usersData };
+          let usersData = await createFirebaseQuery("users");
+
+          // Apply role filter if present
+          if (arg.role && arg.role !== "all") {
+            const roleFilter = arg.role.toLowerCase();
+            usersData = usersData.filter(
+              (u: any) => u.role?.toLowerCase() === roleFilter
+            );
+          }
+
+          if (arg.search) {
+            const searchLower = arg.search.toLowerCase();
+            usersData = usersData.filter(
+              (u: any) =>
+                u.display_name?.toLowerCase().includes(searchLower) ||
+                u.name?.toLowerCase().includes(searchLower) ||
+                u.email?.toLowerCase().includes(searchLower) ||
+                u.phone_number?.includes(searchLower) ||
+                u.role?.toLowerCase().includes(searchLower)
+            );
+          }
+
+          const totalCount = usersData.length;
+
+          let result = usersData;
+          if (arg.page && arg.limit) {
+            const startIndex = (arg.page - 1) * arg.limit;
+            result = usersData.slice(startIndex, startIndex + arg.limit);
+          }
+
+          const paginatedResult = [...result] as any;
+          paginatedResult.totalCount = totalCount;
+          paginatedResult.totalPages = arg.limit ? Math.ceil(totalCount / arg.limit) : 1;
+
+          return { data: paginatedResult };
         } catch (error) {
           console.error("Error fetching Firebase users:", error);
           return {

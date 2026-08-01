@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ArrowLeft, Activity } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import VitalsModal from "@/components/modals/VitalsModal";
+import StatusBadge from "@/components/StatusBadge";
 import Breadcrumb from "@/components/Breadcrumb";
 import PillTabs from "@/components/Tabs/PillTabs";
 import Link from "next/link";
@@ -10,10 +11,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useGetPatientAppointmentsQuery } from "@/store/patientApi";
 import { convertSlotToTime } from "@/components/Options";
 import { formatFirebaseDate } from "@/utils/dateUtils";
-import { toast } from "sonner";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { NoRecordFound } from "@/components/Options";
 import Pagination from "@/components/Pagination";
+import { useApiError } from "@/hooks/useApiError";
 
 export default function DoctorPatientAppointmentsPage() {
   const router = useRouter();
@@ -24,8 +25,9 @@ export default function DoctorPatientAppointmentsPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | undefined>(undefined);
+  const [selectedBookingDate, setSelectedBookingDate] = useState<any>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   // Fetch data
   const {
@@ -36,6 +38,8 @@ export default function DoctorPatientAppointmentsPage() {
   } = useGetPatientAppointmentsQuery(patientId, {
     skip: !patientId,
   });
+
+  useApiError(!!error, error, "Failed to load patient appointments");
 
   // Transform data
   const appointments = useMemo(() => {
@@ -230,16 +234,7 @@ export default function DoctorPatientAppointmentsPage() {
 
                     {/* Status Column */}
                     <td>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === "Upcoming"
-                          ? "bg-blue-100 text-blue-800"
-                          : appointment.status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                          }`}
-                      >
-                        {appointment.status}
-                      </span>
+                      <StatusBadge status={appointment.status} />
                     </td>
 
                     {/* Actions Column */}
@@ -248,6 +243,7 @@ export default function DoctorPatientAppointmentsPage() {
                         <button
                           onClick={() => {
                             setSelectedBookingId(appointment.bookingId);
+                            setSelectedBookingDate(appointment.bookingData?.bookingDate);
                             setIsVitalsModalOpen(true);
                           }}
                           className="text-green-600 hover:text-green-700 font-medium cursor-pointer  !text-[10px]  !md:text-[12px]"
@@ -268,6 +264,10 @@ export default function DoctorPatientAppointmentsPage() {
           totalCount={filteredAppointments.length}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
           itemLabel="appointments"
           className="border-t border-gray-200"
         />
@@ -280,9 +280,11 @@ export default function DoctorPatientAppointmentsPage() {
         onClose={() => {
           setIsVitalsModalOpen(false);
           setSelectedBookingId(undefined);
+          setSelectedBookingDate(undefined);
         }}
         patientId={patientId}
         bookingId={selectedBookingId}
+        bookingDate={selectedBookingDate}
         patientName={patientName}
       />
     </div>

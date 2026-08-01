@@ -15,6 +15,7 @@ import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useSearchParams } from "next/navigation";
 import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi";
+import { useGetBookingsByDoctorIdQuery } from "@/store/bookingApi";
 import { toast } from "sonner";
 import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
@@ -82,6 +83,11 @@ export default function DoctorBookingPage({
     skip: !doctorId,
   });
 
+  // Fetch all bookings for this doctor to show booked time slots
+  const { data: bookingsData } = useGetBookingsByDoctorIdQuery(doctorId, {
+    skip: !doctorId,
+  });
+
   // Type assertion to ensure proper typing
   const doctor = doctorData as Doctor | undefined;
 
@@ -122,6 +128,67 @@ export default function DoctorBookingPage({
     if (!doctor?.availability) return null;
     const dayName = getDayName(date);
     return doctor.availability[dayName] || null;
+  };
+
+  // Helper to parse Firestore/string booking dates
+  const parseBookingDate = (bookingDate: any): Date | null => {
+    if (!bookingDate) return null;
+    if (typeof bookingDate === "string") {
+      return new Date(bookingDate);
+    }
+    if (typeof bookingDate === "object") {
+      if (typeof bookingDate.seconds === "number") {
+        return new Date(bookingDate.seconds * 1000);
+      }
+      if (typeof bookingDate._seconds === "number") {
+        return new Date(bookingDate._seconds * 1000);
+      }
+    }
+    return null;
+  };
+
+  // Check if a time slot is already booked for this doctor on the selected date
+  const isSlotBooked = (timeSlot: string): boolean => {
+    if (!selectedDate || !bookingsData) return false;
+    const targetDay = selectedDate.getDate();
+    const targetMonth = selectedDate.getMonth();
+    const targetYear = selectedDate.getFullYear();
+
+    const data = Array.isArray(bookingsData) ? bookingsData : (bookingsData as any)?.bookings || [];
+    return data.some((booking: any) => {
+      if (booking.bookingStatus === "Cancelled" || booking.status === "Cancelled") {
+        return false;
+      }
+      const bDate = parseBookingDate(booking.bookingDate || booking.date);
+      if (!bDate || isNaN(bDate.getTime())) return false;
+      
+      const isSameDay = bDate.getDate() === targetDay &&
+                        bDate.getMonth() === targetMonth &&
+                        bDate.getFullYear() === targetYear;
+      if (!isSameDay) return false;
+
+      return String(booking.slot || "").trim().toLowerCase() === String(timeSlot).trim().toLowerCase();
+    });
+  };
+
+  // Count booked appointments for a calendar date
+  const getBookingsCountForDate = (date: Date): number => {
+    if (!bookingsData) return 0;
+    const targetDay = date.getDate();
+    const targetMonth = date.getMonth();
+    const targetYear = date.getFullYear();
+
+    const data = Array.isArray(bookingsData) ? bookingsData : (bookingsData as any)?.bookings || [];
+    return data.filter((booking: any) => {
+      if (booking.bookingStatus === "Cancelled" || booking.status === "Cancelled") {
+        return false;
+      }
+      const bDate = parseBookingDate(booking.bookingDate || booking.date);
+      return bDate && 
+             bDate.getDate() === targetDay && 
+             bDate.getMonth() === targetMonth && 
+             bDate.getFullYear() === targetYear;
+    }).length;
   };
 
   // Calendar functions
@@ -430,21 +497,32 @@ export default function DoctorBookingPage({
 
               {/* Calendar Days */}
               <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((dayData, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDateSelect(dayData.date)}
-                    className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg transition-colors cursor-pointer ${dayData.selected
-                      ? "bg-green-500 text-white"
-                      : dayData.currentMonth
-                        ? dayData.hasAvailability
-                          ? "hover:bg-green-100 text-green-700 border-2 border-green-300"
-                          : "hover:bg-gray-100 text-gray-900"
-                        : "text-gray-400"
-                      }`}>
-                    {dayData.day}
-                  </button>
-                ))}
+                {calendarDays.map((dayData, index) => {
+                  const bookingsCount = getBookingsCountForDate(dayData.date);
+                  const isSelected = dayData.selected;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleDateSelect(dayData.date)}
+                      className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg transition-colors cursor-pointer relative ${
+                        isSelected
+                          ? "bg-green-500 text-white"
+                          : dayData.currentMonth
+                            ? dayData.hasAvailability
+                              ? bookingsCount > 0
+                                ? "bg-blue-50 text-blue-700 border-2 border-blue-200"
+                                : "hover:bg-green-100 text-green-700 border-2 border-green-300"
+                              : "hover:bg-gray-100 text-gray-900"
+                            : "text-gray-400"
+                      }`}
+                    >
+                      {dayData.day}
+                      {bookingsCount > 0 && !isSelected && (
+                        <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -457,24 +535,32 @@ export default function DoctorBookingPage({
                 {selectedDate ? getDayName(selectedDate) : ""}
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {Object.entries(selectedDayAvailability).map(
-                  ([timeSlot, status]) => (
-                    <button
-                      key={timeSlot}
-                      onClick={() => setSelectedTime(timeSlot)}
-                      disabled={status !== "available"}
-                      className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg border transition-colors cursor-pointer ${selectedTime === timeSlot
-                        ? "bg-green-500 text-white border-green-500"
-                        : status === "available"
-                          ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
-                          : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                        }`}>
-                      {timeSlot
-                        .replace(/_/g, " ")
-                        .replace(/([A-Z])/g, " $1")
-                        .trim()}
-                    </button>
-                  )
+                 {Object.entries(selectedDayAvailability).map(
+                  ([timeSlot, status]) => {
+                    const booked = isSlotBooked(timeSlot);
+                    return (
+                      <button
+                        key={timeSlot}
+                        onClick={() => setSelectedTime(timeSlot)}
+                        disabled={booked || status !== "available"}
+                        className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg border transition-colors cursor-pointer ${
+                          booked
+                            ? "bg-blue-50 text-blue-700 border-blue-300 cursor-not-allowed"
+                            : selectedTime === timeSlot
+                              ? "bg-green-500 text-white border-green-500"
+                              : status === "available"
+                                ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                                : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        }`}
+                      >
+                        {timeSlot
+                          .replace(/_/g, " ")
+                          .replace(/([A-Z])/g, " $1")
+                          .trim()}
+                        {booked && " (Booked)"}
+                      </button>
+                    );
+                  }
                 )}
               </div>
             </div>

@@ -61,6 +61,37 @@ export const bookingApi = api.injectEndpoints({
         url: "/getBookings",
         params,
       }),
+      transformResponse: (response: any[], meta, arg: any) => {
+        if (!arg || (!arg.page && !arg.limit)) {
+          return response;
+        }
+
+        const { page = 1, limit = 10, search = "" } = arg;
+        let result = response || [];
+
+        // Apply filters
+        if (search) {
+          const s = search.toLowerCase();
+          result = result.filter(
+            (b: any) =>
+              b.patientName?.toLowerCase().includes(s) ||
+              b.doctorName?.toLowerCase().includes(s) ||
+              b.bookingStatus?.toLowerCase().includes(s) ||
+              b.bookingChannel?.toLowerCase().includes(s) ||
+              b.specialization?.toLowerCase().includes(s)
+          );
+        }
+
+        const totalCount = result.length;
+        const startIndex = (page - 1) * limit;
+        const sliced = result.slice(startIndex, startIndex + limit);
+
+        // Attach properties
+        const paginatedResult = [...sliced] as any;
+        paginatedResult.totalCount = totalCount;
+        paginatedResult.totalPages = Math.ceil(totalCount / limit);
+        return paginatedResult;
+      },
       providesTags: ["Booking"],
     }),
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar, CheckCircle } from "lucide-react";
+import { Video, MessageCircle, Phone, FileText, Eye, X, User, Calendar, CheckCircle } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -13,7 +13,6 @@ import {
   AppointmentChannel,
 } from "@/types";
 import {
-  AddAppointmentModal,
   AppointmentDetailModal,
   ConsultationNoteModal,
   RescheduleModal,
@@ -24,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import { useUpdateBookingStatusMutation } from "@/store/bookingApi";
 import { showError, showSuccess, showInfo } from "@/utils/toast";
+import { useApiError } from "@/hooks/useApiError";
 import { convertSlotToTime, NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
@@ -82,15 +82,7 @@ export default function DoctorAppointmentsPage() {
     isConfirmModalOpen,
   ]);
 
-  // Handler functions for modals
-  const handleAddAppointment = (appointmentData: {
-    patientName: string;
-    date: string;
-    time: string;
-    reason: string;
-  }) => {
-    // TODO: Implement appointment creation
-  };
+
 
   const handleConsultationNote = async (data: {
     note: string;
@@ -214,7 +206,7 @@ export default function DoctorAppointmentsPage() {
     appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -325,15 +317,7 @@ export default function DoctorAppointmentsPage() {
     setSelectedAppointment(null);
   };
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      showError(
-        "Appointment Error",
-        "Failed to load appointments. Please try again."
-      );
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load appointments. Please try again.");
 
   return (
     <div>
@@ -472,6 +456,10 @@ export default function DoctorAppointmentsPage() {
           totalCount={filteredAppointments.length}
           pageSize={itemsPerPage}
           onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
           itemLabel="appointments"
         />
       </div>

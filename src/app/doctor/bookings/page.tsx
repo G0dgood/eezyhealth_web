@@ -17,7 +17,7 @@ import SearchInput from "@/components/SearchInput";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDaySuffix, getDayName } from "@/utils/dateUtils";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
-import { showError } from "@/utils/toast";
+import { useApiError } from "@/hooks/useApiError";
 import {
   timeSlots,
   monthNames,
@@ -205,12 +205,7 @@ export default function DoctorBookingsPage() {
     setSelectedBooking(null);
   };
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      showError("Booking Error", "Failed to load bookings. Please try again.");
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
   // Update week bookings when API data changes
   useEffect(() => {

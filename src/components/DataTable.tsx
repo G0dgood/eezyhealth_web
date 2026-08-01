@@ -12,6 +12,7 @@ interface DataTableProps<T = unknown> {
   pageSize?: number;
   itemLabel?: string;
   onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   onPrevious?: () => void;
   onNext?: () => void;
   className?: string;
@@ -26,6 +27,7 @@ export default function DataTable<T = unknown>({
   pageSize = 10,
   itemLabel = "items",
   onPageChange,
+  onPageSizeChange,
   onPrevious,
   onNext,
   className = "",
@@ -79,6 +81,7 @@ export default function DataTable<T = unknown>({
               if (page > currentPage && onNext) onNext();
               if (page < currentPage && onPrevious) onPrevious();
             })}
+            onPageSizeChange={onPageSizeChange}
             itemLabel={itemLabel}
             className="mt-4"
           />

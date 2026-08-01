@@ -199,16 +199,16 @@ export default function BookingConfirmationModal({
                 </p>
               </div>
             </div>
+          </div>
 
-            {/* Reason */}
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <FileText className="w-5 h-5 text-gray-600" />
-              <div>
-                <p className=" text-[10px]  md:text-[12px] text-gray-500">Reason</p>
-                <p className="font-medium text-gray-900 truncate">
-                  {bookingDetails.reason || "Not specified"}
-                </p>
-              </div>
+          {/* Reason */}
+          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+            <FileText className="w-5 h-5 text-gray-600 mt-1" />
+            <div className="flex-1 min-w-0">
+              <p className=" text-[10px]  md:text-[12px] text-gray-500">Reason</p>
+              <p className="font-medium text-gray-900 break-words whitespace-pre-wrap">
+                {bookingDetails.reason || "Not specified"}
+              </p>
             </div>
           </div>
         </div>

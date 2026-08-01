@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
 import { showError, showInfo } from "@/utils/toast";
+import { useApiError } from "@/hooks/useApiError";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGenerateTokenForUserMutation, useAddMemberToChannelMutation } from "@/store/streamChatApi";
 import { useNurseChat } from "@/hooks/useNurseChat";
@@ -106,12 +107,7 @@ export default function NurseMessagePage() {
   // Use undefined or a stable object to prevent infinite re-renders if passing new object literal
   const { data: bookingsData, error, isLoading } = useGetFirebaseBookingsQuery(undefined);
 
-  // Show error toast when there's an error
-  useEffect(() => {
-    if (error) {
-      showError("Error", "Failed to load bookings. Please try again.");
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
   // Map bookings to patients, ensuring uniqueness
   const uniquePatients: PatientData[] = useMemo(() => {

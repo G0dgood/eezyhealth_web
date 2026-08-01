@@ -12,7 +12,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { v4 as uuidv4 } from "uuid";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
-import { Edit, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Skeleton from "react-loading-skeleton";

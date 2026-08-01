@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Star,
   Phone,
@@ -106,73 +106,61 @@ export default function AdminNursesPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const {
     data: nursesData = [],
     isLoading,
-
     isError,
     refetch,
-  } = useGetFirebaseNurseProfilesQuery({});
-
-  const transformedNurses = nursesData.map(
-    (nurse: Record<string, unknown>, index: number): Nurse => ({
-      uid: (nurse.uid as string) || (nurse.id as string) || `nurse-${index}`,
-      id: (nurse.id as string) || (nurse.uid as string) || `nurse-${index}`,
-      display_name: nurse.display_name as string,
-      first_name: nurse.first_name as string,
-      last_name: nurse.last_name as string,
-      title: nurse.title as string,
-      specialization: nurse.specialization as string,
-      experience_yrs: nurse.experience_yrs as string,
-      rating: typeof nurse.rating === "number" ? nurse.rating : 0,
-      email: nurse.email as string,
-      phone_number: nurse.phone_number as string,
-      isTop: typeof nurse.isTop === "boolean" ? nurse.isTop : false,
-      isActive: typeof nurse.isActive === "boolean" ? nurse.isActive : true,
-      isVerify: typeof nurse.isVerify === "boolean" ? nurse.isVerify : false,
-      address: nurse.address as string,
-      hospital: nurse.hospital as string,
-      about: nurse.about as string,
-      availability: nurse.availability as {
-        [day: string]: {
-          [time: string]: string;
-        };
-      },
-      createdTime: nurse.createdTime as Date | string,
-      date_of_birth: nurse.date_of_birth as Date | string,
-      nurseId: nurse.nurseId as string,
-      photo_url: nurse.photo_url as string,
-      image: nurse.image as string,
-      role: (nurse.role as "admin" | "doctor" | "nurse" | "patient") || "nurse",
-      deactivatedAt: nurse.deactivatedAt as string,
-      deactivationReason: nurse.deactivationReason as string,
-    })
-  );
-
-  const nurses = transformedNurses;
-
-  const filteredNurses = nurses.filter((nurse) => {
-    const name =
-      nurse.display_name ||
-      `${nurse.first_name || ""} ${nurse.last_name || ""}`.trim() ||
-      "";
-    const specialization = nurse.specialization || nurse.title || "";
-
-    return (
-      (typeof name === "string" &&
-        name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (typeof specialization === "string" &&
-        specialization.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      nurse.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  } = useGetFirebaseNurseProfilesQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
   });
 
-  const paginatedNurses = filteredNurses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalCount = (nursesData as any)?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const transformedNurses = useMemo(() => {
+    const rawData = Array.isArray(nursesData) ? nursesData : [];
+    return rawData.map(
+      (nurse: Record<string, unknown>, index: number): Nurse => ({
+        uid: (nurse.uid as string) || (nurse.id as string) || `nurse-${index}`,
+        id: (nurse.id as string) || (nurse.uid as string) || `nurse-${index}`,
+        display_name: nurse.display_name as string,
+        first_name: nurse.first_name as string,
+        last_name: nurse.last_name as string,
+        title: nurse.title as string,
+        specialization: nurse.specialization as string,
+        experience_yrs: nurse.experience_yrs as string,
+        rating: typeof nurse.rating === "number" ? nurse.rating : 0,
+        email: nurse.email as string,
+        phone_number: nurse.phone_number as string,
+        isTop: typeof nurse.isTop === "boolean" ? nurse.isTop : false,
+        isActive: typeof nurse.isActive === "boolean" ? nurse.isActive : true,
+        isVerify: typeof nurse.isVerify === "boolean" ? nurse.isVerify : false,
+        address: nurse.address as string,
+        hospital: nurse.hospital as string,
+        about: nurse.about as string,
+        availability: nurse.availability as {
+          [day: string]: {
+            [time: string]: string;
+          };
+        },
+        createdTime: nurse.createdTime as Date | string,
+        date_of_birth: nurse.date_of_birth as Date | string,
+        nurseId: nurse.nurseId as string,
+        photo_url: nurse.photo_url as string,
+        image: nurse.image as string,
+        role: (nurse.role as "admin" | "doctor" | "nurse" | "patient") || "nurse",
+        deactivatedAt: nurse.deactivatedAt as string,
+        deactivationReason: nurse.deactivationReason as string,
+      })
+    );
+  }, [nursesData]);
+
+  const paginatedNurses = transformedNurses;
 
 
 
@@ -476,7 +464,7 @@ export default function AdminNursesPage() {
               {paginatedNurses.length === 0 ? (
                 <NoRecordFound colSpan={6} />
               ) : (
-                paginatedNurses.map((nurse) => {
+                paginatedNurses.map((nurse: any) => {
                   const displayName =
                     nurse.display_name ||
                     `${nurse.first_name || ""} ${nurse.last_name || ""}`.trim() ||
@@ -486,7 +474,7 @@ export default function AdminNursesPage() {
                     .split(" ")
                     .filter(Boolean)
                     .slice(0, 2)
-                    .map((part) => part[0])
+                    .map((part: string) => part[0])
                     .join("")
                     .toUpperCase();
 
@@ -606,9 +594,13 @@ export default function AdminNursesPage() {
         {/* Pagination */}
         <Pagination
           currentPage={currentPage}
-          totalCount={filteredNurses.length}
+          totalCount={totalCount}
           pageSize={itemsPerPage}
           onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
           itemLabel="nurses"
           className="mt-4"
         />

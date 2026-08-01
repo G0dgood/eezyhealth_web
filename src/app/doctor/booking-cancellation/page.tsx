@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/bookingCancellationApi";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -12,6 +11,7 @@ import {
   NoRecordFound,
   getCancellationStatusBadge,
 } from "@/components/Options";
+import { useApiError } from "@/hooks/useApiError";
 
 interface CancelledAppointment {
   id: string;
@@ -68,25 +68,7 @@ export default function DoctorBookingCancellationPage() {
   const cancelledAppointments =
     (cancellationsData as unknown as CancelledAppointment[]) || [];
 
-  // Handle notifications
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load cancellation requests", {
-        description:
-          "Please try again or contact support if the issue persists.",
-        action: {
-          label: "Retry",
-          onClick: () => refetch(),
-        },
-      });
-    }
-  }, [
-    error,
-    refetch,
-    cancellationsData,
-    isLoading,
-    cancelledAppointments.length,
-  ]);
+  useApiError(!!error, error, "Failed to load cancellation requests");
 
   // Show loading state
   if (isLoading) {

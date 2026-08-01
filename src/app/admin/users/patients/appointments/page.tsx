@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { ArrowLeft, Activity, FileText } from "lucide-react";
 import VitalsModal from "@/components/modals/VitalsModal";
 import ConsultationNoteModal from "@/components/modals/ConsultationNoteModal";
+import StatusBadge from "@/components/StatusBadge";
 import Breadcrumb from "@/components/Breadcrumb";
 import PillTabs from "@/components/Tabs/PillTabs";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import { formatFirebaseDate } from "@/utils/dateUtils";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { NoRecordFound } from "@/components/Options";
 import Pagination from "@/components/Pagination";
+import { useApiError } from "@/hooks/useApiError";
 
 export default function AdminPatientAppointmentsPage() {
   const searchParams = useSearchParams();
@@ -22,10 +24,12 @@ export default function AdminPatientAppointmentsPage() {
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | undefined>(undefined);
+  const [selectedBookingDate, setSelectedBookingDate] = useState<any>(undefined);
   const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   // Fetch data
   const {
@@ -36,6 +40,8 @@ export default function AdminPatientAppointmentsPage() {
   } = useGetPatientAppointmentsQuery(patientId, {
     skip: !patientId,
   });
+
+  useApiError(!!error, error, "Failed to load patient appointments");
 
   // Transform data
   const appointments = useMemo(() => {
@@ -234,23 +240,18 @@ export default function AdminPatientAppointmentsPage() {
 
                     {/* Status Column */}
                     <td>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === "Upcoming"
-                            ? "bg-blue-100 text-blue-800"
-                            : appointment.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                      >
-                        {appointment.status}
-                      </span>
+                      <StatusBadge status={appointment.status} />
                     </td>
 
                     {/* Actions Column */}
                     <td>
                       <div className="flex items-center space-x-3">
                         <button
-                          onClick={() => setIsVitalsModalOpen(true)}
+                          onClick={() => {
+                            setSelectedBookingId(appointment.bookingId);
+                            setSelectedBookingDate(appointment.bookingData?.bookingDate);
+                            setIsVitalsModalOpen(true);
+                          }}
                           className="link-green flex items-center space-x-1"
                         >
                           <Activity className="w-4 h-4" />
@@ -281,6 +282,10 @@ export default function AdminPatientAppointmentsPage() {
           totalCount={filteredAppointments.length}
           pageSize={pageSize}
           onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
           itemLabel="appointments"
           className="border-t border-gray-200"
         />
@@ -290,8 +295,13 @@ export default function AdminPatientAppointmentsPage() {
       {/* Vitals Modal */}
       <VitalsModal
         isOpen={isVitalsModalOpen}
-        onClose={() => setIsVitalsModalOpen(false)}
+        onClose={() => {
+          setIsVitalsModalOpen(false);
+          setSelectedBookingId(undefined);
+        }}
         patientId={patientId}
+        bookingId={selectedBookingId}
+        patientName={patientName}
       />
 
       {/* Consultation Details Modal */}

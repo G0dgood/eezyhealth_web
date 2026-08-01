@@ -4,7 +4,7 @@ export const bookingCancellationApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // ===== BOOKING CANCELLATION =====
     getBookingCancellations: builder.query({
-      async queryFn() {
+      async queryFn(arg: { page?: number; limit?: number; search?: string; doctorId?: string } = {}) {
         try {
           const { collection, query, where, getDocs } = await import(
             "firebase/firestore"
@@ -13,54 +13,26 @@ export const bookingCancellationApi = api.injectEndpoints({
 
           const bookingsCollectionRef = collection(db, "Bookings");
 
-          // Debug: Try different status values 
-
-          // Create a query to filter documents where bookingStatus is "cancelled" (lowercase)
+          // Try "cancelled" (lowercase) first
           const bookingsQuery = query(
             bookingsCollectionRef,
             where("bookingStatus", "==", "cancelled")
           );
+          let snapshot = await getDocs(bookingsQuery);
 
-          // Fetch the documents that match the query
-          const snapshot = await getDocs(bookingsQuery);
-          
-
-          // If no results, try with different casing
+          // If no results, try "Cancelled" (capitalized)
           if (snapshot.size === 0) {
-             
-            // Try "Cancelled" (capitalized)
             const cancelledQuery = query(
               bookingsCollectionRef,
               where("bookingStatus", "==", "Cancelled")
             );
-            const cancelledSnapshot = await getDocs(cancelledQuery);
-             
-
-            if (cancelledSnapshot.size > 0) {
-              const firebaseRtk = await import("@/lib/firebase-rtk");
-              const serializeFirebaseData = firebaseRtk.serializeFirebaseData;
-
-              const bookingsData = cancelledSnapshot.docs.map((doc) => {
-                const docData = doc.data();
-                const serializedData = serializeFirebaseData(
-                  docData
-                ) as Record<string, unknown>;
-
-                return {
-                  id: doc.id,
-                  ...serializedData,
-                };
-              });
-
-              return { data: bookingsData };
-            }
+            snapshot = await getDocs(cancelledQuery);
           }
 
-          // Extract the data from the documents and convert Firestore Timestamps to ISO strings
           const firebaseRtk = await import("@/lib/firebase-rtk");
           const serializeFirebaseData = firebaseRtk.serializeFirebaseData;
 
-          const bookingsData = snapshot.docs.map((doc) => {
+          let bookingsData = snapshot.docs.map((doc) => {
             const docData = doc.data();
             const serializedData = serializeFirebaseData(docData) as Record<
               string,
@@ -73,7 +45,41 @@ export const bookingCancellationApi = api.injectEndpoints({
             };
           });
 
-          return { data: bookingsData };
+          // Apply doctorId filter if present
+          if (arg.doctorId) {
+            bookingsData = bookingsData.filter(
+              (b: any) => b.doctorId === arg.doctorId
+            );
+          }
+
+          // Apply search filter if present
+          if (arg.search) {
+            const searchLower = arg.search.toLowerCase();
+            bookingsData = bookingsData.filter(
+              (b: any) =>
+                b.patientName?.toLowerCase().includes(searchLower) ||
+                b.doctorName?.toLowerCase().includes(searchLower) ||
+                b.specialization?.toLowerCase().includes(searchLower) ||
+                b.cancellationReason?.toLowerCase().includes(searchLower) ||
+                b.reason?.toLowerCase().includes(searchLower)
+            );
+          }
+
+          const totalCount = bookingsData.length;
+
+          // Apply page/limit slicing if provided
+          let result = bookingsData;
+          if (arg.page && arg.limit) {
+            const startIndex = (arg.page - 1) * arg.limit;
+            result = bookingsData.slice(startIndex, startIndex + arg.limit);
+          }
+
+          // Attach pagination properties to the array itself
+          const paginatedResult = [...result] as any;
+          paginatedResult.totalCount = totalCount;
+          paginatedResult.totalPages = arg.limit ? Math.ceil(totalCount / arg.limit) : 1;
+
+          return { data: paginatedResult };
         } catch (error) {
           console.error(
             "Error fetching Firebase cancelled bookings:",

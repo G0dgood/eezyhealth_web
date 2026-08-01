@@ -87,7 +87,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, config
 	const socketRef = useRef<Socket | null>(null);
 	const messageQueueRef = useRef<QueuedMessage[]>([]);
 
-	const configuredUrl = process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || '';
+	const configuredUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
 
 	const {
 		url = configuredUrl,
@@ -222,6 +222,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, config
 				reconnection: true,
 				reconnectionAttempts: 3,
 				reconnectionDelay: 2000,
+				transports: ['websocket'],
 				auth: userInfo
 					? {
 							userId: userInfo.uid,

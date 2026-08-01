@@ -23,8 +23,7 @@ import {
 } from "@/components/Options";
 import { useGetBookingsQuery } from "@/store/bookingApi";
 import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
-import { showError, showNetworkError } from "@/utils/toast";
-import { toast } from "sonner";
+import { useApiError } from "@/hooks/useApiError";
 import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
 
 interface LocalBooking extends Booking {
@@ -76,42 +75,7 @@ export default function Bookings() {
 
 
 
-  // Handle error state
-  useEffect(() => {
-    if (error) {
-      console.error("Bookings API Error:", error);
-
-      // Show appropriate error message
-      if ("status" in error) {
-        if (
-          error.status === "FETCH_ERROR" ||
-          error.status === "TIMEOUT_ERROR"
-        ) {
-          showNetworkError();
-        } else if (error.status === "PARSING_ERROR") {
-          showError(
-            "Data Error",
-            "Failed to parse booking data. Please try again.",
-          );
-        } else if (error.status === "CUSTOM_ERROR") {
-          showError(
-            "Booking Error",
-            "Unable to load bookings. Please try again.",
-          );
-        } else {
-          showError(
-            "Booking Error",
-            "Something went wrong while loading bookings.",
-          );
-        }
-      } else {
-        showError(
-          "Booking Error",
-          "Unable to load bookings. Please try again.",
-        );
-      }
-    }
-  }, [error]);
+  useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
   // Retry function for failed requests
   const handleRetry = () => {
