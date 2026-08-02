@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import moment from "moment";
 import { useGetBookingCancellationsByDoctorIdQuery } from "@/store/bookingCancellationApi";
 import { useAuth } from "@/contexts/AuthContext";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -43,6 +44,27 @@ interface CancelledAppointment {
   photo_url?: string;
   comments?: any[];
 }
+
+// Formats a Firestore Timestamp / seconds object / string / Date with moment.
+const formatCancellationDate = (dateVal: any) => {
+  if (!dateVal) return "N/A";
+  try {
+    let dateObj: Date;
+    if (dateVal?.toDate) {
+      dateObj = dateVal.toDate();
+    } else if (dateVal?._seconds) {
+      dateObj = new Date(dateVal._seconds * 1000);
+    } else if (dateVal?.seconds) {
+      dateObj = new Date(dateVal.seconds * 1000);
+    } else {
+      dateObj = new Date(dateVal);
+    }
+    if (isNaN(dateObj.getTime())) return "N/A";
+    return moment(dateObj).format("DD-MM-YYYY");
+  } catch {
+    return "N/A";
+  }
+};
 
 export default function DoctorBookingCancellationPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -156,13 +178,7 @@ export default function DoctorBookingCancellationPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
-                        {appointment.bookingDate?.toDate
-                          ? appointment.bookingDate
-                            .toDate()
-                            .toLocaleDateString()
-                          : new Date(
-                            appointment.bookingDate
-                          ).toLocaleDateString()}
+                        {formatCancellationDate(appointment.bookingDate)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

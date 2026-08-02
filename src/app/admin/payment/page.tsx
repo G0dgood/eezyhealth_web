@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/payment-header-skeleton";
 import { useGetPaymentsQuery } from "@/store/paymentApi";
 import Dropdown from "@/components/Dropdown";
+import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
+import { useEffect } from "react";
 
 interface PaymentData {
   amount: string;
@@ -79,6 +81,7 @@ export default function AdminPaymentPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
 
   // RTK hooks
   const {
@@ -90,9 +93,31 @@ export default function AdminPaymentPage() {
     limit: itemsPerPage,
     search: searchQuery,
     status: selectedStatus,
+    doctorId: selectedDoctorId || undefined,
   });
 
   useApiError(!!error, error, "Failed to load payments. Please try again.");
+
+  // Doctors for the filter dropdown
+  const { data: doctorsData, isLoading: isLoadingDoctors } = useGetFirebaseDoctorsQuery({});
+  const doctorsList = useMemo(() => (doctorsData || []) as any[], [doctorsData]);
+
+  const getDoctorName = (doc: any) =>
+    doc.display_name ||
+    doc.name ||
+    [doc.first_name, doc.last_name].filter(Boolean).join(" ").trim() ||
+    doc.email ||
+    "Doctor";
+
+  const getDoctorNameForTable = (doctorId: string) => {
+    const doc = doctorsList.find((d) => (d.uid || d.doctorId || d.id) === doctorId);
+    return doc ? getDoctorName(doc) : "Unknown Doctor";
+  };
+
+  // Reset to first page when any search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus, selectedDoctorId]);
 
   // Ensure payments is always an array
   const payments = useMemo(() => {
@@ -199,20 +224,38 @@ export default function AdminPaymentPage() {
                   placeholder="Search payments..."
                 />
               </div>
-              <Dropdown
-                value={selectedStatus}
-                onChange={(value) => setSelectedStatus(value)}
-                options={[
-                  { value: "", label: "All Statuses" },
-                  { value: "completed", label: "Completed" },
-                  { value: "pending", label: "Pending" },
-                  { value: "failed", label: "Failed" },
-                  { value: "cancelled", label: "Cancelled" },
-                ]}
-                placeholder="All Statuses"
-                className="w-40"
-                variant="default"
-              />
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                <Dropdown
+                  value={selectedDoctorId}
+                  onChange={(value) => setSelectedDoctorId(value)}
+                  options={[
+                    { value: "", label: "All Doctors" },
+                    ...doctorsList.map((doc) => ({
+                      value: doc.uid || doc.doctorId || doc.id,
+                      label: getDoctorName(doc),
+                    })),
+                  ]}
+                  placeholder={
+                    isLoadingDoctors ? "Loading doctors..." : "All Doctors"
+                  }
+                  className="w-64 shadow-none"
+                  variant="default"
+                />
+                <Dropdown
+                  value={selectedStatus}
+                  onChange={(value) => setSelectedStatus(value)}
+                  options={[
+                    { value: "", label: "All Statuses" },
+                    { value: "completed", label: "Completed" },
+                    { value: "pending", label: "Pending" },
+                    { value: "failed", label: "Failed" },
+                    { value: "cancelled", label: "Cancelled" },
+                  ]}
+                  placeholder="All Statuses"
+                  className="w-40"
+                  variant="default"
+                />
+              </div>
             </div>
           )}
 
@@ -261,7 +304,7 @@ export default function AdminPaymentPage() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-[10px] md:text-[12px] text-[var(--foreground)]">
                                 {safeRenderField(
-                                  payment.doctorId,
+                                  getDoctorNameForTable(payment.doctorId as string),
                                   "Unknown Doctor"
                                 )}
                               </div>

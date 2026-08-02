@@ -12,6 +12,8 @@ import { useApiError } from "@/hooks/useApiError";
 import PillTabs from "@/components/Tabs/PillTabs";
 import Bookings from "@/app/nurse/bookings/components/Bookings";
 import Dropdown from "@/components/Dropdown";
+import StatusBadge from "@/components/StatusBadge";
+import PaidPendingBookingsSection from "@/components/PaidPendingBookingsSection";
 import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
 
 interface Booking {
@@ -52,8 +54,14 @@ export default function BookingsPage() {
   });
 
   const paginatedBookings = useMemo(() => {
-    return (bookings || []) as Booking[];
-  }, [bookings]);
+    const list = (bookings || []) as Booking[];
+    if (!selectedDoctorId) return list;
+    // Filter the list by the selected doctor (matches the calendar filter).
+    return list.filter(
+      (b: any) =>
+        (b.doctorId || b.doctor_id || b.doctorUid) === selectedDoctorId,
+    );
+  }, [bookings, selectedDoctorId]);
 
   const totalCount = (bookings as any)?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -80,6 +88,8 @@ export default function BookingsPage() {
     <div>
       <Title title={bookingsTab} />
 
+      <PaidPendingBookingsSection />
+
       <div className="mb-6">
         <PillTabs
           tabs={tabs}
@@ -90,27 +100,26 @@ export default function BookingsPage() {
         />
       </div>
 
+      {/* Doctor filter — applies to both the calendar and the list */}
+      <div className="mb-4 flex justify-end">
+        <Dropdown
+          value={selectedDoctorId}
+          onChange={(value) => setSelectedDoctorId(value)}
+          options={[
+            { value: "", label: "All Doctors" },
+            ...doctorsList.map((doc) => ({
+              value: doc.uid || doc.doctorId || doc.id,
+              label: getDoctorName(doc),
+            })),
+          ]}
+          placeholder={isLoadingDoctors ? "Loading doctors..." : "All Doctors"}
+          className="w-72 shadow-none"
+          variant="default"
+        />
+      </div>
+
       {bookingsTab === "Booking" ? (
         <div>
-          {/* Doctor filter */}
-          <div className="mb-4">
-            <Dropdown
-              value={selectedDoctorId}
-              onChange={(value) => setSelectedDoctorId(value)}
-              options={[
-                { value: "", label: "All Doctors" },
-                ...doctorsList.map((doc) => ({
-                  value: doc.uid || doc.doctorId || doc.id,
-                  label: getDoctorName(doc),
-                })),
-              ]}
-              placeholder={
-                isLoadingDoctors ? "Loading doctors..." : "All Doctors"
-              }
-              className="w-72 shadow-none"
-              variant="default"
-            />
-          </div>
           <Bookings doctorId={selectedDoctorId || undefined} />
         </div>
       ) : (
@@ -197,15 +206,9 @@ export default function BookingsPage() {
                         {booking?.specialization || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${booking.bookingStatus === "Accepted"
-                            ? "bg-green-100 text-green-800 border border-green-300"
-                            : (booking.bookingStatus === "pending" || booking.bookingStatus === "Pending" || booking.status === "Pending")
-                              ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                              : "bg-red-100 text-red-800 border border-red-300"
-                            }`}>
-                          {booking.bookingStatus || "-"}
-                        </span>
+                        <StatusBadge
+                          status={booking.bookingStatus || booking.status}
+                        />
                       </td>
                     </tr>
                   ))

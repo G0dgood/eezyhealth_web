@@ -28,3 +28,7 @@ export const appConfig = {
 
 // Stream Configuration
 export const streamApiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+
+// Favicon Configuration
+export const faviconPath = process.env.NEXT_PUBLIC_FAVICON_PATH;
+

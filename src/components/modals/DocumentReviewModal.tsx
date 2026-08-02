@@ -234,7 +234,7 @@ export default function DocumentReviewModal({
         <div className="px-6 py-4 space-y-4">
           {/* Select All Header for pending docs */}
           {pendingDocs.length > 0 && (
-            <div className="flex items-center justify-between p-3 bg-[var(--muted)] rounded-lg mb-2">
+            <div className="flex items-center justify-between p-3 bg-[var(--muted)] border border-[var(--border)] rounded-xl mb-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <Input
                   type="checkbox"
@@ -271,7 +271,7 @@ export default function DocumentReviewModal({
           {documents.map((doc, index) => (
             <div
               key={doc.id}
-              className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 hover:shadow-md transition-shadow"
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 hover:border-[var(--primary)]/40 transition-colors"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -338,11 +338,11 @@ export default function DocumentReviewModal({
 
                 <div className="ml-4">
                   <span
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${doc.status === "approved"
-                      ? "bg-green-100 text-green-800"
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${doc.status === "approved"
+                      ? "bg-green-50 text-green-700 border-green-200"
                       : doc.status === "rejected"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-yellow-50 text-yellow-700 border-yellow-200"
                       }`}
                   >
                     {(doc.status ?? "PENDING").toUpperCase()}

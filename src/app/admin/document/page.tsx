@@ -13,6 +13,9 @@ import { useGetUploadsQuery } from "@/store/uploadApi";
 import FormattedDate from "@/utils/FormattedDate";
 import DocumentTableSkeleton from "@/components/skeletons/DocumentTableSkeleton";
 import { toast } from "sonner";
+import Dropdown from "@/components/Dropdown";
+import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
+import { useApiError } from "@/hooks/useApiError";
 
 // Removed unused interfaces - using comprehensive Upload interface below
 
@@ -43,53 +46,70 @@ export default function DocumentPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
 
   // Fetch uploads from RTK Query
-  const { data: uploads, isLoading, isError, refetch } = useGetUploadsQuery({});
+  const { data: uploads, isLoading, error, refetch } = useGetUploadsQuery({});
 
-  // Handle error with Sonner toast
+  useApiError(!!error, error, "Failed to load document uploads. Please try again.");
+
+  // Fetch doctors for filter dropdown
+  const { data: doctorsData, isLoading: isLoadingDoctors } = useGetFirebaseDoctorsQuery({});
+  const doctorsList = useMemo(() => (doctorsData || []) as any[], [doctorsData]);
+
+  const getDoctorName = (doc: any) =>
+    doc.display_name ||
+    doc.name ||
+    [doc.first_name, doc.last_name].filter(Boolean).join(" ").trim() ||
+    doc.email ||
+    "Doctor";
+
+  // Reset to first page when search term or selected doctor changes
   useEffect(() => {
-    if (isError) {
-      toast.error("Error fetching uploads", {
-        description: "Failed to load document uploads. Please try again.",
-        action: {
-          label: "Retry",
-          onClick: () => refetch(),
-        },
-        duration: 5000,
-      });
-    }
-  }, [isError, refetch]);
+    setCurrentPage(1);
+  }, [searchTerm, selectedDoctorId]);
 
   // Safely extract uploads data
   const safeUploadTwo = uploads && "uploads" in uploads ? uploads.uploads : [];
 
-  // Filter uploads based on search term
+  // Filter uploads based on search term and selected doctor
   const filteredData = useMemo(() => {
     const safeUploads = Array.isArray(safeUploadTwo) ? safeUploadTwo : [];
     if (safeUploads.length === 0) return [];
 
-    // If no search term, return all uploads
-    if (!searchTerm.trim()) return safeUploads;
+    let result = safeUploads;
 
-    const query = searchTerm.toLowerCase();
-    return safeUploads.filter((upload: Upload) => {
-      const nameMatch = (upload?.doctorName ?? "")
-        .toLowerCase()
-        .includes(query);
-      const descMatch = (upload?.description ?? "")
-        .toLowerCase()
-        .includes(query);
-      const specMatch = (upload?.specialization ?? upload?.location ?? "")
-        .toLowerCase()
-        .includes(query);
-      const doctorMatch = (upload?.doctorId ?? upload?.uid ?? "")
-        .toLowerCase()
-        .includes(query);
-      const emailMatch = (upload?.email ?? "").toLowerCase().includes(query);
-      return nameMatch || descMatch || specMatch || doctorMatch || emailMatch;
-    });
-  }, [safeUploadTwo, searchTerm]);
+    // Apply selected doctor filter
+    if (selectedDoctorId) {
+      result = result.filter((upload: Upload) => {
+        const uploadDocId = upload.doctorId || upload.uid || "";
+        return uploadDocId === selectedDoctorId;
+      });
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      result = result.filter((upload: Upload) => {
+        const nameMatch = (upload?.doctorName ?? "")
+          .toLowerCase()
+          .includes(query);
+        const descMatch = (upload?.description ?? "")
+          .toLowerCase()
+          .includes(query);
+        const specMatch = (upload?.specialization ?? upload?.location ?? "")
+          .toLowerCase()
+          .includes(query);
+        const doctorMatch = (upload?.doctorId ?? upload?.uid ?? "")
+          .toLowerCase()
+          .includes(query);
+        const emailMatch = (upload?.email ?? "").toLowerCase().includes(query);
+        return nameMatch || descMatch || specMatch || doctorMatch || emailMatch;
+      });
+    }
+
+    return result;
+  }, [safeUploadTwo, searchTerm, selectedDoctorId]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredData?.length / itemsPerPage) || 1;
@@ -160,12 +180,30 @@ export default function DocumentPage() {
         description="Review and manage medical and credential document uploads from doctors."
       />
 
-      {/* Search */}
-      <div className="mb-6">
-        <SearchInput
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search doctor name..."
+      {/* Search & Filter */}
+      <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="flex-1 max-w-md">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search doctor name..."
+          />
+        </div>
+        <Dropdown
+          value={selectedDoctorId}
+          onChange={(value) => setSelectedDoctorId(value)}
+          options={[
+            { value: "", label: "All Doctors" },
+            ...doctorsList.map((doc) => ({
+              value: doc.uid || doc.doctorId || doc.id,
+              label: getDoctorName(doc),
+            })),
+          ]}
+          placeholder={
+            isLoadingDoctors ? "Loading doctors..." : "All Doctors"
+          }
+          className="w-64 shadow-none"
+          variant="default"
         />
       </div>
 

@@ -18,8 +18,11 @@ export default function StatusBadge({ status, className = "" }: StatusBadgeProps
     if (s === "upcoming") {
       return "bg-blue-50 text-blue-700 border-blue-200";
     }
-    if (s === "cancelled") {
+    if (s === "cancelled" || s === "canceled") {
       return "bg-gray-50 text-gray-700 border-gray-200";
+    }
+    if (s === "rescheduled") {
+      return "bg-purple-50 text-purple-700 border-purple-200";
     }
     if (s === "failed") {
       return "bg-red-50 text-red-700 border-red-200";

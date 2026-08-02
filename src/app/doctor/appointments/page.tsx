@@ -26,6 +26,7 @@ import { showError, showSuccess, showInfo } from "@/utils/toast";
 import { useApiError } from "@/hooks/useApiError";
 import { convertSlotToTime, NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import PaidPendingBookingsSection from "@/components/PaidPendingBookingsSection";
 
 export default function DoctorAppointmentsPage() {
   const { user } = useAuth();
@@ -332,6 +333,8 @@ export default function DoctorAppointmentsPage() {
       </div>
 
       <Title title="Appointment" />
+
+      <PaidPendingBookingsSection doctorId={doctorId} />
 
       {/* Search and Add Appointment */}
       <div className="flex-1 mb-6">

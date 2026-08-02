@@ -7,7 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import AddPatientModal, { PatientFormData } from "@/components/modals/AddPatientModal";
 import Link from "next/link";
 import { useGetFirebasePatientsQuery } from "@/store/patientApi";
-import { NoRecordFound } from "@/components/Options";
+import { NoRecordFound, getStatusBadge } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
 import Pagination from "@/components/Pagination";
@@ -442,9 +442,14 @@ export default function AdminPatientsPage() {
 
              {/* Status Column */}
              <td>
-              <div className="text-[10px] md:text-[12px] text-gray-900">
+              <span
+               className={getStatusBadge(
+                ((patient.status as string) || "Active").toLowerCase() !==
+                 "inactive"
+               )}
+              >
                {(patient.status as string) || "Active"}
-              </div>
+              </span>
              </td>
 
              {/* Actions Column */}

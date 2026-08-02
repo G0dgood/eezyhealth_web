@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { RxCross2, RxUpload } from "react-icons/rx";
+import {
+ Download,
+ FileText,
+ X,
+ CheckCircle,
+ Upload as UploadIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import Input from "@/components/Input";
 import Modal from "./modals/Modal";
@@ -11,6 +18,8 @@ interface UploadBaseProps {
  onClose?: () => void;
  showButton?: boolean;
  onUploadComplete?: (data: CsvRow[], file?: File) => void;
+ title?: string;
+ onDownloadTemplate?: () => void;
 }
 
 // Simple CSV parser function
@@ -67,6 +76,8 @@ const UploadBase: React.FC<UploadBaseProps> = ({
  onClose: externalOnClose,
  showButton = true,
  onUploadComplete,
+ title = "Upload Users",
+ onDownloadTemplate,
 }) => {
 
  const primaryColor = '#050711';
@@ -245,138 +256,86 @@ const UploadBase: React.FC<UploadBaseProps> = ({
     <Modal
      isOpen={isOpen}
      onClose={handleClose}
-     title="Upload CSV File"
+     title={title}
      size="md"
     >
-     <div
-      className="dark:bg-gray-800 w-full max-w-2xl "
-      style={{ backgroundColor: 'var(--accent-white)' }}
-     >
-
-
-      <form className="mt-4 space-y-4" onSubmit={submitHandler}>
-       {isError && (
-        <div
-         className="dark:bg-red-900/30 dark:text-red-400 px-4 py-2 relative flex justify-between items-center"
-         style={{
-          backgroundColor: 'rgba(220, 38, 38, 0.1)',
-          color: '#DC2626'
-         }}
-        >
-         <p>
-          <i className="fas fa-exclamation-circle mr-2" />{" "}
-          {error?.data?.message || "Upload failed"}
-         </p>
-         <button
-          onClick={onClickReset}
-          className="dark:text-red-400 dark:hover:text-red-300"
-          style={{ color: '#DC2626' }}
-          onMouseEnter={(e) => {
-           e.currentTarget.style.color = '#991B1B';
-          }}
-          onMouseLeave={(e) => {
-           e.currentTarget.style.color = '#DC2626';
-          }}
-         >
-          <i className="fas fa-times" />
-         </button>
+     <div className="space-y-5">
+      {/* Template download — inside the modal, like the specialty bulk upload */}
+      {onDownloadTemplate && (
+       <div className="bg-[#44CE2D]/5 border border-[#44CE2D]/30 rounded-xl p-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+         <FileText className="w-5 h-5 text-[#3bb025] flex-shrink-0" />
+         <div className="min-w-0">
+          <p className="text-[12px] font-semibold text-[var(--foreground)]">
+           Need a template?
+          </p>
+          <p className="text-[10px] text-[var(--muted-foreground)]">
+           Download the sample CSV to match the format.
+          </p>
+         </div>
         </div>
-       )}
-
-       {isSuccess && (
-        <div
-         className="dark:bg-green-900/30 dark:text-green-400 px-4 py-2 relative flex justify-between items-center"
-         style={{
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          color: '#22C55E'
-         }}
+        <button
+         type="button"
+         onClick={onDownloadTemplate}
+         className="flex items-center gap-2 text-[12px] text-[#3bb025] hover:text-[#2e8a20] font-medium bg-[var(--card)] px-3 py-1.5 rounded-lg border border-[#44CE2D]/40 transition-colors flex-shrink-0"
         >
-         <p>
-          <i className="fas fa-check-circle mr-2" /> Upload
-          successful!
-         </p>
-         <button
-          onClick={onClickReset}
-          className="dark:text-gray-400 dark:hover:text-red-400 text-[14px] md:text-[16px]"
-          style={{ color: 'var(--text-tertiary)' }}
-          onMouseEnter={(e) => {
-           e.currentTarget.style.color = '#DC2626';
-          }}
-          onMouseLeave={(e) => {
-           e.currentTarget.style.color = 'var(--text-tertiary)';
-          }}
-         >
-          <RxCross2
-           className="w-5 h-5 dark:text-gray-400 dark:hover:text-gray-200"
-           style={{ color: 'var(--text-tertiary)' }}
-          />
-         </button>
-        </div>
-       )}
-
-       <div
-        className={`flex flex-col items-center justify-center border-2 border-dashed p-8 transition-all cursor-pointer ${isDragOver
-         ? ""
-         : progress > 0
-          ? "dark:bg-green-900/20 dark:border-green-500"
-          : "dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700"
-         }`}
-        style={isDragOver ? {
-         backgroundColor: `${primaryColor}15`,
-         borderColor: primaryColor
-        } : progress > 0 ? {
-         backgroundColor: 'rgba(34, 197, 94, 0.1)',
-         borderColor: '#22C55E'
-        } : {
-         borderColor: 'var(--light-gray)',
-         backgroundColor: 'transparent'
-        }}
-        onMouseEnter={(e) => {
-         if (!isDragOver && progress === 0) {
-          e.currentTarget.style.borderColor = '#94A3B8';
-          e.currentTarget.style.backgroundColor = 'var(--bg-primary)';
-         }
-        }}
-        onMouseLeave={(e) => {
-         if (!isDragOver && progress === 0) {
-          e.currentTarget.style.borderColor = 'var(--light-gray)';
-          e.currentTarget.style.backgroundColor = 'transparent';
-         }
-        }}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={handleDragAreaClick}
-       >
-        <RxUpload
-         className={`w-12 h-12 mb-4 dark:text-gray-500`}
-         style={isDragOver ? { color: primaryColor } : { color: 'var(--text-tertiary)' }}
-        />
-        <p
-         className="text-[14px] md:text-[16px] font-medium dark:text-gray-300 mb-2"
-         style={{ color: 'var(--text-secondary)' }}
-        >
-         {progress === 0
-          ? "Drag and drop your CSV file here"
-          : "Uploading..."}
-        </p>
-        <p
-         className=" !text-[10px]  !md:text-[12px] dark:text-gray-400 text-center"
-         style={{ color: 'var(--text-tertiary)' }}
-        >
-         {progress === 0
-          ? "or click to browse files"
-          : "Please wait while we process your file"}
-        </p>
-        {jsonData.length > 0 && progress === 0 && (
-         <p
-          className=" !text-[10px]  !md:text-[12px] dark:text-green-400 mt-2"
-          style={{ color: '#22C55E' }}
-         >
-          ✓ File loaded successfully ({jsonData.length} records)
-         </p>
-        )}
+         <Download className="w-4 h-4" />
+         <span>Sample CSV</span>
+        </button>
        </div>
+      )}
+
+      <form onSubmit={submitHandler} className="space-y-5">
+       {/* Upload zone / selected file card */}
+       {!fileToUpload ? (
+        <div
+         onClick={handleDragAreaClick}
+         onDragOver={handleDragOver}
+         onDragLeave={handleDragLeave}
+         onDrop={handleDrop}
+         className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+          isDragOver
+           ? "border-[#44CE2D] bg-[#44CE2D]/5"
+           : "border-[var(--border)] hover:border-[#44CE2D]"
+         }`}
+        >
+         <UploadIcon className="w-12 h-12 text-[var(--muted-foreground)] mb-3" />
+         <p className="text-[13px] font-medium text-[var(--foreground)]">
+          Click to upload or drag &amp; drop
+         </p>
+         <p className="text-[11px] text-[var(--muted-foreground)] mt-1">
+          Only CSV files are supported
+         </p>
+        </div>
+       ) : (
+        <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--muted)]">
+         <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+           <FileText className="w-8 h-8 text-[#3bb025] flex-shrink-0" />
+           <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-[var(--foreground)] truncate">
+             {fileToUpload.name}
+            </p>
+            <p className="text-[10px] text-[var(--muted-foreground)]">
+             {(fileToUpload.size / 1024).toFixed(2)} KB
+             {jsonData.length > 0
+              ? ` · ${jsonData.length} record${jsonData.length === 1 ? "" : "s"}`
+              : ""}
+            </p>
+           </div>
+          </div>
+          {!isLoading && (
+           <button
+            type="button"
+            onClick={onClickReset}
+            className="p-1 rounded-full hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors flex-shrink-0"
+           >
+            <X className="w-5 h-5" />
+           </button>
+          )}
+         </div>
+        </div>
+       )}
 
        <Input
         ref={fileInputRef}
@@ -387,59 +346,45 @@ const UploadBase: React.FC<UploadBaseProps> = ({
         style={{ display: "none" }}
        />
 
-       <div
-        className="w-full dark:bg-gray-700 rounded-full h-3 overflow-hidden mt-2"
-        style={{ backgroundColor: 'var(--bg-primary)' }}
-       >
-        <div
-         className="h-full transition-all duration-500"
-         style={{ width: `${progress}%`, backgroundColor: primaryColor }}
-        />
-       </div>
+       {/* Progress */}
+       {(isLoading || (progress > 0 && progress < 100)) && (
+        <div className="space-y-2">
+         <div className="flex justify-between text-[11px] font-medium text-[var(--muted-foreground)]">
+          <span>Uploading users...</span>
+          <span>{progress}%</span>
+         </div>
+         <div className="w-full bg-[var(--muted)] rounded-full h-2 overflow-hidden">
+          <div
+           className="bg-[#44CE2D] h-2 rounded-full transition-all duration-300"
+           style={{ width: `${progress}%` }}
+          />
+         </div>
+        </div>
+       )}
 
-       <div className="flex justify-end gap-4 mt-4">
+       {/* Actions */}
+       <div className="flex gap-3 pt-1">
         <button
-         type="reset"
-         onClick={onClickReset}
-         className="px-4 py-2 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 transition-colors"
-         style={{
-          backgroundColor: 'var(--bg-primary)',
-          color: 'var(--text-secondary)'
-         }}
-         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#E2E8F0';
-         }}
-         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--bg-primary)';
-         }}
+         type="button"
+         onClick={handleClose}
+         disabled={isLoading}
+         className="flex-1 bg-[var(--card)] hover:bg-[var(--muted)] text-[var(--foreground)] border border-[var(--border)] font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"
         >
-         Reset
+         Cancel
         </button>
         <button
          type="submit"
          disabled={isLoading || jsonData.length === 0}
-         className={`px-4 py-2 text-white transition-opacity ${isLoading || jsonData.length === 0
-          ? "dark:bg-gray-600 cursor-not-allowed"
-          : ""
-          }`}
-         style={!isLoading && jsonData.length > 0 ? {
-          backgroundColor: primaryColor,
-         } : {
-          backgroundColor: '#9CA3AF',
-          cursor: 'not-allowed'
-         }}
-         onMouseEnter={(e) => {
-          if (!isLoading && jsonData.length > 0) {
-           e.currentTarget.style.opacity = '0.9';
-          }
-         }}
-         onMouseLeave={(e) => {
-          if (!isLoading && jsonData.length > 0) {
-           e.currentTarget.style.opacity = '1';
-          }
-         }}
+         className="flex-1 bg-[#44CE2D] hover:bg-[#3bb025] text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-         {isLoading ? "Uploading..." : "Upload"}
+         {isLoading ? (
+          <span>Uploading...</span>
+         ) : (
+          <>
+           <CheckCircle className="w-4 h-4" />
+           <span>Upload Users</span>
+          </>
+         )}
         </button>
        </div>
       </form>

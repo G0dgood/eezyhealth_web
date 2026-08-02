@@ -25,7 +25,7 @@ import { createUserWithEmailAndPassword, updateProfile, signOut } from "firebase
 import { auth, db, secondaryAuth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createFirebaseDocument } from "@/lib/firebase-rtk";
-import { Download } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { useApiError } from "@/hooks/useApiError";
 
@@ -375,26 +375,18 @@ export default function AdminUsersPage() {
               onClick={() => setIsUploadModalOpen(true)}
               className="flex-1 sm:flex-none"
             >
-              Upload User
-            </Button>
-            <Button
-              variant="neutral"
-              onClick={handleDownloadTemplate}
-              icon={<Download className="w-4 h-4" />}
-              className="flex-1 sm:flex-none"
-            >
-              Template
+              Upload Users
             </Button>
             <Button
               variant="soft-green"
+              iconOnly
+              icon={<RefreshCw className="w-4 h-4" />}
               onClick={() => {
                 toast.info("Refreshing users...");
                 refetch();
               }}
-              className="flex-1 sm:flex-none"
-            >
-              Refresh
-            </Button>
+              aria-label="Refresh"
+            />
           </div>
         </div>
       </div>
@@ -547,7 +539,7 @@ export default function AdminUsersPage() {
                             icon={<Eye className="h-4 w-4" />}
                             iconOnly
                             onClick={() => handleViewUser(user)}
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                           />
                           <Button
                             variant="ghost-primary"
@@ -624,6 +616,8 @@ export default function AdminUsersPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         showButton={false}
+        title="Upload Users"
+        onDownloadTemplate={handleDownloadTemplate}
         onUploadComplete={handleUploadComplete}
       />
     </div>

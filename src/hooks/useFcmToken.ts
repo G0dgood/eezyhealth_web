@@ -27,15 +27,23 @@ export function useFCMToken() {
            // If missing, getToken might throw or work depending on project config.
            const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
-           // Register service worker explicitly to avoid "Registration failed - push service error"
-           let serviceWorkerRegistration = undefined;
-           if ('serviceWorker' in navigator) {
-             try {
-               serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-             } catch (error) {
-               console.error('Service Worker registration failed:', error);
-             }
-           }
+            let serviceWorkerRegistration = undefined;
+            if ('serviceWorker' in navigator) {
+              try {
+                const configParams = new URLSearchParams({
+                  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+                  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+                  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+                  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+                  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+                  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+                  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
+                }).toString();
+                serviceWorkerRegistration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${configParams}`);
+              } catch (error) {
+                console.error('Service Worker registration failed:', error);
+              }
+            }
            
            const options: any = {};
            if (serviceWorkerRegistration) {

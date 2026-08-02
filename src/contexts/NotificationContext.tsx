@@ -80,6 +80,13 @@ export function NotificationProvider({
   const { user, userInfo } = useAuth();
   const role = userInfo?.role;
 
+  // Nurses and admins share the "staff feed" model: they see the global
+  // notifications list and track read/deleted state in role-specific fields.
+  const isStaff = role === "nurse" || role === "admin";
+  const staffReadField = role === "admin" ? "isReadByAdmin" : "isReadByNurse";
+  const staffDeletedField =
+    role === "admin" ? "deletedByAdmin" : "deletedByNurse";
+
   // Initialize FCM Token management
   useFCMToken();
 
@@ -161,7 +168,7 @@ export function NotificationProvider({
     // notifications where doctorId == their uid (matches the mobile query). This
     // is authoritative and persisted (survives reloads and syncs across devices),
     // unlike the previous ephemeral 5-second-window derivation from Bookings.
-    const notificationsQuery = role === "nurse"
+    const notificationsQuery = isStaff
       ? query(
           collection(db, "notifications"),
           orderBy("createdAt", "desc"),
@@ -217,7 +224,7 @@ export function NotificationProvider({
 
         const persisted: Notification[] = snapshot.docs
           .map((d) => ({ id: d.id, raw: d.data() as Record<string, any> }))
-          .filter(({ raw }) => role === "nurse" ? !raw.deletedByNurse : !raw.deleted)
+          .filter(({ raw }) => isStaff ? !raw[staffDeletedField] : !raw.deleted)
           .sort((a, b) => toMillis(b.raw.createdAt) - toMillis(a.raw.createdAt))
           .map(({ id, raw }) => {
             const t = String(raw.type || "");
@@ -238,7 +245,7 @@ export function NotificationProvider({
               title: raw.title || "Notification",
               description: raw.description || raw.message || "",
               timestamp: formatTimestamp(raw.createdAt),
-              isRead: role === "nurse" ? !!raw.isReadByNurse : !!raw.isRead,
+              isRead: isStaff ? !!raw[staffReadField] : !!raw.isRead,
               category,
               data: raw.data || {},
             };
@@ -621,8 +628,8 @@ export function NotificationProvider({
     );
     // Persist so it sticks across the live snapshot and syncs to mobile
     if (isPersisted(id)) {
-      const updateData = role === "nurse"
-        ? { isReadByNurse: true }
+      const updateData = isStaff
+        ? { [staffReadField]: true }
         : { isRead: true };
       updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     }
@@ -647,8 +654,8 @@ export function NotificationProvider({
       prev.map((notification) => ({ ...notification, isRead: true }))
     );
     idsToPersist.forEach((id) => {
-      const updateData = role === "nurse"
-        ? { isReadByNurse: true }
+      const updateData = isStaff
+        ? { [staffReadField]: true }
         : { isRead: true };
       updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     });
@@ -659,8 +666,8 @@ export function NotificationProvider({
     setNotifications([]);
     // Soft-delete so cleared items don't reappear on the next snapshot (matches mobile)
     idsToDelete.forEach((id) => {
-      const updateData = role === "nurse"
-        ? { deletedByNurse: true }
+      const updateData = isStaff
+        ? { [staffDeletedField]: true }
         : { deleted: true };
       updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     });
@@ -671,8 +678,8 @@ export function NotificationProvider({
       prev.filter((notification) => notification.id !== id)
     );
     if (isPersisted(id)) {
-      const updateData = role === "nurse"
-        ? { deletedByNurse: true }
+      const updateData = isStaff
+        ? { [staffDeletedField]: true }
         : { deleted: true };
       updateDoc(doc(db, "notifications", id), updateData).catch(() => {});
     }

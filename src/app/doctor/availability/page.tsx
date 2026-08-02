@@ -99,6 +99,7 @@ export default function DoctorAvailabilityPage() {
     data: bookingsData,
     isLoading: isLoadingBookings,
     error: bookingsError,
+    refetch: refetchBookings,
   } = useBookingsByDoctorId(doctorId);
 
   const bookedSlots = useMemo(() => {
@@ -775,6 +776,9 @@ export default function DoctorAvailabilityPage() {
         isOpen={!!selectedBooking}
         onClose={() => setSelectedBooking(null)}
         booking={selectedBooking}
+        enableActions
+        actor="doctor"
+        onChanged={() => refetchBookings()}
       />
 
       {/* Save Availability confirmation modal */}

@@ -5,6 +5,7 @@ import PillTabs from "@/components/Tabs/PillTabs";
 import BookingList from "./components/BookingList";
 import Bookings from "./components/Bookings";
 import Title from "@/components/Title";
+import PaidPendingBookingsSection from "@/components/PaidPendingBookingsSection";
 
 export default function NurseBookingsPage() {
   const [bookingsTab, setBookingsTab] = useState<"Booking" | "Booking List">(
@@ -22,6 +23,8 @@ export default function NurseBookingsPage() {
       <Breadcrumb
         items={[{ label: "Nurse", href: "/nurse" }, { label: "Booking List" }]}
       />
+
+      <PaidPendingBookingsSection />
 
       {/* Header */}
       <div className="mb-6">

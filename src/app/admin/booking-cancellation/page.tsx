@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import moment from "moment";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
@@ -18,6 +19,27 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { FirebaseBookingCancellation } from "@/types";
 import Pagination from "@/components/Pagination";
 import { useApiError } from "@/hooks/useApiError";
+
+// Formats a Firestore Timestamp / seconds object / string / Date with moment.
+const formatCancellationDate = (dateVal: any) => {
+  if (!dateVal) return "N/A";
+  try {
+    let dateObj: Date;
+    if (dateVal?.toDate) {
+      dateObj = dateVal.toDate();
+    } else if (dateVal?._seconds) {
+      dateObj = new Date(dateVal._seconds * 1000);
+    } else if (dateVal?.seconds) {
+      dateObj = new Date(dateVal.seconds * 1000);
+    } else {
+      dateObj = new Date(dateVal);
+    }
+    if (isNaN(dateObj.getTime())) return "N/A";
+    return moment(dateObj).format("DD-MM-YYYY");
+  } catch {
+    return "N/A";
+  }
+};
 
 export default function AdminBookingCancellationPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -176,7 +198,7 @@ export default function AdminBookingCancellationPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-[10px] md:text-[12px] text-[var(--muted-foreground)]">
-                            {(cancellation.bookingDate as string) || "N/A"}
+                            {formatCancellationDate(cancellation.bookingDate)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

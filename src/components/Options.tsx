@@ -16,28 +16,59 @@ const getTypeColor = (type: string) => {
 };
 
 const getRoleBadge = (role: string) => {
-  const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+  const baseClasses =
+    "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border";
 
   switch (role) {
     case "admin":
-      return `${baseClasses} bg-red-100 text-red-800`;
+      return `${baseClasses} bg-red-50 text-red-700 border-red-200`;
     case "doctor":
-      return `${baseClasses} bg-blue-100 text-blue-800`;
+      return `${baseClasses} bg-blue-50 text-blue-700 border-blue-200`;
     case "nurse":
-      return `${baseClasses} bg-green-100 text-green-800`;
+      return `${baseClasses} bg-green-50 text-green-700 border-green-200`;
     case "patient":
-      return `${baseClasses} bg-purple-100 text-purple-800`;
+      return `${baseClasses} bg-purple-50 text-purple-700 border-purple-200`;
     default:
-      return `${baseClasses} bg-gray-100 text-gray-800`;
+      return `${baseClasses} bg-gray-50 text-gray-700 border-gray-200`;
   }
 };
 
 const getStatusBadge = (isActive: boolean) => {
-  const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+  const baseClasses =
+    "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border";
 
   return isActive
-    ? `${baseClasses} bg-green-100 text-green-800`
-    : `${baseClasses} bg-red-100 text-red-800`;
+    ? `${baseClasses} bg-green-50 text-green-700 border-green-200`
+    : `${baseClasses} bg-red-50 text-red-700 border-red-200`;
+};
+
+// Deterministic "random" colored badge for a specialization (same specialty
+// always gets the same color). Shared so every table/card is consistent.
+const SPECIALIZATION_BADGE_COLORS = [
+  "bg-blue-50 text-blue-700 border-blue-200",
+  "bg-green-50 text-green-700 border-green-200",
+  "bg-purple-50 text-purple-700 border-purple-200",
+  "bg-amber-50 text-amber-700 border-amber-200",
+  "bg-teal-50 text-teal-700 border-teal-200",
+  "bg-pink-50 text-pink-700 border-pink-200",
+  "bg-indigo-50 text-indigo-700 border-indigo-200",
+  "bg-orange-50 text-orange-700 border-orange-200",
+  "bg-cyan-50 text-cyan-700 border-cyan-200",
+  "bg-rose-50 text-rose-700 border-rose-200",
+];
+
+const getSpecializationBadge = (specialization?: string) => {
+  const base =
+    "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border capitalize";
+  const s = (specialization || "").trim();
+  if (!s) return `${base} bg-gray-50 text-gray-700 border-gray-200`;
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  }
+  return `${base} ${
+    SPECIALIZATION_BADGE_COLORS[hash % SPECIALIZATION_BADGE_COLORS.length]
+  }`;
 };
 
 const getCancellationStatusBadge = (status: string) => {
@@ -336,6 +367,7 @@ export {
   NoRecordFound,
   getRoleBadge,
   getStatusBadge,
+  getSpecializationBadge,
   getCancellationStatusBadge,
   formatDate,
   getDayName,

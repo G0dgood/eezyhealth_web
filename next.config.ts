@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/favicon.ico",
-        destination: "/logowhite.svg",
+        destination: process.env.NEXT_PUBLIC_FAVICON_PATH || "/logowhite.svg",
         permanent: false,
       },
     ];

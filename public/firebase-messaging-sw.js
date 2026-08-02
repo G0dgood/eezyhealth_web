@@ -1,14 +1,15 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
+const params = new URLSearchParams(location.search);
 const firebaseConfig = {
-  apiKey: "AIzaSyBLGVaA3G1YlLEP8y1YXa-juzQletSYvHM",
-  authDomain: "eezyhealth-2025.firebaseapp.com",
-  projectId: "eezyhealth-2025",
-  storageBucket: "eezyhealth-2025.firebasestorage.app",
-  messagingSenderId: "746856865371",
-  appId: "1:746856865371:web:0e88f6a4469a50919fa97e",
-  measurementId: "G-35Y9WK64FL"
+  apiKey: params.get("apiKey") || "",
+  authDomain: params.get("authDomain") || "",
+  projectId: params.get("projectId") || "",
+  storageBucket: params.get("storageBucket") || "",
+  messagingSenderId: params.get("messagingSenderId") || "",
+  appId: params.get("appId") || "",
+  measurementId: params.get("measurementId") || ""
 };
 
 firebase.initializeApp(firebaseConfig);

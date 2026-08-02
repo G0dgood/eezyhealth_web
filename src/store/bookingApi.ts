@@ -184,6 +184,37 @@ export const bookingApi = api.injectEndpoints({
       providesTags: ["Booking"],
     }),
 
+    // Paid-but-not-yet-confirmed bookings (mobile recovery layer). These are
+    // appointments the patient paid for but whose booking creation failed.
+    // Staff (admin/nurse/doctor) view these so they can follow up / reconcile.
+    getPaidPendingBookings: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import(
+            "@/lib/firebase-rtk"
+          );
+          const data = await createFirebaseQuery("pendingBookings", [
+            firebaseConstraints.where("status", "==", "pending"),
+          ]);
+          const sorted = (data || []).sort((a: any, b: any) => {
+            const at = new Date((a.createdAt as string) || 0).getTime();
+            const bt = new Date((b.createdAt as string) || 0).getTime();
+            return bt - at;
+          });
+          return { data: sorted };
+        } catch (error) {
+          return {
+            error: {
+              status: 500,
+              data:
+                error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
+      providesTags: ["Booking"],
+    }),
+
     getCompletedBookings: builder.query({
       query: (params) => ({
         url: "/getCompletedBookings",
@@ -202,6 +233,9 @@ export const bookingApi = api.injectEndpoints({
         recommendation,
         diagnosis,
         prescriptions,
+        newSlot,
+        newBookingDate,
+        actor,
       }) {
         try {
           const { doc, getDoc, updateDoc, serverTimestamp } = await import(
@@ -218,6 +252,7 @@ export const bookingApi = api.injectEndpoints({
 
           // Prepare update data
           const updateData: any = { bookingStatus: newStatus };
+          const performedBy = actor || "doctor";
 
           // If cancelling, add cancellation details
           if (newStatus === "Cancelled") {
@@ -225,7 +260,24 @@ export const bookingApi = api.injectEndpoints({
               cancellationReason || "No reason provided";
             updateData.cancellationDetails = cancellationDetails || "";
             updateData.cancelledAt = serverTimestamp();
-            updateData.cancelledBy = "doctor"; // or get from auth context
+            updateData.cancelledBy = performedBy;
+          }
+
+          // If rescheduling, move the appointment to the new slot/date and
+          // keep a record of where it came from. All three dashboards
+          // (doctor, nurse, admin) read this same Bookings document, so the
+          // "Rescheduled" status and new time reflect everywhere.
+          if (newStatus === "Rescheduled") {
+            if (newBookingDate !== undefined && newBookingDate !== null) {
+              updateData.previousBookingDate = bookingData?.bookingDate ?? null;
+              updateData.bookingDate = newBookingDate;
+            }
+            if (newSlot !== undefined && newSlot !== null && newSlot !== "") {
+              updateData.previousSlot = bookingData?.slot ?? null;
+              updateData.slot = newSlot;
+            }
+            updateData.rescheduledAt = serverTimestamp();
+            updateData.rescheduledBy = performedBy;
           }
 
           // Add comment and recommendation if provided
@@ -330,6 +382,7 @@ export const {
   useGetBookingsByDoctorIdQuery,
   useGetBookingByIdQuery,
   useGetPendingBookingsQuery,
+  useGetPaidPendingBookingsQuery,
   useGetCompletedBookingsQuery,
   useUpdateBookingStatusMutation,
   useRescheduleBookingMutation,

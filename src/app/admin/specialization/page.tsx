@@ -22,6 +22,7 @@ import { useGetDoctorsBySpecializationCountQuery } from "@/store/doctorApi";
 import Pagination from "@/components/Pagination";
 import CreateSpecialtyModal from "@/components/modals/CreateSpecialtyModal";
 import { useApiError } from "@/hooks/useApiError";
+import BulkUploadSpecialtyModal from "@/components/modals/BulkUploadSpecialtyModal";
 
 interface Specialization {
   id: string;
@@ -34,6 +35,7 @@ interface Specialization {
 export default function AdminSpecializationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSpecialization, setEditingSpecialization] =
     useState<Specialization | null>(null);
@@ -289,13 +291,21 @@ export default function AdminSpecializationPage() {
               />
             </div>
 
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              variant="primary"
-              icon={<Plus className="w-5 h-5" />}
-            >
-              Create New Specialty
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => setIsUploadModalOpen(true)}
+                variant="ghost-primary"
+              >
+                Bulk Upload CSV
+              </Button>
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                variant="primary"
+                icon={<Plus className="w-5 h-5" />}
+              >
+                Create New Specialty
+              </Button>
+            </div>
           </div>
 
           {/* Specialization Cards */}
@@ -404,6 +414,26 @@ export default function AdminSpecializationPage() {
           </div>
         </div>
       </Modal>
+
+      <BulkUploadSpecialtyModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={() => {
+          const fetchSpecializations = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+              const data = await getSpecializationCollection();
+              setSpecializations(data);
+            } catch (err) {
+              setError("Failed to load specializations");
+            } finally {
+              setIsLoading(false);
+            }
+          };
+          fetchSpecializations();
+        }}
+      />
     </div>
   );
 }

@@ -14,7 +14,7 @@ import SearchInput from "@/components/SearchInput";
 import Image from "next/image";
 import Button from "@/components/Button";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
-import { NoRecordFound } from "@/components/Options";
+import { NoRecordFound, getSpecializationBadge } from "@/components/Options";
 import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
 
 interface Doctor {
@@ -382,9 +382,11 @@ export default function AdminDoctorsPage() {
                   {`${doctor.first_name || ""} ${doctor.last_name || ""
                     }`.trim() || "N/A"}
                 </p>
-                <p className="text-[10px] md:text-[12px] text-gray-600 mb-2">
-                  {doctor.specialization || "N/A"}
-                </p>
+                <div className="mb-2">
+                  <span className={getSpecializationBadge(doctor.specialization)}>
+                    {doctor.specialization || "General"}
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500 mb-3">
                   {doctor.experience_yrs
                     ? `${doctor.experience_yrs} years experience`

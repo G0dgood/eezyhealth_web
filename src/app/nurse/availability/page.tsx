@@ -168,6 +168,7 @@ export default function NurseAvailabilityPage() {
   // Bookings RTK query hook
   const {
     data: bookingsData,
+    refetch: refetchBookings,
   } = useBookingsByDoctorId(selectedDoctorId || null);
 
   const bookedSlots = useMemo(() => {
@@ -651,6 +652,9 @@ export default function NurseAvailabilityPage() {
         isOpen={!!selectedBooking}
         onClose={() => setSelectedBooking(null)}
         booking={selectedBooking}
+        enableActions
+        actor={isAdmin ? "admin" : "nurse"}
+        onChanged={() => refetchBookings()}
       />
 
       <ConfirmModal
