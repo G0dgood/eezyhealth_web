@@ -25,3 +25,6 @@ export const appConfig = {
   version: process.env.NEXT_PUBLIC_APP_VERSION,
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION
 };
+
+// Stream Configuration
+export const streamApiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;

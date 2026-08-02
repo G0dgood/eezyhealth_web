@@ -38,7 +38,7 @@ interface DayBooking {
   bookings: LocalBooking[];
 }
 
-export default function Bookings() {
+export default function Bookings({ doctorId }: { doctorId?: string } = {}) {
   // Helper function for day suffix
   const getDaySuffix = (day: number) => {
     if (day >= 11 && day <= 13) return "th";
@@ -85,9 +85,15 @@ export default function Bookings() {
   // Convert raw booking data to standard format
   const standardizedBookings = useMemo(() => {
     const data = Array.isArray(bookings) ? bookings : bookings?.bookings || [];
-    if (!data || data.length === 0) return [];
-    return convertBookingsToStandardFormat(data);
-  }, [bookings]);
+    // Optional doctor filter (used by the admin Booking page dropdown).
+    const scoped = doctorId
+      ? data.filter(
+          (b: any) => (b.doctorId || b.doctor_id || b.doctorUid) === doctorId,
+        )
+      : data;
+    if (!scoped || scoped.length === 0) return [];
+    return convertBookingsToStandardFormat(scoped);
+  }, [bookings, doctorId]);
 
   // Convert standardized bookings to the sample data format
   const convertedWeekBookings = useMemo(() => {
@@ -356,7 +362,7 @@ export default function Bookings() {
 
       {/* Calendar Grid */}
       {!isLoading && !error && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Calendar Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div>

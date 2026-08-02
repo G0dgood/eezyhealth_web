@@ -118,11 +118,11 @@ export default function AdminPaymentPage() {
 
   const getStatusBadge = (paymentStatus: string) => {
     const statusClasses = {
-      completed: "bg-green-100 text-green-800",
-      success: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      failed: "bg-red-100 text-red-800",
-      cancelled: "bg-gray-100 text-gray-800",
+      completed: "bg-green-100 text-green-800 border border-green-300",
+      success: "bg-green-100 text-green-800 border border-green-300",
+      pending: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+      failed: "bg-red-100 text-red-800 border border-red-300",
+      cancelled: "bg-gray-100 text-gray-800 border border-gray-300",
     };
 
     const statusKey = paymentStatus?.toLowerCase() || "pending";
@@ -130,7 +130,7 @@ export default function AdminPaymentPage() {
     return (
       <span
         className={`px-2 py-1 text-xs font-medium rounded-full ${statusClasses[statusKey as keyof typeof statusClasses] ||
-          "bg-gray-100 text-gray-800"
+          "bg-gray-100 text-gray-800 border border-gray-300"
           }`}
       >
         {paymentStatus}

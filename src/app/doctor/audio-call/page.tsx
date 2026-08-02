@@ -16,6 +16,7 @@ import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
 import AudioCallScreen from "@/components/AudioCallScreen";
 import { notifyMissedCall } from "@/utils/notifications";
 import { getVideoClient } from "@/lib/streamVideo";
+import { streamApiKey } from "@/lib/config";
 
 import { getStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
 
@@ -110,7 +111,7 @@ export default function DoctorAudioCallPage() {
         const response = await generateTokenForUser({ userId: user.uid }).unwrap();
         // Prefer videoToken if available, otherwise fallback to streamToken/token
         const token = response.videoToken || response.streamToken || response.token;
-        const apiKey = response.apiKey || "4g6sfwegs7he";
+        const apiKey = response.apiKey || streamApiKey || "";
 
         if (!apiKey) {
           throw new Error("API Key is missing");

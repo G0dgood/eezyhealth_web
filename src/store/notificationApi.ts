@@ -70,7 +70,7 @@ export const notificationApi = api.injectEndpoints({
             "@/lib/firebase-rtk"
           );
           
-          let queryConstraints = [];
+          const queryConstraints = [];
           if (role === "nurse") {
             queryConstraints.push(firebaseConstraints.limit(100));
           } else {

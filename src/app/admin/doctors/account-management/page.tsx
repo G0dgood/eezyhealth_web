@@ -190,14 +190,14 @@ const DoctorAccountManagementPage = () => {
 	const getStatusBadge = (isActive?: boolean) => {
 		if (isActive) {
 			return (
-				<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+				<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
 					<CheckCircle className="w-3 h-3 mr-1" />
 					Active
 				</span>
 			);
 		}
 		return (
-			<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+			<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
 				<AlertCircle className="w-3 h-3 mr-1" />
 				Inactive
 			</span>
@@ -210,21 +210,21 @@ const DoctorAccountManagementPage = () => {
 		switch (action) {
 			case "doctor_deactivated":
 				return (
-					<span className={`${baseClasses} bg-red-100 text-red-800`}>
+					<span className={`${baseClasses} bg-red-100 text-red-800 border border-red-300`}>
 						<UserX className="w-3 h-3 mr-1" />
 						Deactivated
 					</span>
 				);
 			case "doctor_reactivated":
 				return (
-					<span className={`${baseClasses} bg-green-100 text-green-800`}>
+					<span className={`${baseClasses} bg-green-100 text-green-800 border border-green-300`}>
 						<UserCheck className="w-3 h-3 mr-1" />
 						Reactivated
 					</span>
 				);
 			default:
 				return (
-					<span className={`${baseClasses} bg-gray-100 text-gray-800`}>
+					<span className={`${baseClasses} bg-gray-100 text-gray-800 border border-gray-300`}>
 						{action}
 					</span>
 				);
@@ -343,7 +343,7 @@ const DoctorAccountManagementPage = () => {
 
 							<Button
 								onClick={() => setShowAuditLogs(!showAuditLogs)}
-								className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+								className="bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
 								icon={<Filter className="h-4 w-4" />}
 							>
 								Audit Logs
@@ -582,12 +582,12 @@ const DoctorAccountManagementPage = () => {
 									<div className="flex items-center">
 										<span className="font-medium text-gray-700 mr-2">Overall Status:</span>
 										{verificationData.isFullyAccessible ? (
-											<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+											<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
 												<CheckCircle className="w-3 h-3 mr-1" />
 												Fully Accessible
 											</span>
 										) : (
-											<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+											<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
 												<AlertCircle className="w-3 h-3 mr-1" />
 												Issues Found
 											</span>

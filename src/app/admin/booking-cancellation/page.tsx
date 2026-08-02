@@ -184,9 +184,9 @@ export default function AdminBookingCancellationPage() {
                             className={`px-2 py-1 text-xs rounded-full ${(cancellation.bookingStatus as string)?.toLowerCase() === "cancelled"
                               ? "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20"
                               : (cancellation.bookingStatus as string)?.toLowerCase() === "approved"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-green-100 text-green-800 border border-green-300"
                                 : (cancellation.bookingStatus as string)?.toLowerCase() === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
+                                  ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
                                   : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                               }`}>
                             {(cancellation.bookingStatus as string) || "-"}

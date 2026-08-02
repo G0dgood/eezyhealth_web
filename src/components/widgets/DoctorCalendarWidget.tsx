@@ -51,18 +51,18 @@ const DoctorCalendarWidget: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
-    if (s === 'confirmed') return "bg-green-100 text-green-800";
-    if (s === 'pending') return "bg-yellow-100 text-yellow-800";
-    if (s === 'cancelled') return "bg-red-100 text-red-800";
-    return "bg-gray-100 text-gray-800";
+    if (s === 'confirmed') return "bg-green-100 text-green-800 border border-green-300";
+    if (s === 'pending') return "bg-yellow-100 text-yellow-800 border border-yellow-300";
+    if (s === 'cancelled') return "bg-red-100 text-red-800 border border-red-300";
+    return "bg-gray-100 text-gray-800 border border-gray-300";
   };
 
   const getTypeColor = (type: string) => {
     const t = type.toLowerCase();
-    if (t.includes('video')) return "bg-blue-100 text-blue-800";
-    if (t.includes('person')) return "bg-purple-100 text-purple-800";
-    if (t.includes('call') || t.includes('phone')) return "bg-green-100 text-green-800";
-    return "bg-gray-100 text-gray-800";
+    if (t.includes('video')) return "bg-blue-100 text-blue-800 border border-blue-300";
+    if (t.includes('person')) return "bg-purple-100 text-purple-800 border border-purple-300";
+    if (t.includes('call') || t.includes('phone')) return "bg-green-100 text-green-800 border border-green-300";
+    return "bg-gray-100 text-gray-800 border border-gray-300";
   };
 
   const getChannelIcon = (type: string) => {
@@ -225,7 +225,7 @@ const DoctorCalendarWidget: React.FC = () => {
                   ${isSelected
                     ? "bg-[#44CE2D] text-white font-semibold shadow-sm"
                     : isToday
-                      ? "bg-green-50 text-green-700 font-bold border border-green-200"
+                      ? "bg-green-50 text-green-700 border border-green-300 font-bold border border-green-200"
                       : isCurrentMonth
                         ? "text-gray-900 hover:bg-gray-100"
                         : "text-gray-300"

@@ -12,6 +12,7 @@ import { ClipboardList, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import VideoProvider from "@/components/VideoProvider";
 import { useCreateStreamTokenMutation } from "@/store/streamChatApi";
+import { streamApiKey } from "@/lib/config";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -114,7 +115,7 @@ function DoctorLayout({ children }: LayoutProps) {
     <ProtectedRoute>
       <EditModeContext.Provider value={{ isEditing, setIsEditing }}>
         <VideoProvider
-          apiKey="4g6sfwegs7he"
+          apiKey={streamApiKey || ""}
           token={streamToken}
           userId={authUser?.uid || ""}
           userName={authUser?.displayName || "Doctor"}

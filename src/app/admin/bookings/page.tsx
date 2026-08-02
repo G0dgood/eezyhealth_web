@@ -9,6 +9,10 @@ import { useGetBookingsQuery } from "@/store/bookingApi";
 import FormattedDate from "@/utils/FormattedDate";
 import Pagination from "@/components/Pagination";
 import { useApiError } from "@/hooks/useApiError";
+import PillTabs from "@/components/Tabs/PillTabs";
+import Bookings from "@/app/nurse/bookings/components/Bookings";
+import Dropdown from "@/components/Dropdown";
+import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
 
 interface Booking {
   bookingId?: string;
@@ -28,9 +32,18 @@ interface Booking {
 }
 
 export default function BookingsPage() {
+  const [bookingsTab, setBookingsTab] = useState<"Booking" | "Booking List">(
+    "Booking",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+
+  const tabs = [
+    { id: "Booking", label: "Booking" },
+    { id: "Booking List", label: "Booking List" },
+  ];
 
   const { data: bookings, isLoading, error, refetch } = useGetBookingsQuery({
     page: currentPage,
@@ -47,6 +60,17 @@ export default function BookingsPage() {
 
   useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
+  // Doctors for the calendar filter dropdown
+  const { data: doctorsData, isLoading: isLoadingDoctors } =
+    useGetFirebaseDoctorsQuery({});
+  const doctorsList = useMemo(() => (doctorsData || []) as any[], [doctorsData]);
+  const getDoctorName = (doc: any) =>
+    doc.display_name ||
+    doc.name ||
+    [doc.first_name, doc.last_name].filter(Boolean).join(" ").trim() ||
+    doc.email ||
+    "Doctor";
+
   // Reset to first page when search term changes
   useEffect(() => {
     setCurrentPage(1);
@@ -54,21 +78,56 @@ export default function BookingsPage() {
 
   return (
     <div>
-      <Title title="Booking List" />
-      
-      <div className="relative flex-1 max-w-md mb-6">
-        <Input
-          type="text"
-          placeholder="Search patient, doctor, specialty, channel or time slot"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          startIcon={<Search className="w-5 h-5 text-gray-400" />}
-          fullWidth
+      <Title title={bookingsTab} />
+
+      <div className="mb-6">
+        <PillTabs
+          tabs={tabs}
+          activeTab={bookingsTab}
+          onTabChange={(id) =>
+            setBookingsTab(id as "Booking" | "Booking List")
+          }
         />
       </div>
 
-      {/* Bookings Table */}
-      {isLoading ? (
+      {bookingsTab === "Booking" ? (
+        <div>
+          {/* Doctor filter */}
+          <div className="mb-4">
+            <Dropdown
+              value={selectedDoctorId}
+              onChange={(value) => setSelectedDoctorId(value)}
+              options={[
+                { value: "", label: "All Doctors" },
+                ...doctorsList.map((doc) => ({
+                  value: doc.uid || doc.doctorId || doc.id,
+                  label: getDoctorName(doc),
+                })),
+              ]}
+              placeholder={
+                isLoadingDoctors ? "Loading doctors..." : "All Doctors"
+              }
+              className="w-72 shadow-none"
+              variant="default"
+            />
+          </div>
+          <Bookings doctorId={selectedDoctorId || undefined} />
+        </div>
+      ) : (
+        <>
+          <div className="relative flex-1 max-w-md mb-6">
+            <Input
+              type="text"
+              placeholder="Search patient, doctor, specialty, channel or time slot"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              startIcon={<Search className="w-5 h-5 text-gray-400" />}
+              fullWidth
+            />
+          </div>
+
+          {/* Bookings Table */}
+          {isLoading ? (
         <TableSkeleton
           columns={7}
           rows={5}
@@ -140,10 +199,10 @@ export default function BookingsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${booking.bookingStatus === "Accepted"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 text-green-800 border border-green-300"
                             : (booking.bookingStatus === "pending" || booking.bookingStatus === "Pending" || booking.status === "Pending")
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
+                              : "bg-red-100 text-red-800 border border-red-300"
                             }`}>
                           {booking.bookingStatus || "-"}
                         </span>
@@ -167,6 +226,8 @@ export default function BookingsPage() {
             itemLabel="bookings"
           />
         </div>
+      )}
+        </>
       )}
     </div>
   );

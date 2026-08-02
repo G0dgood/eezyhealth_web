@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
 import { connectStreamChatUser, storeStreamChatInfo, StreamChatInfo } from "@/lib/streamChat";
+import { streamApiKey } from "@/lib/config";
 
 export const useAuthLogic = () => {
   const router = useRouter();
@@ -82,7 +83,7 @@ export const useAuthLogic = () => {
           );
 
           const chatInfo: StreamChatInfo = {
-            chatApiKey: "4g6sfwegs7he",
+            chatApiKey: streamApiKey || "",
             chatUserId: user.uid,
             chatUserName: userData.display_name || userData.name || '',
             chatUserToken: streamToken,
@@ -187,7 +188,7 @@ export const useAuthLogic = () => {
           );
 
           const chatInfo: StreamChatInfo = {
-            chatApiKey: "4g6sfwegs7he",
+            chatApiKey: streamApiKey || "",
             chatUserId: user.uid,
             chatUserName: userData.display_name || userData.name || '',
             chatUserToken: streamToken,

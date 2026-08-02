@@ -8,7 +8,9 @@ export interface StreamChatInfo {
   userRole: string;
 }
 
-const STREAM_CHAT_API_KEY = "4g6sfwegs7he"; // From user snippet
+import { streamApiKey } from './config';
+
+const STREAM_CHAT_API_KEY = streamApiKey || "";
 
 let chatClient: StreamChat | null = null;
 

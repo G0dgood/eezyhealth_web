@@ -34,13 +34,13 @@ export default function DoctorVerificationWidget({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border border-green-300';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border border-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border border-gray-300';
     }
   };
 

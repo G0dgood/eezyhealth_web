@@ -14,6 +14,7 @@ import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
 import VideoCallScreen from "@/components/VideoCallScreen";
 import { getVideoClient } from "@/lib/streamVideo";
 import { toast } from "sonner";
+import { streamApiKey } from "@/lib/config";
 
 import { getStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
 
@@ -78,7 +79,7 @@ export default function DoctorVideoCallPage() {
         const token = res.videoToken || res.streamToken || res.token;
 
         const videoClient = getVideoClient(
-          res.apiKey || "4g6sfwegs7he",
+          res.apiKey || streamApiKey || "",
           {
             id: user.uid,
             name: user.displayName || "Doctor",

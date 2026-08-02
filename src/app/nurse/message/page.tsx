@@ -7,6 +7,7 @@ import ConversationList, { PatientData } from "@/components/nurse/ConversationLi
 import { useAuth } from "@/contexts/AuthContext";
 import { showError, showInfo } from "@/utils/toast";
 import { useApiError } from "@/hooks/useApiError";
+import { streamApiKey } from "@/lib/config";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGenerateTokenForUserMutation, useAddMemberToChannelMutation } from "@/store/streamChatApi";
 import { useNurseChat } from "@/hooks/useNurseChat";
@@ -176,7 +177,7 @@ export default function NurseMessagePage() {
             const streamToken = tokenResponse.streamToken || tokenResponse.token;
             if (streamToken) {
               chatInfo = {
-                chatApiKey: "4g6sfwegs7he", // Should ideally come from env or config
+                chatApiKey: streamApiKey || "", // Should come from config
                 chatUserId: user.uid,
                 chatUserName: user.displayName || "Patient",
                 chatUserToken: streamToken,
@@ -266,7 +267,7 @@ export default function NurseMessagePage() {
         if (videoClient) await videoClient.disconnectUser();
 
         const _videoClient = new StreamVideoClient({
-          apiKey: "4g6sfwegs7he",
+          apiKey: streamApiKey || "",
           user: {
             id: userId,
             name: patient.patientName || "Patient",

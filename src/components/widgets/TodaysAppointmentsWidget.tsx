@@ -179,9 +179,9 @@ export default function TodaysAppointmentsWidget({
                   </td>
                   <td className="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full 
-                      ${appointment.status.toLowerCase() === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                        appointment.status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-gray-100 text-gray-800'}`}>
+                      ${appointment.status.toLowerCase() === 'confirmed' ? 'bg-green-100 text-green-800 border border-green-300' : 
+                        appointment.status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' : 
+                        'bg-gray-100 text-gray-800 border border-gray-300'}`}>
                       {appointment.status}
                     </span>
                   </td>

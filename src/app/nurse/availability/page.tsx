@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
@@ -16,6 +17,7 @@ import { timeSlots, monthNames } from "@/components/Options";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import Dropdown from "@/components/Dropdown";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
+import BookedSlotInfoModal from "@/components/modals/BookedSlotInfoModal";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
 
 interface TimeSlot {
@@ -121,6 +123,12 @@ const migrateAvailabilityToHourly = (
 
 export default function NurseAvailabilityPage() {
   const { user } = useAuth();
+  // This page is reused on both the nurse and admin sides — derive the base
+  // path/label from the URL so the breadcrumb reads correctly for each.
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
+  const roleBase = isAdmin ? "/admin" : "/nurse";
+  const roleLabel = isAdmin ? "Admin" : "Nurse";
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
 
   // Get active doctors from Firebase users collection
@@ -152,6 +160,7 @@ export default function NurseAvailabilityPage() {
   const [selectedSlots, setSelectedSlots] = useState<
     Record<string, Record<string, unknown>>
   >({});
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const hasInitializedAvailability = useRef(false);
@@ -163,7 +172,7 @@ export default function NurseAvailabilityPage() {
 
   const bookedSlots = useMemo(() => {
     if (!bookingsData) return {};
-    const booked: Record<string, Record<string, boolean>> = {};
+    const booked: Record<string, Record<string, any>> = {};
 
     bookingsData.forEach((booking: any) => {
       const status = (booking?.bookingStatus || "").toLowerCase();
@@ -189,7 +198,7 @@ export default function NurseAvailabilityPage() {
         booked[dateKey] = {};
       }
 
-      booked[dateKey][booking.slot] = true;
+      booked[dateKey][booking.slot] = booking;
     });
 
     return booked;
@@ -452,8 +461,8 @@ export default function NurseAvailabilityPage() {
       <div className="mb-6">
         <Breadcrumb
           items={[
-            { label: "Nurse", href: "/nurse" },
-            { label: "Availability", href: "/nurse/availability" },
+            { label: roleLabel, href: roleBase },
+            { label: "Availability", href: `${roleBase}/availability` },
           ]}
         />
       </div>
@@ -594,7 +603,8 @@ export default function NurseAvailabilityPage() {
                     const monthNum = String(dateObj.getMonth() + 1).padStart(2, "0");
                     const dayNum = String(dateObj.getDate()).padStart(2, "0");
                     const dateKey = `${year}-${monthNum}-${dayNum}`;
-                    const isBooked = bookedSlots[dateKey]?.[slotKey];
+                    const bookedBooking = bookedSlots[dateKey]?.[slotKey];
+                    const isBooked = !!bookedBooking;
 
                     // Check existing availability
                     const isExistingSlot =
@@ -612,8 +622,12 @@ export default function NurseAvailabilityPage() {
                     return (
                       <div
                         key={day.dayName}
-                        onClick={() => handleTimeSlotClick(dayIdx, slotIdx)}
-                        className={`p-2 border-l border-[var(--border)] min-h-[48px] flex items-center justify-center transition-all duration-150 ${colorClass}`}
+                        onClick={() =>
+                          isBooked
+                            ? setSelectedBooking(bookedBooking)
+                            : handleTimeSlotClick(dayIdx, slotIdx)
+                        }
+                        className={`p-2 border-l border-[var(--border)] min-h-[48px] flex items-center justify-center transition-all duration-150 cursor-pointer ${colorClass}`}
                       >
                         {isBooked ? (
                           <span className="text-[10px] font-semibold tracking-wide uppercase px-1 py-0.5 bg-white/20 rounded">
@@ -633,6 +647,12 @@ export default function NurseAvailabilityPage() {
       )}
 
       {/* Confirmation Save Modal */}
+      <BookedSlotInfoModal
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        booking={selectedBooking}
+      />
+
       <ConfirmModal
         isOpen={isSaveModalOpen}
         onClose={() => setIsSaveModalOpen(false)}

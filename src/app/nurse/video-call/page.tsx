@@ -17,6 +17,7 @@ import { useGenerateTokenForUserMutation } from "@/store/streamChatApi";
 import { notifyMissedCall } from "@/utils/notifications";
 import VideoCallScreen from "@/components/VideoCallScreen";
 import { getVideoClient } from "@/lib/streamVideo";
+import { streamApiKey } from "@/lib/config";
 
 export default function NurseVideoCallPage() {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export default function NurseVideoCallPage() {
           const streamToken = tokenResponse.streamToken || tokenResponse.token;
           if (streamToken) {
             chatInfo = {
-              chatApiKey: "4g6sfwegs7he",
+              chatApiKey: streamApiKey || "",
               chatUserId: user.uid,
               chatUserName: user.displayName || "Nurse",
               chatUserToken: streamToken,

@@ -620,8 +620,8 @@ export default function AdminSettings() {
                 <div className="flex items-center">
                   <span
                     className={`px-3 py-2 rounded-lg text-[10px] md:text-[12px] font-medium ${profileData.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      ? "bg-green-100 text-green-800 border border-green-300"
+                      : "bg-red-100 text-red-800 border border-red-300"
                       }`}
                   >
                     {profileData.isActive ? "Active" : "Inactive"}

@@ -106,22 +106,22 @@ const AdminUsersWidget: React.FC = () => {
     const normalizedRole = role.toLowerCase();
     switch (normalizedRole) {
       case "admin":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border border-red-300";
       case "doctor":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 border border-blue-300";
       case "nurse":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border border-green-300";
       case "patient":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 border border-purple-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border border-gray-300";
     }
   };
 
   const getStatusColor = (isActive: boolean | undefined) => {
     return isActive !== false
-      ? "bg-green-100 text-green-800"
-      : "bg-red-100 text-red-800";
+      ? "bg-green-100 text-green-800 border border-green-300"
+      : "bg-red-100 text-red-800 border border-red-300";
   };
 
   if (isLoading) {

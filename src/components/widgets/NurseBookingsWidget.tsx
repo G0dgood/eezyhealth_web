@@ -200,16 +200,16 @@ const NurseBookingsWidget: React.FC = () => {
   };
 
   const getStatusColor = (status: string, hasVitals: boolean) => {
-    if (hasVitals) return "bg-green-100 text-green-800";
+    if (hasVitals) return "bg-green-100 text-green-800 border border-green-300";
     switch (status) {
       case "confirmed":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 border border-blue-300";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 border border-yellow-300";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border border-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border border-gray-300";
     }
   };
 
@@ -394,7 +394,7 @@ const NurseBookingsWidget: React.FC = () => {
                 <span>Appointment ID: {appointment.id ? appointment.id.slice(0, 8) + '...' : 'N/A'}</span>
               </div>
               <button
-                className={`whitespace-nowrap px-3 py-1 rounded-lg transition-colors text-xs ${appointment.hasVitals ? "bg-gray-100 text-gray-600 cursor-default" : "bg-[#44CE2D] text-white hover:bg-[#3bb025]"}`}
+                className={`whitespace-nowrap px-3 py-1 rounded-lg transition-colors text-xs ${appointment.hasVitals ? "bg-gray-100 text-gray-600 border border-gray-300 cursor-default" : "bg-[#44CE2D] text-white hover:bg-[#3bb025]"}`}
                 onClick={() => {
                   if (!appointment.hasVitals) {
                     setSelectedPatientId(appointment.patientId);

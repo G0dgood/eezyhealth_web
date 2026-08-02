@@ -17,6 +17,7 @@ import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
 import { timeSlotToKey } from "@/utils/timeSlotUtils";
 import Dropdown from "@/components/Dropdown";
 import ConfirmModal from "@/components/widgets/ConfirmModal";
+import BookedSlotInfoModal from "@/components/modals/BookedSlotInfoModal";
 
 interface TimeSlot {
   time: string;
@@ -102,7 +103,7 @@ export default function DoctorAvailabilityPage() {
 
   const bookedSlots = useMemo(() => {
     if (!bookingsData) return {};
-    const booked: Record<string, Record<string, boolean>> = {};
+    const booked: Record<string, Record<string, any>> = {};
 
     bookingsData.forEach((booking: any) => {
       // Cancelled bookings free the slot again, so ignore them
@@ -131,8 +132,8 @@ export default function DoctorAvailabilityPage() {
         booked[dateKey] = {};
       }
 
-      // Mark the slot as booked
-      booked[dateKey][booking.slot] = true;
+      // Store the whole booking so a booked slot can show its details on click
+      booked[dateKey][booking.slot] = booking;
     });
 
     return booked;
@@ -389,6 +390,7 @@ export default function DoctorAvailabilityPage() {
     return "bg-red-100 border-red-300"; // Light Red - Not available
   };
   const [availability, setAvailability] = useState<DayAvailability[]>([]); // Remove dummy data - will be populated by generateWeekAvailability
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   const handleTimeSlotClick = (dayIndex: number, slotIndex: number) => {
     const day = availability[dayIndex];
@@ -725,21 +727,23 @@ export default function DoctorAvailabilityPage() {
                           ).padStart(2, "0");
                           const dateKey = `${currentYear}-${currentMonth}-${currentDay}`;
 
-                          const isBooked =
+                          const bookedBooking =
                             bookedSlots[dateKey] &&
                             bookedSlots[dateKey][slotKey];
+                          const isBooked = !!bookedBooking;
 
                           const slotStyle = isBooked
-                            ? "bg-blue-100 border-blue-300 cursor-not-allowed" // Booked style
+                            ? "bg-blue-100 border-blue-300 cursor-pointer" // Booked (click for details)
                             : getSlotStyle(isExistingSlot, isSelectedSlot);
 
                           return (
                             <div
                               key={String(`${day.dayName}-${slotKey}`)}
-                              className={`p-3 border-r border-gray-200 last:border-r-0 transition-colors hover:bg-gray-50 ${slotStyle} ${isBooked ? "" : "cursor-pointer"}`}
+                              className={`p-3 border-r border-gray-200 last:border-r-0 transition-colors hover:bg-gray-50 ${slotStyle} cursor-pointer`}
                               onClick={() =>
-                                !isBooked &&
-                                handleTimeSlotClick(dayIndex, slotIndex)
+                                isBooked
+                                  ? setSelectedBooking(bookedBooking)
+                                  : handleTimeSlotClick(dayIndex, slotIndex)
                               }
                             >
                               <div className="w-full h-6 flex items-center justify-center">
@@ -765,6 +769,13 @@ export default function DoctorAvailabilityPage() {
           </div>
         </div>
       </div>
+
+      {/* Booked slot details */}
+      <BookedSlotInfoModal
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        booking={selectedBooking}
+      />
 
       {/* Save Availability confirmation modal */}
       <ConfirmModal

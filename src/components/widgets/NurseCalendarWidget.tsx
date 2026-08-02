@@ -54,26 +54,26 @@ const NurseCalendarWidget: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border border-green-300";
       case "Pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 border border-yellow-300";
       case "Cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border border-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border border-gray-300";
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case "Video":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 border border-blue-300";
       case "In-Person":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 border border-purple-300";
       case "Call":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border border-green-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border border-gray-300";
     }
   };
 
@@ -152,7 +152,7 @@ const NurseCalendarWidget: React.FC = () => {
                   ? isToday
                     ? "bg-[#44CE2D] text-white font-semibold"
                     : hasBookings
-                      ? "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100"
+                      ? "bg-blue-50 text-blue-600 border border-blue-300 font-medium hover:bg-blue-100"
                       : "text-gray-900 hover:bg-gray-100"
                   : "text-gray-400"
                   }`}>
