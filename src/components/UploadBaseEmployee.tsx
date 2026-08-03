@@ -257,7 +257,7 @@ const UploadBase: React.FC<UploadBaseProps> = ({
      isOpen={isOpen}
      onClose={handleClose}
      title={title}
-     size="md"
+     size="lg"
     >
      <div className="space-y-5">
       {/* Template download — inside the modal, like the specialty bulk upload */}
