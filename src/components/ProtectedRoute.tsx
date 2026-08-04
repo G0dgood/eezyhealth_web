@@ -18,7 +18,10 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/");
+      // Session is truly gone. Clear the stale cached user so the login page
+      // doesn't immediately redirect back here (which would loop and flicker).
+      localStorage.removeItem("userInfo-eezy-health");
+      router.replace("/");
     }
   }, [user, loading, router]);
 

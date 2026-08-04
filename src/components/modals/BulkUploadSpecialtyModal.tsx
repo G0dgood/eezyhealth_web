@@ -60,11 +60,32 @@ const BulkUploadSpecialtyModal: React.FC<BulkUploadSpecialtyModalProps> = ({
   const [parsedData, setParsedData] = useState<ParsedSpecialty[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     processFile(selectedFile);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    processFile(droppedFile);
   };
 
   const processFile = (selectedFile: File | undefined) => {
@@ -167,10 +188,22 @@ const BulkUploadSpecialtyModal: React.FC<BulkUploadSpecialtyModalProps> = ({
         {!file ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 hover:border-green-500 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
+              isDragging
+                ? "border-green-500 bg-green-50"
+                : "border-gray-300 hover:border-green-500"
+            }`}
           >
-            <UploadIcon className="w-12 h-12 text-gray-400 mb-3" />
-            <p className="text-[12px] font-medium text-gray-700">Click to upload or drag & drop</p>
+            <UploadIcon
+              className={`w-12 h-12 mb-3 ${isDragging ? "text-green-500" : "text-gray-400"}`}
+            />
+            <p className="text-[12px] font-medium text-gray-700">
+              {isDragging ? "Drop your CSV file here" : "Click to upload or drag & drop"}
+            </p>
             <p className="text-[10px] text-gray-500 mt-1">Only CSV files are supported</p>
             <input
               type="file"

@@ -14,7 +14,7 @@ import { streamApiKey } from "@/lib/config";
 
 export const useAuthLogic = () => {
   const router = useRouter();
-  const { setUserInfo } = useAuth();
+  const { setUserInfo, user, userInfo, loading } = useAuth();
   const [generateTokenForUser] = useGenerateTokenForUserMutation();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -34,20 +34,22 @@ export const useAuthLogic = () => {
   }, []); // Only run once on mount
 
   useEffect(() => {
-    // Check if user is already logged in
-    const userInfo = localStorage.getItem("userInfo-eezy-health");
-    if (userInfo) {
-      const parsedUserInfo = JSON.parse(userInfo);
-      // Redirect based on role
-      if (parsedUserInfo.role === "admin") {
-        router.push("/admin");
-      } else if (parsedUserInfo.role === "doctor") {
-        router.push("/doctor");
-      } else if (parsedUserInfo.role === "nurse") {
-        router.push("/nurse");
-      }
+    // Only redirect away from the login page when Firebase has confirmed a
+    // *live* session. Redirecting off stale localStorage while the auth token
+    // has actually expired causes an infinite login <-> dashboard bounce
+    // (ProtectedRoute sends us back here, we send it back to the dashboard...).
+    if (loading) return; // wait for onAuthStateChanged to resolve
+    if (!user) return; // no valid session -> stay on login, no loop
+
+    const role = userInfo?.role;
+    if (role === "admin") {
+      router.replace("/admin");
+    } else if (role === "doctor") {
+      router.replace("/doctor");
+    } else if (role === "nurse") {
+      router.replace("/nurse");
     }
-  }, [router]);
+  }, [user, userInfo, loading, router]);
 
   const handleSignInWithGoogle = async () => {
     try {
