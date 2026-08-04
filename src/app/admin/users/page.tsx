@@ -224,22 +224,30 @@ export default function AdminUsersPage() {
           await signOut(secondaryAuth);
 
           // 3. Create User Document in 'users' collection
+          const roleLower = role.toLowerCase();
           await setDoc(doc(db, "users", uid), {
             uid,
             email,
             display_name,
             first_name,
             last_name,
-            role: role.toLowerCase(),
+            role: roleLower,
             phone_number,
             address,
             photo_url: "",
             isActive: true,
             createdTime: new Date().toISOString(),
+            // Include professional fields so nurse/doctor lists can display them
+            // (those lists query the 'users' collection, not the profile collections)
+            ...(( roleLower === "nurse" || roleLower === "doctor") && {
+              specialization: specialization || "",
+              experience_yrs: experience_yrs || "",
+              hospital: hospital || "",
+            }),
           });
 
+
           // 4. Create Role Specific Profile
-          const roleLower = role.toLowerCase();
 
           if (roleLower === "nurse") {
             await createFirebaseDocument("nurseProfiles", {

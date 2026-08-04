@@ -113,15 +113,20 @@ const VitalsModal: React.FC<VitalsModalProps> = ({ isOpen, onClose, patientId, b
     if (!Array.isArray(data)) return [];
     const filteredData = bookingId
       ? data.filter((entry: any) => {
+          // Entries tied to a specific appointment: only show this appointment's.
           if (entry?.bookingId) {
             return String(entry.bookingId).trim() === String(bookingId).trim();
           }
+          // Patient-recorded vitals have no bookingId (the mobile app saves them
+          // with bookingId: "" and a recorded-at date). Always show them —
+          // otherwise the doctor never sees vitals the patient logged. Prefer a
+          // same-day match when possible, but never drop them on a date mismatch.
           if (bookingDate) {
             const entryDateStr = normalizeToDateString(entry?.date);
             const bookingDateStr = normalizeToDateString(bookingDate);
-            return entryDateStr !== "" && entryDateStr === bookingDateStr;
+            if (entryDateStr !== "" && entryDateStr === bookingDateStr) return true;
           }
-          return false;
+          return true;
         })
       : data;
     return filteredData
