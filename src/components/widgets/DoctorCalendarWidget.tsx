@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Clock, User, Video, Phone, MessageCircle, MapPin } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, User, Video, Phone, MessageCircle, MapPin, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingsByDoctorId } from "@/hooks/useBookingsByDoctorId";
 import FormattedSlot from "@/components/common/FormattedSlot";
+import Modal from "@/components/modals/Modal";
 
 const DoctorCalendarWidget: React.FC = () => {
   const { user } = useAuth();
   const { data: bookingsData, isLoading } = useBookingsByDoctorId(user?.uid || null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   // Parse bookings and memoize
   const parsedBookings = useMemo(() => {
@@ -256,7 +258,8 @@ const DoctorCalendarWidget: React.FC = () => {
           selectedDateBookings.map((booking) => (
             <div
               key={booking.id}
-              className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+              onClick={() => setSelectedBooking(booking)}
+              className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-purple-200 transition-colors cursor-pointer">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gray-500" />
@@ -306,6 +309,89 @@ const DoctorCalendarWidget: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Appointment detail modal */}
+      <Modal
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        title="Appointment Details"
+        size="md"
+      >
+        {selectedBooking && (
+          <div className="px-6 py-5">
+            <div className="rounded-lg border border-gray-100 divide-y divide-gray-100">
+              {(
+                [
+                  {
+                    icon: <User className="w-4 h-4 text-purple-500" />,
+                    label: "Patient",
+                    value: selectedBooking.patientName || "Unknown Patient",
+                  },
+                  {
+                    icon: <CalendarDays className="w-4 h-4 text-purple-500" />,
+                    label: "Date",
+                    value: selectedBooking.date
+                      ? selectedBooking.date.toLocaleDateString("en-GB", {
+                          weekday: "long",
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "—",
+                  },
+                ] as { icon: React.ReactNode; label: string; value: string }[]
+              ).map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-start justify-between gap-4 px-4 py-3"
+                >
+                  <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                    {row.icon}
+                    {row.label}
+                  </span>
+                  <span className="text-[13px] font-medium text-gray-900 text-right capitalize">
+                    {row.value || "—"}
+                  </span>
+                </div>
+              ))}
+
+              {/* Time */}
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  <Clock className="w-4 h-4 text-purple-500" />
+                  Time
+                </span>
+                <span className="text-[13px] font-medium text-gray-900 text-right">
+                  <FormattedSlot slot={selectedBooking.time} />
+                </span>
+              </div>
+
+              {/* Channel */}
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  {getChannelIcon(selectedBooking.type)}
+                  Channel
+                </span>
+                <span className="text-[13px] font-medium text-gray-900 text-right capitalize">
+                  {selectedBooking.type || "—"}
+                </span>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="text-[13px] text-gray-500">Status</span>
+                <span
+                  className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    selectedBooking.status,
+                  )}`}
+                >
+                  {selectedBooking.status || "Unknown"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

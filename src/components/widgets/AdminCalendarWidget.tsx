@@ -12,20 +12,38 @@ import {
   Phone,
 } from "lucide-react";
 import { useGetBookingsQuery } from "@/store/bookingApi";
+import Modal from "@/components/modals/Modal";
+import { User, CalendarDays } from "lucide-react";
+import { convertSlotToTime } from "@/components/Options";
 
 interface Booking {
   id: string;
   patientName?: string;
   doctorName?: string;
   date?: string;
+  bookingDate?: any;
   time?: string;
+  slot?: string;
   status?: string;
+  bookingStatus?: string;
   channel?: string;
+  bookingChannel?: string;
   specialization?: string;
 }
 
+// The booking docs store time as `slot`, channel as `bookingChannel`, and
+// status as `bookingStatus`. Resolve across the possible field names.
+const getBookingTime = (b: Booking): string =>
+  b.time || (b.slot ? convertSlotToTime(b.slot) : "") || "—";
+const getBookingChannel = (b: Booking): string =>
+  b.channel || b.bookingChannel || "";
+const getBookingStatus = (b: Booking): string =>
+  b.status || b.bookingStatus || "";
+
 const AdminCalendarWidget: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   // Fetch bookings data
   const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
@@ -44,15 +62,39 @@ const AdminCalendarWidget: React.FC = () => {
     bookings = bookingsData.data;
   }
 
+  // Local YYYY-MM-DD key for a Date (avoids UTC day-shift from toISOString).
+  const localKey = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  // Resolve a booking's date across the shapes the API returns (bookingDate as a
+  // Firestore Timestamp / { _seconds } object, or a plain string). Returns null
+  // for missing/invalid dates instead of throwing on toISOString().
+  const toBookingKey = (b: any): string | null => {
+    const raw = b?.bookingDate ?? b?.date;
+    if (!raw) return null;
+    let d: Date;
+    if (typeof raw === "object") {
+      if (raw._seconds) d = new Date(raw._seconds * 1000);
+      else if (raw.seconds) d = new Date(raw.seconds * 1000);
+      else if (typeof raw.toDate === "function") d = raw.toDate();
+      else d = new Date(raw);
+    } else {
+      d = new Date(raw);
+    }
+    return isNaN(d.getTime()) ? null : localKey(d);
+  };
+
   // Get today's bookings
   const today = new Date();
-  const todayString = today.toISOString().split("T")[0];
+  const todayString = localKey(today);
 
-  const todaysBookings = bookings.filter((booking: Booking) => {
-    if (!booking.date) return false;
-    const bookingDate = new Date(booking.date).toISOString().split("T")[0];
-    return bookingDate === todayString;
-  });
+  const todaysBookings = bookings.filter(
+    (booking: Booking) => toBookingKey(booking) === todayString,
+  );
 
   // Calendar functions
   const getDaysInMonth = (date: Date) => {
@@ -79,12 +121,10 @@ const AdminCalendarWidget: React.FC = () => {
     // Add current month's days
     for (let i = 1; i <= daysInMonth; i++) {
       const currentDate = new Date(year, month, i);
-      const dateString = currentDate.toISOString().split("T")[0];
-      const hasBooking = bookings.some((booking: Booking) => {
-        if (!booking.date) return false;
-        const bookingDate = new Date(booking.date).toISOString().split("T")[0];
-        return bookingDate === dateString;
-      });
+      const dateString = localKey(currentDate);
+      const hasBooking = bookings.some(
+        (booking: Booking) => toBookingKey(booking) === dateString,
+      );
 
       days.push({
         date: currentDate,
@@ -233,10 +273,15 @@ const AdminCalendarWidget: React.FC = () => {
           {calendarDays.map((dayData, index) => (
             <div
               key={index}
-              className={`p-2 text-[10px] md:text-[12px] rounded-lg transition-colors cursor-pointer text-center ${dayData.currentMonth
+              onClick={() =>
+                dayData.hasBooking && setSelectedDay(dayData.date)
+              }
+              className={`p-2 text-[10px] md:text-[12px] rounded-lg transition-colors text-center ${dayData.currentMonth
                 ? "text-gray-900 hover:bg-gray-100"
                 : "text-gray-400"
-                } ${dayData.hasBooking ? "bg-green-50 border border-green-200" : ""
+                } ${dayData.hasBooking
+                  ? "bg-green-50 border border-green-200 cursor-pointer hover:border-green-400"
+                  : ""
                 }`}>
               <div className="flex items-center justify-center">
                 <span>{dayData.day}</span>
@@ -270,10 +315,11 @@ const AdminCalendarWidget: React.FC = () => {
             {todaysBookings.slice(0, 4).map((booking: Booking) => (
               <div
                 key={booking.id}
-                className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                onClick={() => setSelectedBooking(booking)}
+                className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 hover:border-purple-200 transition-colors cursor-pointer">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                   <div className="flex items-center gap-2 overflow-hidden w-full sm:w-auto">
-                    {getChannelIcon(booking.channel)}
+                    {getChannelIcon(getBookingChannel(booking))}
                     <div className="min-w-0 flex-1">
                       <h5 className="font-medium text-gray-900 text-[10px] md:text-[12px] truncate">
                         {booking.patientName || "Unknown Patient"}
@@ -285,16 +331,16 @@ const AdminCalendarWidget: React.FC = () => {
                   </div>
                   <span
                     className={`self-start sm:self-auto px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                      booking.status
+                      getBookingStatus(booking)
                     )} flex-shrink-0 ml-6 sm:ml-2`}>
-                    {booking.status || "Unknown"}
+                    {getBookingStatus(booking) || "Unknown"}
                   </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-600">
                   <div className="flex items-center gap-1">
                     <Clock size={12} />
-                    <span>{booking.time || "N/A"}</span>
+                    <span>{getBookingTime(booking) || "N/A"}</span>
                   </div>
                   {booking.specialization && (
                     <div className="flex items-center gap-1">
@@ -327,6 +373,174 @@ const AdminCalendarWidget: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Day appointments modal (opened by clicking a calendar day) */}
+      <Modal
+        isOpen={!!selectedDay}
+        onClose={() => setSelectedDay(null)}
+        title={
+          selectedDay
+            ? selectedDay.toLocaleDateString("en-GB", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })
+            : "Appointments"
+        }
+        size="md"
+      >
+        {selectedDay && (
+          <div className="px-6 py-5 space-y-3">
+            {(() => {
+              const dayKey = localKey(selectedDay);
+              const dayBookings = bookings.filter(
+                (b: Booking) => toBookingKey(b) === dayKey,
+              );
+              if (dayBookings.length === 0) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar
+                      className="mx-auto mb-2 text-gray-300"
+                      size={32}
+                    />
+                    <p className="text-sm">No appointments on this day</p>
+                  </div>
+                );
+              }
+              return (
+                <>
+                  <p className="text-[12px] text-gray-500">
+                    {dayBookings.length} appointment
+                    {dayBookings.length === 1 ? "" : "s"}
+                  </p>
+                  {dayBookings.map((booking: Booking) => (
+                    <div
+                      key={booking.id}
+                      onClick={() => {
+                        setSelectedBooking(booking);
+                        setSelectedDay(null);
+                      }}
+                      className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 hover:border-purple-200 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {getChannelIcon(getBookingChannel(booking))}
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-medium text-gray-900 truncate">
+                              {booking.patientName || "Unknown Patient"}
+                            </p>
+                            <p className="text-[11px] text-gray-500 truncate">
+                              with {booking.doctorName || "Unknown Doctor"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                            <Clock size={12} />
+                            {getBookingTime(booking) || "N/A"}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${getStatusColor(
+                              getBookingStatus(booking),
+                            )}`}
+                          >
+                            {getBookingStatus(booking) || "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
+          </div>
+        )}
+      </Modal>
+
+      {/* Appointment detail modal */}
+      <Modal
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        title="Appointment Details"
+        size="md"
+      >
+        {selectedBooking && (
+          <div className="px-6 py-5">
+            <div className="rounded-lg border border-gray-100 divide-y divide-gray-100">
+              {(
+                [
+                  {
+                    icon: <User className="w-4 h-4 text-purple-500" />,
+                    label: "Patient",
+                    value: selectedBooking.patientName || "Unknown Patient",
+                  },
+                  {
+                    icon: <Stethoscope className="w-4 h-4 text-purple-500" />,
+                    label: "Doctor",
+                    value: selectedBooking.doctorName || "Unknown Doctor",
+                  },
+                  {
+                    icon: <CalendarDays className="w-4 h-4 text-purple-500" />,
+                    label: "Date",
+                    value: (() => {
+                      const key = toBookingKey(selectedBooking);
+                      if (!key) return "—";
+                      const [y, m, d] = key.split("-").map(Number);
+                      return new Date(y, m - 1, d).toLocaleDateString("en-GB", {
+                        weekday: "long",
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      });
+                    })(),
+                  },
+                  {
+                    icon: <Clock className="w-4 h-4 text-purple-500" />,
+                    label: "Time",
+                    value: getBookingTime(selectedBooking),
+                  },
+                  {
+                    icon: getChannelIcon(getBookingChannel(selectedBooking)),
+                    label: "Channel",
+                    value: getBookingChannel(selectedBooking) || "—",
+                  },
+                  {
+                    icon: <Stethoscope className="w-4 h-4 text-purple-500" />,
+                    label: "Specialty",
+                    value: selectedBooking.specialization || "—",
+                  },
+                ] as { icon: React.ReactNode; label: string; value: string }[]
+              ).map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-start justify-between gap-4 px-4 py-3"
+                >
+                  <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                    {row.icon}
+                    {row.label}
+                  </span>
+                  <span className="text-[13px] font-medium text-gray-900 text-right capitalize">
+                    {row.value || "—"}
+                  </span>
+                </div>
+              ))}
+
+              {/* Status */}
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="text-[13px] text-gray-500">Status</span>
+                <span
+                  className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                    getBookingStatus(selectedBooking),
+                  )}`}
+                >
+                  {getBookingStatus(selectedBooking) || "Unknown"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

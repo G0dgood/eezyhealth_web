@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Clock, User } from "lucide-react";
+import { Calendar, CalendarDays, ChevronLeft, ChevronRight, Clock, User } from "lucide-react";
+import Modal from "@/components/modals/Modal";
 
 interface Booking {
   id: string;
@@ -14,6 +15,7 @@ interface Booking {
 
 const NurseCalendarWidget: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   // Sample booking data - this would come from your API
   const bookings: Booking[] = [
@@ -171,7 +173,8 @@ const NurseCalendarWidget: React.FC = () => {
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="p-2 md:p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+            onClick={() => setSelectedBooking(booking)}
+            className="p-2 md:p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-green-200 transition-colors cursor-pointer">
             <div className="flex items-center justify-between mb-1.5 md:mb-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
@@ -228,6 +231,71 @@ const NurseCalendarWidget: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Appointment detail modal */}
+      <Modal
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        title="Appointment Details"
+        size="md"
+      >
+        {selectedBooking && (
+          <div className="px-6 py-5">
+            <div className="rounded-lg border border-gray-100 divide-y divide-gray-100">
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  <User className="w-4 h-4 text-[#44CE2D]" />
+                  Patient
+                </span>
+                <span className="text-[13px] font-medium text-gray-900 text-right">
+                  {selectedBooking.patientName || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  <User className="w-4 h-4 text-[#44CE2D]" />
+                  Doctor
+                </span>
+                <span className="text-[13px] font-medium text-gray-900 text-right">
+                  {selectedBooking.doctorName || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  <Clock className="w-4 h-4 text-[#44CE2D]" />
+                  Time
+                </span>
+                <span className="text-[13px] font-medium text-gray-900 text-right">
+                  {selectedBooking.time || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="flex items-center gap-2 text-[13px] text-gray-500">
+                  <CalendarDays className="w-4 h-4 text-[#44CE2D]" />
+                  Channel
+                </span>
+                <span
+                  className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getTypeColor(
+                    selectedBooking.type,
+                  )}`}
+                >
+                  {selectedBooking.type || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="text-[13px] text-gray-500">Status</span>
+                <span
+                  className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    selectedBooking.status,
+                  )}`}
+                >
+                  {selectedBooking.status || "—"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
