@@ -162,6 +162,30 @@ export default function DoctorMessagePage() {
     };
   }, [user]);
 
+  // When returning from a call (or any deep link) with ?channelId=..., reopen
+  // that exact conversation instead of dropping the user on the chat list —
+  // this mirrors the mobile behaviour of ending a call back into the chat.
+  useEffect(() => {
+    if (!chatClient || typeof window === "undefined") return;
+    const channelId = new URLSearchParams(window.location.search).get(
+      "channelId"
+    );
+    if (!channelId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const channel = chatClient.channel("messaging", channelId);
+        await channel.watch();
+        if (!cancelled) setActiveChannel(channel);
+      } catch (e) {
+        console.error("Failed to reopen chat channel from URL:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [chatClient]);
+
   // Handle patient selection and channel creation
   const handlePatientSelect = async (patient: BookingData, index: number) => {
     setSelectedConversation(`patient-${index}`);

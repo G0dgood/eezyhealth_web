@@ -66,7 +66,13 @@ export default function DoctorVideoCallPage() {
       }
     }
 
-    router.replace("/doctor/message");
+    // Return to the exact chat we came from (not the chat list), mirroring mobile.
+    const returnChannelId = params.get("channelId");
+    router.replace(
+      returnChannelId
+        ? `/doctor/message?channelId=${encodeURIComponent(returnChannelId)}`
+        : "/doctor/message"
+    );
   };
 
   useEffect(() => {
