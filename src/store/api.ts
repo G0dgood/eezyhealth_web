@@ -1017,10 +1017,87 @@ export const api = createApi({
     }),
 
     getLatestBookingsForMessages: builder.query({
-      query: (params) => ({
-        url: "/getLatestBookingsForMessages",
-        params,
-      }),
+      async queryFn({ userId, doctorId }: { userId?: string; doctorId?: string } = {}) {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } = await import(
+            "@/lib/firebase-rtk"
+          );
+
+          const constraints: any[] = [];
+          if (userId) {
+            constraints.push(firebaseConstraints.where("userId", "==", userId));
+          }
+          if (doctorId) {
+            constraints.push(firebaseConstraints.where("doctorId", "==", doctorId));
+          }
+
+          let bookings: any[] = [];
+          try {
+            bookings = await createFirebaseQuery("Bookings", constraints);
+          } catch (e) {
+            try {
+              bookings = await createFirebaseQuery("bookings", constraints);
+            } catch (fallbackErr) {}
+          }
+
+          const toMillis = (t: any) => {
+            if (!t) return 0;
+            if (typeof t === "string") return new Date(t).getTime() || 0;
+            if (typeof t === "number") return t;
+            if (typeof t === "object") {
+              if (typeof t.toDate === "function") return t.toDate().getTime();
+              if (typeof t.seconds === "number") return t.seconds * 1000;
+              if (typeof t._seconds === "number") return t._seconds * 1000;
+            }
+            return 0;
+          };
+
+          const latestMap = new Map();
+          bookings.forEach((booking: any) => {
+            let groupKey = "";
+            if (userId && !doctorId) {
+              groupKey = booking.doctorId;
+            } else if (doctorId && !userId) {
+              groupKey = booking.userId;
+            } else {
+              groupKey = `${booking.userId}-${booking.doctorId}`;
+            }
+
+            if (!groupKey || !booking.userId || !booking.doctorId) {
+              return;
+            }
+
+            const existing = latestMap.get(groupKey);
+            const bookingTime = toMillis(booking.createdAt || booking.createdTime || booking.bookingDate);
+
+            if (!existing) {
+              latestMap.set(groupKey, { booking, time: bookingTime });
+            } else {
+              if (bookingTime > existing.time) {
+                latestMap.set(groupKey, { booking, time: bookingTime });
+              }
+            }
+          });
+
+          const resultBookings = Array.from(latestMap.values())
+            .map((item: any) => item.booking)
+            .sort((a: any, b: any) => {
+              const timeA = toMillis(a.createdAt || a.createdTime || a.bookingDate);
+              const timeB = toMillis(b.createdAt || b.createdTime || b.bookingDate);
+              return timeB - timeA;
+            });
+
+          return { data: resultBookings };
+        } catch (error) {
+          console.error("Error in getLatestBookingsForMessages queryFn:", error);
+          return {
+            error: {
+              status: 500,
+              data: error instanceof Error ? error.message : "Failed to load bookings",
+            },
+          };
+        }
+      },
       providesTags: ["Booking"],
     }),
 

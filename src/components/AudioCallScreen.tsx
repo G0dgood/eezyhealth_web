@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX, FileText, Copy, Check } from "lucide-react";
+import { useCallStateHooks, ParticipantView } from "@stream-io/video-react-sdk";
 
 interface Props {
   name: string;
@@ -18,6 +19,9 @@ export default function AudioCallScreen({
   onEnd,
   call,
 }: Props) {
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants();
+
   const [isMuted, setIsMuted] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
@@ -157,6 +161,12 @@ export default function AudioCallScreen({
           </div>
         </div>
       )}
+      {/* Hidden container to play participants' audio streams */}
+      <div style={{ display: "none" }}>
+        {participants.map((p) => (
+          <ParticipantView participant={p} key={p.sessionId} />
+        ))}
+      </div>
     </div>
   );
 }
