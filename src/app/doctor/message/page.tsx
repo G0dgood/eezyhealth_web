@@ -321,6 +321,9 @@ export default function DoctorMessagePage() {
             onClick={() => {
               setSelectedConversation("");
               setActiveChannel(null);
+              // Also drop ?channelId=... from the URL so the browser
+              // history doesn't keep re-opening this conversation.
+              router.replace("/doctor/message");
             }}
             className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
           >
@@ -348,6 +351,9 @@ export default function DoctorMessagePage() {
                 onClick={() => {
                   setSelectedConversation("");
                   setActiveChannel(null);
+                  // Also drop ?channelId=... from the URL so the browser
+                  // history doesn't keep re-opening this conversation.
+                  router.replace("/doctor/message");
                 }}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >

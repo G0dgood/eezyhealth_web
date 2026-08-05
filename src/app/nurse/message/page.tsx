@@ -390,7 +390,7 @@ export default function NurseMessagePage() {
 
     const handleCallEvent = (event: any) => {
       const call = videoClient.call(event.call.type, event.call.id);
-      
+
       const custom = event.call.custom || {};
       const callerName =
         custom.callerName ||
@@ -453,6 +453,9 @@ export default function NurseMessagePage() {
             onClick={() => {
               setSelectedConversation("");
               setActiveChannel(null);
+              // Also drop ?channelId=... from the URL so the browser
+              // history doesn't keep re-opening this conversation.
+              router.replace("/nurse/message");
             }}
             className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
           >
@@ -481,6 +484,9 @@ export default function NurseMessagePage() {
                 onClick={() => {
                   setSelectedConversation(null);
                   setActiveChannel(null);
+                  // Also drop ?channelId=... from the URL so the browser
+                  // history doesn't keep re-opening this conversation.
+                  router.replace("/nurse/message");
                 }}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >

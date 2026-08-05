@@ -38,11 +38,15 @@ export default function NurseAudioCallPage() {
   const hasJoined = useRef(false);
   const hasRungRef = useRef(false);
   const navigatedRef = useRef(false);
+  // Guard so effect cleanup doesn't call leave() after we've already ended/
+  // navigated away (calling leave() again would re-trigger call.ended).
+  const isCallEndedRef = useRef(false);
 
   // Return to the chat page once when the call ends.
   const returnToChat = async () => {
     if (navigatedRef.current) return;
     navigatedRef.current = true;
+    isCallEndedRef.current = true;
 
     // Notify other participants (like mobile/nurse) via chat message that call has ended
     const chatInfo = getStreamChatInfo();
@@ -68,13 +72,12 @@ export default function NurseAudioCallPage() {
       }
     }
 
-    // Return to the exact chat we came from (not the chat list), mirroring mobile.
-    const returnChannelId = searchParams.get("channelId");
-    router.replace(
-      returnChannelId
-        ? `/nurse/message?channelId=${encodeURIComponent(returnChannelId)}`
-        : "/nurse/message"
-    );
+    // Return to the message page WITHOUT ?channelId=... in the URL.
+    // The message page itself is responsible for re-opening the right
+    // conversation from state; keeping the channelId out of the URL on
+    // return means the browser back/forward stack doesn't carry the
+    // stale ID after the call ends.
+    router.replace("/nurse/message");
   };
 
   const handleCancelCall = async () => {

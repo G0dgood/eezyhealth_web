@@ -40,6 +40,50 @@ export default function NurseVideoCallPage() {
   const isCallEndedRef = useRef(false);
   const hasJoined = useRef(false);
   const hasRungRef = useRef(false);
+  // Guards against double-navigation when user ends via button AND the call
+  // event fires call.ended / call.rejected which would otherwise navigate a
+  // second time and pop us past the chat onto the list/dashboard.
+  const navigatedRef = useRef(false);
+
+  // Return directly to the chat — never back() which can pop multiple stack
+  // entries and land on the dashboard or messages list.
+  const returnToChat = async () => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    isCallEndedRef.current = true;
+
+    // Send call ended message to chat channel (guarded so we don't send twice)
+    if (callId && user) {
+      try {
+        const chatInfo = getStreamChatInfo();
+        if (chatInfo) {
+          const chatClient = getStreamChatClient();
+          await connectStreamChatUser(
+            chatInfo.chatUserId,
+            chatInfo.chatUserName,
+            user.photoURL || "",
+            chatInfo.chatUserToken
+          );
+          const channel = chatClient.channel("messaging", callId);
+          await channel.sendMessage({
+            text: `📹 Video call ended`,
+            call_id: callId,
+            call_type: "video",
+            call_status: "ended",
+          } as any);
+        }
+      } catch (chatErr) {
+        console.error("Failed to send call ended chat message:", chatErr);
+      }
+    }
+
+    // Return to the message page WITHOUT ?channelId=... in the URL.
+    // The message page itself is responsible for re-opening the right
+    // conversation from state; keeping the channelId out of the URL on
+    // return means the browser back/forward stack doesn't carry the
+    // stale ID after the call ends.
+    router.replace("/nurse/message");
+  };
 
   // 1. Initialize Video Client
   useEffect(() => {
@@ -161,7 +205,7 @@ export default function NurseVideoCallPage() {
         console.error("Error joining call:", error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         toast.error(`Failed to join call: ${errorMessage}`);
-        router.back();
+        returnToChat();
       }
     };
 
@@ -171,7 +215,6 @@ export default function NurseVideoCallPage() {
       if (myCall && !isCallEndedRef.current) {
         myCall.leave().catch(err => {
           console.warn("Failed to leave call:", err);
-          // toast.error(`Failed to leave call: ${err.message || err}`);
         });
       }
     };
@@ -214,32 +257,9 @@ export default function NurseVideoCallPage() {
       }
     }
 
-    // Send call ended message to chat channel
-    if (callId && user) {
-      try {
-        const chatInfo = getStreamChatInfo();
-        if (chatInfo) {
-          const chatClient = getStreamChatClient();
-          await connectStreamChatUser(
-            chatInfo.chatUserId,
-            chatInfo.chatUserName,
-            user.photoURL || "",
-            chatInfo.chatUserToken
-          );
-          const channel = chatClient.channel("messaging", callId);
-          await channel.sendMessage({
-            text: `📹 Video call ended`,
-            call_id: callId,
-            call_type: "video",
-            call_status: "ended",
-          } as any);
-        }
-      } catch (chatErr) {
-        console.error("Failed to send call ended chat message:", chatErr);
-      }
-    }
-
-    router.back();
+    // Send message + navigation are handled in returnToChat (dedup guarded so they only
+    // run once even if call.ended fires right after endCall() resolves.
+    returnToChat();
   };
 
   const formatDuration = (seconds: number) => {
@@ -276,11 +296,11 @@ export default function NurseVideoCallPage() {
     });
     const unsubscribeEnded = streamCall.on("call.ended", () => {
       toast.info("Call ended");
-      router.back();
+      returnToChat();
     });
     const unsubscribeRejected = streamCall.on("call.rejected", () => {
       toast.info("Call declined");
-      router.back();
+      returnToChat();
     });
     return () => {
       unsubscribeAccepted();

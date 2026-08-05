@@ -39,11 +39,16 @@ export default function DoctorAudioCallPage() {
   const hasJoined = useRef(false);
   const hasRungRef = useRef(false);
   const navigatedRef = useRef(false);
+  // When the user ends a call explicitly (or when call.ended fires), mark the
+  // call as ended so the effect cleanup knows not to call leave() again —
+  // which would re-fire call.ended and cause unexpected double-redirects.
+  const isCallEndedRef = useRef(false);
 
   // Return to the chat page once when the call ends.
   const returnToChat = async () => {
     if (navigatedRef.current) return;
     navigatedRef.current = true;
+    isCallEndedRef.current = true;
 
     // Notify other participants (like mobile/nurse) via chat message that call has ended
     const chatInfo = getStreamChatInfo();
@@ -69,13 +74,12 @@ export default function DoctorAudioCallPage() {
       }
     }
 
-    // Return to the exact chat we came from (not the chat list), mirroring mobile.
-    const returnChannelId = params.get("channelId");
-    router.replace(
-      returnChannelId
-        ? `/doctor/message?channelId=${encodeURIComponent(returnChannelId)}`
-        : "/doctor/message"
-    );
+    // Return to the message page WITHOUT ?channelId=... in the URL.
+    // The message page itself is responsible for re-opening the right
+    // conversation from state; keeping the channelId out of the URL on
+    // return means the browser back/forward stack doesn't carry the
+    // stale ID after the call ends.
+    router.replace("/doctor/message");
   };
 
   const handleCancelCall = async () => {
@@ -98,8 +102,24 @@ export default function DoctorAudioCallPage() {
           callerId: user?.uid,
         }).catch(err => console.error("Failed to notify missed call", err));
       }
-      await call.endCall();
+
+      // Always try endCall() to terminate the call for ALL participants
+      // (this ensures the patient / nurse side also ends when the doctor hangs
+      // up). If endCall is rejected (permission) we still do returnToChat via
+      // navigatedRef guard so the UI can't double-navigate.
+      try {
+        await call.endCall();
+      } catch (e) {
+        try {
+          await call.leave();
+        } catch (_) { /* swallow */ }
+      }
     }
+
+    // Always return to chat directly — even if endCall fired call.ended, the
+    // navigatedRef inside returnToChat guards against double navigation so we
+    // never re-enter / replace the chat route twice.
+    returnToChat();
   };
 
   /* ----------------------------------
@@ -237,7 +257,14 @@ export default function DoctorAudioCallPage() {
     init();
 
     return () => {
-      call?.leave();
+      // Only cleanly leave if we have NOT already navigated away / ended the
+      // call. If navigatedRef is set, endCall() / leave() already ran and the
+      // route was replaced — calling leave() AGAIN here re-fires call.ended,
+      // which calls returnToChat(), which can redirect unexpectedly on the
+      // next page (the chat) if it had a listener set up.
+      if (call && !navigatedRef.current && !isCallEndedRef.current) {
+        call.leave().catch(() => { });
+      }
       // Do NOT disconnect singleton client
       // videoClient?.disconnectUser(); 
     };

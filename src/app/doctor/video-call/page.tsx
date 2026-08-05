@@ -35,12 +35,16 @@ export default function DoctorVideoCallPage() {
 
   const hasInit = useRef(false);
   const navigatedRef = useRef(false);
+  // Guard so effect cleanup doesn't call leave() after we've already ended/
+  // navigated away (calling leave() again would re-trigger call.ended).
+  const isCallEndedRef = useRef(false);
 
   // Always return to the chat page (once) when the call ends — never `back()`,
   // which can pop multiple entries and land on the dashboard / leave the app.
   const returnToChat = async () => {
     if (navigatedRef.current) return;
     navigatedRef.current = true;
+    isCallEndedRef.current = true;
 
     // Notify other participants (like mobile/nurse) via chat message that call has ended
     const chatInfo = getStreamChatInfo();
@@ -66,13 +70,12 @@ export default function DoctorVideoCallPage() {
       }
     }
 
-    // Return to the exact chat we came from (not the chat list), mirroring mobile.
-    const returnChannelId = params.get("channelId");
-    router.replace(
-      returnChannelId
-        ? `/doctor/message?channelId=${encodeURIComponent(returnChannelId)}`
-        : "/doctor/message"
-    );
+    // Return to the message page WITHOUT ?channelId=... in the URL.
+    // The message page itself is responsible for re-opening the right
+    // conversation from state; keeping the channelId out of the URL on
+    // return means the browser back/forward stack doesn't carry the
+    // stale ID after the call ends.
+    router.replace("/doctor/message");
   };
 
   useEffect(() => {
