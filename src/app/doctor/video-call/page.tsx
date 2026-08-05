@@ -104,7 +104,8 @@ export default function DoctorVideoCallPage() {
             callType: 'video',
             callerName: user.displayName || "Doctor",
             callerImage: user.photoURL || "",
-            callerId: user.uid
+            callerId: user.uid,
+            channelId: params.get("channelId") || ""
           },
         };
 
@@ -113,29 +114,58 @@ export default function DoctorVideoCallPage() {
         await streamCall.join({ create: true, data: callData });
         await streamCall.update({ custom: callData.custom });
 
-        await streamCall.ring();
+        const isAccepting = params.get("isAccepting") === "true";
 
-        // Also send started invite in chat channel to notify mobile users
-        const chatInfo = getStreamChatInfo();
-        const channelId = params.get("channelId");
-        if (chatInfo && channelId) {
-          try {
-            const chatClient = getStreamChatClient();
-            await connectStreamChatUser(
-              chatInfo.chatUserId,
-              chatInfo.chatUserName,
-              user.photoURL || "",
-              chatInfo.chatUserToken
-            );
-            const channel = chatClient.channel("messaging", channelId);
-            await channel.sendMessage({
-              text: `📹 Video call started`,
-              call_id: callId,
-              call_type: "video",
-              call_status: "initiated",
-            } as any);
-          } catch (chatErr) {
-            console.error("Failed to send chat invite:", chatErr);
+        // 2. Ring and send started invite ONLY if we are NOT accepting an incoming call
+        if (!isAccepting) {
+          await streamCall.ring();
+
+          // Also send started invite in chat channel to notify mobile users
+          const chatInfo = getStreamChatInfo();
+          const channelId = params.get("channelId");
+          if (chatInfo && channelId) {
+            try {
+              const chatClient = getStreamChatClient();
+              await connectStreamChatUser(
+                chatInfo.chatUserId,
+                chatInfo.chatUserName,
+                user.photoURL || "",
+                chatInfo.chatUserToken
+              );
+              const channel = chatClient.channel("messaging", channelId);
+              await channel.sendMessage({
+                text: `📹 Video call started`,
+                call_id: callId,
+                call_type: "video",
+                call_status: "initiated",
+              } as any);
+            } catch (chatErr) {
+              console.error("Failed to send chat invite:", chatErr);
+            }
+          }
+        } else {
+          // If we are accepting, send accepted message to chat channel
+          const chatInfo = getStreamChatInfo();
+          const channelId = params.get("channelId");
+          if (chatInfo && channelId) {
+            try {
+              const chatClient = getStreamChatClient();
+              await connectStreamChatUser(
+                chatInfo.chatUserId,
+                chatInfo.chatUserName,
+                user.photoURL || "",
+                chatInfo.chatUserToken
+              );
+              const channel = chatClient.channel("messaging", channelId);
+              await channel.sendMessage({
+                text: `📹 Video call accepted`,
+                call_id: callId,
+                call_type: "video",
+                call_status: "accepted",
+              } as any);
+            } catch (chatErr) {
+              console.error("Failed to send accepted chat message:", chatErr);
+            }
           }
         }
 
@@ -146,6 +176,7 @@ export default function DoctorVideoCallPage() {
         });
 
         streamCall.on("call.ended", () => returnToChat());
+        streamCall.on("call.rejected", () => returnToChat());
 
         setClient(videoClient);
         setCall(streamCall);
@@ -185,19 +216,25 @@ export default function DoctorVideoCallPage() {
   };
 
   if (!client || !call) {
-    return <div className="h-screen flex items-center justify-center">Connecting…</div>;
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900 text-white rounded-2xl overflow-hidden shadow-xl" style={{ height: "80vh" }}>
+        Connecting…
+      </div>
+    );
   }
 
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme>
-          <VideoCallScreen
-            patientName={patientName}
-            onLeave={handleEnd}
-            isWaitingForAcceptance={waiting}
-            callDuration={duration}
-            formatDuration={formatTime} />
+          <div className="w-full rounded-2xl overflow-hidden shadow-xl" style={{ height: "80vh" }}>
+            <VideoCallScreen
+              patientName={patientName}
+              onLeave={handleEnd}
+              isWaitingForAcceptance={waiting}
+              callDuration={duration}
+              formatDuration={formatTime} />
+          </div>
         </StreamTheme>
       </StreamCall>
     </StreamVideo>

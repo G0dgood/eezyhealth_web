@@ -30,6 +30,7 @@ export default function DoctorAudioCallPage() {
   const patientName = params.get("patientName") || "Patient";
   const isCaller = params.get("isCaller") === "true";
   const patientId = params.get("patientId");
+  const isAccepting = params.get("isAccepting") === "true";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [call, setCall] = useState<any>(null);
@@ -143,7 +144,8 @@ export default function DoctorAudioCallPage() {
             callType: 'audio',
             callerName: user.displayName || "Doctor",
             callerImage: user.photoURL || "",
-            callerId: user.uid
+            callerId: user.uid,
+            channelId: params.get("channelId") || ""
           }
         };
 
@@ -155,33 +157,59 @@ export default function DoctorAudioCallPage() {
         // Explicitly update to overwrite any existing callType on this channel/callId
         await streamCall.update({ custom: callData.custom });
 
-        // 2. Ring ONLY ONCE
-        if (!hasRungRef.current) {
-          await streamCall.ring();
-          hasRungRef.current = true;
-        }
+        // 2. Ring and send started invite ONLY if we are NOT accepting an incoming call
+        if (!isAccepting) {
+          if (!hasRungRef.current) {
+            await streamCall.ring();
+            hasRungRef.current = true;
+          }
 
-        // Also send started invite in chat channel to notify mobile users
-        const chatInfo = getStreamChatInfo();
-        const channelId = params.get("channelId");
-        if (chatInfo && channelId) {
-          try {
-            const chatClient = getStreamChatClient();
-            await connectStreamChatUser(
-              chatInfo.chatUserId,
-              chatInfo.chatUserName,
-              user.photoURL || "",
-              chatInfo.chatUserToken
-            );
-            const channel = chatClient.channel("messaging", channelId);
-            await channel.sendMessage({
-              text: `📞 Voice call started`,
-              call_id: callId,
-              call_type: "voice",
-              call_status: "initiated",
-            } as any);
-          } catch (chatErr) {
-            console.error("Failed to send chat invite:", chatErr);
+          // Also send started invite in chat channel to notify mobile users
+          const chatInfo = getStreamChatInfo();
+          const channelId = params.get("channelId");
+          if (chatInfo && channelId) {
+            try {
+              const chatClient = getStreamChatClient();
+              await connectStreamChatUser(
+                chatInfo.chatUserId,
+                chatInfo.chatUserName,
+                user.photoURL || "",
+                chatInfo.chatUserToken
+              );
+              const channel = chatClient.channel("messaging", channelId);
+              await channel.sendMessage({
+                text: `📞 Voice call started`,
+                call_id: callId,
+                call_type: "voice",
+                call_status: "initiated",
+              } as any);
+            } catch (chatErr) {
+              console.error("Failed to send chat invite:", chatErr);
+            }
+          }
+        } else {
+          // If we are accepting, send accepted message to chat channel
+          const chatInfo = getStreamChatInfo();
+          const channelId = params.get("channelId");
+          if (chatInfo && channelId) {
+            try {
+              const chatClient = getStreamChatClient();
+              await connectStreamChatUser(
+                chatInfo.chatUserId,
+                chatInfo.chatUserName,
+                user.photoURL || "",
+                chatInfo.chatUserToken
+              );
+              const channel = chatClient.channel("messaging", channelId);
+              await channel.sendMessage({
+                text: `📞 Call accepted`,
+                call_id: callId,
+                call_type: "voice",
+                call_status: "accepted",
+              } as any);
+            } catch (chatErr) {
+              console.error("Failed to send call accepted message:", chatErr);
+            }
           }
         }
 
@@ -195,6 +223,7 @@ export default function DoctorAudioCallPage() {
 
         streamCall.on("call.accepted", () => setWaiting(false));
         streamCall.on("call.ended", () => returnToChat());
+        streamCall.on("call.rejected", () => returnToChat());
 
         setClient(videoClient);
         setCall(streamCall);
@@ -243,8 +272,8 @@ export default function DoctorAudioCallPage() {
 
   if (!client || !call) {
     return (
-      <div className="flex flex-col items-center justify-center bg-black text-white "
-        style={{ height: "90dvh" }}>
+      <div className="flex flex-col items-center justify-center bg-black text-white rounded-2xl overflow-hidden shadow-xl"
+        style={{ height: "80vh" }}>
         Connecting…
       </div>
     );
@@ -254,7 +283,7 @@ export default function DoctorAudioCallPage() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme>
-          <div className="bg-black h-full" style={{ height: "90dvh" }}>
+          <div className="bg-black h-full rounded-2xl overflow-hidden shadow-xl" style={{ height: "80vh" }}>
             <AudioCallScreen
               name={patientName}
               isConnected={!waiting}

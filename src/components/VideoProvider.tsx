@@ -71,7 +71,7 @@ export default function VideoProvider({
     if (!incomingCall) return;
 
     const callId = incomingCall.id;
-    const rawType = incomingCall.state.custom?.callType as string | undefined;
+    const rawType = (incomingCall.state?.custom?.callType as string | undefined) || (incomingCall as any).customData?.callType;
 
     // Stream's backend sometimes holds stale custom data (like 'audio') if the room was ever used.
     // However, our new Call IDs explicitly contain the current intent (e.g., "-video-" or "-audio-").
@@ -80,7 +80,9 @@ export default function VideoProvider({
     const isAudioFromString = callId.includes('-audio-');
 
     const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
-    const patientId = incomingCall.state.members.find((m: any) => m.user_id !== userId)?.user_id;
+    
+    const members = incomingCall.state?.members || (incomingCall as any).eventMembers || [];
+    const patientId = members.find((m: any) => m.user_id !== userId)?.user_id;
 
     // Navigate to the appropriate call page
     const rolePath = userRole || 'nurse'; // Default to nurse if not specified, but should be passed

@@ -121,6 +121,28 @@ export default function NurseVideoCallPage() {
         if (searchParams.get("isAccepting") === "true") {
           try {
             await call.accept();
+            // Send accepted message to chat channel
+            try {
+              const chatInfo = getStreamChatInfo();
+              if (chatInfo && user) {
+                const chatClient = getStreamChatClient();
+                await connectStreamChatUser(
+                  chatInfo.chatUserId,
+                  chatInfo.chatUserName,
+                  user.photoURL || "",
+                  chatInfo.chatUserToken
+                );
+                const channel = chatClient.channel("messaging", callId);
+                await channel.sendMessage({
+                  text: `📹 Video call accepted`,
+                  call_id: callId,
+                  call_type: "video",
+                  call_status: "accepted",
+                } as any);
+              }
+            } catch (chatErr) {
+              console.error("Failed to send accepted chat message:", chatErr);
+            }
           } catch (e) {
             console.warn("Accept call failed (non-fatal if already joined/accepted):", e);
           }
@@ -256,15 +278,20 @@ export default function NurseVideoCallPage() {
       toast.info("Call ended");
       router.back();
     });
+    const unsubscribeRejected = streamCall.on("call.rejected", () => {
+      toast.info("Call declined");
+      router.back();
+    });
     return () => {
       unsubscribeAccepted();
       unsubscribeEnded();
+      unsubscribeRejected();
     };
   }, [streamCall, router]);
 
   if (!client || !streamCall) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+      <div className="flex items-center justify-center bg-gray-900 text-white rounded-2xl overflow-hidden shadow-xl" style={{ height: "80vh" }}>
         <p>Initializing video call...</p>
       </div>
     );
@@ -274,7 +301,7 @@ export default function NurseVideoCallPage() {
     <StreamVideo client={client}>
       <StreamCall call={streamCall}>
         <StreamTheme>
-          <div className="h-screen w-full bg-gray-900 text-white flex flex-col relative">
+          <div className="w-full bg-gray-900 text-white flex flex-col relative rounded-2xl overflow-hidden shadow-xl" style={{ height: "80vh" }}>
             <VideoCallScreen
               onLeave={handleEndCall}
               patientName={patientName}

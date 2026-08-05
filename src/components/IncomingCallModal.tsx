@@ -15,8 +15,8 @@ export default function IncomingCallModal({
   onAccept,
   onReject,
 }: Props) {
-  const custom = call.state.custom;
-  const createdBy = call.state.createdBy;
+  const custom = call.state?.custom || (call as any).customData;
+  const createdBy = call.state?.createdBy || (call as any).created_by;
 
   console.log("INCOMING CALL MODAL -> custom:", custom);
   console.log("INCOMING CALL MODAL -> createdBy:", createdBy);
@@ -30,8 +30,8 @@ export default function IncomingCallModal({
   const callType = isVideoFromString ? "video" : isAudioFromString ? "audio" : custom?.callType;
 
   // Also provide a fallback for caller name since the ID/custom might be missing it
-  const callerName = custom?.callerName || createdBy?.name || "Unknown Caller";
-  const callerImage = custom?.callerImage || createdBy?.image;
+  const callerName = (call as any).callerName || custom?.callerName || createdBy?.name || "Unknown Caller";
+  const callerImage = (call as any).callerImage || custom?.callerImage || createdBy?.image;
 
   if (callType === "video") {
     return (

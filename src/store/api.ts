@@ -1016,6 +1016,14 @@ export const api = createApi({
       providesTags: ["Booking"],
     }),
 
+    getLatestBookingsForMessages: builder.query({
+      query: (params) => ({
+        url: "/getLatestBookingsForMessages",
+        params,
+      }),
+      providesTags: ["Booking"],
+    }),
+
     updateBookingStatus: builder.mutation({
       query: ({ bookingId, status }) => ({
         url: "/updateBookingStatus",
@@ -1950,4 +1958,5 @@ export const {
   useUpdateSpecializationMutation,
   useDeleteSpecializationMutation,
   useGetFirebaseUsersQuery,
+  useGetLatestBookingsForMessagesQuery,
 } = api;

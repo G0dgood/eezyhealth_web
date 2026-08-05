@@ -23,7 +23,29 @@ export function useIncomingCall(
         return;
       }
 
-      setIncomingCall(event.call);
+      // Instantiate the full Call object instead of just setting the raw event call object
+      const call = client.call(event.call.type, event.call.id);
+      
+      const custom = event.call.custom || {};
+      const callerName =
+        custom.callerName ||
+        event.user?.name ||
+        event.call.created_by?.name ||
+        custom.callerId ||
+        "Patient";
+      const callerImage =
+        custom.callerImage ||
+        event.user?.image ||
+        event.call.created_by?.image ||
+        "";
+
+      // Attach metadata to the call object so components can access it synchronously
+      (call as any).callerName = callerName;
+      (call as any).callerImage = callerImage;
+      (call as any).customData = custom;
+      (call as any).eventMembers = event.call.members || [];
+
+      setIncomingCall(call);
     };
 
     client.on("call.ring", handleIncomingCall);

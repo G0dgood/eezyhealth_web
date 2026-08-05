@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { showError, showInfo } from "@/utils/toast";
 import { useApiError } from "@/hooks/useApiError";
 import { streamApiKey } from "@/lib/config";
-import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
+import { useGetLatestBookingsForMessagesQuery } from "@/store/bookingApi";
 import { useGenerateTokenForUserMutation, useAddMemberToChannelMutation } from "@/store/streamChatApi";
 import { useNurseChat } from "@/hooks/useNurseChat";
 import IncomingCallModal from "@/components/IncomingCallModal";
@@ -106,7 +106,7 @@ export default function NurseMessagePage() {
 
   // Fetch bookings using RTK Query
   // Use undefined or a stable object to prevent infinite re-renders if passing new object literal
-  const { data: bookingsData, error, isLoading } = useGetFirebaseBookingsQuery(undefined);
+  const { data: bookingsData, error, isLoading } = useGetLatestBookingsForMessagesQuery(undefined);
 
   useApiError(!!error, error, "Failed to load bookings. Please try again.");
 
@@ -388,15 +388,32 @@ export default function NurseMessagePage() {
   useEffect(() => {
     if (!videoClient) return;
 
-    const unsubscribeCreated = videoClient.on('call.created', (event: any) => {
+    const handleCallEvent = (event: any) => {
       const call = videoClient.call(event.call.type, event.call.id);
-      setIncomingCall(call);
-    });
+      
+      const custom = event.call.custom || {};
+      const callerName =
+        custom.callerName ||
+        event.user?.name ||
+        event.call.created_by?.name ||
+        custom.callerId ||
+        "Patient";
+      const callerImage =
+        custom.callerImage ||
+        event.user?.image ||
+        event.call.created_by?.image ||
+        "";
 
-    const unsubscribeRing = videoClient.on('call.ring', (event: any) => {
-      const call = videoClient.call(event.call.type, event.call.id);
+      (call as any).callerName = callerName;
+      (call as any).callerImage = callerImage;
+      (call as any).customData = custom;
+      (call as any).eventMembers = event.call.members || [];
+
       setIncomingCall(call);
-    });
+    };
+
+    const unsubscribeCreated = videoClient.on('call.created', handleCallEvent);
+    const unsubscribeRing = videoClient.on('call.ring', handleCallEvent);
 
     return () => {
       unsubscribeCreated();
@@ -525,20 +542,28 @@ export default function NurseMessagePage() {
           call={incomingCall}
           onAccept={() => {
             const callId = incomingCall.id;
-            const customData = incomingCall.state?.custom;
+            const customData = incomingCall.state?.custom || (incomingCall as any).customData;
             const rawType = (customData?.callType as string | undefined) || "";
 
             const isVideoFromString = callId.includes('-video-');
             const isAudioFromString = callId.includes('-audio-');
             const callType = isVideoFromString ? 'video' : isAudioFromString ? 'audio' : (rawType || 'audio');
 
+            const members = incomingCall.state?.members || (incomingCall as any).eventMembers || [];
+            const patientId = members.find((m: any) => m.user_id !== videoClient?.state.connectedUser?.id)?.user_id || "";
+            const resolvedPatientName = (incomingCall as any).callerName || activeConversation?.patientName || "Patient";
+
             const params = new URLSearchParams({
               callId: callId || "",
               callType,
-              patientName: activeConversation?.patientName || "Patient",
+              patientName: resolvedPatientName,
               isAccepting: "true",
               channelId: activeChannel?.id || "",
             });
+
+            if (patientId) {
+              params.append("patientId", patientId);
+            }
 
             if (callType === "audio") {
               router.push(`/nurse/audio-call?${params.toString()}`);

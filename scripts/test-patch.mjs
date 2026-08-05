@@ -17,14 +17,8 @@ try {
   admin.initializeApp({
     projectId: 'eezyhealth-2025'
   });
-  
-  console.log("Checking patched admin.firestore()...");
-  const db = admin.firestore();
-  console.log("Patched firestore succeeded! Database ID:", db.databaseId);
-  
-  console.log("Checking sub-properties...");
-  console.log("FieldValue:", typeof admin.firestore.FieldValue);
-  console.log("Timestamp:", typeof admin.firestore.Timestamp);
+   
+  const db = admin.firestore();  
 } catch (e) {
   console.error("Failed patch test:", e);
 }

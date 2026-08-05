@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
   cancelAppointment: `${FIREBASE_CLOUD_FUNCTIONS_BASE}/cancelAppointment`,
   respondToBooking: `${FIREBASE_CLOUD_FUNCTIONS_BASE}/respondToBooking`,
   checkBookingEligibility: `${FIREBASE_CLOUD_FUNCTIONS_BASE}/checkBookingEligibility`,
+  getLatestBookingsForMessages: `${FIREBASE_CLOUD_FUNCTIONS_BASE}/getLatestBookingsForMessages`,
 
   // Booking Cancellation
   bookingCancellationRequest: `${FIREBASE_CLOUD_FUNCTIONS_BASE}/bookingCancellationRequest`,
@@ -162,4 +163,5 @@ export const {
   getDoctorById,
   handlePaymentConfirmation,
   makeComment,
+  getLatestBookingsForMessages,
 } = API_ENDPOINTS;

@@ -468,6 +468,14 @@ export const bookingApi = api.injectEndpoints({
       },
       invalidatesTags: ["Booking", "Appointment"],
     }),
+
+    getLatestBookingsForMessages: builder.query({
+      query: (params) => ({
+        url: "/getLatestBookingsForMessages",
+        params,
+      }),
+      providesTags: ["Booking"],
+    }),
   }),
 });
 
@@ -487,6 +495,7 @@ export const {
   useRespondToBookingMutation,
   useCheckBookingEligibilityQuery,
   useCreateDoctorAppointmentMutation,
+  useGetLatestBookingsForMessagesQuery,
 } = bookingApi;
 
 
