@@ -80,6 +80,18 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/payment`,
       },
       {
+        id: "refunds",
+        label: "Refunds",
+        icon: <CircleDollarSign className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/refunds`,
+      },
+      {
+        id: "missed-bookings",
+        label: "Missed Bookings",
+        icon: <CalendarX className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/missed-bookings`,
+      },
+      {
         id: "settings",
         label: "Settings",
         icon: <Settings className="w-5 h-5" />,
@@ -217,6 +229,18 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Payment",
         icon: <CreditCard className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/payment`,
+      },
+      {
+        id: "refunds",
+        label: "Refunds",
+        icon: <CircleDollarSign className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/refunds`,
+      },
+      {
+        id: "missed-bookings",
+        label: "Missed Bookings",
+        icon: <CalendarX className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/missed-bookings`,
       },
       {
         id: "pricing",

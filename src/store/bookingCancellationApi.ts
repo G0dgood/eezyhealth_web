@@ -233,6 +233,55 @@ export const bookingCancellationApi = api.injectEndpoints({
       },
       invalidatesTags: ["Booking", "BookingCancellation"],
     }),
+
+    getCancellationPolicy: builder.query({
+      async queryFn() {
+        try {
+          const { doc, getDoc } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+          const policyRef = doc(db, "settings", "cancellationPolicy");
+          const snap = await getDoc(policyRef);
+          if (snap.exists()) {
+            return { data: snap.data() };
+          }
+          return { data: { terms: "", updatedAt: new Date().toISOString() } };
+        } catch (error) {
+          console.error("Error fetching cancellation policy:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
+      providesTags: ["BookingCancellation"],
+    }),
+
+    updateCancellationPolicy: builder.mutation({
+      async queryFn({ terms }) {
+        try {
+          const { doc, setDoc } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+          const policyRef = doc(db, "settings", "cancellationPolicy");
+          const payload = {
+            terms,
+            updatedAt: new Date().toISOString(),
+          };
+          await setDoc(policyRef, payload, { merge: true });
+          return { data: { success: true, ...payload } };
+        } catch (error) {
+          console.error("Error updating cancellation policy:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["BookingCancellation"],
+    }),
   }),
 });
 
@@ -241,6 +290,8 @@ export const {
   useGetBookingCancellationsByDoctorIdQuery,
   useBookingCancellationRequestMutation,
   useRespondToCancellationRequestMutation,
+  useGetCancellationPolicyQuery,
+  useUpdateCancellationPolicyMutation,
 } = bookingCancellationApi;
 
 

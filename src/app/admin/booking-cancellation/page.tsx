@@ -12,6 +12,8 @@ import CancellationDetailsModal from "@/components/modals/CancellationDetailsMod
 import {
   useGetBookingCancellationsQuery,
   useRespondToCancellationRequestMutation,
+  useGetCancellationPolicyQuery,
+  useUpdateCancellationPolicyMutation,
 } from "@/store/bookingCancellationApi";
 import { toast } from "sonner";
 import { NoRecordFound } from "@/components/Options";
@@ -53,6 +55,29 @@ export default function AdminBookingCancellationPage() {
   // Respond to cancellation request mutation
   const [respondToCancellation, { isLoading: isResponding }] =
     useRespondToCancellationRequestMutation();
+
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
+  const [policyText, setPolicyText] = useState("");
+
+  const { data: policyData } = useGetCancellationPolicyQuery(undefined);
+  const [updatePolicy, { isLoading: isUpdatingPolicy }] = useUpdateCancellationPolicyMutation();
+
+  useEffect(() => {
+    if (policyData?.terms) {
+      setPolicyText(policyData.terms);
+    }
+  }, [policyData]);
+
+  const handleSavePolicy = async () => {
+    try {
+      await updatePolicy({ terms: policyText }).unwrap();
+      toast.success("Cancellation policy saved successfully!");
+      setIsPolicyModalOpen(false);
+    } catch (err) {
+      toast.error("Failed to save cancellation policy.");
+      console.error(err);
+    }
+  };
 
   // Fetch booking cancellations from API
   const {
@@ -123,10 +148,18 @@ export default function AdminBookingCancellationPage() {
       />
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2 ">
-          Booking Cancellation
-        </h1>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-[18px] md:text-[20px] font-bold text-gray-900 mb-2 ">
+            Booking Cancellation
+          </h1>
+        </div>
+        <Button
+          onClick={() => setIsPolicyModalOpen(true)}
+          className="text-xs md:text-sm"
+        >
+          Cancellation Policy
+        </Button>
       </div>
 
       {/* Search and Actions */}
@@ -268,6 +301,41 @@ export default function AdminBookingCancellationPage() {
           onReject={handleRejectCancellation}
           showActions={true}
         />
+      </Modal>
+
+      {/* Cancellation Policy Modal */}
+      <Modal
+        isOpen={isPolicyModalOpen}
+        onClose={() => setIsPolicyModalOpen(false)}
+        title="Manage Cancellation Policy"
+        size="md"
+      >
+        <div className="p-6">
+          <p className="text-sm text-gray-500 mb-4">
+            Specify the terms and conditions patients will see before confirming their booking cancellation.
+          </p>
+          <textarea
+            value={policyText}
+            onChange={(e) => setPolicyText(e.target.value)}
+            className="w-full h-48 p-3 border border-[var(--border)] rounded-lg text-sm mb-4 focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] focus:outline-none bg-[var(--card)] text-[var(--foreground)]"
+            placeholder="Enter cancellation terms..."
+          />
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline-neutral"
+              onClick={() => setIsPolicyModalOpen(false)}
+              disabled={isUpdatingPolicy}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSavePolicy}
+              disabled={isUpdatingPolicy}
+            >
+              {isUpdatingPolicy ? "Saving..." : "Save Policy"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
