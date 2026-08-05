@@ -14,6 +14,7 @@ import CustomToggle from "@/components/CustomToggle";
 import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import { useUpdateUserMutation } from "@/store/authApi";
+import Dropdown from "@/components/Dropdown";
 import ProfilePictureSection from "@/components/ProfilePictureSection";
 import { motion } from "framer-motion";
 import PillTabs from "@/components/Tabs/PillTabs";
@@ -366,15 +367,23 @@ export default function DoctorSettings() {
             {/* Profile Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Input
-                  label="Title"
-                  type="text"
+                <label className="input-label mb-1.5 block text-xs md:text-sm font-medium text-[var(--foreground)]">
+                  Title
+                </label>
+                <Dropdown
                   value={profileData.title}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, title: e.target.value })
+                  onChange={(val) =>
+                    setProfileData({ ...profileData, title: val })
                   }
-                  fullWidth
-                  placeholder="e.g. Dr., Prof."
+                  options={[
+                    { value: "Dr.", label: "Dr." },
+                    { value: "Prof.", label: "Prof." },
+                    { value: "Mr.", label: "Mr." },
+                    { value: "Mrs.", label: "Mrs." },
+                    { value: "Ms.", label: "Ms." },
+                  ]}
+                  placeholder="Select Title"
+                  className="w-full"
                 />
               </div>
 
@@ -418,15 +427,21 @@ export default function DoctorSettings() {
               </div>
 
               <div>
-                <Input
-                  label="Gender"
-                  type="text"
+                <label className="input-label mb-1.5 block text-xs md:text-sm font-medium text-[var(--foreground)]">
+                  Gender
+                </label>
+                <Dropdown
                   value={profileData.gender}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, gender: e.target.value })
+                  onChange={(val) =>
+                    setProfileData({ ...profileData, gender: val })
                   }
-                  fullWidth
-                  placeholder="e.g. Male, Female"
+                  options={[
+                    { value: "Male", label: "Male" },
+                    { value: "Female", label: "Female" },
+                    { value: "Other", label: "Other" },
+                  ]}
+                  placeholder="Select Gender"
+                  className="w-full"
                 />
               </div>
 
@@ -478,17 +493,6 @@ export default function DoctorSettings() {
                   fullWidth
                 />
               </div>
-
-              {/* <div>
-                <Input
-                  label="Doctor ID"
-                  type="text"
-                  value={profileData.doctorId}
-                  disabled
-                  fullWidth
-                  className="bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div> */}
 
               <div>
                 <Input

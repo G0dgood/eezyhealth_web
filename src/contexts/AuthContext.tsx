@@ -111,17 +111,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (user) {
         setUserInfoLoading(true);
         try {
+          const { collection, query, where, getDocs } = await import("firebase/firestore");
           // Use fetchUserData to be consistent with login logic (handles docId != uid)
           const data = await fetchUserData(user.uid);
 
           if (data) {
+            let roleSpecificData = {};
+            try {
+              if (data.role === "doctor") {
+                const docProfilesRef = collection(db, "doctorProfiles");
+                const q = query(docProfilesRef, where("doctorId", "==", user.uid));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                  roleSpecificData = snap.docs[0].data();
+                }
+              } else if (data.role === "nurse") {
+                const nurseProfilesRef = collection(db, "nurseProfiles");
+                const q = query(nurseProfilesRef, where("nurseId", "==", user.uid));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                  roleSpecificData = snap.docs[0].data();
+                }
+              }
+            } catch (err) {
+              console.error("Error fetching role specific profile:", err);
+            }
+
             // Ensure essential fields are present
             const fullUserInfo = {
               ...data,
+              ...roleSpecificData,
               uid: user.uid,
               email: user.email || data.email,
-              displayName: user.displayName || data.displayName || data.display_name,
-              photoURL: user.photoURL || data.photoURL || data.photo_url,
+              displayName: user.displayName || data.displayName || data.display_name || (roleSpecificData as any).display_name,
+              photoURL: user.photoURL || data.photoURL || data.photo_url || (roleSpecificData as any).photo_url,
             };
 
             setUserInfo(fullUserInfo as UserInfo);

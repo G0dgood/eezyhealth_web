@@ -50,6 +50,133 @@ export const uploadApi = api.injectEndpoints({
       providesTags: ["Upload"],
     }),
 
+    // Read a single doctor's uploaded documents (for the doctor's own page
+    // and the access gate). Matches the mobile shape: uploads/{doctorId}.documents[]
+    getUploadsByDoctorId: builder.query({
+      async queryFn(doctorId: string) {
+        try {
+          const { doc, getDoc, collection, query, where, getDocs } =
+            await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+
+          if (!doctorId) return { data: { documents: [] } };
+
+          let documents: any[] = [];
+          const snap = await getDoc(doc(db, "uploads", doctorId));
+          if (snap.exists()) {
+            const d = snap.data();
+            documents = Array.isArray(d.documents) ? d.documents : [];
+          } else {
+            // Fallback for legacy docs keyed by an auto-id with a doctorId field.
+            const qs = await getDocs(
+              query(collection(db, "uploads"), where("doctorId", "==", doctorId))
+            );
+            qs.forEach((dd) => {
+              const d = dd.data();
+              if (Array.isArray(d.documents)) documents.push(...d.documents);
+            });
+          }
+          return { data: { documents } };
+        } catch (error) {
+          console.error("Error fetching doctor uploads:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
+      providesTags: ["Upload"],
+    }),
+
+    // Doctor uploads a verification document from the web. Writes the same
+    // shape the mobile app uses so the admin review + gating work identically.
+    uploadDoctorDocument: builder.mutation({
+      async queryFn({ doctorId, doctorName, specialization, description, file }) {
+        try {
+          if (!doctorId || !file) {
+            return {
+              error: {
+                status: "CUSTOM_ERROR",
+                error: "Missing doctor id or file.",
+              },
+            };
+          }
+
+          const {
+            doc,
+            getDoc,
+            setDoc,
+            updateDoc,
+            arrayUnion,
+            serverTimestamp,
+          } = await import("firebase/firestore");
+          const { ref, uploadBytes, getDownloadURL } = await import(
+            "firebase/storage"
+          );
+          const { db, storage } = await import("@/lib/firebase");
+
+          const timestamp = Date.now();
+          const safeName = (file.name || "document").replace(
+            /[^a-zA-Z0-9._-]/g,
+            "_"
+          );
+          const storageRef = ref(
+            storage,
+            `doctor-documents/${doctorId}/${timestamp}_${safeName}`
+          );
+          await uploadBytes(storageRef, file);
+          const downloadUrl = await getDownloadURL(storageRef);
+
+          const documentData = {
+            id: `doc_${timestamp}`,
+            fileName: file.name,
+            downloadUrl,
+            uploadDate: new Date().toISOString(),
+            status: "pending",
+            description: description || "",
+            specialization: specialization || "",
+            mimeType: file.type || "application/octet-stream",
+            comment: "",
+            reviewedAt: null,
+            reviewedBy: null,
+          };
+
+          const uploadsDocRef = doc(db, "uploads", doctorId);
+          const existing = await getDoc(uploadsDocRef);
+          if (existing.exists()) {
+            await updateDoc(uploadsDocRef, {
+              documents: arrayUnion(documentData),
+              updatedAt: serverTimestamp(),
+              ...(doctorName ? { doctorName } : {}),
+            });
+          } else {
+            await setDoc(uploadsDocRef, {
+              doctorId,
+              specialization: specialization || "",
+              doctorName: doctorName || "",
+              documents: [documentData],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          }
+
+          return { data: { success: true, document: documentData } };
+        } catch (error: any) {
+          console.error("Error uploading doctor document:", error);
+          return {
+            error: {
+              status: error?.code || "CUSTOM_ERROR",
+              error: error?.message || "Failed to upload document.",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Upload"],
+    }),
+
     updateUploadStatus: builder.mutation({
       async queryFn({
         uploadId,
@@ -219,6 +346,8 @@ export const uploadApi = api.injectEndpoints({
 
 export const {
   useGetUploadsQuery,
+  useGetUploadsByDoctorIdQuery,
+  useUploadDoctorDocumentMutation,
   useUpdateUploadStatusMutation,
 } = uploadApi;
 

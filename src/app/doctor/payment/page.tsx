@@ -252,8 +252,8 @@ export default function DoctorPaymentPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)]">
-                        {payment.slot}
+                      <div className=" text-[10px]  md:text-[12px] text-[var(--foreground)] capitalize">
+                        {payment.slot ? String(payment.slot).replace(/_/g, " ") : "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

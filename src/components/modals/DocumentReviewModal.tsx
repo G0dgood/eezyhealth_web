@@ -83,8 +83,9 @@ export default function DocumentReviewModal({
     // Get comment from individual doc comment or general comment
     const docComment = docComments[doc.id] || reviewComment;
 
-    if (!docComment.trim()) {
-      toast.warning("Please enter a review comment for this document.");
+    // A comment is only required when rejecting — approvals can be one-click.
+    if (newStatus === "rejected" && !docComment.trim()) {
+      toast.warning("Please enter a review comment when rejecting a document.");
       return;
     }
 
@@ -103,7 +104,7 @@ export default function DocumentReviewModal({
         name: (doc.name ?? doc.fileName) || "Document",
         downloadUrl: doc.downloadUrl || "",
         status: newStatus,
-        comment: docComment,
+        comment: docComment.trim() || "Approved by admin",
         reviewedBy: currentReviewer,
       }).unwrap();
 
@@ -171,45 +172,36 @@ export default function DocumentReviewModal({
     }));
   };
 
-  // Approve all selected documents
-  const handleApproveAll = async () => {
-    if (!reviewComment.trim()) {
-      toast.warning("Please enter a review comment.");
-      return;
-    }
-
-    if (selectedDocs.size === 0) {
-      toast.warning("Please select at least one document to approve.");
+  // Approve a batch of documents in one go. `docsToApprove` defaults to the
+  // checkbox selection; the "Approve All Pending" button passes every pending
+  // doc so the admin can clear a doctor in a single click. Comments are
+  // optional for approvals.
+  const approveBatch = async (docsToApprove: DocItem[]) => {
+    const pending = docsToApprove.filter((doc) => doc.status === "pending");
+    if (pending.length === 0) {
+      toast.warning("No pending documents to approve.");
       return;
     }
 
     setActionType("approved");
 
     try {
-      const selectedDocuments = documents.filter((doc) =>
-        selectedDocs.has(doc.id)
-      );
-
-      // Approve each selected document
-      for (const doc of selectedDocuments) {
-        if (doc.status === "pending") {
-          const docComment = docComments[doc.id] || reviewComment;
-          await updateUploadStatus({
-            uploadId: doc.id,
-            doctorId: (doctorIdForDocs as string) || "",
-            name: (doc.name ?? doc.fileName) || "Document",
-            downloadUrl: doc.downloadUrl || "",
-            status: "approved",
-            comment: docComment,
-            reviewedBy: currentReviewer,
-          }).unwrap();
-        }
+      for (const doc of pending) {
+        const docComment =
+          docComments[doc.id] || reviewComment.trim() || "Approved by admin";
+        await updateUploadStatus({
+          uploadId: doc.id,
+          doctorId: (doctorIdForDocs as string) || "",
+          name: (doc.name ?? doc.fileName) || "Document",
+          downloadUrl: doc.downloadUrl || "",
+          status: "approved",
+          comment: docComment,
+          reviewedBy: currentReviewer,
+        }).unwrap();
       }
 
-      toast.success(
-        `${selectedDocuments.length} document(s) approved successfully.`
-      );
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success(`${pending.length} document(s) approved successfully.`);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       setSelectedDocs(new Set());
       onClose();
     } catch (error: any) {
@@ -221,6 +213,18 @@ export default function DocumentReviewModal({
       setActionType(null);
     }
   };
+
+  // Approve the currently checkbox-selected documents.
+  const handleApproveAll = async () => {
+    if (selectedDocs.size === 0) {
+      toast.warning("Please select at least one document to approve.");
+      return;
+    }
+    await approveBatch(documents.filter((doc) => selectedDocs.has(doc.id)));
+  };
+
+  // One-click: approve every pending document for this doctor.
+  const handleApproveAllPending = () => approveBatch(pendingDocs);
 
   return (
     <Modal
@@ -249,22 +253,41 @@ export default function DocumentReviewModal({
                   Select All ({pendingDocs.length} pending)
                 </span>
               </label>
-              {selectedDocs.size > 0 && (
+              <div className="flex items-center gap-2">
+                {selectedDocs.size > 0 && (
+                  <button
+                    onClick={handleApproveAll}
+                    disabled={isSubmitting}
+                    className="px-4 py-1.5  text-[10px]  md:text-[12px] bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <SVGLoader width="14px" height="14px" color="#FFF" />
+                        Approving...
+                      </span>
+                    ) : (
+                      `Approve Selected (${selectedDocs.size})`
+                    )}
+                  </button>
+                )}
                 <button
-                  onClick={handleApproveAll}
+                  onClick={handleApproveAllPending}
                   disabled={isSubmitting}
-                  className="px-4 py-1.5  text-[10px]  md:text-[12px] bg-[var(--primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] md:text-[12px] bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2">
+                  {isSubmitting && actionType === "approved" ? (
+                    <>
                       <SVGLoader width="14px" height="14px" color="#FFF" />
                       Approving...
-                    </span>
+                    </>
                   ) : (
-                    `Approve Selected (${selectedDocs.size})`
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      Approve All Pending ({pendingDocs.length})
+                    </>
                   )}
                 </button>
-              )}
+              </div>
             </div>
           )}
 

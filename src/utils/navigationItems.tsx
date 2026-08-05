@@ -13,6 +13,7 @@ import {
   Activity,
   MessageCircle,
   Contact,
+  CircleDollarSign,
 } from "lucide-react";
 
 export interface NavItem {
@@ -125,6 +126,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/payment`,
       },
       {
+        id: "document",
+        label: "Documents",
+        icon: <Upload className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/document`,
+      },
+      {
         id: "settings",
         label: "Settings",
         icon: <Settings className="w-5 h-5" />,
@@ -210,6 +217,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Payment",
         icon: <CreditCard className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/payment`,
+      },
+      {
+        id: "pricing",
+        label: "Booking Price",
+        icon: <CircleDollarSign className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/pricing`,
       },
       {
         id: "document",

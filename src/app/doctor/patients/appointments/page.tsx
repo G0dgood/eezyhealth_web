@@ -77,7 +77,7 @@ export default function DoctorPatientAppointmentsPage() {
         time,
         period,
         status,
-        channel: booking?.channel || "N/A",
+        channel: booking?.bookingChannel || booking?.channel || "N/A",
         channelId: booking?.channelId,
         bookingData: booking,
       };
@@ -215,7 +215,7 @@ export default function DoctorPatientAppointmentsPage() {
                     {/* Booking Info Column */}
                     <td>
                       <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
-                        ID: {appointment.bookingId.slice(0, 8)}...
+                        ID: {appointment.bookingId ? `${appointment.bookingId.slice(0, 8)}...` : "N/A"}
                       </div>
                       <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
                         {appointment.channel}

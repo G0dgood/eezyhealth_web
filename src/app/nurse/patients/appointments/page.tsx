@@ -79,7 +79,7 @@ export default function NursePatientAppointmentsPage() {
         time,
         period,
         status,
-        channel: booking?.channel || "N/A",
+        channel: booking?.bookingChannel || booking?.channel || "N/A",
         consultationNote: booking?.consultationNote || booking?.doctorComment,
         doctorRecommendation: booking?.doctorRecommendation,
         diagnosis: booking?.diagnosis,
@@ -220,7 +220,7 @@ export default function NursePatientAppointmentsPage() {
                     {/* Booking Info Column */}
                     <td>
                       <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
-                        ID: {appointment.bookingId.slice(0, 8)}...
+                        ID: {appointment.bookingId ? `${appointment.bookingId.slice(0, 8)}...` : "N/A"}
                       </div>
                       <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
                         {appointment.channel}

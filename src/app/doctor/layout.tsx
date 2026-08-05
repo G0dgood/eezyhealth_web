@@ -12,7 +12,12 @@ import { ClipboardList, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import VideoProvider from "@/components/VideoProvider";
 import { useCreateStreamTokenMutation } from "@/store/streamChatApi";
+import { useGetUploadsByDoctorIdQuery } from "@/store/uploadApi";
 import { streamApiKey } from "@/lib/config";
+
+// The ONLY route an unverified doctor may visit — everything else is blocked
+// until their documents are approved.
+const ALLOWED_WHILE_UNVERIFIED = ["/doctor/document"];
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,6 +33,46 @@ function DoctorLayout({ children }: LayoutProps) {
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+
+  // ── Document-verification gate ──────────────────────────────────────────
+  // A doctor can only access core features once they have at least one
+  // approved document and no pending ones (same rule as the mobile app).
+  const doctorId = authUser?.uid || "";
+  const { data: uploadsData, isLoading: uploadsLoading } =
+    useGetUploadsByDoctorIdQuery(doctorId, { skip: !doctorId });
+  const docs: any[] = uploadsData?.documents || [];
+  const hasApprovedDoc = docs.some(
+    (d) => (d.status || "").toLowerCase() === "approved"
+  );
+  const hasPendingDoc = docs.some(
+    (d) => (d.status || "").toLowerCase() === "pending"
+  );
+  const canAccessCoreFeatures = hasApprovedDoc && !hasPendingDoc;
+
+  const isAllowedWhileUnverified = ALLOWED_WHILE_UNVERIFIED.some((p) =>
+    pathname?.startsWith(p)
+  );
+
+  useEffect(() => {
+    if (authLoading || userInfoLoading || uploadsLoading) return;
+    if (!authUser) return;
+    const role = (userInfo as any)?.role;
+    if (role && role !== "doctor") return; // only gate doctors
+    if (canAccessCoreFeatures) return; // verified — full access
+    if (!isAllowedWhileUnverified) {
+      router.replace("/doctor/document");
+    }
+  }, [
+    authLoading,
+    userInfoLoading,
+    uploadsLoading,
+    authUser,
+    userInfo,
+    canAccessCoreFeatures,
+    isAllowedWhileUnverified,
+    pathname,
+    router,
+  ]);
 
   // Stream Video Token Logic
   const [streamToken, setStreamToken] = useState<string>("");

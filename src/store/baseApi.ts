@@ -34,6 +34,7 @@ export const api = createApi({
     "PatientAppointments",
     "PatientVitals",
     "Contacts",
+    "Pricing",
   ],
   endpoints: () => ({}),
 });
