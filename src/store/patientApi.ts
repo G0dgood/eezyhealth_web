@@ -60,6 +60,29 @@ export const patientApi = api.injectEndpoints({
             firebaseConstraints.where("role", "==", "patient"),
           ]);
 
+          let profilesData: any[] = [];
+          try {
+            profilesData = await createFirebaseQuery("patientProfiles");
+          } catch (profileError) {
+            console.error("Error fetching patient profiles, merging will be skipped:", profileError);
+          }
+
+          patientsData = patientsData.map((user: any) => {
+            const profile = profilesData.find(
+              (p: any) => p.patientId === user.uid || p.patientId === user.id || p.id === user.uid
+            );
+            return {
+              ...user,
+              gender: profile?.gender || user.gender || "",
+              date_of_birth: profile?.date_of_birth || user.date_of_birth || user.dateOfBirth || "",
+              address: profile?.address || user.address || "",
+              city: profile?.city || user.city || "",
+              location: profile?.location || user.location || "",
+              hmo: profile?.hmo || user.hmo || "",
+              medical_history: profile?.medical_history || user.medical_history || "",
+            };
+          });
+
           if (arg.search) {
             const searchLower = arg.search.toLowerCase();
             patientsData = patientsData.filter(

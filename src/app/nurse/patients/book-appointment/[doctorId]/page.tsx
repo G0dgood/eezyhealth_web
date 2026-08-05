@@ -16,6 +16,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { useSearchParams } from "next/navigation";
 import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi";
 import { useGetBookingsByDoctorIdQuery } from "@/store/bookingApi";
+import { useGetPricingQuery } from "@/store/pricingApi";
 import { toast } from "sonner";
 import { communicationChannels, renderStars } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
@@ -87,6 +88,9 @@ export default function DoctorBookingPage({
   const { data: bookingsData } = useGetBookingsByDoctorIdQuery(doctorId, {
     skip: !doctorId,
   });
+
+  // Fetch pricing data
+  const { data: pricingData, isLoading: isPricingLoading } = useGetPricingQuery({});
 
   // Type assertion to ensure proper typing
   const doctor = doctorData as Doctor | undefined;
@@ -420,6 +424,16 @@ export default function DoctorBookingPage({
                   <span className="truncate">{doctor.address}</span>
                 </div>
               )}
+            </div>
+
+            {/* Consultation Fee */}
+            <div className="mt-4 pt-4 border-t border-gray-200 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-medium text-gray-500">Consultation Fee</span>
+                <span className="text-[16px] font-bold text-[#44CE2D]">
+                  {isPricingLoading ? "..." : `₦${(pricingData?.pricing || 0).toLocaleString()}`}
+                </span>
+              </div>
             </div>
 
             {/* About Section */}

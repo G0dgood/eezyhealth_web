@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { toast } from "sonner";
 import { useCreateDoctorAppointmentMutation } from "@/store/bookingApi";
+import { useGetPricingQuery } from "@/store/pricingApi";
 // import axios from "axios";
 import { formatTime } from "@/components/Options";
 import moment from "moment";
@@ -97,8 +98,10 @@ export default function PaymentPage() {
   const reason = searchParams.get("reason");
   const patientId = searchParams.get("patientId");
 
-  // Calculate consultation fee (you can make this dynamic based on doctor/specialization)
-  const consultationFee = 10000; // N10,000 in kobo
+  // Calculate consultation fee (fetched dynamically from Admin pricing)
+  const { data: pricingData } = useGetPricingQuery({});
+  const consultationPrice = pricingData?.pricing || 0;
+  const consultationFee = consultationPrice * 100; // Amount in kobo for Paystack
 
   useEffect(() => {
     // Validate required parameters

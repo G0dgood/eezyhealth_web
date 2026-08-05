@@ -364,11 +364,108 @@ export const bookingApi = api.injectEndpoints({
 
     // Create doctor appointment booking
     createDoctorAppointment: builder.mutation({
-      query: ({ patientId, doctorId, bookingData }) => ({
-        url: `/bookDoctorAppointment/${patientId}/${doctorId}`,
-        method: "POST",
-        body: bookingData,
-      }),
+      async queryFn({ patientId, doctorId, bookingData }, _api, _extraOptions, baseQuery) {
+        try {
+          const result = await baseQuery({
+            url: `/bookDoctorAppointment/${patientId}/${doctorId}`,
+            method: "POST",
+            body: bookingData,
+          });
+
+          if (result.error) {
+            return { error: result.error };
+          }
+
+          const responseData = result.data as any;
+
+          // Create notification in Firestore synchronously
+          try {
+            const { collection, addDoc, serverTimestamp } = await import("firebase/firestore");
+            const { db } = await import("@/lib/firebase");
+
+            const patientName =
+              bookingData.patientName ||
+              bookingData.patientDisplayName ||
+              bookingData.patientFullName ||
+              "A patient";
+
+            // Readable date / slot info
+            const timeLabel = bookingData.slot || "";
+            const dateStr = bookingData.bookingDate || "";
+            const whenText = [dateStr, timeLabel].filter(Boolean).join(" at ");
+            const description = whenText
+              ? `${patientName} booked an appointment on ${whenText}.`
+              : `${patientName} booked an appointment.`;
+
+            // Create notification doc for doctor (which nurse also sees via the global feed)
+            await addDoc(collection(db, "notifications"), {
+              userId: doctorId,
+              patientId: null,
+              doctorId: doctorId,
+              title: "New Appointment Booked",
+              description,
+              type: "appointment_booking",
+              isRead: false,
+              isReadByNurse: false,
+              isReadByAdmin: false,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              deleted: false,
+              deletedByNurse: false,
+              deletedByAdmin: false,
+              data: {
+                type: "appointment_booking",
+                bookingId: responseData?.bookingId || null,
+                patientId: patientId,
+                patientName,
+                slot: bookingData.slot || null,
+              },
+            });
+
+            // Notify patient too
+            if (patientId) {
+              const doctorName = bookingData.doctorName || "your doctor";
+              const patientDescription = whenText
+                ? `Your appointment with ${doctorName} is booked for ${whenText}. We'll let you know once it's confirmed.`
+                : `Your appointment with ${doctorName} has been booked. We'll let you know once it's confirmed.`;
+
+              await addDoc(collection(db, "notifications"), {
+                userId: patientId,
+                patientId: patientId,
+                doctorId: null,
+                title: "Appointment Booked",
+                description: patientDescription,
+                type: "appointment_booking",
+                isRead: false,
+                isReadByNurse: false,
+                isReadByAdmin: false,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                deleted: false,
+                deletedByNurse: false,
+                deletedByAdmin: false,
+                data: {
+                  type: "appointment_booking",
+                  bookingId: responseData?.bookingId || null,
+                  doctorId: doctorId,
+                  slot: bookingData.slot || null,
+                },
+              });
+            }
+          } catch (notifErr) {
+            console.error("Failed to create booking notifications:", notifErr);
+          }
+
+          return { data: responseData };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
       invalidatesTags: ["Booking", "Appointment"],
     }),
   }),
