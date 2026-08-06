@@ -18,7 +18,7 @@ import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi"
 import { useGetBookingsByDoctorIdQuery } from "@/store/bookingApi";
 import { useGetPricingQuery } from "@/store/pricingApi";
 import { toast } from "sonner";
-import { communicationChannels, renderStars } from "@/components/Options";
+import { communicationChannels, renderStars, convertSlotToTime } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
 import { BookingConfirmationModal } from "@/components/modals";
 import { DoctorBookingSkeleton } from "@/components/ui/doctor-booking-skeleton";
@@ -173,6 +173,39 @@ export default function DoctorBookingPage({
 
       return String(booking.slot || "").trim().toLowerCase() === String(timeSlot).trim().toLowerCase();
     });
+  };
+
+  const isSlotPassed = (timeSlot: string): boolean => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    
+    const d1 = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (d1 < d2) return true;
+    if (d1 > d2) return false;
+
+    // Same day, check time slot
+    const timeStr = convertSlotToTime(timeSlot);
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return false;
+
+    let [_, hoursStr, minutesStr, ampm] = match;
+    let hours = parseInt(hoursStr, 10);
+    const minutes = parseInt(minutesStr, 10);
+
+    if (ampm.toUpperCase() === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (ampm.toUpperCase() === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    const currentHours = today.getHours();
+    const currentMinutes = today.getMinutes();
+
+    if (hours < currentHours) return true;
+    if (hours === currentHours && minutes <= currentMinutes) return true;
+    return false;
   };
 
   // Count booked appointments for a calendar date
@@ -552,19 +585,22 @@ export default function DoctorBookingPage({
                  {Object.entries(selectedDayAvailability).map(
                   ([timeSlot, status]) => {
                     const booked = isSlotBooked(timeSlot);
+                    const passed = isSlotPassed(timeSlot);
                     return (
                       <button
                         key={timeSlot}
                         onClick={() => setSelectedTime(timeSlot)}
-                        disabled={booked || status !== "available"}
+                        disabled={booked || passed || status !== "available"}
                         className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg border transition-colors cursor-pointer ${
                           booked
                             ? "bg-blue-50 text-blue-700 border-blue-300 cursor-not-allowed"
-                            : selectedTime === timeSlot
-                              ? "bg-green-500 text-white border-green-500"
-                              : status === "available"
-                                ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
-                                : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            : passed
+                              ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
+                              : selectedTime === timeSlot
+                                ? "bg-green-500 text-white border-green-500"
+                                : status === "available"
+                                  ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                                  : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                         }`}
                       >
                         {timeSlot
@@ -572,6 +608,7 @@ export default function DoctorBookingPage({
                           .replace(/([A-Z])/g, " $1")
                           .trim()}
                         {booked && " (Booked)"}
+                        {passed && " (Passed)"}
                       </button>
                     );
                   }

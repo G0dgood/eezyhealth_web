@@ -4,6 +4,7 @@ import Modal from "./Modal";
 import Input from "../Input";
 import { useGetFirebaseDoctorProfileByIdQuery } from "@/store/doctorFirebaseApi";
 import { useGetBookingsByDoctorIdQuery } from "@/store/bookingApi";
+import { convertSlotToTime } from "../Options";
 
 interface RescheduleModalProps {
  isOpen: boolean;
@@ -148,6 +149,39 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
    return String(booking.slot || "").trim().toLowerCase() === String(timeSlot).trim().toLowerCase();
   });
  };
+
+  const isSlotPassed = (timeSlot: string): boolean => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    
+    const d1 = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (d1 < d2) return true;
+    if (d1 > d2) return false;
+
+    // Same day, check time slot
+    const timeStr = convertSlotToTime(timeSlot);
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return false;
+
+    let [_, hoursStr, minutesStr, ampm] = match;
+    let hours = parseInt(hoursStr, 10);
+    const minutes = parseInt(minutesStr, 10);
+
+    if (ampm.toUpperCase() === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (ampm.toUpperCase() === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    const currentHours = today.getHours();
+    const currentMinutes = today.getMinutes();
+
+    if (hours < currentHours) return true;
+    if (hours === currentHours && minutes <= currentMinutes) return true;
+    return false;
+  };
 
  const getBookingsCountForDate = (date: Date): number => {
   if (!bookingsData) return 0;
@@ -359,33 +393,37 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
          Available Times for {selectedDate ? getDayName(selectedDate) : ""}
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-         {Object.entries(selectedDayAvailability).map(
-          ([timeSlot, status]) => {
-           const booked = isSlotBooked(timeSlot);
-           return (
-            <button
-             type="button"
-             key={timeSlot}
-             onClick={() => setSelectedTime(timeSlot)}
-             disabled={booked || status !== "available"}
-             className={`p-2.5 text-xs md:text-sm rounded-lg border transition-colors cursor-pointer font-medium ${booked
-               ? "bg-blue-50 text-blue-700 border-blue-200 cursor-not-allowed"
-               : selectedTime === timeSlot
-                ? "bg-green-500 text-white border-green-500 shadow-sm"
-                : status === "available"
-                 ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
-                 : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-              }`}
-            >
-             {timeSlot
-              .replace(/_/g, " ")
-              .replace(/([A-Z])/g, " $1")
-              .trim()}
-             {booked && " (Booked)"}
-            </button>
-           );
-          }
-         )}
+          {Object.entries(selectedDayAvailability).map(
+           ([timeSlot, status]) => {
+            const booked = isSlotBooked(timeSlot);
+            const passed = isSlotPassed(timeSlot);
+            return (
+             <button
+              type="button"
+              key={timeSlot}
+              onClick={() => setSelectedTime(timeSlot)}
+              disabled={booked || passed || status !== "available"}
+              className={`p-2.5 text-xs md:text-sm rounded-lg border transition-colors cursor-pointer font-medium ${booked
+                ? "bg-blue-50 text-blue-700 border-blue-200 cursor-not-allowed"
+                : passed
+                 ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
+                 : selectedTime === timeSlot
+                  ? "bg-green-500 text-white border-green-500 shadow-sm"
+                  : status === "available"
+                   ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                   : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+               }`}
+             >
+              {timeSlot
+               .replace(/_/g, " ")
+               .replace(/([A-Z])/g, " $1")
+               .trim()}
+              {booked && " (Booked)"}
+              {passed && " (Passed)"}
+             </button>
+            );
+           }
+          )}
         </div>
        </div>
       )}

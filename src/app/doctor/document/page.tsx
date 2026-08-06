@@ -10,12 +10,14 @@ import {
   Clock,
   AlertTriangle,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useGetUploadsByDoctorIdQuery,
   useUploadDoctorDocumentMutation,
+  useDeleteDoctorDocumentMutation,
 } from "@/store/uploadApi";
 import { SVGLoader } from "@/components/SVGLoader";
 import FormattedDate from "@/utils/FormattedDate";
@@ -36,6 +38,27 @@ export default function DoctorDocumentPage() {
   });
   const [uploadDoctorDocument, { isLoading: isUploading }] =
     useUploadDoctorDocumentMutation();
+  const [deleteDoctorDocument, { isLoading: isDeleting }] =
+    useDeleteDoctorDocumentMutation();
+
+  const handleDeleteDocument = async (docItem: any) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this document? This action cannot be undone."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoctorDocument({
+        doctorId,
+        documentId: docItem.id,
+        downloadUrl: docItem.downloadUrl || "",
+      }).unwrap();
+      toast.success("Document deleted successfully.");
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.error || "Failed to delete document.");
+    }
+  };
 
   const [docType, setDocType] = useState(DOC_TYPES[0]);
   const [files, setFiles] = useState<File[]>([]);
@@ -307,6 +330,16 @@ export default function DoctorDocumentPage() {
                     >
                       <Eye className="w-4 h-4" />
                     </a>
+                  )}
+                  {doc.status !== "approved" && (
+                    <button
+                      onClick={() => handleDeleteDocument(doc)}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      title="Delete"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusBadge(

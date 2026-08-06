@@ -235,44 +235,16 @@ export const uploadApi = api.injectEndpoints({
                
 
               // Find the document in the documents array
-              // Prioritize exact ID match first, then URL, then filename
+              // Match by name only (as per business requirement: Document approval does not use ID, it uses name)
               const docIndex = uploadData.documents.findIndex(
                 (docItem: any) => {
-                  const idMatch = docItem.id === uploadId;
-                  const urlMatch = docItem.downloadUrl === downloadUrl;
-                  const nameMatch =
-                    docItem.fileName === name || docItem.name === name;
-
-                   
-
-                  matchAttempts.push({
-                    docId: docItem.id,
-                    url: docItem.downloadUrl,
-                    fileName: docItem.fileName || docItem.name,
-                    match: { id: idMatch, url: urlMatch, name: nameMatch },
-                  });
-
-                  // Prioritize ID match first (most reliable)
-                  if (idMatch) {
-                   
-                    return true;
-                  }
-                  // Then try URL match if ID doesn't match
-                  if (urlMatch) { 
-                    return true;
-                  }
-                  // Finally try filename match
-                  if (nameMatch) { 
-                    return true;
-                  }
-                  return false;
+                  return docItem.fileName === name || docItem.name === name;
                 }
               );
 
               if (docIndex !== -1) {
                 uploadDocToUpdate = uploadDoc;
                 finalDocIndex = docIndex;
-                 
                 break; // Exit the loop once we found the document
               }
             }
@@ -280,11 +252,27 @@ export const uploadApi = api.injectEndpoints({
 
           if (uploadDocToUpdate && finalDocIndex !== -1) {
             const uploadData = uploadDocToUpdate.data();
-             
+
+            // Validate that documents with the same name cannot be approved
+            if (status === "approved") {
+              const duplicateExists = uploadData.documents.some((docItem: any, idx: number) => {
+                if (idx === finalDocIndex) return false;
+                const docName = docItem.fileName || docItem.name;
+                return docName === name;
+              });
+
+              if (duplicateExists) {
+                return {
+                  error: {
+                    status: "BAD_REQUEST",
+                    error: "Documents with the same name cannot be approved.",
+                  },
+                };
+              }
+            }
 
             // Update the specific document in the array
             const updatedDocuments = [...uploadData.documents];
-             
 
             // Preserve all existing fields and only update what's needed
             const currentDoc = updatedDocuments[finalDocIndex];
@@ -296,12 +284,10 @@ export const uploadApi = api.injectEndpoints({
               reviewedAt: new Date().toISOString(),
             };
 
-            
             await updateDoc(doc(db, "uploads", uploadDocToUpdate.id), {
               documents: updatedDocuments,
             });
 
-            
             updated = true;
           }
 
@@ -341,6 +327,88 @@ export const uploadApi = api.injectEndpoints({
       },
       invalidatesTags: ["Upload"],
     }),
+
+    deleteDoctorDocument: builder.mutation({
+      async queryFn({ doctorId, documentId, downloadUrl }) {
+        try {
+          const { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } =
+            await import("firebase/firestore");
+          const { ref, deleteObject } = await import("firebase/storage");
+          const { db, storage } = await import("@/lib/firebase");
+
+          if (!doctorId || !documentId) {
+            return {
+              error: {
+                status: "CUSTOM_ERROR",
+                error: "Missing doctorId or documentId.",
+              },
+            };
+          }
+
+          if (downloadUrl) {
+            try {
+              const decodedUrl = decodeURIComponent(downloadUrl);
+              const pathMatch = decodedUrl.match(/\/o\/(.+?)\?/);
+
+              if (pathMatch && pathMatch[1]) {
+                const storagePath = pathMatch[1];
+                const storageRef = ref(storage, storagePath);
+                await deleteObject(storageRef);
+              }
+            } catch (error) {
+              console.error("Storage deletion failed:", error);
+            }
+          }
+
+          try {
+            const uploadsDocRef = doc(db, "uploads", doctorId);
+            const uploadsDoc = await getDoc(uploadsDocRef);
+
+            if (uploadsDoc.exists()) {
+              const uploadsData = uploadsDoc.data() || {};
+              const documentsArray = Array.isArray(uploadsData.documents)
+                ? uploadsData.documents
+                : [];
+
+              const updatedDocuments = documentsArray.filter(
+                (docItem: any) =>
+                  docItem.id !== documentId &&
+                  docItem.downloadUrl !== downloadUrl
+              );
+
+              await updateDoc(uploadsDocRef, {
+                documents: updatedDocuments,
+                updatedAt: serverTimestamp(),
+              });
+            }
+          } catch (error) {
+            console.error("Firestore document update failed:", error);
+          }
+
+          // Delete legacy doc if it exists separately
+          try {
+            const legacyRef = doc(db, "uploads", documentId);
+            const legacyDoc = await getDoc(legacyRef);
+            if (legacyDoc.exists()) {
+              await deleteDoc(legacyRef);
+            }
+          } catch (error) {
+            // Ignore
+          }
+
+          return { data: { success: true } };
+        } catch (error: any) {
+          console.error("Error deleting doctor document:", error);
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: error?.message || "Failed to delete document",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Upload"],
+    }),
   }),
 });
 
@@ -349,6 +417,7 @@ export const {
   useGetUploadsByDoctorIdQuery,
   useUploadDoctorDocumentMutation,
   useUpdateUploadStatusMutation,
+  useDeleteDoctorDocumentMutation,
 } = uploadApi;
 
 

@@ -1579,34 +1579,9 @@ export const api = createApi({
             if (uploadData.documents && Array.isArray(uploadData.documents)) { 
               
               // Find the document in the documents array
-              // Prioritize exact ID match first, then URL, then filename
+              // Match by name only (as per business requirement: Document approval does not use ID, it uses name)
               const docIndex = uploadData.documents.findIndex((docItem: any) => {
-                const idMatch = docItem.id === uploadId;
-                const urlMatch = docItem.downloadUrl === downloadUrl;
-                const nameMatch = docItem.fileName === name || docItem.name === name;
-                
-                
-                
-                matchAttempts.push({
-                  docId: docItem.id,
-                  url: docItem.downloadUrl,
-                  fileName: docItem.fileName || docItem.name,
-                  match: { id: idMatch, url: urlMatch, name: nameMatch }
-                });
-                
-                // Prioritize ID match first (most reliable)
-                if (idMatch) { 
-                  return true;
-                }
-                // Then try URL match if ID doesn't match
-                if (urlMatch) { 
-                  return true;
-                }
-                // Finally try filename match
-                if (nameMatch) { 
-                  return true;
-                }
-                return false;
+                return docItem.fileName === name || docItem.name === name;
               });
               
               if (docIndex !== -1) {
@@ -1620,10 +1595,26 @@ export const api = createApi({
           if (uploadDocToUpdate && finalDocIndex !== -1) {
             const uploadData = uploadDocToUpdate.data();
           
+            // Validate that documents with the same name cannot be approved
+            if (status === "approved") {
+              const duplicateExists = uploadData.documents.some((docItem: any, idx: number) => {
+                if (idx === finalDocIndex) return false;
+                const docName = docItem.fileName || docItem.name;
+                return docName === name;
+              });
+
+              if (duplicateExists) {
+                return {
+                  error: {
+                    status: "BAD_REQUEST",
+                    error: "Documents with the same name cannot be approved.",
+                  },
+                };
+              }
+            }
             
             // Update the specific document in the array
             const updatedDocuments = [...uploadData.documents];
-            
             
             // Preserve all existing fields and only update what's needed
             const currentDoc = updatedDocuments[finalDocIndex];
@@ -1634,10 +1625,6 @@ export const api = createApi({
               reviewedBy: reviewedBy || currentDoc.reviewedBy,
               reviewedAt: new Date().toISOString(),
             };
-            
-             
-            
-            // Update the parent document
             
             await updateDoc(doc(db, "uploads", uploadDocToUpdate.id), {
               documents: updatedDocuments,

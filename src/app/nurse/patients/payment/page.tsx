@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, CreditCard, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, CheckCircle, Landmark } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -72,8 +72,14 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: "cash",
     name: "Cash Payment",
-    icon: <span className="text-green-600">₦</span>,
+    icon: <span className="text-green-600 font-bold text-xl">₦</span>,
     description: "Pay in cash at the hospital/clinic",
+  },
+  {
+    id: "transfer",
+    name: "Bank Transfer",
+    icon: <Landmark className="w-6 h-6 text-blue-600" />,
+    description: "Pay via direct bank transfer to the hospital account",
   },
 ];
 
@@ -142,8 +148,8 @@ export default function PaymentPage() {
       return;
     }
 
-    if (selectedPaymentMethod === "cash") {
-      handleCashPayment();
+    if (selectedPaymentMethod === "cash" || selectedPaymentMethod === "transfer") {
+      handleManualPayment(selectedPaymentMethod);
       return;
     }
 
@@ -153,24 +159,22 @@ export default function PaymentPage() {
     }
   };
 
-  const handleCashPayment = async () => {
+  const handleManualPayment = async (method: string) => {
     try {
       setIsProcessing(true);
 
-      // Simulate cash payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Create payment record in Firebase
+      await createPaymentInFirebase(method);
+      // Create the booking
+      await createBookingWithRTK();
 
       setIsSuccess(true);
-      toast.success("Cash payment confirmed!", {
-        description: "Please bring the exact amount on appointment day",
+      toast.success(`${method === "cash" ? "Cash" : "Bank Transfer"} payment confirmed!`, {
+        description: "Booking has been successfully created.",
       });
 
-      // Redirect to success page or dashboard after a delay
-      setTimeout(() => {
-        window.location.href = "/nurse/patients";
-      }, 3000);
     } catch (error) {
-      toast.error("Payment confirmation failed", {
+      toast.error("Booking confirmation failed", {
         description: "Please try again or contact support",
       });
     } finally {
@@ -272,7 +276,7 @@ export default function PaymentPage() {
     }
   };
 
-  const createPaymentInFirebase = async (paymentResponse: PaystackResponse) => {
+  const createPaymentInFirebase = async (method: string, reference?: string, trxref?: string) => {
     try {
       const { collection, addDoc } = await import("firebase/firestore");
       const { db } = await import("@/lib/firebase");
@@ -287,10 +291,10 @@ export default function PaymentPage() {
         reason: reason || "",
         amount: consultationFee,
         currency: "NGN",
-        paymentReference: paymentResponse.reference,
+        paymentReference: reference || `APPT_MANUAL_${Date.now()}`,
         paymentStatus: "completed",
-        paymentMethod: "paystack",
-        transactionId: paymentResponse.trxref || paymentResponse.reference,
+        paymentMethod: method,
+        transactionId: trxref || reference || `APPT_MANUAL_${Date.now()}`,
         paymentDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -312,7 +316,7 @@ export default function PaymentPage() {
       });
 
       // First, create payment record in Firebase
-      await createPaymentInFirebase(response);
+      await createPaymentInFirebase("paystack", response.reference, response.trxref);
       await createBookingWithRTK();
 
       setIsSuccess(true);
@@ -470,6 +474,10 @@ export default function PaymentPage() {
                     `Pay N${(
                       consultationFee / 100
                     ).toLocaleString()} with Paystack`
+                  ) : selectedPaymentMethod === "transfer" ? (
+                    `Confirm Bank Transfer N${(
+                      consultationFee / 100
+                    ).toLocaleString()}`
                   ) : (
                     `Confirm Cash Payment N${(
                       consultationFee / 100
