@@ -165,7 +165,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
     const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (!match) return false;
 
-    let [_, hoursStr, minutesStr, ampm] = match;
+    const [_, hoursStr, minutesStr, ampm] = match;
     let hours = parseInt(hoursStr, 10);
     const minutes = parseInt(minutesStr, 10);
 
