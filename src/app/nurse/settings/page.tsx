@@ -261,8 +261,9 @@ export default function NurseSettingsPage() {
         ...updateData,
       }).unwrap();
 
-      // Update localStorage with new data
-      const updatedUserInfo = { ...userInfo, ...updateData };
+      // Update localStorage and context with new data
+      const updatedUserInfo = { ...userInfo, ...updateData } as any;
+      setAuthUserInfo(updatedUserInfo);
       localStorage.setItem(
         "userInfo-eezy-health",
         JSON.stringify(updatedUserInfo)
@@ -289,11 +290,12 @@ export default function NurseSettingsPage() {
         updatedAt: new Date().toISOString(),
       }).unwrap();
 
-      // Update localStorage
+      // Update localStorage and context
       const updatedUserInfo = {
         ...userInfo,
         notification_preferences: notificationPrefs,
-      };
+      } as any;
+      setAuthUserInfo(updatedUserInfo);
       localStorage.setItem(
         "userInfo-eezy-health",
         JSON.stringify(updatedUserInfo)
