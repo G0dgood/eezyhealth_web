@@ -143,7 +143,11 @@ export default function NurseAudioCallPage() {
         };
 
         await streamCall.join({ create: true, data: callData });
-        await streamCall.update({ custom: callData.custom });
+        try {
+          await streamCall.update({ custom: callData.custom });
+        } catch (updateErr) {
+          console.warn("Failed to update call details client-side (role permission limit):", updateErr);
+        }
 
         // Ring and send started invite ONLY if we are NOT accepting an incoming call
         if (!isAccepting) {
@@ -176,8 +180,11 @@ export default function NurseAudioCallPage() {
             }
           }
         } else {
-          // Only accept if we are responding to an incoming call
-          await streamCall.accept();
+          try {
+            await streamCall.accept();
+          } catch (acceptErr) {
+            console.warn("Accept call failed (non-fatal if already joined/accepted):", acceptErr);
+          }
           try {
             const chatInfo = getStreamChatInfo();
             if (chatInfo && user) {
@@ -188,7 +195,8 @@ export default function NurseAudioCallPage() {
                 user.photoURL || "",
                 chatInfo.chatUserToken
               );
-              const channel = chatClient.channel("messaging", callId);
+              const targetChannelId = searchParams.get("channelId") || callId;
+              const channel = chatClient.channel("messaging", targetChannelId);
               await channel.sendMessage({
                 text: `📞 Call accepted`,
                 call_id: callId,

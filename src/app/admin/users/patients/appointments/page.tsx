@@ -47,10 +47,27 @@ export default function AdminPatientAppointmentsPage() {
   const appointments = useMemo(() => {
     if (!bookingsData) return [];
     return bookingsData.map((booking: any) => {
-      let status = "Upcoming";
-      if (booking.bookingStatus === "Completed") status = "Completed";
-      else if (booking.bookingStatus === "Cancelled") status = "Cancelled";
-      else if (booking.bookingStatus === "Accepted") status = "Upcoming";
+      const rawStatus = (booking.bookingStatus || "").toLowerCase();
+      const apptDateMillis = (() => {
+        const raw = booking.bookingDate;
+        if (!raw) return 0;
+        if (typeof raw === "object") {
+          const bDate = raw as any;
+          if (bDate._seconds) return bDate._seconds * 1000;
+          if (bDate.seconds) return bDate.seconds * 1000;
+        }
+        const t = new Date(raw).getTime();
+        return isNaN(t) ? 0 : t;
+      })();
+      const nowMillis = Date.now();
+      const isPassed = apptDateMillis < nowMillis && rawStatus !== "completed" && rawStatus !== "cancelled" && rawStatus !== "canceled" && rawStatus !== "missed" && rawStatus !== "accepted" && rawStatus !== "confirmed";
+
+      let tabStatus = "Upcoming";
+      if (rawStatus === "completed") tabStatus = "Completed";
+      else if (rawStatus === "cancelled" || rawStatus === "canceled" || rawStatus === "missed" || isPassed) tabStatus = "Cancelled";
+      else if (rawStatus === "accepted" || rawStatus === "pending") tabStatus = "Upcoming";
+
+      const displayStatus = isPassed ? "Passed" : booking.bookingStatus || "Pending";
 
       const time = convertSlotToTime(booking.slot || "");
       const period = booking.slot?.includes("morning")
@@ -78,7 +95,8 @@ export default function AdminPatientAppointmentsPage() {
         hospital: booking?.hospital || "Hospital not specified",
         time,
         period,
-        status,
+        status: tabStatus,
+        displayStatus,
         channel: booking?.bookingChannel || booking?.channel || "N/A",
         consultationNote: booking?.consultationNote || booking?.doctorComment,
         doctorRecommendation: booking?.doctorRecommendation,
@@ -240,7 +258,7 @@ export default function AdminPatientAppointmentsPage() {
 
                     {/* Status Column */}
                     <td>
-                      <StatusBadge status={appointment.status} />
+                      <StatusBadge status={appointment.displayStatus} />
                     </td>
 
                     {/* Actions Column */}

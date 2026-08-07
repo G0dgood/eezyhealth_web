@@ -175,7 +175,11 @@ export default function DoctorAudioCallPage() {
         });
 
         // Explicitly update to overwrite any existing callType on this channel/callId
-        await streamCall.update({ custom: callData.custom });
+        try {
+          await streamCall.update({ custom: callData.custom });
+        } catch (updateErr) {
+          console.warn("Failed to update call details client-side (role permission limit):", updateErr);
+        }
 
         // 2. Ring and send started invite ONLY if we are NOT accepting an incoming call
         if (!isAccepting) {

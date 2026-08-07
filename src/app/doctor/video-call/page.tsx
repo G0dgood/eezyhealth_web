@@ -115,7 +115,11 @@ export default function DoctorVideoCallPage() {
         // If the call already exists (e.g. from a previous audio call in the same channel),
         // join({ create: true }) won't update the custom data. We must explicitly update it.
         await streamCall.join({ create: true, data: callData });
-        await streamCall.update({ custom: callData.custom });
+        try {
+          await streamCall.update({ custom: callData.custom });
+        } catch (updateErr) {
+          console.warn("Failed to update call details client-side (role permission limit):", updateErr);
+        }
 
         const isAccepting = params.get("isAccepting") === "true";
 

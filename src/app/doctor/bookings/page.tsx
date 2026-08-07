@@ -122,11 +122,28 @@ export default function DoctorBookingsPage() {
             sb.bookingChannel === "physical"
               ? "Physical Booking"
               : "Online Booking",
-          status:
-            (sb.bookingStatus?.toLowerCase() as
-              | "confirmed"
-              | "pending"
-              | "cancelled") || "pending",
+          status: (() => {
+            const status = (sb.bookingStatus || "").toLowerCase();
+            const now = new Date();
+            let apptDate = null;
+            if (sb.bookingDate) {
+              const bDate = sb.bookingDate as any;
+              if (typeof bDate === "object") {
+                if (bDate._seconds) apptDate = new Date(bDate._seconds * 1000);
+                else if (bDate.seconds) apptDate = new Date(bDate.seconds * 1000);
+              } else {
+                apptDate = new Date(bDate);
+              }
+            }
+            const isPassed = apptDate && apptDate < now && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+
+            if (isPassed) return "passed" as any;
+            if (status === "accepted" || status === "confirmed")
+              return "confirmed" as any;
+            if (status === "cancelled" || status === "rejected")
+              return "cancelled" as any;
+            return "pending" as any;
+          })(),
           channel: (() => {
             const channel = (sb.bookingChannel || "").toLowerCase();
             if (channel.includes("video") || channel === "1")

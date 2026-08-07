@@ -10,6 +10,8 @@ import { ReduxProvider } from "@/providers/ReduxProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 
+import AppointmentReminderListener from "@/components/AppointmentReminderListener";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const faviconPath = process.env.NEXT_PUBLIC_FAVICON_PATH || "/favicon.ico";
@@ -42,6 +44,7 @@ export default function RootLayout({
         <ThemeProvider>
          <BadgeProvider>
           <NotificationProvider>
+           <AppointmentReminderListener />
            {children}
            <Toaster
             position="top-right"

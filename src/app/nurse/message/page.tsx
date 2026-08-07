@@ -255,6 +255,16 @@ export default function NurseMessagePage() {
       const userId = result.userId;
       const isProxy = result.isProxy !== false; // Default to true if undefined
 
+      if (token && userId) {
+        storeStreamChatInfo({
+          chatApiKey: streamApiKey || "",
+          chatUserId: userId,
+          chatUserName: patient.patientName || "Patient",
+          chatUserToken: token,
+          userRole: isProxy ? 'patient' : 'nurse'
+        });
+      }
+
       if (!proxyClient) {
         throw new Error("Failed to initialize proxy client");
       }
@@ -511,6 +521,13 @@ export default function NurseMessagePage() {
                           title="Voice Call"
                         >
                           <Phone className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleStartCall('video')}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
+                          title="Video Call"
+                        >
+                          <Video className="w-5 h-5" />
                         </button>
                       </div>
                     </div>

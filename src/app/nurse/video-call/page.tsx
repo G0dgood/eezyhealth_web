@@ -28,6 +28,7 @@ export default function NurseVideoCallPage() {
   const patientName = searchParams.get("patientName") || "Patient";
   const patientId = searchParams.get("patientId");
   const callId = searchParams.get("callId");
+  const channelId = searchParams.get("channelId");
   const isAccepting = searchParams.get("isAccepting") === "true";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
@@ -52,8 +53,8 @@ export default function NurseVideoCallPage() {
     navigatedRef.current = true;
     isCallEndedRef.current = true;
 
-    // Send call ended message to chat channel (guarded so we don't send twice)
-    if (callId && user) {
+    const targetChannelId = channelId || callId;
+    if (targetChannelId && user) {
       try {
         const chatInfo = getStreamChatInfo();
         if (chatInfo) {
@@ -64,7 +65,7 @@ export default function NurseVideoCallPage() {
             user.photoURL || "",
             chatInfo.chatUserToken
           );
-          const channel = chatClient.channel("messaging", callId);
+          const channel = chatClient.channel("messaging", targetChannelId);
           await channel.sendMessage({
             text: `📹 Video call ended`,
             call_id: callId,
@@ -176,7 +177,8 @@ export default function NurseVideoCallPage() {
                   user.photoURL || "",
                   chatInfo.chatUserToken
                 );
-                const channel = chatClient.channel("messaging", callId);
+                const targetChannelId = channelId || callId;
+                const channel = chatClient.channel("messaging", targetChannelId);
                 await channel.sendMessage({
                   text: `📹 Video call accepted`,
                   call_id: callId,

@@ -180,14 +180,28 @@ export default function Bookings({ doctorId }: { doctorId?: string } = {}) {
             mapChannel(booking.bookingChannel) === "physical"
               ? "Physical Booking"
               : "Online Booking",
-          status: ((s) => {
+          status: ((s, bookingDate) => {
             const status = (s || "").toLowerCase();
+            const now = new Date();
+            let apptDate = null;
+            if (bookingDate) {
+              const bDate = bookingDate as any;
+              if (typeof bDate === "object") {
+                if (bDate._seconds) apptDate = new Date(bDate._seconds * 1000);
+                else if (bDate.seconds) apptDate = new Date(bDate.seconds * 1000);
+              } else {
+                apptDate = new Date(bDate);
+              }
+            }
+            const isPassed = apptDate && apptDate < now && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+
+            if (isPassed) return "passed";
             if (status === "accepted" || status === "confirmed")
               return "confirmed";
             if (status === "cancelled" || status === "rejected")
               return "cancelled";
             return "pending";
-          })(booking.bookingStatus),
+          })(booking.bookingStatus, booking.bookingDate),
           channel: mapChannel(booking.bookingChannel),
           patientAge: booking.patientAge || 0,
           reason: booking.reason || "Consultation",

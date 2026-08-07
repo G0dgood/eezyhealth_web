@@ -2,8 +2,9 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { X, Phone } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { getBookingColor } from "@/components/Options";
+import { useUpdateBookingStatusMutation } from "@/store/bookingApi";
 
 export interface Booking {
   id: string;
@@ -11,7 +12,7 @@ export interface Booking {
   date: string;
   time: string;
   type: "Online Booking" | "Physical Booking";
-  status: "confirmed" | "pending" | "cancelled";
+  status: "confirmed" | "pending" | "cancelled" | "passed";
   channel: "videoCall" | "chat" | "voiceCall" | "physical";
   patientAge: number;
   reason: string;
@@ -29,7 +30,22 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
   selectedBooking,
   onClose,
 }) => {
+  const [updateBookingStatus, { isLoading: isUpdating }] = useUpdateBookingStatusMutation();
+
   if (!isOpen || !selectedBooking) return null;
+
+  const handleConfirm = async () => {
+    try {
+      await updateBookingStatus({
+        bookingId: selectedBooking.id,
+        newStatus: "Accepted",
+      }).unwrap();
+      onClose();
+    } catch (error) {
+      console.error("Failed to confirm booking:", error);
+      alert("Failed to confirm booking. Please try again.");
+    }
+  };
 
   return createPortal(
     <div className="fixed inset-0 bg-[#00000051] bg-opacity-50 flex items-center justify-center z-[9999]">
@@ -107,13 +123,15 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({
           </div>
 
           <div className="flex gap-3 pt-4">
-            {/* <button className="flex-1 px-4 py-2 bg-[#44CE2D] text-white rounded-lg hover:bg-[#3bb025] transition-colors flex items-center justify-center gap-2">
-                    <Video className="w-4 h-4" />
-                    Start Session
-                  </button> */}
-            <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-              <Phone className="w-4 h-4" />
-              Contact
+            <button
+              onClick={handleConfirm}
+              disabled={selectedBooking.status !== "pending" || isUpdating}
+              className="flex-1 px-4 py-2 bg-[#44CE2D] hover:bg-[#3bb025] disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Check className="w-4 h-4" />
+              {selectedBooking.status === "pending"
+                ? (isUpdating ? "Confirming..." : "Confirm")
+                : (selectedBooking.status === "cancelled" ? "Cancelled" : "Confirmed")}
             </button>
           </div>
         </div>
