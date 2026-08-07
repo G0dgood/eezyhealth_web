@@ -514,7 +514,7 @@ export default function NurseMessagePage() {
                         title={activeConversation?.doctorName}
                         image={activeConversation?.doctorPhotoUrl}
                       />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
+                      {/* <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
                         <button
                           onClick={() => handleStartCall('audio')}
                           className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
@@ -529,7 +529,7 @@ export default function NurseMessagePage() {
                         >
                           <Video className="w-5 h-5" />
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                     <MessageList Message={CustomMessage} />
                     <MessageInput />
