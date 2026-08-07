@@ -58,7 +58,15 @@ export function convertBookingToStandardFormat(
     patientAge:
       Number(rawBooking.patientAge) ||
       (rawBooking.patient?.age ? Number(rawBooking.patient.age) : 0),
-    reason: rawBooking.reason || rawBooking.description || "No reason provided",
+    reason:
+      rawBooking.reason ||
+      rawBooking.consultationReason ||
+      rawBooking.description ||
+      "No reason provided",
+    consultationReason:
+      rawBooking.consultationReason ||
+      rawBooking.reason ||
+      "No reason provided",
     contactNumber:
       rawBooking.contactNumber || rawBooking.patient?.phone || "No contact",
   };

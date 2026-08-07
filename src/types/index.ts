@@ -21,6 +21,7 @@ export interface StandardBookingData {
   updatedAt?: string;
   patientAge?: number;
   reason?: string;
+  consultationReason?: string;
   contactNumber?: string;
 }
 
@@ -44,6 +45,7 @@ export interface RawBookingData {
   updatedAt?: string;
   patientAge?: number | string;
   reason?: string;
+  consultationReason?: string;
   description?: string;
   contactNumber?: string;
   patient?: {
