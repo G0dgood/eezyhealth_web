@@ -9,6 +9,7 @@ import PillTabs from "@/components/Tabs/PillTabs";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGetPatientAppointmentsQuery } from "@/store/patientApi";
+import { useAuth } from "@/contexts/AuthContext";
 import { convertSlotToTime } from "@/components/Options";
 import { formatFirebaseDate } from "@/utils/dateUtils";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
@@ -19,6 +20,9 @@ import { useApiError } from "@/hooks/useApiError";
 export default function DoctorPatientAppointmentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const doctorId =
+    user && typeof user === "object" && "uid" in user ? user.uid : "";
   const patientId = searchParams.get("patientId") || "";
   const patientName = searchParams.get("patient") || "Patient";
 
@@ -44,7 +48,10 @@ export default function DoctorPatientAppointmentsPage() {
   // Transform data
   const appointments = useMemo(() => {
     if (!bookingsData) return [];
-    return bookingsData.map((booking: any) => {
+    return bookingsData
+      // Only this doctor's appointments with the patient — never other doctors'.
+      .filter((booking: any) => !doctorId || booking.doctorId === doctorId)
+      .map((booking: any) => {
       const rawStatus = (booking.bookingStatus || "").toLowerCase();
       const apptDateMillis = (() => {
         const raw = booking.bookingDate;
