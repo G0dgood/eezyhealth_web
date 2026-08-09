@@ -49,37 +49,41 @@ interface CancellationRequest {
 }
 
 const BookingCancellationWidget: React.FC = () => {
-  const { user, userInfo } = useAuth();
+  const { user, userInfo, userInfoLoading } = useAuth();
   const doctorId = user?.uid;
   const normalizedRole = (typeof userInfo?.role === "string"
     ? userInfo?.role
     : ""
-  ).toUpperCase();
-  const isNurseOrAdmin =
-    normalizedRole === "nurse" || normalizedRole === "admin";
+  ).toLowerCase();
+  const isDoctor = normalizedRole === "doctor";
+  // Anyone who is NOT a doctor (nurse, admin, or role not yet resolved) sees
+  // the platform-wide cancellations list. Only a confirmed doctor is scoped to
+  // their own bookings — this prevents a nurse/admin uid from being sent to the
+  // doctor-scoped query (which would return nothing → false "No Requests").
+  const useAllScope = !isDoctor;
 
   // Fetch cancellation requests using RTK Query based on user role
-  // For nurses: use useGetBookingCancellationsQuery (all cancellations)
-  // For doctors: use useGetBookingCancellationsByDoctorIdQuery (doctor-specific)
+  // Non-doctors: useGetBookingCancellationsQuery (all cancellations)
+  // Doctors: useGetBookingCancellationsByDoctorIdQuery (doctor-specific)
   const { data: allCancellationsData, isLoading: isLoadingAll, error: errorAll } =
-    useGetBookingCancellationsQuery({}, { skip: !isNurseOrAdmin });
+    useGetBookingCancellationsQuery({}, { skip: !useAllScope });
 
   const { data: doctorCancellationsData, isLoading: isLoadingDoctor, error: errorDoctor } =
     useGetBookingCancellationsByDoctorIdQuery(
       { doctorId: doctorId || "" },
-      { skip: !doctorId || isNurseOrAdmin }
+      { skip: !doctorId || !isDoctor }
     );
 
   // Choose the appropriate data based on role
-  const isLoading = isNurseOrAdmin ? isLoadingAll : isLoadingDoctor;
-  const error = isNurseOrAdmin ? errorAll : errorDoctor;
-  const cancellationsData = isNurseOrAdmin
+  const isLoading =
+    userInfoLoading || (useAllScope ? isLoadingAll : isLoadingDoctor);
+  const error = useAllScope ? errorAll : errorDoctor;
+  const cancellationsData = useAllScope
     ? allCancellationsData
     : doctorCancellationsData;
-  const viewAllHref =
-    normalizedRole === "doctor"
-      ? "/doctor/booking-cancellation"
-      : "/nurse/booking-cancellation";
+  const viewAllHref = isDoctor
+    ? "/doctor/booking-cancellation"
+    : "/nurse/booking-cancellation";
 
   const cancellations: CancellationRequest[] =
     (cancellationsData as unknown as CancellationRequest[]) || [];
