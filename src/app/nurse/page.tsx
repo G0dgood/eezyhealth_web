@@ -20,7 +20,6 @@ import { EditModeContext } from "@/contexts/EditModeContext";
 
 // Import nurse-specific widgets
 import NurseBookingsWidget from "@/components/widgets/NurseBookingsWidget";
-import NurseStatsCards from "@/components/widgets/NurseStatsCards";
 import NurseCalendarWidget from "@/components/widgets/NurseCalendarWidget";
 import BookingCancellationWidget from "@/components/widgets/BookingCancellationWidget";
 import NursePaymentWidget from "@/components/widgets/NursePaymentWidget";
@@ -31,7 +30,6 @@ const getStorageKey = (userId: string) =>
 
 const widgetMap = {
   NurseBookingsWidget,
-  NurseStatsCards,
   NurseCalendarWidget,
   BookingCancellationWidget,
   NursePaymentWidget,
@@ -94,12 +92,6 @@ const NurseDashboard = () => {
         id: uuidv4(),
         zone: "left" as Zone,
         type: "NurseBookingsWidget" as WidgetType,
-        visible: true,
-      },
-      {
-        id: uuidv4(),
-        zone: "left" as Zone,
-        type: "NurseStatsCards" as WidgetType,
         visible: true,
       },
       {
