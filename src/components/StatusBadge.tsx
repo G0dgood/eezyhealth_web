@@ -15,7 +15,7 @@ export default function StatusBadge({ status, className = "" }: StatusBadgeProps
     if (s === "pending" || s === "passed" || s === "passed appointment") {
       return "bg-yellow-50 text-yellow-700 border-yellow-200";
     }
-    if (s === "upcoming") {
+    if (s === "upcoming" || s === "refunded" || s === "refund") {
       return "bg-blue-50 text-blue-700 border-blue-200";
     }
     if (s === "cancelled" || s === "canceled" || s === "failed") {

@@ -77,14 +77,20 @@ export const refundApi = api.injectEndpoints({
             processedBy: actor || "nurse",
           });
 
-          // Update booking payment/bookingStatus in Bookings collection if approved
-          if (bookingId && status === "refunded") {
+          // Sync the booking so the doctor's app reflects the outcome (it reads
+          // `refundRequestStatus`, which otherwise stays "pending" forever).
+          if (bookingId) {
             const bookingRef = doc(db, "Bookings", bookingId);
-            await updateDoc(bookingRef, {
-              paymentStatus: "refunded",
-              bookingStatus: "Cancelled",
+            const bookingUpdate: Record<string, any> = {
+              refundRequestStatus: status, // "refunded" | "rejected"
               updatedAt: new Date().toISOString(),
-            });
+            };
+            if (status === "refunded") {
+              bookingUpdate.paymentStatus = "refunded";
+              bookingUpdate.bookingStatus = "Refunded";
+              bookingUpdate.refundRequested = true;
+            }
+            await updateDoc(bookingRef, bookingUpdate);
           }
 
           return { data: { success: true, refundId, status } };

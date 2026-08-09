@@ -18,9 +18,6 @@ export default function IncomingCallModal({
   const custom = call.state?.custom || (call as any).customData;
   const createdBy = call.state?.createdBy || (call as any).created_by;
 
-  console.log("INCOMING CALL MODAL -> custom:", custom);
-  console.log("INCOMING CALL MODAL -> createdBy:", createdBy);
-
   // Stream's backend sometimes strips custom data on ringing events.
   // Furthermore, if a channel was previously used for audio, the cache may still say "audio".
   // Since we construct the call ID like "channelId-callType-timestamp", its embedded type is the most accurate.

@@ -1,14 +1,16 @@
 "use client";
 
-import { Menu, User, Edit } from "lucide-react";
+import { Menu, User, Edit, RefreshCw } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useDispatch } from "react-redux";
 import Image from "next/image";
 import ConfirmModal from "./widgets/ConfirmModal";
 import UserDropdownMenu from "./UserDropdownMenu";
 import RoleBadge from "./RoleBadge";
+import { api } from "@/store/baseApi";
 
 interface HeaderProps {
   userRole?: string;
@@ -33,6 +35,14 @@ export default function Header({
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
+
+  // Soft refresh: re-run the current page's data (server components + RTK
+  // Query) without a full browser reload of the whole app.
+  const handleRefresh = () => {
+    router.refresh();
+    dispatch(api.util.resetApiState());
+  };
 
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -103,6 +113,14 @@ export default function Header({
       </div>
 
       <div className="flex items-center space-x-4">
+        <button
+          onClick={handleRefresh}
+          className="rounded bg-white flex items-center justify-center p-2 hover:bg-gray-50 transition-colors cursor-pointer"
+          aria-label="Refresh page"
+          title="Refresh page"
+        >
+          <RefreshCw size={20} />
+        </button>
         {userRole && pathname === `/${userRole.toLowerCase()}` && (
           <button
             onClick={onEditClick}

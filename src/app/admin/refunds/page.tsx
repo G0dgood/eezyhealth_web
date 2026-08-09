@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { CreditCard, CheckCircle, RefreshCcw } from "lucide-react";
+import { useState } from "react";
+import { CreditCard, CheckCircle, RefreshCcw, User, X } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
@@ -10,9 +10,23 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import Title from "@/components/Title";
 import Button from "@/components/Button";
 import StatusBadge from "@/components/StatusBadge";
+import Modal from "@/components/modals/Modal";
+import PillTabs from "@/components/Tabs/PillTabs";
 import { useApiError } from "@/hooks/useApiError";
 import { useGetRefundsQuery, useProcessRefundMutation } from "@/store/refundApi";
+import { useGetPricingQuery } from "@/store/pricingApi";
 import { toast } from "sonner";
+
+const REFUND_TABS = [
+  { id: "pending", label: "Pending" },
+  { id: "refunded", label: "Refunded" },
+  { id: "rejected", label: "Rejected" },
+];
+
+// Refund docs store the amount under consultationFee, but older/booking data
+// may carry it as amount/pricing — resolve defensively.
+const refundAmountOf = (r: any) =>
+  Number(r?.consultationFee || r?.amount || r?.pricing || 0);
 
 export default function AdminRefundsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +48,12 @@ export default function AdminRefundsPage() {
   });
 
   const [processRefund, { isLoading: isProcessing }] = useProcessRefundMutation();
+  const [selectedRefund, setSelectedRefund] = useState<any>(null);
+
+  // Global booking price — fallback for refunds that stored no amount.
+  const { data: pricing } = useGetPricingQuery({});
+  const globalPrice = Number(pricing?.pricing) || 0;
+  const feeOf = (r: any) => refundAmountOf(r) || globalPrice;
 
   useApiError(!!error, error, "Failed to load refund requests. Please try again.");
 
@@ -52,19 +72,25 @@ export default function AdminRefundsPage() {
 
   const totalCount = (refundsData as any)?.totalCount || 0;
 
-  const handleRefund = async (refundId: string, bookingId: string) => {
+  const handleProcess = async (status: "refunded" | "rejected") => {
+    if (!selectedRefund) return;
     try {
       await processRefund({
-        refundId,
-        bookingId,
-        status: "refunded",
+        refundId: selectedRefund.id,
+        bookingId: selectedRefund.bookingId,
+        status,
         actor: "admin",
       }).unwrap();
 
-      toast.success("Refund processed successfully!");
+      toast.success(
+        status === "refunded"
+          ? "Refund processed. The patient and doctor have been notified."
+          : "Refund request declined. The patient has been notified."
+      );
+      setSelectedRefund(null);
       refetch();
     } catch (err) {
-      toast.error("Failed to process refund. Please try again.");
+      toast.error("Failed to update refund. Please try again.");
       console.error(err);
     }
   };
@@ -106,24 +132,15 @@ export default function AdminRefundsPage() {
             />
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-[var(--card)] px-3 py-2 border border-[var(--border)] rounded-lg">
-              <span className="text-xs text-gray-500 font-medium">Status:</span>
-              <select
-                value={selectedStatus}
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="text-sm bg-transparent border-none outline-none cursor-pointer text-[var(--foreground)]"
-              >
-                <option value="pending">Pending</option>
-                <option value="refunded">Refunded</option>
-                <option value="rejected">Rejected</option>
-                <option value="">All</option>
-              </select>
-            </div>
-          </div>
+          <PillTabs
+            tabs={REFUND_TABS}
+            activeTab={selectedStatus}
+            onTabChange={(id) => {
+              setSelectedStatus(id);
+              setCurrentPage(1);
+            }}
+            layoutId="admin-refund-tabs"
+          />
         </div>
 
         {/* Refunds Table */}
@@ -180,7 +197,7 @@ export default function AdminRefundsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-[12px] font-medium text-[var(--foreground)]">
-                            {formatCurrency(refund.consultationFee)}
+                            {formatCurrency(feeOf(refund))}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -194,8 +211,7 @@ export default function AdminRefundsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {refund.status === "pending" ? (
                             <Button
-                              onClick={() => handleRefund(refund.id, refund.bookingId)}
-                              disabled={isProcessing}
+                              onClick={() => setSelectedRefund(refund)}
                               className="bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 px-3 rounded-lg flex items-center gap-1 border-none"
                             >
                               <RefreshCcw className="w-3.5 h-3.5" />
@@ -230,6 +246,75 @@ export default function AdminRefundsPage() {
           </div>
         )}
       </div>
+
+      {/* Refund review modal */}
+      <Modal
+        isOpen={!!selectedRefund}
+        onClose={() => setSelectedRefund(null)}
+        title="Review Refund Request"
+        size="md"
+      >
+        {selectedRefund && (
+          <div className="px-6 py-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-full bg-[#44CE2D]/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-[#44CE2D]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--foreground)]">
+                  {selectedRefund.patientName || "Unknown Patient"}
+                </p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Booking Ref: {selectedRefund.bookingId?.slice(0, 8) || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-[var(--border)] divide-y divide-[var(--border)] mb-5">
+              {[
+                { label: "Doctor", value: selectedRefund.doctorName || "—" },
+                {
+                  label: "Amount",
+                  value: formatCurrency(feeOf(selectedRefund)),
+                },
+                { label: "Reason", value: selectedRefund.reason || "No reason provided" },
+                { label: "Requested", value: formatDate(selectedRefund.requestedAt) },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-start justify-between gap-4 px-4 py-3"
+                >
+                  <span className="text-[13px] text-[var(--muted-foreground)]">
+                    {row.label}
+                  </span>
+                  <span className="text-[13px] font-medium text-[var(--foreground)] text-right">
+                    {row.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleProcess("rejected")}
+                disabled={isProcessing}
+                className="flex-1 flex items-center justify-center gap-1.5 border border-[var(--border)] text-[var(--foreground)] font-medium py-2.5 rounded-lg hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Decline
+              </button>
+              <button
+                onClick={() => handleProcess("refunded")}
+                disabled={isProcessing}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#44CE2D] text-white font-medium py-2.5 rounded-lg hover:bg-[#3bb025] disabled:opacity-50 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                {isProcessing ? "Processing…" : "Confirm Refund"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
