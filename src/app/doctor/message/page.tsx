@@ -113,6 +113,7 @@ export default function DoctorMessagePage() {
             photo_url: booking.photo_url,
             timestamp: booking.bookingDate || booking.date, // Use booking date as timestamp
             bookingId: booking.bookingId || booking.id, // Add bookingId for channel creation
+            channel: booking.bookingChannel || booking.channel || "", // chat / voice / video
             lastMessage: booking.consultationReason || booking.reason || "No messages yet",
           });
         }
@@ -252,6 +253,24 @@ export default function DoctorMessagePage() {
   );
 
   // Handle video/audio call
+  // The call options depend on the channel the patient chose when booking:
+  // chat → chat only; voice → voice call only; video → video call only.
+  const activePatientId = (() => {
+    if (!activeChannel || !chatClient?.userID) return "";
+    const members = Object.values(activeChannel.state.members);
+    const other = members.find((m: any) => m.user_id !== chatClient.userID);
+    return (other as any)?.user_id || "";
+  })();
+  const activeBookingChannel = String(
+    uniquePatients.find(
+      (p: any) => (p.patientId || p.userId) === activePatientId
+    )?.channel || ""
+  ).toLowerCase();
+  const canVideoCall = activeBookingChannel.includes("video");
+  const canVoiceCall =
+    activeBookingChannel.includes("voice") ||
+    activeBookingChannel.includes("audio");
+
   const handleStartCall = (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
 
@@ -368,20 +387,24 @@ export default function DoctorMessagePage() {
                     <div className="relative">
                       <ChannelHeader />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
-                        <button
-                          onClick={() => handleStartCall('audio')}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
-                          title="Voice Call"
-                        >
-                          <Phone className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleStartCall('video')}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Video Call"
-                        >
-                          <Video className="w-5 h-5" />
-                        </button>
+                        {canVoiceCall && (
+                          <button
+                            onClick={() => handleStartCall('audio')}
+                            className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-green-600 transition-colors"
+                            title="Voice Call"
+                          >
+                            <Phone className="w-5 h-5" />
+                          </button>
+                        )}
+                        {canVideoCall && (
+                          <button
+                            onClick={() => handleStartCall('video')}
+                            className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-600 transition-colors"
+                            title="Video Call"
+                          >
+                            <Video className="w-5 h-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <MessageList Message={CustomMessage} />
