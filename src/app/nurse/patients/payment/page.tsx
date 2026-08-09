@@ -415,8 +415,8 @@ export default function PaymentPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Panel - Payment Methods */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-[16px] md:text-[18px] font-semibold text-gray-900 mb-6">
+            <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)] p-6">
+              <h2 className="text-[16px] md:text-[18px] font-semibold text-[var(--foreground)] mb-6">
                 Select Payment Method
               </h2>
 
@@ -425,21 +425,21 @@ export default function PaymentPage() {
                   <div
                     key={method.id}
                     className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedPaymentMethod === method.id
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-green-500 bg-green-500/10"
+                        : "border-[var(--border)] hover:border-[var(--muted-foreground)]"
                       }`}
                     onClick={() => setSelectedPaymentMethod(method.id)}>
                     <div className="flex items-center space-x-4">
-                      <div className="text-gray-600">{method.icon}</div>
+                      <div className="text-[var(--muted-foreground)]">{method.icon}</div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-[var(--foreground)]">
                           {method.name}
                         </h3>
-                        <p className=" !text-[10px]  !md:text-[12px] text-gray-600">
+                        <p className=" !text-[10px]  !md:text-[12px] text-[var(--muted-foreground)]">
                           {method.description}
                         </p>
                       </div>
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--border)] flex items-center justify-center">
                         {selectedPaymentMethod === method.id && (
                           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                         )}
