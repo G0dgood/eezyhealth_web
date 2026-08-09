@@ -102,7 +102,7 @@ export default function AppointmentReminderListener() {
             const doctorName = booking.doctorName || "Doctor";
             
             let messageText = "";
-            let notifTitle = "Appointment Reminder";
+            const notifTitle = "Appointment Reminder";
 
             if (role === "doctor") {
               messageText = `You have an appointment with ${patientName} in ${mark} minutes.`;
