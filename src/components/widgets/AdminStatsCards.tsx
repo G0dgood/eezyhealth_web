@@ -83,13 +83,26 @@ const AdminStatsCards: React.FC = () => {
     (user) => (user as { role: string }).role === "patient"
   ).length;
   const totalBookings = bookings.length;
+
+  // Payments store the fee as a string like "10,000" and their state in
+  // `paymentStatus` (values "completed"/"success"). The old code summed
+  // `payment.amount` as a number and filtered on `payment.status`, so nothing
+  // matched → ₦0.00. Parse the amount and read the right status field.
+  const parseAmount = (v: unknown): number => {
+    if (typeof v === "number") return v;
+    if (!v) return 0;
+    return parseFloat(String(v).replace(/[^\d.]/g, "")) || 0;
+  };
+  const isPaid = (payment: Record<string, unknown>) => {
+    const s = String(payment.paymentStatus ?? payment.status ?? "").toLowerCase();
+    return s === "completed" || s === "success" || s === "paid";
+  };
   const totalRevenue = payments
-    .filter((payment) => (payment as { status: string }).status === "completed")
-    .reduce(
-      (sum: number, payment) =>
-        sum + ((payment as { amount?: number }).amount || 0),
-      0
-    );
+    .filter((payment) => isPaid(payment as Record<string, unknown>))
+    .reduce((sum: number, payment) => {
+      const p = payment as Record<string, unknown>;
+      return sum + parseAmount(p.amount ?? p.pricing ?? p.consultationFee);
+    }, 0);
 
   const statsData = [
     {
@@ -121,7 +134,10 @@ const AdminStatsCards: React.FC = () => {
     },
     {
       title: "Total Revenue",
-      value: `₦ ${totalRevenue.toFixed(2)}`,
+      value: `₦ ${totalRevenue.toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
       icon: DollarSign,
       gradient: "from-yellow-500 to-orange-600",
       bgColor: "bg-yellow-50",

@@ -106,10 +106,52 @@ export const refundApi = api.injectEndpoints({
       },
       invalidatesTags: ["Payment", "Booking"],
     }),
+
+    // Final finance sign-off on an already-refunded request. Marks the refund's
+    // `financeStatus` (e.g. "completed") so finance can confirm the money has
+    // actually left the account, separate from the operational refund status.
+    updateRefundFinanceStatus: builder.mutation({
+      async queryFn({ refundId, bookingId, financeStatus, actor }) {
+        try {
+          const { doc, updateDoc } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+
+          const nowIso = new Date().toISOString();
+
+          const refundRef = doc(db, "refunds", refundId);
+          await updateDoc(refundRef, {
+            financeStatus, // "completed"
+            financeUpdatedAt: nowIso,
+            financeUpdatedBy: actor || "admin",
+          });
+
+          // Mirror onto the booking so other surfaces can read the final state.
+          if (bookingId) {
+            const bookingRef = doc(db, "Bookings", bookingId);
+            await updateDoc(bookingRef, {
+              refundFinanceStatus: financeStatus,
+              updatedAt: nowIso,
+            });
+          }
+
+          return { data: { success: true, refundId, financeStatus } };
+        } catch (error) {
+          console.error("Error updating refund finance status:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Payment", "Booking"],
+    }),
   }),
 });
 
 export const {
   useGetRefundsQuery,
   useProcessRefundMutation,
+  useUpdateRefundFinanceStatusMutation,
 } = refundApi;

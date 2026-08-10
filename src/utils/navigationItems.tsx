@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Contact,
   CircleDollarSign,
+  Info,
 } from "lucide-react";
 
 export interface NavItem {
@@ -265,6 +266,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         label: "Contacts",
         icon: <Contact className="w-5 h-5" />,
         href: `/${role.toLowerCase()}/contacts`,
+      },
+      {
+        id: "about-us",
+        label: "About Us",
+        icon: <Info className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/about-us`,
       },
       {
         id: "settings",

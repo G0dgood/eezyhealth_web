@@ -27,7 +27,7 @@ interface BookingData {
 }
 
 const AdminBookingsWidget: React.FC = () => {
-  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const { data: bookingsData, isLoading } = useGetBookingsQuery({});
 
   // Ensure bookings is always an array
   let bookings: BookingData[] = [];
@@ -182,15 +182,8 @@ const AdminBookingsWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Error loading bookings. Please try again.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the empty state below (data is empty anyway)
+  // rather than showing a raw error message.
   if (recentBookings.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">

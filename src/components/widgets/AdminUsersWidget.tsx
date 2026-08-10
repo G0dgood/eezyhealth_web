@@ -28,7 +28,7 @@ interface UserData {
 
 const AdminUsersWidget: React.FC = () => {
   // Fetch users data from admin users page
-  const { data: usersData, isLoading, error } = useGetUsersQuery({});
+  const { data: usersData, isLoading } = useGetUsersQuery({});
 
   // Ensure users is always an array
   let users: UserData[] = [];
@@ -139,15 +139,8 @@ const AdminUsersWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Error loading users. Please try again.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the empty state below rather than showing a
+  // raw error message.
   if (recentUsers.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
