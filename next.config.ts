@@ -34,15 +34,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async redirects() {
-    return [
-      {
-        source: "/favicon.ico",
-        destination: process.env.NEXT_PUBLIC_FAVICON_PATH || "/logowhite.svg",
-        permanent: false,
-      },
-    ];
-  },
+  // NOTE: the favicon is declared via `metadata.icons` in src/app/layout.tsx.
+  // A redirect from /favicon.ico was removed because NEXT_PUBLIC_FAVICON_PATH
+  // pointed back at /favicon.ico, which redirected to itself → ERR_TOO_MANY_REDIRECTS.
 };
 
 export default nextConfig;

@@ -57,11 +57,48 @@ export const doctorApi = api.injectEndpoints({
       providesTags: ["Doctor"],
     }),
 
+    // Counts doctors for a specialization directly against Firestore. This used
+    // to hit a `getDoctorsBySpecializationCount` Cloud Function that was never
+    // deployed, so the request 404'd — and a 404 carries no CORS header, which
+    // the browser surfaced as a CORS error. Querying the client SDK removes the
+    // server dependency (and the CORS failure) entirely.
     getDoctorsBySpecializationCount: builder.query({
-      query: (params) => ({
-        url: "/getDoctorsBySpecializationCount",
-        params,
-      }),
+      async queryFn(arg: { specializationId?: string } = {}) {
+        try {
+          const specializationId = arg?.specializationId;
+          if (!specializationId) return { data: { count: 0 } };
+
+          const { collection, getDocs, query, where } = await import(
+            "firebase/firestore"
+          );
+          const { db } = await import("@/lib/firebase");
+
+          const snapshot = await getDocs(
+            query(
+              collection(db, "users"),
+              where("specializationId", "==", specializationId)
+            )
+          );
+
+          // Role casing varies across records ("DOCTOR"/"doctor"), so match
+          // case-insensitively.
+          const count = snapshot.docs.filter((d) => {
+            const role = String((d.data() as { role?: string }).role || "")
+              .toLowerCase();
+            return role === "doctor";
+          }).length;
+
+          return { data: { count } };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
       providesTags: ["Doctor"],
     }),
 

@@ -228,11 +228,43 @@ export const api = createApi({
       providesTags: ["Doctor"],
     }),
 
+    // Counts doctors for a specialization directly against Firestore instead of
+    // a never-deployed Cloud Function (which 404'd and produced a CORS error).
     getDoctorsBySpecializationCount: builder.query({
-      query: (params) => ({
-        url: "/getDoctorsBySpecializationCount",
-        params,
-      }),
+      async queryFn(arg: { specializationId?: string } = {}) {
+        try {
+          const specializationId = arg?.specializationId;
+          if (!specializationId) return { data: { count: 0 } };
+
+          const { collection, getDocs, query, where } = await import(
+            "firebase/firestore"
+          );
+          const { db } = await import("@/lib/firebase");
+
+          const snapshot = await getDocs(
+            query(
+              collection(db, "users"),
+              where("specializationId", "==", specializationId)
+            )
+          );
+
+          const count = snapshot.docs.filter((d) => {
+            const role = String((d.data() as { role?: string }).role || "")
+              .toLowerCase();
+            return role === "doctor";
+          }).length;
+
+          return { data: { count } };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error ? error.message : "Unknown error",
+            },
+          };
+        }
+      },
       providesTags: ["Doctor"],
     }),
 

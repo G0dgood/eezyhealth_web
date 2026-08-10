@@ -138,6 +138,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         href: `/${role.toLowerCase()}/payment`,
       },
       {
+        id: "missed-bookings",
+        label: "Missed Bookings",
+        icon: <CalendarX className="w-5 h-5" />,
+        href: `/${role.toLowerCase()}/missed-bookings`,
+      },
+      {
         id: "document",
         label: "Documents",
         icon: <Upload className="w-5 h-5" />,

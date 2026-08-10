@@ -165,11 +165,27 @@ export default function DoctorAppointmentsPage() {
         date: appointmentDate,
         time: convertSlotToTime(String(booking.slot || "")),
         channel: (() => {
-          const channel = String(booking.bookingChannel || "");
-          if (channel === "1" || channel === "videoCall") return "videoCall";
-          if (channel === "2" || channel === "chat") return "chat";
-          if (channel === "3" || channel === "voiceCall") return "voiceCall";
-          if (channel === "4" || channel === "physical") return "videoCall"; // Default to videoCall for physical
+          // bookingChannel is stored inconsistently: legacy numeric codes
+          // ("1".."4"), camelCase ("videoCall"), and human labels ("Video",
+          // "Voice", "Voice Call", "Chat", "Physical"). Normalize case and match
+          // by substring so every real value maps to the right icon.
+          const raw = String(booking.bookingChannel || "").toLowerCase();
+          if (raw === "2" || raw.includes("chat")) return "chat";
+          if (
+            raw === "3" ||
+            raw.includes("voice") ||
+            raw.includes("audio") ||
+            raw.includes("phone")
+          )
+            return "voiceCall";
+          if (
+            raw === "1" ||
+            raw === "4" ||
+            raw.includes("video") ||
+            raw.includes("physical") ||
+            raw.includes("person")
+          )
+            return "videoCall";
           return "videoCall";
         })(),
         status: (() => {

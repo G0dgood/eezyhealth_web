@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
@@ -11,10 +10,15 @@ import Title from "@/components/Title";
 import StatusBadge from "@/components/StatusBadge";
 import { useApiError } from "@/hooks/useApiError";
 import { useGetBookingsQuery } from "@/store/bookingApi";
+import { useAuth } from "@/contexts/AuthContext";
 import FormattedDate from "@/utils/FormattedDate";
 import { isMissedBooking, parseBookingMillis } from "@/utils/missedBookings";
 
-export default function AdminMissedBookingsPage() {
+export default function DoctorMissedBookingsPage() {
+  const { user } = useAuth();
+  const doctorId =
+    user && typeof user === "object" && "uid" in user ? user.uid : "";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -24,12 +28,15 @@ export default function AdminMissedBookingsPage() {
 
   useApiError(!!error, error, "Failed to load missed bookings. Please try again.");
 
-  // Filter for missed bookings and apply search query
+  // Filter for missed bookings scoped to this doctor, then apply search query
   const filteredMissedBookings = useMemo(() => {
     const bookings = Array.isArray(bookingsData) ? bookingsData : [];
-    
-    // Filter by missed status (computed: past date + never settled).
-    let missed = bookings.filter((b: any) => isMissedBooking(b));
+
+    // Only this doctor's bookings that are missed (past date + never settled).
+    let missed = bookings.filter(
+      (b: any) =>
+        (!doctorId || b.doctorId === doctorId) && isMissedBooking(b)
+    );
 
     // Apply search filter if present
     if (searchQuery.trim()) {
@@ -46,7 +53,7 @@ export default function AdminMissedBookingsPage() {
     return missed.sort((a: any, b: any) => {
       return parseBookingMillis(b.bookingDate) - parseBookingMillis(a.bookingDate);
     });
-  }, [bookingsData, searchQuery]);
+  }, [bookingsData, searchQuery, doctorId]);
 
   // Paginate filtered results
   const paginatedBookings = useMemo(() => {
@@ -61,7 +68,7 @@ export default function AdminMissedBookingsPage() {
       <div className="flex-1">
         <div className="mb-6">
           <Breadcrumb
-            items={[{ label: "Admin", href: "/admin" }, { label: "Missed Bookings" }]}
+            items={[{ label: "Doctor", href: "/doctor" }, { label: "Missed Bookings" }]}
           />
         </div>
         <Title title="Missed Bookings" />
@@ -83,11 +90,10 @@ export default function AdminMissedBookingsPage() {
         {/* Bookings Table */}
         {isLoading ? (
           <TableSkeleton
-            columns={7}
+            columns={6}
             rows={5}
             headerLabels={[
               "Patient Name",
-              "Doctor",
               "Date",
               "Time",
               "Channel",
@@ -102,7 +108,6 @@ export default function AdminMissedBookingsPage() {
                 <thead className="bg-[var(--muted)]">
                   <tr>
                     <th> Patient Name </th>
-                    <th> Doctor </th>
                     <th> Date </th>
                     <th> Time </th>
                     <th> Channel </th>
@@ -112,17 +117,17 @@ export default function AdminMissedBookingsPage() {
                 </thead>
                 <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
                   {paginatedBookings.length === 0 ? (
-                    <NoRecordFound colSpan={7} />
+                    <NoRecordFound colSpan={6} />
                   ) : (
                     paginatedBookings.map((booking: any, index: number) => (
-                      <tr key={index} className="hover:bg-[var(--muted)] transition-colors">
+                      <tr
+                        key={index}
+                        className="hover:bg-[var(--muted)] transition-colors"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-green-600 font-medium">
                             {booking.patientName || "—"}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-[12px] text-[var(--foreground)]">
-                          {booking.doctorName || "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-[12px] text-[var(--muted-foreground)]">
                           {booking.bookingDate ? (

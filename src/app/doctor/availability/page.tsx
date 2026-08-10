@@ -600,7 +600,7 @@ export default function DoctorAvailabilityPage() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {/* Calendar Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <div>

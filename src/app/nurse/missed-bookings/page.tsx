@@ -12,6 +12,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { useApiError } from "@/hooks/useApiError";
 import { useGetBookingsQuery } from "@/store/bookingApi";
 import FormattedDate from "@/utils/FormattedDate";
+import { isMissedBooking, parseBookingMillis } from "@/utils/missedBookings";
 
 export default function NurseMissedBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,16 +28,13 @@ export default function NurseMissedBookingsPage() {
   const filteredMissedBookings = useMemo(() => {
     const bookings = Array.isArray(bookingsData) ? bookingsData : [];
     
-    // Filter by missed status first
-    let missed = bookings.filter((b: any) => {
-      const status = (b.bookingStatus || b.status || "").toLowerCase();
-      return status === "missed";
-    });
+    // Filter by missed status (computed: past date + never settled).
+    let missed = bookings.filter((b: any) => isMissedBooking(b));
 
     // Apply search filter if present
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      missed = missed.filter((b: any) => 
+      missed = missed.filter((b: any) =>
         b.patientName?.toLowerCase().includes(query) ||
         b.doctorName?.toLowerCase().includes(query) ||
         b.specialization?.toLowerCase().includes(query) ||
@@ -46,9 +44,7 @@ export default function NurseMissedBookingsPage() {
 
     // Sort by bookingDate descending
     return missed.sort((a: any, b: any) => {
-      const timeA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
-      const timeB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
-      return timeB - timeA;
+      return parseBookingMillis(b.bookingDate) - parseBookingMillis(a.bookingDate);
     });
   }, [bookingsData, searchQuery]);
 
@@ -151,7 +147,7 @@ export default function NurseMissedBookingsPage() {
                           {booking.specialization || "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status={booking.bookingStatus || booking.status} />
+                          <StatusBadge status="Missed" />
                         </td>
                       </tr>
                     ))

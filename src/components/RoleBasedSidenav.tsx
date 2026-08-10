@@ -251,6 +251,7 @@ export default function RoleBasedSidenav({
               alt="eezyhealth"
               width={100}
               height={100}
+              style={{ width: "auto", height: "auto" }}
             />
           </div>
           <button
@@ -268,6 +269,7 @@ export default function RoleBasedSidenav({
             alt="eezyhealth"
             width={150}
             height={150}
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
 

@@ -14,18 +14,14 @@ import AppointmentReminderListener from "@/components/AppointmentReminderListene
 
 const inter = Inter({ subsets: ["latin"] });
 
-const faviconPath = process.env.NEXT_PUBLIC_FAVICON_PATH || "/favicon.ico";
 
 export const metadata: Metadata = {
  title: "eezyhealth",
  description: "Healthcare Management System",
  icons: {
-  icon: [
-   { url: "/logowhite.svg", type: "image/svg+xml" },
-   { url: faviconPath, sizes: "any" }
-  ],
-  shortcut: faviconPath,
-  apple: "/logowhite.svg",
+  icon: [{ url: "/logodark.svg", type: "image/svg+xml" }],
+  shortcut: "/logodark.svg",
+  apple: "/logodark.svg",
  },
 };
 
