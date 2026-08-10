@@ -65,7 +65,6 @@ const DoctorBookingsWidget: React.FC = () => {
   const {
     data: bookingsData,
     isLoading,
-    error,
   } = useBookingsByDoctorId(doctorId || null);
 
   const bookings: Booking[] = (bookingsData || []).map((booking) => ({
@@ -269,19 +268,8 @@ const DoctorBookingsWidget: React.FC = () => {
     );
   }
 
-  if (error && !bookingsData) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Failed to load bookings. Please try again later.
-        <div className="text-xs mt-2 text-gray-500">Error: {error}</div>
-      </div>
-    );
-  }
-
-  // Show data even if there's an error, as long as we have data
-  if (error && bookingsData && bookingsData.length > 0) {
-
-  }
+  // On error, fall through to the render below (it shows its own "No
+  // appointments found" empty state) rather than showing a raw error message.
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">

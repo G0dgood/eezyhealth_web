@@ -45,7 +45,6 @@ const AdminPaymentsWidget: React.FC = () => {
   const {
     data: paymentsData,
     isLoading,
-    error,
   } = useGetPaymentsQuery({ limit: 100 });
 
   // Ensure payments is always an array
@@ -156,15 +155,8 @@ const AdminPaymentsWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Error loading payments. Please try again.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the empty state below rather than showing a
+  // raw error message.
   if (recentPayments.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">

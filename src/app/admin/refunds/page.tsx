@@ -13,8 +13,13 @@ import StatusBadge from "@/components/StatusBadge";
 import Modal from "@/components/modals/Modal";
 import PillTabs from "@/components/Tabs/PillTabs";
 import { useApiError } from "@/hooks/useApiError";
-import { useGetRefundsQuery, useProcessRefundMutation } from "@/store/refundApi";
+import {
+  useGetRefundsQuery,
+  useProcessRefundMutation,
+  useUpdateRefundFinanceStatusMutation,
+} from "@/store/refundApi";
 import { useGetPricingQuery } from "@/store/pricingApi";
+import { notifyRefundFinanceCompleted } from "@/utils/notifications";
 import { toast } from "sonner";
 
 const REFUND_TABS = [
@@ -49,6 +54,11 @@ export default function AdminRefundsPage() {
 
   const [processRefund, { isLoading: isProcessing }] = useProcessRefundMutation();
   const [selectedRefund, setSelectedRefund] = useState<any>(null);
+
+  // Finance sign-off (final "Completed" state on an already-refunded request).
+  const [updateFinanceStatus, { isLoading: isFinalizing }] =
+    useUpdateRefundFinanceStatusMutation();
+  const [financeRefund, setFinanceRefund] = useState<any>(null);
 
   // Global booking price — fallback for refunds that stored no amount.
   const { data: pricing } = useGetPricingQuery({});
@@ -91,6 +101,34 @@ export default function AdminRefundsPage() {
       refetch();
     } catch (err) {
       toast.error("Failed to update refund. Please try again.");
+      console.error(err);
+    }
+  };
+
+  const handleFinalizeFinance = async () => {
+    if (!financeRefund) return;
+    try {
+      await updateFinanceStatus({
+        refundId: financeRefund.id,
+        bookingId: financeRefund.bookingId,
+        financeStatus: "completed",
+        actor: "admin",
+      }).unwrap();
+
+      // Notify the patient (and doctor) that the refund is fully completed.
+      await notifyRefundFinanceCompleted({
+        patientId: financeRefund.patientId,
+        doctorId: financeRefund.doctorId,
+        patientName: financeRefund.patientName,
+        amount: feeOf(financeRefund),
+        bookingId: financeRefund.bookingId,
+      });
+
+      toast.success("Refund marked as finance completed. The patient has been notified.");
+      setFinanceRefund(null);
+      refetch();
+    } catch (err) {
+      toast.error("Failed to update finance status. Please try again.");
       console.error(err);
     }
   };
@@ -217,6 +255,26 @@ export default function AdminRefundsPage() {
                               <RefreshCcw className="w-3.5 h-3.5" />
                               Refund Patient
                             </Button>
+                          ) : refund.status === "refunded" ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 text-green-600">
+                                <CheckCircle className="w-4 h-4" />
+                                <StatusBadge status={refund.status} />
+                              </div>
+                              {refund.financeStatus === "completed" ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Completed
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => setFinanceRefund(refund)}
+                                  className="text-[11px] font-medium px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                                >
+                                  Set Finance Status
+                                </button>
+                              )}
+                            </div>
                           ) : (
                             <div className="flex items-center gap-1.5 text-green-600">
                               <CheckCircle className="w-4 h-4" />
@@ -310,6 +368,56 @@ export default function AdminRefundsPage() {
               >
                 <CheckCircle className="w-4 h-4" />
                 {isProcessing ? "Processing…" : "Confirm Refund"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Finance status confirmation (Yes / No) */}
+      <Modal
+        isOpen={!!financeRefund}
+        onClose={() => setFinanceRefund(null)}
+        title="Finance Status"
+        size="sm"
+      >
+        {financeRefund && (
+          <div className="px-6 py-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--foreground)]">
+                  Mark refund as completed?
+                </p>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  {financeRefund.patientName || "Unknown Patient"} ·{" "}
+                  {formatCurrency(feeOf(financeRefund))}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-[var(--muted-foreground)] mb-5">
+              This confirms finance has completed the refund payout. This is the
+              final status and cannot be undone here.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setFinanceRefund(null)}
+                disabled={isFinalizing}
+                className="flex-1 border border-[var(--border)] text-[var(--foreground)] font-medium py-2.5 rounded-lg hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
+              >
+                No
+              </button>
+              <button
+                onClick={handleFinalizeFinance}
+                disabled={isFinalizing}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                {isFinalizing ? "Saving…" : "Yes"}
               </button>
             </div>
           </div>

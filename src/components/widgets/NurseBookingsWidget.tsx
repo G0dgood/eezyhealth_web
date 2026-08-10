@@ -29,7 +29,7 @@ interface BookingData {
 }
 
 const NurseBookingsWidget: React.FC = () => {
-  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const { data: bookingsData, isLoading } = useGetBookingsQuery({});
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [selectedPatientName, setSelectedPatientName] = useState<string>("");
@@ -235,15 +235,8 @@ const NurseBookingsWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Error loading appointments. Please try again.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the empty state below rather than showing a
+  // raw error message.
   if (displayAppointments.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">

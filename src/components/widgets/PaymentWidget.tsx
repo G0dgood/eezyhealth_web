@@ -19,7 +19,6 @@ const PaymentWidget: React.FC = () => {
     data: paymentsData,
     isLoading,
     isFetching,
-    error,
   } = useGetPaymentsByDoctorIdQuery(
     { doctorId },
     { skip: !doctorId }
@@ -183,15 +182,8 @@ const PaymentWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Failed to load payments. Please try again later.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the empty state below rather than showing a
+  // raw error message.
   if (recentPayments.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">

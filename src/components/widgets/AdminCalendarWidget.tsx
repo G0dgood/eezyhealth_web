@@ -46,7 +46,7 @@ const AdminCalendarWidget: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   // Fetch bookings data
-  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const { data: bookingsData, isLoading } = useGetBookingsQuery({});
 
   // Ensure bookings is always an array
   let bookings: Booking[] = [];
@@ -214,14 +214,8 @@ const AdminCalendarWidget: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-red-600">
-        Error loading calendar data. Please try again.
-        <div className="text-xs mt-2 text-gray-500">Error: {String(error)}</div>
-      </div>
-    );
-  }
+  // On error, fall through to the calendar below (it renders its own empty
+  // state for days with no bookings) rather than showing a raw error message.
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">

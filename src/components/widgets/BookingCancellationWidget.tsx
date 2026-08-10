@@ -147,25 +147,8 @@ const BookingCancellationWidget: React.FC = () => {
     );
   }
 
-  if (error && !cancellationsData) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-16 h-16 mb-4 bg-red-50 rounded-full flex items-center justify-center">
-          <AlertTriangle className="text-red-500" size={32} />
-        </div>
-        <h3 className="text-[14px] md:text-[16px] font-semibold text-gray-900 mb-2">
-          Failed to load requests
-        </h3>
-        <p className="text-gray-500 text-center  !text-[10px]  !md:text-[12px] mb-4">
-          We couldn't fetch the cancellation requests. Please check your connection and try again.
-        </p>
-        <div className="text-xs bg-gray-50 p-2 rounded text-gray-500 font-mono max-w-xs truncate">
-          Error: {String(error)}
-        </div>
-      </div>
-    );
-  }
-
+  // On error, fall through to the "No Cancellation Requests" empty state below
+  // rather than showing a raw error message.
   if (!hasData && !isLoading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center min-h-[400px]">
