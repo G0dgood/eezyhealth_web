@@ -137,10 +137,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
               console.error("Error fetching role specific profile:", err);
             }
 
-            // Ensure essential fields are present
+            // Merge the base user doc with the role-specific profile such that a
+            // NON-EMPTY value always wins, regardless of which source it comes
+            // from. Previously roleSpecificData was spread last and would
+            // overwrite good `users` fields (e.g. specialization, hospital) with
+            // empty values from the doctorProfiles/nurseProfiles doc — which made
+            // the completeness check report "Profile Incomplete" even after the
+            // user had filled everything in Settings.
+            const isFilled = (v: unknown) =>
+              v !== undefined && v !== null && v !== "";
+            const mergedProfile: Record<string, unknown> = { ...data };
+            Object.entries(roleSpecificData as Record<string, unknown>).forEach(
+              ([key, value]) => {
+                if (isFilled(value)) {
+                  mergedProfile[key] = value;
+                }
+              }
+            );
+
             const fullUserInfo = {
-              ...data,
-              ...roleSpecificData,
+              ...mergedProfile,
               uid: user.uid,
               email: user.email || data.email,
               displayName: user.displayName || data.displayName || data.display_name || (roleSpecificData as any).display_name,
