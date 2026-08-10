@@ -23,7 +23,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db, realtimeDb } from "@/lib/firebase";
-import { ref as rtdbRef, onChildAdded } from "firebase/database";
+import { ref as rtdbRef, onChildAdded, get } from "firebase/database";
 import { toastNotification } from "@/utils/toastWithSound";
 import { useFCMToken } from "@/hooks/useFcmToken";
 import NotificationDetailModal from "@/components/modals/NotificationDetailModal";
@@ -478,24 +478,51 @@ export function NotificationProvider({
     };
   }, [user?.uid, memoizedNotificationPrefs, role]);
 
-  // Realtime Database WebSockets Integration for instant alerts
+  // Realtime Database WebSockets Integration for instant alerts.
+  //
+  // onChildAdded fires once for EVERY existing child the moment the listener
+  // attaches (i.e. on every login/reload), which previously re-toasted the whole
+  // backlog — worse, the old "older than 2 minutes" guard only applied when a
+  // `createdAt` existed, so any notification without one blasted on every login.
+  //
+  // Fix: prime a set with every key already present at attach time, and only
+  // toast keys that arrive AFTER priming. This is timestamp-independent, so it
+  // reliably silences the backlog and only pops genuinely new notifications.
   useEffect(() => {
     if (!user?.uid) return;
 
-    const listenerAttachTime = Date.now();
     const userNotificationsRef = rtdbRef(realtimeDb, `notifications/${user.uid}`);
+    const seenKeys = new Set<string>();
+    let primed = false;
+
+    get(userNotificationsRef)
+      .then((snap) => {
+        snap.forEach((child) => {
+          if (child.key) seenKeys.add(child.key);
+        });
+      })
+      .catch(() => {
+        // If priming fails, the !primed guard below still silences the initial
+        // burst that arrives around the same time.
+      })
+      .finally(() => {
+        primed = true;
+      });
 
     const unsubscribe = onChildAdded(userNotificationsRef, (snapshot) => {
       try {
         const key = snapshot.key;
-        if (key && toastedNotificationIds.current.has(key)) return;
+
+        // Backlog item that existed when we attached → never toast.
+        if (key && (seenKeys.has(key) || toastedNotificationIds.current.has(key)))
+          return;
+        if (key) seenKeys.add(key);
+
+        // Still loading the initial backlog → silence it, just remember the key.
+        if (!primed) return;
 
         const data = snapshot.val();
         if (!data) return;
-
-        // Skip historical notifications loaded initially (or older than 2 minutes)
-        const createdAtTime = data.createdAt ? new Date(data.createdAt).getTime() : 0;
-        if (createdAtTime > 0 && listenerAttachTime - createdAtTime > 120000) return;
 
         if (key) {
           toastedNotificationIds.current.add(key);
