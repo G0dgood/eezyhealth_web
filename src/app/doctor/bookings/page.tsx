@@ -11,6 +11,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
+import { hasAppointmentTimePassed } from "@/utils/missedBookings";
 import Breadcrumb from "@/components/Breadcrumb";
 import Title from "@/components/Title";
 import SearchInput from "@/components/SearchInput";
@@ -124,18 +125,8 @@ export default function DoctorBookingsPage() {
               : "Online Booking",
           status: (() => {
             const status = (sb.bookingStatus || "").toLowerCase();
-            const now = new Date();
-            let apptDate = null;
-            if (sb.bookingDate) {
-              const bDate = sb.bookingDate as any;
-              if (typeof bDate === "object") {
-                if (bDate._seconds) apptDate = new Date(bDate._seconds * 1000);
-                else if (bDate.seconds) apptDate = new Date(bDate.seconds * 1000);
-              } else {
-                apptDate = new Date(bDate);
-              }
-            }
-            const isPassed = apptDate && apptDate < now && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+            // Time-aware: only "passed" once the slot (date + time) has elapsed.
+            const isPassed = hasAppointmentTimePassed(sb) && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
 
             if (isPassed) return "passed" as any;
             if (status === "accepted" || status === "confirmed")

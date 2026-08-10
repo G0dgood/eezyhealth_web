@@ -47,6 +47,54 @@ export function parseBookingMillis(raw: unknown): number {
   return isNaN(t) ? 0 : t;
 }
 
+// Extracts the start/end hour (24h) of a booking slot. Slot keys embed the
+// hour + period, e.g. "morning_8am", "evening_8pm", "afternoon_12pm",
+// "midnight_12am". Returns null when the slot carries no parseable time.
+export function slotToHours(
+  slot: unknown
+): { start: number; end: number } | null {
+  if (!slot) return null;
+  const s = String(slot).toLowerCase();
+  const m = s.match(/(\d{1,2})\s*(am|pm)/);
+  if (!m) return null;
+
+  let hour = parseInt(m[1], 10);
+  if (Number.isNaN(hour)) return null;
+  const period = m[2];
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+
+  // A slot is a one-hour window; it isn't "over" until the end of that hour.
+  return { start: hour, end: hour + 1 };
+}
+
+// Epoch millis for the END of a booking's time window (date + slot end hour),
+// so an appointment is only considered past once its slot has fully elapsed.
+// Falls back to end-of-day when the slot has no parseable time.
+export function appointmentEndMillis(booking: any): number {
+  const dayMs = parseBookingMillis(booking?.bookingDate);
+  if (!dayMs) return 0;
+
+  const d = new Date(dayMs);
+  d.setHours(0, 0, 0, 0); // normalize to local midnight of the booked date
+
+  const slot = slotToHours(booking?.slot ?? booking?.timeSlot);
+  if (slot) {
+    d.setHours(slot.end, 0, 0, 0);
+  } else {
+    // Unknown slot → be lenient and only treat as past after the whole day.
+    d.setHours(23, 59, 59, 999);
+  }
+  return d.getTime();
+}
+
+// True once the appointment's time window (date + slot) has fully passed.
+// This is time-aware: an appointment booked for 8 PM today is NOT past at 8 AM.
+export function hasAppointmentTimePassed(booking: any): boolean {
+  const end = appointmentEndMillis(booking);
+  return end > 0 && end < Date.now();
+}
+
 // Statuses that mean the booking was resolved one way or another, so it can
 // never be "missed".
 const SETTLED_STATUSES = [
@@ -68,13 +116,7 @@ export function isMissedBooking(booking: any): boolean {
   if (status === "missed") return true;
   if (SETTLED_STATUSES.includes(status)) return false;
 
-  const ms = parseBookingMillis(booking?.bookingDate);
-  if (!ms) return false;
-
-  // Compare against the start of today so appointments still scheduled for
-  // today are not prematurely flagged as missed.
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-
-  return ms < startOfToday.getTime();
+  // Time-aware: an appointment is only missed once its slot has fully elapsed,
+  // so an appointment booked for later today is not prematurely flagged.
+  return hasAppointmentTimePassed(booking);
 }

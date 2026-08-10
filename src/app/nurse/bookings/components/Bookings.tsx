@@ -25,6 +25,7 @@ import { useGetBookingsQuery } from "@/store/bookingApi";
 import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
 import { useApiError } from "@/hooks/useApiError";
 import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
+import { hasAppointmentTimePassed } from "@/utils/missedBookings";
 
 interface LocalBooking extends Booking {
   doctorName?: string;
@@ -180,20 +181,11 @@ export default function Bookings({ doctorId }: { doctorId?: string } = {}) {
             mapChannel(booking.bookingChannel) === "physical"
               ? "Physical Booking"
               : "Online Booking",
-          status: ((s, bookingDate) => {
+          status: ((s, bookingDate, slot) => {
             const status = (s || "").toLowerCase();
-            const now = new Date();
-            let apptDate = null;
-            if (bookingDate) {
-              const bDate = bookingDate as any;
-              if (typeof bDate === "object") {
-                if (bDate._seconds) apptDate = new Date(bDate._seconds * 1000);
-                else if (bDate.seconds) apptDate = new Date(bDate.seconds * 1000);
-              } else {
-                apptDate = new Date(bDate);
-              }
-            }
-            const isPassed = apptDate && apptDate < now && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+            // Time-aware: only "passed" once the slot (date + time) has elapsed,
+            // so an appointment booked for later today isn't flagged early.
+            const isPassed = hasAppointmentTimePassed({ bookingDate, slot }) && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
 
             if (isPassed) return "passed";
             if (status === "accepted" || status === "confirmed")
@@ -201,7 +193,7 @@ export default function Bookings({ doctorId }: { doctorId?: string } = {}) {
             if (status === "cancelled" || status === "rejected")
               return "cancelled";
             return "pending";
-          })(booking.bookingStatus, booking.bookingDate),
+          })(booking.bookingStatus, booking.bookingDate, booking.slot),
           channel: mapChannel(booking.bookingChannel),
           patientAge: booking.patientAge || 0,
           reason: booking.reason || "Consultation",

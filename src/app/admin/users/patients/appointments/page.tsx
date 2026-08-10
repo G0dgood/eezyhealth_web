@@ -16,6 +16,7 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { NoRecordFound } from "@/components/Options";
 import Pagination from "@/components/Pagination";
 import { useApiError } from "@/hooks/useApiError";
+import { hasAppointmentTimePassed } from "@/utils/missedBookings";
 
 export default function AdminPatientAppointmentsPage() {
   const searchParams = useSearchParams();
@@ -48,19 +49,9 @@ export default function AdminPatientAppointmentsPage() {
     if (!bookingsData) return [];
     return bookingsData.map((booking: any) => {
       const rawStatus = (booking.bookingStatus || "").toLowerCase();
-      const apptDateMillis = (() => {
-        const raw = booking.bookingDate;
-        if (!raw) return 0;
-        if (typeof raw === "object") {
-          const bDate = raw as any;
-          if (bDate._seconds) return bDate._seconds * 1000;
-          if (bDate.seconds) return bDate.seconds * 1000;
-        }
-        const t = new Date(raw).getTime();
-        return isNaN(t) ? 0 : t;
-      })();
-      const nowMillis = Date.now();
-      const isPassed = apptDateMillis < nowMillis && rawStatus !== "completed" && rawStatus !== "cancelled" && rawStatus !== "canceled" && rawStatus !== "missed" && rawStatus !== "accepted" && rawStatus !== "confirmed";
+      // Time-aware: an appointment is only "passed" once its slot (date + time)
+      // has fully elapsed — an 8 PM booking is not passed at 8 AM.
+      const isPassed = hasAppointmentTimePassed(booking) && rawStatus !== "completed" && rawStatus !== "cancelled" && rawStatus !== "canceled" && rawStatus !== "missed" && rawStatus !== "accepted" && rawStatus !== "confirmed";
 
       let tabStatus = "Upcoming";
       if (rawStatus === "completed") tabStatus = "Completed";
