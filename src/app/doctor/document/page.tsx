@@ -20,6 +20,7 @@ import {
   useDeleteDoctorDocumentMutation,
 } from "@/store/uploadApi";
 import { SVGLoader } from "@/components/SVGLoader";
+import Modal from "@/components/modals/Modal";
 import FormattedDate from "@/utils/FormattedDate";
 
 const DOC_TYPES = [
@@ -41,19 +42,19 @@ export default function DoctorDocumentPage() {
   const [deleteDoctorDocument, { isLoading: isDeleting }] =
     useDeleteDoctorDocumentMutation();
 
-  const handleDeleteDocument = async (docItem: any) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this document? This action cannot be undone."
-    );
-    if (!confirmDelete) return;
+  // Document pending deletion — opening the custom confirm modal.
+  const [docToDelete, setDocToDelete] = useState<any>(null);
 
+  const confirmDeleteDocument = async () => {
+    if (!docToDelete) return;
     try {
       await deleteDoctorDocument({
         doctorId,
-        documentId: docItem.id,
-        downloadUrl: docItem.downloadUrl || "",
+        documentId: docToDelete.id,
+        downloadUrl: docToDelete.downloadUrl || "",
       }).unwrap();
       toast.success("Document deleted successfully.");
+      setDocToDelete(null);
       refetch();
     } catch (err: any) {
       toast.error(err?.data?.error || "Failed to delete document.");
@@ -333,7 +334,7 @@ export default function DoctorDocumentPage() {
                   )}
                   {doc.status !== "approved" && (
                     <button
-                      onClick={() => handleDeleteDocument(doc)}
+                      onClick={() => setDocToDelete(doc)}
                       className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
                       title="Delete"
                       disabled={isDeleting}
@@ -358,6 +359,58 @@ export default function DoctorDocumentPage() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation */}
+      <Modal
+        isOpen={!!docToDelete}
+        onClose={() => setDocToDelete(null)}
+        title="Delete Document"
+        size="sm"
+      >
+        {docToDelete && (
+          <div className="px-6 py-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  Delete this document?
+                </p>
+                <p className="text-xs text-gray-500 break-all">
+                  {docToDelete.fileName ||
+                    docToDelete.documentType ||
+                    docToDelete.type ||
+                    "Document"}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-gray-600 mb-5">
+              This will permanently remove the document. This action cannot be
+              undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDocToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 border border-gray-200 text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteDocument}
+                disabled={isDeleting}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 text-white font-medium py-2.5 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
