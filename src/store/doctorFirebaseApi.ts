@@ -204,6 +204,34 @@ export const doctorFirebaseApi = api.injectEndpoints({
             ]);
           }
 
+          // Merge in the `nurseProfiles` doc. Fields like specialization and
+          // experience_yrs live reliably on nurseProfiles (always written when a
+          // nurse is created), but may be missing on the `users` doc — which made
+          // the list show "N/A". Fill any missing fields from the profile.
+          try {
+            const profiles = await createFirebaseQuery("nurseProfiles", []);
+            const profileByKey: Record<string, any> = {};
+            (profiles || []).forEach((p: any) => {
+              if (p.nurseId) profileByKey[p.nurseId] = p;
+              if (p.uid && !profileByKey[p.uid]) profileByKey[p.uid] = p;
+            });
+            nursesData = (nursesData || []).map((n: any) => {
+              const prof =
+                profileByKey[n.uid] || profileByKey[n.id] || {};
+              return {
+                ...prof,
+                ...n,
+                // Prefer a non-empty value from either source.
+                specialization: n.specialization || prof.specialization || "",
+                experience_yrs: n.experience_yrs || prof.experience_yrs || "",
+                hospital: n.hospital || prof.hospital || "",
+                title: n.title || prof.title || "",
+              };
+            });
+          } catch (mergeErr) {
+            console.warn("Could not merge nurseProfiles into nurse list:", mergeErr);
+          }
+
           // Apply search filter if present
           if (arg.search) {
             const searchLower = arg.search.toLowerCase();
