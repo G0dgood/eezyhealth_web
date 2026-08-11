@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Phone, ChevronLeft, Video, VideoOff, PhoneOff, Check, X } from "lucide-react";
+import { Phone, ChevronLeft, Video, VideoOff, PhoneOff, Check, X, Bell, Clock } from "lucide-react";
+import Modal from "@/components/modals/Modal";
 import { useRouter } from "next/navigation";
 import ConversationList, { PatientData } from "@/components/nurse/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +38,25 @@ const CustomMessage = (props: any) => {
     return <MessageSimple {...props} />;
   }
   const isMine = typeof props.isMyMessage === 'function' ? props.isMyMessage(message) : (message.user?.id === props.client?.userID);
+
+  // Appointment reminder — render as a distinct highlighted bubble so it stands
+  // out in the conversation for the doctor.
+  const isReminder =
+    message.custom?.type === "appointment_reminder" ||
+    (typeof message.text === "string" &&
+      (message.text.startsWith("⏰") ||
+        message.text.toLowerCase().includes("appointment reminder")));
+
+  if (isReminder) {
+    return (
+      <div className="flex justify-center my-2.5 px-4 w-full">
+        <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl border bg-orange-50 text-orange-800 border-orange-200 shadow-sm text-sm max-w-[90%]">
+          <Clock className="w-4 h-4 mt-0.5 shrink-0 text-orange-600" />
+          <span className="font-medium">{message.text}</span>
+        </div>
+      </div>
+    );
+  }
 
   const callStatus = message.call_status || (message.text?.includes('ended') ? 'ended' : message.text?.includes('accepted') ? 'accepted' : message.text?.includes('declined') ? 'declined' : message.text?.includes('started') || message.text?.includes('Call') ? 'initiated' : null);
   const isVideo = message.call_type === 'video' || message.text?.includes('Video') || message.text?.includes('📹');
@@ -359,6 +379,40 @@ export default function NurseMessagePage() {
     */
   };
 
+  // Appointment reminder to the doctor (posted into the active chat)
+  const [showReminder, setShowReminder] = useState(false);
+  const [reminderText, setReminderText] = useState("");
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
+
+  const openReminder = () => {
+    const patient =
+      uniquePatients.find((p) => p.id === selectedConversation) || null;
+    const name = patient?.patientName || "the patient";
+    const when = patient?.timestamp ? ` on ${patient.timestamp}` : "";
+    setReminderText(
+      `⏰ Appointment Reminder: Please remember your appointment with ${name}${when}. Kindly be available at the scheduled time.`
+    );
+    setShowReminder(true);
+  };
+
+  const sendReminder = async () => {
+    if (!activeChannel || !reminderText.trim()) return;
+    setIsSendingReminder(true);
+    try {
+      await activeChannel.sendMessage({
+        text: reminderText.trim(),
+        custom: { type: "appointment_reminder" },
+      } as any);
+      showInfo("Reminder sent", "The doctor has been reminded in the chat.");
+      setShowReminder(false);
+    } catch (err) {
+      console.error("Failed to send reminder:", err);
+      showError("Error", "Failed to send reminder. Please try again.");
+    } finally {
+      setIsSendingReminder(false);
+    }
+  };
+
   // Handle video/audio call
   const handleStartCall = async (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
@@ -514,6 +568,16 @@ export default function NurseMessagePage() {
                         title={activeConversation?.doctorName}
                         image={activeConversation?.doctorPhotoUrl}
                       />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+                        <button
+                          onClick={openReminder}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors shadow-sm"
+                          title="Remind doctor of appointment"
+                        >
+                          <Bell className="w-4 h-4" />
+                          Remind
+                        </button>
+                      </div>
                       {/* <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2 z-10">
                         <button
                           onClick={() => handleStartCall('audio')}
@@ -558,6 +622,57 @@ export default function NurseMessagePage() {
           </div>
         )}
       </div>
+
+      {/* Appointment reminder composer */}
+      <Modal
+        isOpen={showReminder}
+        onClose={() => setShowReminder(false)}
+        title="Remind Doctor"
+        size="md"
+      >
+        <div className="px-6 py-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-11 h-11 rounded-full bg-orange-50 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                Send an appointment reminder
+              </p>
+              <p className="text-xs text-gray-500">
+                It will appear in this chat for{" "}
+                {activeConversation?.doctorName || "the doctor"}.
+              </p>
+            </div>
+          </div>
+
+          <textarea
+            value={reminderText}
+            onChange={(e) => setReminderText(e.target.value)}
+            rows={5}
+            className="w-full rounded-lg border border-gray-200 text-gray-900 text-[13px] leading-relaxed p-3 outline-none focus:ring-2 focus:ring-orange-400/40 resize-y"
+            placeholder="Reminder message…"
+          />
+
+          <div className="flex gap-3 mt-5">
+            <button
+              onClick={() => setShowReminder(false)}
+              disabled={isSendingReminder}
+              className="flex-1 border border-gray-200 text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={sendReminder}
+              disabled={isSendingReminder || !reminderText.trim()}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-orange-500 text-white font-medium py-2.5 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            >
+              <Bell className="w-4 h-4" />
+              {isSendingReminder ? "Sending…" : "Send Reminder"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Incoming Call Alert */}
       {incomingCall && (
