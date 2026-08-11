@@ -48,11 +48,38 @@ const AdminUsersWidget: React.FC = () => {
     users = usersData.data;
   }
 
+  // Parse a user's join date, which may be a Firestore Timestamp object
+  // ({seconds}/{_seconds} or with toDate()), an ISO string, or under an
+  // alternate field name — otherwise `new Date(object)` yields "Invalid Date".
+  const parseUserDate = (user: UserData): Date | null => {
+    const u = user as unknown as Record<string, unknown>;
+    const raw = u.createdTime ?? u.createdAt ?? u.created_at ?? u.dateJoined;
+    if (!raw) return null;
+
+    if (typeof raw === "object") {
+      const o = raw as {
+        seconds?: number;
+        _seconds?: number;
+        toDate?: () => Date;
+      };
+      if (typeof o.toDate === "function") {
+        const d = o.toDate();
+        return isNaN(d.getTime()) ? null : d;
+      }
+      if (typeof o.seconds === "number") return new Date(o.seconds * 1000);
+      if (typeof o._seconds === "number") return new Date(o._seconds * 1000);
+      return null;
+    }
+
+    const d = new Date(raw as string | number);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   // Get recent users (last 5)
   const recentUsers = [...users]
     .sort((a: UserData, b: UserData) => {
-      const dateA = new Date(a.createdTime || 0).getTime();
-      const dateB = new Date(b.createdTime || 0).getTime();
+      const dateA = parseUserDate(a)?.getTime() || 0;
+      const dateB = parseUserDate(b)?.getTime() || 0;
       return dateB - dateA;
     })
     .slice(0, 5);
@@ -75,9 +102,9 @@ const AdminUsersWidget: React.FC = () => {
     (user: UserData) => user.isActive === false
   ).length;
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
+  const formatUserDate = (user: UserData) => {
+    const date = parseUserDate(user);
+    if (!date) return "N/A";
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -261,7 +288,7 @@ const AdminUsersWidget: React.FC = () => {
               )}
               <div className="flex items-center gap-2 text-[10px] md:text-[12px] text-gray-600">
                 <span className="text-xs">📅</span>
-                <span>Joined: {formatDate(user.createdTime)}</span>
+                <span>Joined: {formatUserDate(user)}</span>
               </div>
             </div>
 
