@@ -8,11 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { EditModeContext } from "@/contexts/EditModeContext";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/Button";
-import { ClipboardList, XCircle } from "lucide-react";
+import { ClipboardList, XCircle, CalendarClock, X } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 import VideoProvider from "@/components/VideoProvider";
 import { useCreateStreamTokenMutation } from "@/store/streamChatApi";
 import { useGetUploadsByDoctorIdQuery } from "@/store/uploadApi";
+import { useGetDoctorAvailabilityQuery } from "@/store/api";
 import { streamApiKey } from "@/lib/config";
 
 // The ONLY route an unverified doctor may visit — everything else is blocked
@@ -48,6 +50,27 @@ function DoctorLayout({ children }: LayoutProps) {
     (d) => (d.status || "").toLowerCase() === "pending"
   );
   const canAccessCoreFeatures = hasApprovedDoc && !hasPendingDoc;
+
+  // ── Availability nudge ──────────────────────────────────────────────────
+  // A doctor is only bookable by patients once they've set at least one
+  // availability slot. Surface a banner until they do; it disappears the moment
+  // availability exists.
+  const { data: availabilityData, isLoading: availabilityLoading } =
+    useGetDoctorAvailabilityQuery(doctorId, { skip: !doctorId });
+  const availabilityMap =
+    (availabilityData as { availability?: Record<string, Record<string, unknown>> } | undefined)
+      ?.availability || {};
+  const hasAvailability = Object.values(availabilityMap).some(
+    (daySlots) => daySlots && Object.keys(daySlots).length > 0
+  );
+  const [availabilityBannerDismissed, setAvailabilityBannerDismissed] =
+    useState(false);
+  const showAvailabilityBanner =
+    canAccessCoreFeatures &&
+    !availabilityLoading &&
+    !hasAvailability &&
+    !availabilityBannerDismissed &&
+    pathname !== "/doctor/availability";
 
   const isAllowedWhileUnverified = ALLOWED_WHILE_UNVERIFIED.some((p) =>
     pathname?.startsWith(p)
@@ -183,6 +206,40 @@ function DoctorLayout({ children }: LayoutProps) {
             <main
               className={`${transitionClasses} ${isMessagePage || isAudioCall || isVideoCall ? "" : "p-4 md:p-6"}`}
               data-page={isMessagePage ? "message" : isAudioCall ? "audio-call" : isVideoCall ? "video-call" : undefined}>
+              {showAvailabilityBanner && (
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <CalendarClock className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] md:text-sm font-semibold text-amber-900">
+                        You haven&apos;t set your availability yet
+                      </p>
+                      <p className="text-[11px] md:text-[12px] text-amber-700">
+                        Patients can&apos;t find or book you until you add availability. Set it to start receiving appointments.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <Link
+                      href="/doctor/availability"
+                      className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[12px] md:text-sm font-medium px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      <CalendarClock className="w-4 h-4" />
+                      Set Availability
+                    </Link>
+                    <button
+                      onClick={() => setAvailabilityBannerDismissed(true)}
+                      className="p-2 rounded-lg text-amber-600 hover:bg-amber-100 transition-colors"
+                      aria-label="Dismiss"
+                      title="Dismiss"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
               {children}
             </main>
           </div>

@@ -117,8 +117,26 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
-  const handleCancelAppointment = (reason: string) => {
-    // TODO: Implement appointment cancellation
+  const handleCancelAppointment = async (reason: string) => {
+    if (!selectedAppointment?.id) return;
+    try {
+      await updateBookingStatus({
+        bookingId: selectedAppointment.id,
+        newStatus: "Cancelled",
+        cancellationReason: reason || "Cancelled by doctor",
+        actor: "doctor",
+      }).unwrap();
+
+      await refetch();
+      showSuccess(
+        "Appointment Cancelled",
+        `${selectedAppointment.patientName}'s appointment has been cancelled.`
+      );
+      closeAllModals();
+    } catch (error) {
+      console.error("Failed to cancel appointment:", error);
+      showError("Error", "Failed to cancel the appointment. Please try again.");
+    }
   };
 
   // Transform API data to appointments
@@ -283,11 +301,44 @@ export default function DoctorAppointmentsPage() {
     setIsRescheduleModalOpen(true);
   };
 
-  const handleRescheduleSubmit = (rescheduleData: {
+  const handleRescheduleSubmit = async (rescheduleData: {
     date: string;
     time: string;
   }) => {
-    // TODO: Implement appointment rescheduling
+    if (!selectedAppointment?.id) return;
+    try {
+      // Bookings store bookingDate as "DD-MMM-YY" (e.g. "04-Aug-26"); the modal
+      // emits "YYYY-MM-DD". Convert so the rescheduled date matches the format
+      // the rest of the app reads.
+      const MONTHS = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      ];
+      const d = new Date(rescheduleData.date);
+      const newBookingDate = isNaN(d.getTime())
+        ? rescheduleData.date
+        : `${String(d.getDate()).padStart(2, "0")}-${MONTHS[d.getMonth()]}-${String(
+            d.getFullYear()
+          ).slice(-2)}`;
+
+      await updateBookingStatus({
+        bookingId: selectedAppointment.id,
+        newStatus: "Rescheduled",
+        newBookingDate,
+        newSlot: rescheduleData.time,
+        actor: "doctor",
+      }).unwrap();
+
+      await refetch();
+      showSuccess(
+        "Appointment Rescheduled",
+        `${selectedAppointment.patientName}'s appointment has been rescheduled.`
+      );
+      closeAllModals();
+    } catch (error) {
+      console.error("Failed to reschedule appointment:", error);
+      showError("Error", "Failed to reschedule the appointment. Please try again.");
+    }
   };
 
   const handleCancel = (appointment: DoctorAppointment) => {
