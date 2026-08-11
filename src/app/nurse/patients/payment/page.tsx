@@ -159,6 +159,24 @@ export default function PaymentPage() {
     }
   };
 
+  // Pull the most specific error message available (cloud function error,
+  // RTK error payload, or a JS Error) instead of a generic fallback — otherwise
+  // real reasons like "slot already booked" are hidden behind "Booking failed".
+  const extractErrorMessage = (error: unknown): string => {
+    const e = error as {
+      data?: { error?: string; message?: string };
+      error?: string;
+      message?: string;
+    };
+    return (
+      e?.data?.error ||
+      e?.data?.message ||
+      e?.error ||
+      e?.message ||
+      "Please try again or contact support"
+    );
+  };
+
   const handleManualPayment = async (method: string) => {
     try {
       setIsProcessing(true);
@@ -175,7 +193,7 @@ export default function PaymentPage() {
 
     } catch (error) {
       toast.error("Booking confirmation failed", {
-        description: "Please try again or contact support",
+        description: extractErrorMessage(error),
       });
     } finally {
       setIsProcessing(false);
@@ -323,6 +341,9 @@ export default function PaymentPage() {
       setIsProcessing(false);
       // Stop the loading state
     } catch (error) {
+      toast.error("Booking confirmation failed", {
+        description: extractErrorMessage(error),
+      });
       setIsProcessing(false); // Stop the loading state on error
     }
   };
@@ -352,9 +373,8 @@ export default function PaymentPage() {
       }, 3000);
       return result;
     } catch (error) {
-      toast.error(
-        (error as { data?: { error?: string } }).data?.error || "Payment failed"
-      );
+      // Don't toast here — the caller (handleManualPayment / handlePaymentSuccess)
+      // surfaces the real error message, so toasting here would double-report.
       setIsPaystackLoaded(true);
       throw error;
     }
