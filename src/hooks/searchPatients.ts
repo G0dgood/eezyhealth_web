@@ -78,20 +78,37 @@ export const searchPatients = async (
     
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const birthDate = new Date(data.dateOfBirth);
-      const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-      
+      const dob = data.dateOfBirth || data.date_of_birth;
+      let age: number | string = "N/A";
+      if (dob) {
+        const birthDateObj = new Date(dob);
+        if (!isNaN(birthDateObj.getTime())) {
+          const computedAge = Math.floor((Date.now() - birthDateObj.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+          if (!isNaN(computedAge) && computedAge >= 0) {
+            age = computedAge;
+          }
+        }
+      }
+
+      const displayName =
+        data.name ||
+        data.display_name ||
+        [data.first_name, data.last_name].filter(Boolean).join(" ").trim() ||
+        "Patient";
+
+      const phone = data.phone || data.phone_number || "";
+
       patients.push({
         id: doc.id,
-        name: data.name || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        dateOfBirth: data.dateOfBirth || '',
-        gender: data.gender || 'male',
-        status: data.status || 'ACTIVE',
-        age,
-        bloodType: data.bloodType,
-        createdAt: data.createdAt?.toDate() || new Date(),
+        name: displayName,
+        email: data.email || "",
+        phone: phone,
+        dateOfBirth: dob || "",
+        gender: data.gender || "male",
+        status: data.status || "ACTIVE",
+        age: age as any,
+        bloodType: data.bloodType || data.blood_type,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
         lastConsultation: data.lastConsultation,
       });
     });

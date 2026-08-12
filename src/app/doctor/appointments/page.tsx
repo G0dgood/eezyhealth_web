@@ -197,19 +197,25 @@ export default function DoctorAppointmentsPage() {
           )
             return "voiceCall";
           if (
-            raw === "1" ||
             raw === "4" ||
-            raw.includes("video") ||
             raw.includes("physical") ||
-            raw.includes("person")
+            raw.includes("person") ||
+            raw.includes("hospital") ||
+            raw.includes("in-person")
+          )
+            return "physical";
+          if (
+            raw === "1" ||
+            raw.includes("video")
           )
             return "videoCall";
           return "videoCall";
         })(),
         status: (() => {
-          const status = String(booking.bookingStatus || "").toLowerCase();
+          const status = String(booking.bookingStatus || booking.status || "").toLowerCase();
           if (status === "accepted" || status === "confirmed")
             return "confirmed";
+          if (status === "rescheduled") return "rescheduled";
           if (status === "completed") return "completed";
           if (status === "pending") return "pending";
           if (status === "cancelled") return "cancelled";
@@ -250,6 +256,7 @@ export default function DoctorAppointmentsPage() {
   const statusDisplayMap: Record<AppointmentStatus, string> = {
     pending: "Scheduled",
     confirmed: "Confirmed",
+    rescheduled: "Rescheduled (Action Required)",
     completed: "Completed",
     cancelled: "Cancelled",
   };
@@ -258,14 +265,16 @@ export default function DoctorAppointmentsPage() {
     const statusClasses = {
       pending: "bg-yellow-100 text-yellow-800 border border-yellow-300",
       confirmed: "bg-blue-100 text-blue-800 border border-blue-300",
+      rescheduled: "bg-orange-100 text-orange-800 border border-orange-300 font-semibold",
       completed: "bg-green-100 text-green-800 border border-green-300",
       cancelled:
         "bg-[var(--destructive)]/10 text-[var(--destructive)] border border-[var(--destructive)]/20",
     };
-
     return (
       <span
-        className={`px-2 py-1 text-xs rounded-full ${statusClasses[status]}`}
+        className={`px-2 py-1 text-xs rounded-full ${
+          statusClasses[status] || statusClasses.pending
+        }`}
       >
         {statusDisplayMap[status]}
       </span>
@@ -281,6 +290,8 @@ export default function DoctorAppointmentsPage() {
         return <MessageCircle className={`${iconClasses} text-green-600`} />;
       case "voiceCall":
         return <Phone className={`${iconClasses} text-purple-600`} />;
+      case "physical":
+        return <User className={`${iconClasses} text-amber-600`} />;
       default:
         return <Video className={`${iconClasses} text-gray-600`} />;
     }
@@ -484,16 +495,18 @@ export default function DoctorAppointmentsPage() {
                             <FileText className="w-4 h-4" />
                             <span>Consultation Details</span>
                           </button>
-                          {appointment.status === "pending" && (
+                          {(appointment.status === "pending" || appointment.status === "rescheduled") && (
+                            <button
+                              onClick={() => handleConfirmClick(appointment)}
+                              className="flex items-center space-x-1 text-[var(--primary)] hover:opacity-80 transition-opacity font-medium"
+                              title="Confirm Appointment"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Confirm</span>
+                            </button>
+                          )}
+                          {(appointment.status === "pending" || appointment.status === "confirmed" || appointment.status === "rescheduled") && (
                             <>
-                              <button
-                                onClick={() => handleConfirmClick(appointment)}
-                                className="flex items-center space-x-1 text-[var(--primary)] hover:opacity-80 transition-opacity"
-                                title="Confirm Appointment"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                                <span>Confirm</span>
-                              </button>
                               <button
                                 onClick={() => handleReschedule(appointment)}
                                 className="text-orange-600 hover:text-orange-800 transition-colors"
@@ -562,6 +575,7 @@ export default function DoctorAppointmentsPage() {
         onSubmit={handleRescheduleSubmit}
         currentDate={selectedAppointment?.date || ""}
         currentTime={selectedAppointment?.time || ""}
+        doctorId={doctorId || ""}
       />
 
       {/* Cancel Appointment Modal */}

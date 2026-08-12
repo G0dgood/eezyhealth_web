@@ -12,10 +12,11 @@ interface VideoCallScreenProps {
   callDuration: number;
   isWaitingForAcceptance: boolean;
   formatDuration: (seconds: number) => string;
+  onToggleNotes?: () => void;
 }
 
 // Liquid-glass control bar wired to the Stream call so the buttons actually work.
-const GlassCallControls: React.FC<{ onLeave: () => void; onToggleNotes: () => void }> = ({
+const GlassCallControls: React.FC<{ onLeave: () => void; onToggleNotes?: () => void }> = ({
   onLeave,
   onToggleNotes,
 }) => {
@@ -49,13 +50,15 @@ const GlassCallControls: React.FC<{ onLeave: () => void; onToggleNotes: () => vo
         {camOff ? <VideoOff size={22} /> : <Video size={22} />}
       </button>
 
-      <button
-        onClick={onToggleNotes}
-        className={`${baseBtn} ${onStyle}`}
-        title="Take notes"
-      >
-        <FileText size={22} />
-      </button>
+      {onToggleNotes && (
+        <button
+          onClick={onToggleNotes}
+          className={`${baseBtn} ${onStyle}`}
+          title="Take notes"
+        >
+          <FileText size={22} />
+        </button>
+      )}
 
       <button
         onClick={onLeave}
@@ -74,11 +77,8 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
   callDuration,
   isWaitingForAcceptance,
   formatDuration,
+  onToggleNotes,
 }) => {
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [copied, setCopied] = useState(false);
-
   return (
     <div className="flex flex-col h-full bg-gray-900 relative rounded-2xl overflow-hidden shadow-xl">
       {/* Header Overlay */}
@@ -97,72 +97,8 @@ const VideoCallScreen: React.FC<VideoCallScreenProps> = ({
 
       {/* Liquid-glass controls */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-center w-full z-10">
-        <GlassCallControls onLeave={onLeave} onToggleNotes={() => setIsNotesModalOpen(true)} />
+        <GlassCallControls onLeave={onLeave} onToggleNotes={onToggleNotes} />
       </div>
-
-      {/* Notes Modal Overlay */}
-      {isNotesModalOpen && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 z-50">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 text-white">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <FileText className="text-blue-400" size={20} />
-                Call Notes
-              </h3>
-              <button
-                onClick={() => setIsNotesModalOpen(false)}
-                className="text-gray-400 hover:text-white text-2xl leading-none transition-colors"
-              >
-                &times;
-              </button>
-            </div>
-
-            <textarea
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Write down important notes during the call..."
-              className="w-full h-48 bg-black/30 border border-white/10 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none text-white placeholder-gray-500"
-            />
-
-            <div className="flex items-center justify-between gap-3 mt-2">
-              <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(noteText);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  } catch (e) {
-                    console.error("Failed to copy notes", e);
-                  }
-                }}
-                disabled={!noteText.trim()}
-                className={`flex-1 py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm border border-white/10 ${
-                  copied
-                    ? "bg-green-600/20 text-green-400 border-green-500/30"
-                    : "bg-white/5 hover:bg-white/10 text-white disabled:opacity-40"
-                }`}
-              >
-                {copied ? (
-                  <>
-                    <Check size={16} /> Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} /> Copy to Clipboard
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => setIsNotesModalOpen(false)}
-                className="py-2.5 px-6 rounded-xl font-semibold bg-blue-500 hover:bg-blue-600 transition-colors text-sm text-white"
-              >
-                Save & Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -345,21 +345,61 @@ const getBookingColor = (channel: string) => {
 };
 
 const getChannelIcon = (channel: string) => {
-  switch (channel) {
-    case "videoCall":
-      return <Video className="w-3 h-3" />;
-    case "chat":
-      return <MessageCircle className="w-3 h-3" />;
-    case "voiceCall":
-      return <Phone className="w-3 h-3" />;
-    case "physical":
-      return <User className="w-3 h-3" />;
-    default:
-      return <Calendar className="w-3 h-3" />;
+  const ch = String(channel || "").toLowerCase();
+  if (ch === "2" || ch.includes("chat")) {
+    return <MessageCircle className="w-3.5 h-3.5 text-purple-600" />;
   }
+  if (
+    ch === "3" ||
+    ch.includes("voice") ||
+    ch.includes("audio") ||
+    ch.includes("phone")
+  ) {
+    return <Phone className="w-3.5 h-3.5 text-green-600" />;
+  }
+  if (
+    ch === "4" ||
+    ch.includes("physical") ||
+    ch.includes("person") ||
+    ch.includes("hospital") ||
+    ch.includes("in-person")
+  ) {
+    return <User className="w-3.5 h-3.5 text-amber-600" />;
+  }
+  if (ch === "1" || ch.includes("video")) {
+    return <Video className="w-3.5 h-3.5 text-blue-600" />;
+  }
+  return <Video className="w-3.5 h-3.5 text-blue-600" />;
+};
+
+const hasDoctorAvailability = (availability: unknown): boolean => {
+  if (!availability || typeof availability !== "object") return false;
+  return Object.values(availability as Record<string, unknown>).some((daySlots) => {
+    if (!daySlots) return false;
+    if (Array.isArray(daySlots)) return daySlots.length > 0;
+    if (typeof daySlots === "object") return Object.keys(daySlots).length > 0;
+    return false;
+  });
+};
+
+const getAvailabilityBadge = (isAvailable: boolean) => {
+  if (isAvailable) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+        Available
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+      Unavailable
+    </span>
+  );
 };
 
 export {
+  hasDoctorAvailability,
+  getAvailabilityBadge,
   getChannelIcon,
   getBookingColor,
   getTypeColor,

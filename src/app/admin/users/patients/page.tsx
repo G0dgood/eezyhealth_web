@@ -375,10 +375,11 @@ export default function AdminPatientsPage() {
                                 <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                                   {(patient.display_name as string) ||
                                     (patient.name as string) ||
+                                    [patient.first_name, patient.last_name]
+                                      .filter(Boolean)
+                                      .join(" ")
+                                      .trim() ||
                                     "N/A"}
-                                </div>
-                                <div className="text-[10px] md:text-[12px] text-gray-500">
-                                  ID: {patient.id.slice(0, 8)}...
                                 </div>
                               </div>
                             </div>
@@ -390,7 +391,7 @@ export default function AdminPatientsPage() {
                               {(patient.email as string) || "N/A"}
                             </div>
                             <div className="text-[10px] md:text-[12px] text-gray-500">
-                              {(patient.phone_number as string) || "N/A"}
+                              {(patient.phone_number as string) || (patient.phone as string) || "N/A"}
                             </div>
                           </td>
 
@@ -406,6 +407,7 @@ export default function AdminPatientsPage() {
                                   const birthDateObj = new Date(
                                     birthDate as string
                                   );
+                                  if (isNaN(birthDateObj.getTime())) return "N/A";
                                   const today = new Date();
                                   let age =
                                     today.getFullYear() -
@@ -419,7 +421,7 @@ export default function AdminPatientsPage() {
                                   ) {
                                     age--;
                                   }
-                                  return age.toString();
+                                  return isNaN(age) || age < 0 ? "N/A" : age.toString();
                                 } catch (error) {
                                   return "N/A";
                                 }
