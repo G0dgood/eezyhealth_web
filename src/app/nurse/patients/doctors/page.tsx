@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
-import { topDoctorColors, topDoctorMainColors } from "@/components/Options";
+import { topDoctorColors, topDoctorMainColors, hasDoctorAvailability, getAvailabilityBadge } from "@/components/Options";
 import DoctorSkeletonLoader from "@/components/skeletons/DoctorSkeletonLoader";
 
 interface Doctor {
@@ -216,8 +216,9 @@ export default function NursesDoctorsPage() {
                     }`.trim() || ""}
                 </p>
 
-                <div className="flex items-center justify-center mb-3">
+                <div className="flex items-center justify-center mb-3 gap-2">
                   {renderStars(doctor.rating || 0)}
+                  {getAvailabilityBadge(hasDoctorAvailability(doctor.availability))}
                 </div>
 
                 <div className="space-y-2 text-left">
@@ -315,8 +316,9 @@ export default function NursesDoctorsPage() {
                     : "N/A"}
                 </p>
 
-                <div className="flex items-center justify-center mb-3">
+                <div className="flex items-center justify-center mb-3 gap-2">
                   {renderStars(doctor?.rating || 0)}
+                  {getAvailabilityBadge(hasDoctorAvailability(doctor.availability))}
                 </div>
 
                 <div className="space-y-2 text-left">

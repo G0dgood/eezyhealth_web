@@ -377,10 +377,11 @@ export default function NursePatientsPage() {
                 <div className="text-[10px] md:text-[12px] font-medium text-gray-900">
                  {(patient.display_name as string) ||
                   (patient.name as string) ||
+                  [patient.first_name, patient.last_name]
+                   .filter(Boolean)
+                   .join(" ")
+                   .trim() ||
                   "N/A"}
-                </div>
-                <div className="text-[10px] md:text-[12px] text-gray-500">
-                 ID: {patient.id.slice(0, 8)}...
                 </div>
                </div>
               </div>

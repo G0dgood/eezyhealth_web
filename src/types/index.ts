@@ -58,9 +58,10 @@ export interface RawBookingData {
 export type AppointmentStatus =
   | "pending"
   | "confirmed"
+  | "rescheduled"
   | "completed"
   | "cancelled";
-export type AppointmentChannel = "videoCall" | "chat" | "voiceCall";
+export type AppointmentChannel = "videoCall" | "chat" | "voiceCall" | "physical";
 
 export interface DoctorAppointment {
   id: string;

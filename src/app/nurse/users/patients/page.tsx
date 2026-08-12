@@ -307,33 +307,45 @@ export default function NurseUsersPatientsPage() {
           href={`/nurse/users/patients/${row.id}`}
           className="text-[#44CE2D] font-medium hover:text-[#3bb025] cursor-pointer"
         >
-          {String(value)}
+          {String(value || "Patient")}
         </Link>
       ),
-    },
-    {
-      key: "userId",
-      label: "USER ID",
-      render: (value: string | number, row: PatientSearchResult) => row.id,
     },
     {
       key: "gender",
       label: "GENDER",
       render: (value: string | number) =>
-        String(value).charAt(0).toUpperCase() + String(value).slice(1),
+        value ? String(value).charAt(0).toUpperCase() + String(value).slice(1) : "N/A",
     },
     {
       key: "status",
       label: "STATUS",
       render: (value: string | number) => (
         <span className="px-2 py-1 bg-[#44CE2D]/10 text-[#44CE2D] text-xs rounded-full">
-          {String(value)}
+          {String(value || "ACTIVE")}
         </span>
       ),
     },
-    { key: "age", label: "AGE" },
-    { key: "phone", label: "PHONE NUMBER" },
-    { key: "email", label: "EMAIL" },
+    {
+      key: "age",
+      label: "AGE",
+      render: (value: string | number) =>
+        value !== undefined && value !== null && !isNaN(Number(value))
+          ? String(value)
+          : "N/A",
+    },
+    {
+      key: "phone",
+      label: "PHONE NUMBER",
+      render: (value: string | number) =>
+        value && String(value).trim() !== "" ? String(value) : "N/A",
+    },
+    {
+      key: "email",
+      label: "EMAIL",
+      render: (value: string | number) =>
+        value && String(value).trim() !== "" ? String(value) : "N/A",
+    },
     {
       key: "action",
       label: "ACTION",

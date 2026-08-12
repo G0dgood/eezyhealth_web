@@ -1612,8 +1612,11 @@ export const api = createApi({
               
               // Find the document in the documents array
               // Match by name only (as per business requirement: Document approval does not use ID, it uses name)
+              const targetName = (name || "").trim().toLowerCase();
               const docIndex = uploadData.documents.findIndex((docItem: any) => {
-                return docItem.fileName === name || docItem.name === name;
+                const itemFileName = (docItem.fileName || "").trim().toLowerCase();
+                const itemName = (docItem.name || "").trim().toLowerCase();
+                return itemFileName === targetName || itemName === targetName;
               });
               
               if (docIndex !== -1) {
@@ -1629,10 +1632,11 @@ export const api = createApi({
           
             // Validate that documents with the same name cannot be approved
             if (status === "approved") {
+              const targetName = (name || "").trim().toLowerCase();
               const duplicateExists = uploadData.documents.some((docItem: any, idx: number) => {
                 if (idx === finalDocIndex) return false;
-                const docName = docItem.fileName || docItem.name;
-                return docName === name;
+                const docName = (docItem.fileName || docItem.name || "").trim().toLowerCase();
+                return docName === targetName;
               });
 
               if (duplicateExists) {

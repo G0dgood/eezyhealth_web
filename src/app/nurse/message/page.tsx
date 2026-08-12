@@ -417,13 +417,13 @@ export default function NurseMessagePage() {
   const handleStartCall = async (callType: 'video' | 'audio') => {
     if (!activeChannel || !chatClient?.userID) return;
 
-    const callId = activeChannel.id; // Use channel ID as call ID for simplicity
+    const uniqueCallId = `${activeChannel.id}-${callType}-${Date.now()}`;
 
     try {
       await activeChannel.sendMessage({
         text: `📞 ${callType === 'video' ? 'Video' : 'Audio'} Call`,
         custom: {
-          callId,
+          callId: uniqueCallId,
           callType,
         },
       } as any);
@@ -435,7 +435,7 @@ export default function NurseMessagePage() {
 
     // 2. Navigate to Call Page as Caller
     const params = new URLSearchParams({
-      callId: callId || "",
+      callId: uniqueCallId,
       isCaller: "true",
       callType,
       // patientId is intentionally omitted so Nurse logs in as themselves

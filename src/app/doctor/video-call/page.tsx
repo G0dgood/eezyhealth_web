@@ -15,6 +15,9 @@ import VideoCallScreen from "@/components/VideoCallScreen";
 import { getVideoClient } from "@/lib/streamVideo";
 import { toast } from "sonner";
 import { streamApiKey } from "@/lib/config";
+import { ConsultationNoteModal } from "@/components/modals";
+import { useUpdateBookingStatusMutation } from "@/store/bookingApi";
+import { showSuccess, showError } from "@/utils/toast";
 
 import { getStreamChatInfo, getStreamChatClient, connectStreamChatUser } from "@/lib/streamChat";
 
@@ -23,15 +26,52 @@ export default function DoctorVideoCallPage() {
   const router = useRouter();
   const params = useSearchParams();
   const [generateTokenForUser] = useGenerateTokenForUserMutation();
+  const [updateBookingStatus, { isLoading: isSavingNotes }] = useUpdateBookingStatusMutation();
 
   const callId = params.get("callId")!;
   const patientId = params.get("patientId")!;
   const patientName = params.get("patientName") || "Patient";
+  const bookingId = params.get("bookingId") || params.get("channelId") || "";
 
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [call, setCall] = useState<any>(null);
   const [waiting, setWaiting] = useState(true);
   const [duration, setDuration] = useState(0);
+  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
+
+  const handleSaveConsultationNote = async (data: {
+    note: string;
+    recommendation: string;
+    diagnosis: string;
+    prescriptions: string;
+  }) => {
+    if (!bookingId) {
+      showError("Error", "No booking reference available to save notes.");
+      return;
+    }
+
+    try {
+      const prescriptionsArray = data.prescriptions
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      await updateBookingStatus({
+        bookingId,
+        comment: data.note,
+        recommendation: data.recommendation,
+        diagnosis: data.diagnosis,
+        prescriptions: prescriptionsArray,
+        actor: "doctor",
+      }).unwrap();
+
+      showSuccess("Success", "Consultation details saved successfully!");
+      setIsConsultationModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save consultation notes:", err);
+      showError("Error", "Failed to save consultation details. Please try again.");
+    }
+  };
 
   const hasInit = useRef(false);
   const navigatedRef = useRef(false);
@@ -240,10 +280,19 @@ export default function DoctorVideoCallPage() {
               onLeave={handleEnd}
               isWaitingForAcceptance={waiting}
               callDuration={duration}
-              formatDuration={formatTime} />
+              formatDuration={formatTime}
+              onToggleNotes={() => setIsConsultationModalOpen(true)}
+            />
           </div>
         </StreamTheme>
       </StreamCall>
+
+      <ConsultationNoteModal
+        isOpen={isConsultationModalOpen}
+        onClose={() => setIsConsultationModalOpen(false)}
+        onSubmit={handleSaveConsultationNote}
+        isSubmitting={isSavingNotes}
+      />
     </StreamVideo>
   );
 }

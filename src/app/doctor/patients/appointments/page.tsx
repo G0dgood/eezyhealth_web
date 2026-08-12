@@ -230,10 +230,7 @@ export default function DoctorPatientAppointmentsPage() {
 
                     {/* Booking Info Column */}
                     <td>
-                      <div className=" !text-[10px]  !md:text-[12px] text-gray-900">
-                        ID: {appointment.bookingId ? `${appointment.bookingId.slice(0, 8)}...` : "N/A"}
-                      </div>
-                      <div className=" !text-[10px]  !md:text-[12px] text-gray-500">
+                      <div className=" !text-[10px]  !md:text-[12px] font-medium text-gray-900">
                         {appointment.channel}
                       </div>
                     </td>

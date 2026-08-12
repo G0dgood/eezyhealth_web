@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import Modal from "@/components/modals/Modal";
 import FormInput from "@/components/FormInput";
+import Dropdown from "@/components/Dropdown";
+import { useGetSpecializationsQuery } from "@/store/specializationApi";
 
 export interface NurseFormData {
   first_name: string;
@@ -31,6 +33,43 @@ export default function AddNurseModal({
   onClose,
   onSave,
 }: AddNurseModalProps) {
+  const { data: specializationsData } = useGetSpecializationsQuery({});
+
+  const specializationOptions = useMemo(() => {
+    const defaultList = [
+      "General Nursing",
+      "Pediatric Nursing",
+      "Critical Care / ICU",
+      "Emergency Nursing",
+      "Surgical / Operating Room",
+      "Psychiatric / Mental Health",
+      "Obstetrics & Gynecology Nursing",
+      "Cardiac Care",
+      "Oncology Nursing",
+      "Geriatric Nursing",
+      "Community / Public Health Nursing",
+      "General Practitioner",
+      "Cardiology",
+      "Pediatrics",
+      "Dermatology",
+      "Neurology",
+      "Orthopedics",
+    ];
+
+    const fetchedList = Array.isArray(specializationsData)
+      ? specializationsData
+          .map((s: any) => s.name || s.title || s.specialization)
+          .filter(Boolean)
+      : [];
+
+    const merged = Array.from(new Set([...fetchedList, ...defaultList]));
+
+    return merged.map((name) => ({
+      value: name,
+      label: name,
+    }));
+  }, [specializationsData]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add New Nurse" size="md">
       <div className="flex flex-col max-h-[70vh]">
@@ -73,13 +112,19 @@ export default function AddNurseModal({
             onChange={(value) => onChange("phone_number", value)}
             required
           />
-          <FormInput
-            label="Specialization"
-            placeholder="Enter specialization"
-            value={formData.specialization}
-            onChange={(value) => onChange("specialization", value)}
-            required
-          />
+          <div>
+            <label className="block text-[10px] md:text-[12px] font-medium text-gray-700 mb-1">
+              Specialization <span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              value={formData.specialization}
+              onChange={(value) => onChange("specialization", value)}
+              options={specializationOptions}
+              placeholder="Select Specialization"
+              className="w-full"
+              variant="default"
+            />
+          </div>
           <FormInput
             label="Hospital"
             placeholder="Enter hospital"
@@ -89,7 +134,7 @@ export default function AddNurseModal({
           />
           <FormInput
             label="Years of Experience"
-            placeholder="Enter years of experience"
+            placeholder="Enter years of experience (e.g. 5)"
             value={formData.experience_yrs}
             onChange={(value) => onChange("experience_yrs", value)}
             required

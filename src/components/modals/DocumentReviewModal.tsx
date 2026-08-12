@@ -123,7 +123,7 @@ export default function DocumentReviewModal({
         );
       } else {
         toast.error(
-          error?.error || "Failed to update document. Please try again."
+          error?.data?.error || error?.error || "Failed to update document. Please try again."
         );
       }
     } finally {
@@ -207,7 +207,7 @@ export default function DocumentReviewModal({
     } catch (error: any) {
       console.error("Error approving documents:", error);
       toast.error(
-        error?.error || "Failed to approve documents. Please try again."
+        error?.data?.error || error?.error || "Failed to approve documents. Please try again."
       );
     } finally {
       setActionType(null);
