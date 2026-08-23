@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Save } from "lucide-react";
+import { MODAL_SIZE_CLASSES, ModalSize } from "./modalSizes";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -10,7 +11,7 @@ interface FormModalProps {
   children: React.ReactNode;
   submitText?: string;
   cancelText?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: ModalSize;
   isLoading?: boolean;
 }
 
@@ -27,12 +28,7 @@ export default function FormModal({
 }: FormModalProps) {
   if (!isOpen) return null;
 
-  const sizeClasses = {
-    sm: "max-w-md",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
-  };
+  const sizeClasses = MODAL_SIZE_CLASSES;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

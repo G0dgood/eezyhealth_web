@@ -1,3 +1,23 @@
+/**
+ * @deprecated DEAD CODE — do not import from this file.
+ *
+ * This is a legacy monolith that was split into the focused slices alongside it
+ * (doctorApi, doctorFirebaseApi, bookingApi, paymentApi, financeApi, refundApi,
+ * …), each of which injects into the single real API instance in `baseApi.ts`.
+ *
+ * It declares its own `createApi` with the SAME `reducerPath: "api"` as
+ * `baseApi.ts`, but only baseApi's instance is registered in the store (see
+ * `store/index.ts`). Hooks imported from here therefore read the registered
+ * instance's state slice while THIS instance's middleware is never wired up — so
+ * their queries silently fail to fetch or refetch. `doctor/layout.tsx` and
+ * `widgets/AvailabilityWidget.tsx` hit exactly that bug with the availability
+ * hooks; both now import from `doctorFirebaseApi`, which has byte-identical
+ * endpoints and is properly registered.
+ *
+ * Nothing imports this file any more, so it is tree-shaken out and inert. It is
+ * safe to delete outright — kept only so the endpoint definitions remain visible
+ * in history while the split-out slices are confirmed complete.
+ */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const api = createApi({

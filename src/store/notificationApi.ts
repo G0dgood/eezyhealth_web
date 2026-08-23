@@ -1,6 +1,7 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 export const notificationApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // Send notification to patients
     sendPatientNotification: builder.mutation({

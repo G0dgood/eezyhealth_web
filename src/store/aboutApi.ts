@@ -1,4 +1,4 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 // The `aboutus` collection is read by the mobile apps by merging every document
 // (later docs override earlier ones on key collisions). To keep the admin
@@ -17,6 +17,7 @@ export interface AboutUsData {
 }
 
 export const aboutApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     getAbout: builder.query<AboutUsData & { _targetId: string }, void>({
       async queryFn() {

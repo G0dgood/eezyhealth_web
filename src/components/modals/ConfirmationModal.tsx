@@ -54,7 +54,7 @@ export default function ConfirmationModal({
           onClick={onClose}></div>
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle max-w-md w-full z-50 relative">
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle max-w-[460px] w-full z-50 relative">
           {/* Header */}
           <div className="bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center space-x-3">

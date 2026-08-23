@@ -1,6 +1,7 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 export const authApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // ===== AUTHENTICATION & USER MANAGEMENT =====
     generateTokenForUser: builder.mutation({

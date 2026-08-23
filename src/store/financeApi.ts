@@ -1,4 +1,4 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 import { BankAccount } from "@/types";
 
 export interface ConfirmPaymentPayload {
@@ -105,6 +105,7 @@ async function resolveBookingRef(paymentId: string, bookingId?: string) {
 }
 
 export const financeApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // ===== COMPANY BANK ACCOUNTS =====
     getCompanyBankAccounts: builder.query<BankAccount[], { activeOnly?: boolean } | void>({

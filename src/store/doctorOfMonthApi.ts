@@ -1,6 +1,7 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 export const doctorOfMonthApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // ===== DOCTOR OF THE MONTH =====
     triggerDoctorOfTheMonth: builder.mutation({

@@ -1,4 +1,4 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 /**
  * Global booking price. Single source of truth stored in the `pricings`
@@ -7,6 +7,7 @@ import { api } from "./baseApi";
  * amount, so writing it here reflects everywhere.
  */
 export const pricingApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // Read the current global booking price.
     getPricing: builder.query({

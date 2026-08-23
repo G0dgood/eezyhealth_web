@@ -1,6 +1,7 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 export const adminApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     // ===== ADMIN DASHBOARD =====
     getAdminDashboard: builder.query({

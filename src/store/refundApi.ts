@@ -1,6 +1,7 @@
-import { api } from "./baseApi";
+import { api, ALLOW_HMR_REINJECT } from "./baseApi";
 
 export const refundApi = api.injectEndpoints({
+  overrideExisting: ALLOW_HMR_REINJECT,
   endpoints: (builder) => ({
     getRefunds: builder.query({
       async queryFn(arg: { page?: number; limit?: number; search?: string; status?: string } = {}) {

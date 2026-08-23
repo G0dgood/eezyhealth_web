@@ -21,6 +21,7 @@ import {
 import Title from "@/components/Title";
 import Button from "@/components/Button";
 import { useGetPaymentsQuery } from "@/store/paymentApi";
+import { useGetRefundsQuery } from "@/store/refundApi";
 import {
   useGetCompanyBankAccountsQuery,
   useUpdateCompanyBankAccountMutation,
@@ -57,6 +58,9 @@ export default function FinanceDashboardPage() {
     refetch: refetchBanks,
   } = useGetCompanyBankAccountsQuery();
 
+  // Refunds are their own collection, not a payment status.
+  const { data: refundsData } = useGetRefundsQuery({});
+
   const [updateBank] = useUpdateCompanyBankAccountMutation();
   const [deleteBank] = useDeleteCompanyBankAccountMutation();
 
@@ -64,13 +68,18 @@ export default function FinanceDashboardPage() {
     return Array.isArray(paymentsData) ? paymentsData : [];
   }, [paymentsData]);
 
+  const refundsList = useMemo(() => {
+    return Array.isArray(refundsData) ? refundsData : [];
+  }, [refundsData]);
+
   // Compute stats
   const stats = useMemo(() => {
     let totalRevenue = 0;
     let pendingCount = 0;
     let completedCount = 0;
     let failedCount = 0;
-    let refundCount = 0;
+    let refundedPaymentBookings = new Set<string>();
+    let refundedPaymentsWithoutRequest = 0;
 
     paymentsList.forEach((p: any) => {
       const status = (p.paymentStatus || p.status || "").toLowerCase();
@@ -84,8 +93,18 @@ export default function FinanceDashboardPage() {
       } else if (status === "failed" || status === "rejected") {
         failedCount++;
       } else if (status === "refunded" || status === "refund") {
-        refundCount++;
+        refundedPaymentBookings.add(String(p.bookingId || `payment:${p.id}`));
       }
+    });
+
+    // Refunds live in the `refunds` collection, so counting only payments marked
+    // "refunded" reported 0. Count refund requests, plus refunded payments that
+    // have no matching refund doc, deduped on bookingId.
+    const requestBookings = new Set(
+      refundsList.map((r: any) => String(r.bookingId || "")).filter(Boolean)
+    );
+    refundedPaymentBookings.forEach((key) => {
+      if (!requestBookings.has(key)) refundedPaymentsWithoutRequest++;
     });
 
     return {
@@ -93,10 +112,10 @@ export default function FinanceDashboardPage() {
       pendingCount,
       completedCount,
       failedCount,
-      refundCount,
+      refundCount: refundsList.length + refundedPaymentsWithoutRequest,
       totalTransactions: paymentsList.length,
     };
-  }, [paymentsList]);
+  }, [paymentsList, refundsList]);
 
   // Pending payments list
   const pendingPayments = useMemo(() => {

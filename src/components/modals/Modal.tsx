@@ -2,13 +2,14 @@
 
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
+import { MODAL_SIZE_CLASSES, ModalSize } from "./modalSizes";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: ModalSize;
 }
 
 export default function Modal({
@@ -20,12 +21,7 @@ export default function Modal({
 }: ModalProps) {
   if (!isOpen) return null;
 
-  const sizeClasses = {
-    sm: "max-w-md",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
-  };
+  const sizeClasses = MODAL_SIZE_CLASSES;
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] overflow-y-auto">
