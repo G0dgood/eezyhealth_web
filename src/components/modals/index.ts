@@ -24,3 +24,5 @@ export { default as CreateSpecialtyModal } from './CreateSpecialtyModal';
 export { default as FilterModal } from './FilterModal';
 export { default as NotificationDetailModal } from './NotificationDetailModal';
 export { default as ReceiptViewerModal } from './ReceiptViewerModal';
+export { default as DataExportModal } from './DataExportModal';
+export { default as DataVerificationModal } from './DataVerificationModal';
