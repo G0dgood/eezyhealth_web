@@ -10,7 +10,7 @@ interface UserData {
   uid: string;
   email: string;
   display_name?: string;
-  role: "admin" | "doctor" | "nurse" | "patient";
+  role: "admin" | "doctor" | "nurse" | "patient" | "finance";
   phone_number?: string;
   address?: string;
   location?: string;
@@ -212,6 +212,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
                   { value: "patient", label: "Patient" },
                   { value: "nurse", label: "Nurse" },
                   { value: "doctor", label: "Doctor" },
+                  { value: "finance", label: "Finance" },
                   { value: "admin", label: "Admin" },
                 ]}
                 placeholder="Select Role"

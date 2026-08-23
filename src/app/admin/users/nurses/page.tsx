@@ -34,7 +34,7 @@ interface UserData {
  uid: string;
  email: string;
  display_name?: string;
- role: "admin" | "doctor" | "nurse" | "patient";
+ role: "admin" | "doctor" | "nurse" | "patient" | "finance";
  phone_number?: string;
  address?: string;
  location?: string;
@@ -76,7 +76,7 @@ interface Nurse {
  nurseId?: string;
  photo_url?: string;
  image?: string;
- role: "admin" | "doctor" | "nurse" | "patient";
+ role: "admin" | "doctor" | "nurse" | "patient" | "finance";
  deactivatedAt?: string;
  deactivationReason?: string;
 }
@@ -560,14 +560,7 @@ export default function AdminNursesPage() {
                : `${nurse.experience_yrs} year${Number(nurse.experience_yrs) === 1 ? "" : "s"}`
               : "N/A"}
             </div>
-            {nurse.rating && nurse.rating > 0 && (
-             <div className="flex items-center mt-1">
-              {renderStars(nurse.rating)}
-              <span className="ml-1 text-xs text-gray-500">
-               ({nurse.rating.toFixed(1)})
-              </span>
-             </div>
-            )}
+
            </td>
            <td className="px-6 py-4 whitespace-nowrap">
             <span className={getStatusBadge(nurse.isActive ?? true)}>

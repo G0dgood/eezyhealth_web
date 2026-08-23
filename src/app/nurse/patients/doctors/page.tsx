@@ -10,6 +10,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useGetFirebaseDoctorProfilesQuery } from "@/store/doctorFirebaseApi";
 import { topDoctorColors, topDoctorMainColors, hasDoctorAvailability, getAvailabilityBadge } from "@/components/Options";
 import DoctorSkeletonLoader from "@/components/skeletons/DoctorSkeletonLoader";
+import { toast } from "sonner";
 
 interface Doctor {
   id: string;
@@ -47,6 +48,10 @@ export default function NursesDoctorsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const patientName = searchParams.get("patient");
+
+  // How many non-top doctors are currently shown; grows on "Load more".
+  const DOCTORS_PAGE_SIZE = 8;
+  const [visibleCount, setVisibleCount] = React.useState(DOCTORS_PAGE_SIZE);
 
   // Fetch doctors using RTK
   const {
@@ -94,9 +99,16 @@ export default function NursesDoctorsPage() {
   const topDoctors = dataSource.filter(
     (d) => d.isTop || (isNumber(d.rating) && d.rating >= 4.5)
   );
-  const regularDoctors = dataSource
-    .filter((d) => !d.isTop && (!isNumber(d.rating) || d.rating < 4.5))
-    .slice(0, 4); // Show first 4 as regular doctors
+  // All non-top doctors, shown through a growing window (mirrors the patient
+  // app, which starts at 8 and loads 8 more at a time). This used to be a hard
+  // .slice(0, 4): since `rating` defaults to 0 when the field is absent, almost
+  // the entire roster landed in this bucket and only 4 were ever reachable —
+  // which is why the nurse saw far fewer doctors than the patient.
+  const allRegularDoctors = dataSource.filter(
+    (d) => !d.isTop && (!isNumber(d.rating) || d.rating < 4.5)
+  );
+  const regularDoctors = allRegularDoctors.slice(0, visibleCount);
+  const hasMoreDoctors = allRegularDoctors.length > regularDoctors.length;
 
   // Handle errors and success with Sonner toast
 
@@ -116,10 +128,24 @@ export default function NursesDoctorsPage() {
   };
 
   const handleBookAppointment = (doctor: Doctor) => {
-    // Navigate to booking page with doctor and patient info
+    // Guard the patient context. Interpolating a missing value produced the
+    // literal string "null" in the URL, which then got written straight into the
+    // payment and booking docs as patientId "null" — a booking attached to no
+    // real patient. Fail loudly instead.
     const patientId = searchParams.get("patientId");
-    const bookingUrl = `/nurse/patients/book-appointment/${doctor.doctorId || doctor.id
-      }?patient=${encodeURIComponent(patientName || "")}&patientId=${patientId}`;
+    if (!patientId || patientId === "null" || patientId === "undefined") {
+      toast.error("No patient selected", {
+        description:
+          "Open the booking from the patient's row on the Patients page so the appointment is linked to them.",
+      });
+      return;
+    }
+
+    const bookingUrl = `/nurse/patients/book-appointment/${
+      doctor.doctorId || doctor.id
+    }?patient=${encodeURIComponent(patientName || "")}&patientId=${encodeURIComponent(
+      patientId
+    )}`;
     router.push(bookingUrl);
   };
 
@@ -360,6 +386,19 @@ export default function NursesDoctorsPage() {
             </div>
           ))}
         </div>
+
+        {hasMoreDoctors && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={() =>
+                setVisibleCount((count) => count + DOCTORS_PAGE_SIZE)
+              }
+              className="bg-white text-green-700 border border-green-600 px-6 py-3 rounded-lg hover:bg-green-50 transition-colors cursor-pointer font-medium">
+              Load more doctors ({allRegularDoctors.length - regularDoctors.length}{" "}
+              remaining)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

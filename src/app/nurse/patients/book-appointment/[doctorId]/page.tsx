@@ -20,6 +20,7 @@ import { useGetPricingQuery } from "@/store/pricingApi";
 import { toast } from "sonner";
 import { communicationChannels, renderStars, convertSlotToTime } from "@/components/Options";
 import { getErrorMessage } from "@/app/utils/helper";
+import { releasesSlot, isReserved } from "@/utils/bookingStatus";
 import { BookingConfirmationModal } from "@/components/modals";
 import { DoctorBookingSkeleton } from "@/components/ui/doctor-booking-skeleton";
 import Textarea from "@/components/Textarea";
@@ -62,7 +63,23 @@ export default function DoctorBookingPage({
   const { doctorId } = use(params);
   const searchParams = useSearchParams();
   const patientName = searchParams.get("patient");
-  const patientId = searchParams.get("patientId");
+  const patientIdParam = searchParams.get("patientId");
+  // A missing param arrives as the literal "null"/"undefined" when an upstream
+  // link interpolated a nullish value — treat those as absent, never as an id.
+  const patientId =
+    !patientIdParam ||
+    patientIdParam === "null" ||
+    patientIdParam === "undefined"
+      ? null
+      : patientIdParam;
+
+  // Carry the patient context back to the doctor list, otherwise going back and
+  // picking another doctor loses it and the booking ends up unattached.
+  const doctorsHref = patientId
+    ? `/nurse/patients/doctors?patient=${encodeURIComponent(
+        patientName || ""
+      )}&patientId=${encodeURIComponent(patientId)}`
+    : "/nurse/patients/doctors";
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -151,21 +168,23 @@ export default function DoctorBookingPage({
     return null;
   };
 
-  // Check if a time slot is already booked for this doctor on the selected date
-  const isSlotBooked = (timeSlot: string): boolean => {
-    if (!selectedDate || !bookingsData) return false;
+  // Every booking that still occupies this slot on the selected date.
+  // Cancelled / rejected / refunded / expired bookings release their slot, and
+  // the comparison is case-insensitive because Finance writes "cancelled" while
+  // mobile writes "Cancelled".
+  const getSlotBookings = (timeSlot: string): any[] => {
+    if (!selectedDate || !bookingsData) return [];
     const targetDay = selectedDate.getDate();
     const targetMonth = selectedDate.getMonth();
     const targetYear = selectedDate.getFullYear();
 
     const data = Array.isArray(bookingsData) ? bookingsData : (bookingsData as any)?.bookings || [];
-    return data.some((booking: any) => {
-      if (booking.bookingStatus === "Cancelled" || booking.status === "Cancelled") {
-        return false;
-      }
+    return data.filter((booking: any) => {
+      if (releasesSlot(booking)) return false;
+
       const bDate = parseBookingDate(booking.bookingDate || booking.date);
       if (!bDate || isNaN(bDate.getTime())) return false;
-      
+
       const isSameDay = bDate.getDate() === targetDay &&
                         bDate.getMonth() === targetMonth &&
                         bDate.getFullYear() === targetYear;
@@ -173,6 +192,21 @@ export default function DoctorBookingPage({
 
       return String(booking.slot || "").trim().toLowerCase() === String(timeSlot).trim().toLowerCase();
     });
+  };
+
+  const isSlotBooked = (timeSlot: string): boolean =>
+    getSlotBookings(timeSlot).length > 0;
+
+  /**
+   * "reserved" = a receipt was submitted and Finance hasn't verified it yet, so
+   * the slot is held but not confirmed. A confirmed booking outranks a
+   * reservation: the same slot can carry both, and in that case it must read as
+   * fully booked rather than as something that might free up.
+   */
+  const isSlotReserved = (timeSlot: string): boolean => {
+    const bookings = getSlotBookings(timeSlot);
+    if (!bookings.length) return false;
+    return bookings.every((b) => isReserved(b));
   };
 
   const isSlotPassed = (timeSlot: string): boolean => {
@@ -217,11 +251,11 @@ export default function DoctorBookingPage({
 
     const data = Array.isArray(bookingsData) ? bookingsData : (bookingsData as any)?.bookings || [];
     return data.filter((booking: any) => {
-      if (booking.bookingStatus === "Cancelled" || booking.status === "Cancelled") {
+      if (releasesSlot(booking)) {
         return false;
       }
       const bDate = parseBookingDate(booking.bookingDate || booking.date);
-      return bDate && 
+      return bDate &&
              bDate.getDate() === targetDay && 
              bDate.getMonth() === targetMonth && 
              bDate.getFullYear() === targetYear;
@@ -323,6 +357,16 @@ export default function DoctorBookingPage({
       return;
     }
 
+    // Without a patient the booking and payment would be written against a
+    // non-existent patientId, so stop here rather than creating orphan records.
+    if (!patientId) {
+      toast.error("No patient selected", {
+        description:
+          "Start the booking from the patient's row on the Patients page so the appointment is linked to them.",
+      });
+      return;
+    }
+
     // Show confirmation modal
     setShowConfirmationModal(true);
   };
@@ -343,7 +387,7 @@ export default function DoctorBookingPage({
         </h2>
         <p className="text-gray-600 mb-6">{String(errorMessage)}</p>
         <Link
-          href="/nurse/patients/doctors"
+          href={doctorsHref}
           className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
           Back to Doctors
         </Link>
@@ -376,7 +420,7 @@ export default function DoctorBookingPage({
         items={[
           { label: "Nurse Dashboard", href: "/nurse" },
           { label: "Patients", href: "/nurse/patients" },
-          { label: "Doctors", href: "/nurse/patients/doctors" },
+          { label: "Doctors", href: doctorsHref },
           { label: "Book Appointment" },
         ]}
       />
@@ -384,7 +428,7 @@ export default function DoctorBookingPage({
       {/* Header */}
       <div className="flex items-center space-x-4 mb-6">
         <Link
-          href="/nurse/patients/doctors"
+          href={doctorsHref}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
@@ -585,29 +629,43 @@ export default function DoctorBookingPage({
                  {Object.entries(selectedDayAvailability).map(
                   ([timeSlot, status]) => {
                     const booked = isSlotBooked(timeSlot);
+                    const reserved = booked && isSlotReserved(timeSlot);
                     const passed = isSlotPassed(timeSlot);
                     return (
                       <button
                         key={timeSlot}
                         onClick={() => setSelectedTime(timeSlot)}
                         disabled={booked || passed || status !== "available"}
+                        title={
+                          reserved
+                            ? "Payment submitted and awaiting Finance verification. Released automatically if it isn't confirmed within 24 hours."
+                            : booked
+                              ? "Already booked"
+                              : undefined
+                        }
                         className={`p-2  !text-[10px]  !md:text-[12px] rounded-lg border transition-colors cursor-pointer ${
-                          booked
-                            ? "bg-blue-50 text-blue-700 border-blue-300 cursor-not-allowed"
-                            : passed
-                              ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
-                              : selectedTime === timeSlot
-                                ? "bg-green-500 text-white border-green-500"
-                                : status === "available"
-                                  ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
-                                  : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          reserved
+                            ? "bg-amber-100 text-amber-800 border-amber-400 cursor-not-allowed"
+                            : booked
+                              ? "bg-blue-50 text-blue-700 border-blue-300 cursor-not-allowed"
+                              : passed
+                                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
+                                : selectedTime === timeSlot
+                                  ? "bg-green-500 text-white border-green-500"
+                                  : status === "available"
+                                    ? "bg-white text-gray-700 border-gray-300 hover:bg-green-50"
+                                    : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                         }`}
                       >
                         {timeSlot
                           .replace(/_/g, " ")
                           .replace(/([A-Z])/g, " $1")
                           .trim()}
-                        {booked && " (Booked)"}
+                        {reserved
+                          ? " (Reserved)"
+                          : booked
+                            ? " (Booked)"
+                            : ""}
                         {passed && " (Passed)"}
                       </button>
                     );

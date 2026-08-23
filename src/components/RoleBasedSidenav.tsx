@@ -12,7 +12,7 @@ import Image from "next/image";
 import { getNavigationItems, NavItem } from "@/utils/navigationItems";
 
 interface RoleBasedSidenavProps {
-  userRole: "nurse" | "doctor" | "admin";
+  userRole: "nurse" | "doctor" | "admin" | "finance";
   isMobileOpen: boolean;
   onMobileClose: () => void;
 }
@@ -40,8 +40,13 @@ export default function RoleBasedSidenav({
 
   // Auto-expand dropdown when on sub-pages
   useEffect(() => {
-    if (userRole === "admin" && pathname.startsWith("/admin/users")) {
-      setExpandedItems(prev => new Set(prev).add("users"));
+    if (userRole === "admin") {
+      if (pathname.startsWith("/admin/users")) {
+        setExpandedItems((prev) => new Set(prev).add("users"));
+      }
+      if (pathname.startsWith("/finance")) {
+        setExpandedItems((prev) => new Set(prev).add("finance-group"));
+      }
     }
   }, [pathname, userRole]);
 
@@ -60,8 +65,14 @@ export default function RoleBasedSidenav({
   const isActive = (href?: string) => {
     if (!href) return false;
 
-    // For Dashboard, only show active if we're exactly on the dashboard page
-    if (href === "/nurse" || href === "/admin" || href === "/doctor") {
+    // For Dashboard / Overview and root list pages, only show active if exactly matching
+    if (
+      href === "/nurse" ||
+      href === "/admin" ||
+      href === "/doctor" ||
+      href === "/finance" ||
+      href === "/admin/users"
+    ) {
       return pathname === href;
     }
 
@@ -70,14 +81,8 @@ export default function RoleBasedSidenav({
       return true;
     }
 
-    // For admin users pages, be more specific
-    if (href === "/admin/users") {
-      // Only active if we're exactly on /admin/users, not on sub-pages
-      return pathname === "/admin/users";
-    }
-
-    // For other items, check if current path starts with the href
-    return pathname.startsWith(href);
+    // For other nested sub-routes, check if current path is a sub-path
+    return pathname.startsWith(href + "/");
   };
 
   const renderNavItem = (item: NavItem) => {
@@ -235,7 +240,7 @@ export default function RoleBasedSidenav({
     <>
       {/* Sidenav */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 min-h-screen w-[230px] p-4 transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`fixed lg:static inset-y-0 left-0 z-40 h-screen max-h-screen w-[230px] p-4 flex flex-col transform transition-all duration-300 ease-in-out border-r-[1.5px] ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         style={{
           gridArea: "sidenav",
@@ -244,7 +249,7 @@ export default function RoleBasedSidenav({
           borderColor: "var(--border)",
         }}>
         {/* Mobile Close Button */}
-        <div className="flex items-center justify-between mb-8 lg:hidden">
+        <div className="flex items-center justify-between mb-6 lg:hidden flex-shrink-0">
           <div className="flex items-center space-x-2">
             <Image
               src={theme === "dark" ? "/logowhite.svg" : "/logodark.svg"}
@@ -263,7 +268,7 @@ export default function RoleBasedSidenav({
         </div>
 
         {/* Desktop Logo */}
-        <div className="mb-8 flex items-center space-x-2 hidden lg:flex">
+        <div className="mb-6 flex items-center space-x-2 hidden lg:flex flex-shrink-0">
           <Image
             src={theme === "dark" ? "/logowhite.svg" : "/logodark.svg"}
             alt="eezyhealth"
@@ -274,7 +279,7 @@ export default function RoleBasedSidenav({
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-2">
+        <nav className="space-y-2 flex-1 overflow-y-auto overflow-x-hidden pr-1 pb-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
           {navItems.map((item) => renderNavItem(item))}
         </nav>
       </aside>

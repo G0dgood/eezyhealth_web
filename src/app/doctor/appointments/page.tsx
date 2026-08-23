@@ -255,7 +255,9 @@ export default function DoctorAppointmentsPage() {
 
   const statusDisplayMap: Record<AppointmentStatus, string> = {
     pending: "Scheduled",
+    reserved: "Reserved",
     confirmed: "Confirmed",
+    scheduled: "Scheduled",
     rescheduled: "Rescheduled (Action Required)",
     completed: "Completed",
     cancelled: "Cancelled",
@@ -264,7 +266,9 @@ export default function DoctorAppointmentsPage() {
   const getStatusBadge = (status: AppointmentStatus) => {
     const statusClasses = {
       pending: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+      reserved: "bg-amber-100 text-amber-800 border border-amber-300",
       confirmed: "bg-blue-100 text-blue-800 border border-blue-300",
+      scheduled: "bg-green-100 text-green-800 border border-green-300",
       rescheduled: "bg-orange-100 text-orange-800 border border-orange-300 font-semibold",
       completed: "bg-green-100 text-green-800 border border-green-300",
       cancelled:

@@ -44,6 +44,8 @@ export const useAuthLogic = () => {
     const role = userInfo?.role;
     if (role === "admin") {
       router.replace("/admin");
+    } else if (role === "finance") {
+      router.replace("/finance");
     } else if (role === "doctor") {
       router.replace("/doctor");
     } else if (role === "nurse") {
@@ -101,6 +103,8 @@ export const useAuthLogic = () => {
       // Navigate based on role
       if (userData.role === "admin") {
         router.push("/admin");
+      } else if (userData.role === "finance") {
+        router.push("/finance");
       } else if (userData.role === "doctor") {
         router.push("/doctor");
       } else if (userData.role === "nurse") {
@@ -206,6 +210,8 @@ export const useAuthLogic = () => {
       // Navigate based on role
       if (userData.role === "admin") {
         router.push("/admin");
+      } else if (userData.role === "finance") {
+        router.push("/finance");
       } else if (userData.role === "doctor") {
         router.push("/doctor");
       } else if (userData.role === "nurse") {

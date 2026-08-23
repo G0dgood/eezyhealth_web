@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ArrowLeft, CreditCard, CheckCircle, Landmark } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, CheckCircle, Landmark } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { toast } from "sonner";
 import { useCreateDoctorAppointmentMutation } from "@/store/bookingApi";
 import { useGetPricingQuery } from "@/store/pricingApi";
+import { useGetCompanyBankAccountsQuery } from "@/store/financeApi";
 // import axios from "axios";
 import { formatTime } from "@/components/Options";
 import moment from "moment";
@@ -19,67 +20,19 @@ interface PaymentMethod {
   description: string;
 }
 
-interface PaystackResponse {
-  reference: string;
-  trxref: string;
-  status: string;
-  message: string;
-  transaction: string;
-  amount: number;
-  currency: string;
-}
-
-interface PaystackHandler {
-  openIframe: () => void;
-}
-
-interface PaystackPop {
-  setup: (options: PaystackOptions) => PaystackHandler;
-}
-
-interface PaystackOptions {
-  key: string;
-  email: string;
-  amount: number;
-  currency: string;
-  reference: string;
-  callback_url: string;
-  metadata: Record<string, unknown>;
-  channels: string[];
-  label: string;
-  custom_fields: Array<{
-    display_name: string;
-    variable_name: string;
-    value: string;
-  }>;
-  onClose: () => void;
-  onSuccess: (response: PaystackResponse) => void;
-}
-
-declare global {
-  interface Window {
-    PaystackPop: PaystackPop;
-  }
-}
-
 const paymentMethods: PaymentMethod[] = [
   {
-    id: "paystack",
-    name: "Paystack",
-    icon: <CreditCard className="w-6 h-6" />,
-    description: "Pay securely with card, bank transfer, or USSD",
+    id: "transfer",
+    name: "Bank Transfer",
+    icon: <Landmark className="w-6 h-6 text-blue-600" />,
+    description:
+      "Transfer to a company account. The slot is reserved until Finance verifies the payment.",
   },
   {
     id: "cash",
     name: "Cash Payment",
     icon: <span className="text-green-600 font-bold text-xl">₦</span>,
-    description: "Pay in cash at the hospital/clinic",
-  },
-  {
-    id: "transfer",
-    name: "Bank Transfer",
-    icon: <Landmark className="w-6 h-6 text-blue-600" />,
-    description: "Pay via direct bank transfer to the hospital account",
+    description: "Cash collected at the hospital/clinic — books immediately",
   },
 ];
 
@@ -89,7 +42,29 @@ export default function PaymentPage() {
     useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isPaystackLoaded, setIsPaystackLoaded] = useState(false);
+  // Bank-transfer specifics: which company account the patient paid into, and
+  // the transfer reference the nurse read off the receipt.
+  const [selectedBankId, setSelectedBankId] = useState<string>("");
+  const [transferReference, setTransferReference] = useState<string>("");
+
+  // Proof of payment. Every payment must carry one before it can be completed:
+  // a transfer needs the patient's uploaded receipt, and cash — which leaves no
+  // bank trail at all — needs a receipt this app generates and stores.
+  const [receiptBlob, setReceiptBlob] = useState<Blob | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [receiptName, setReceiptName] = useState<string>("");
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
+  const receiptInputRef = useRef<HTMLInputElement | null>(null);
+
+  const hasReceipt = !!receiptBlob;
+
+  const { data: bankAccountsData } = useGetCompanyBankAccountsQuery({
+    activeOnly: true,
+  });
+  const bankAccounts = bankAccountsData || [];
+  const selectedBank = bankAccounts.find(
+    (b) => String(b.id) === selectedBankId
+  );
 
   // RTK hook for creating doctor appointment
   const [createDoctorAppointment, { isLoading: isCreatingBooking }] =
@@ -107,7 +82,11 @@ export default function PaymentPage() {
   // Calculate consultation fee (fetched dynamically from Admin pricing)
   const { data: pricingData } = useGetPricingQuery({});
   const consultationPrice = pricingData?.pricing || 0;
-  const consultationFee = consultationPrice * 100; // Amount in kobo for Paystack
+  // Naira, NOT kobo. This value is written to the payments doc and read by the
+  // Finance dashboard and the mobile app, both of which treat `amount` as naira
+  // — the previous *100 (a Paystack requirement) made every nurse-recorded
+  // payment show up as 100x its real value.
+  const consultationFee = consultationPrice;
 
   useEffect(() => {
     // Validate required parameters
@@ -118,29 +97,183 @@ export default function PaymentPage() {
     }
   }, [doctorId, patientName, date, time, channel]);
 
-  // Initialize Paystack
+  // Default to the first active company account once they load.
   useEffect(() => {
-    // Load Paystack script
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
+    if (!selectedBankId && bankAccounts.length) {
+      setSelectedBankId(String(bankAccounts[0].id));
+    }
+  }, [bankAccounts, selectedBankId]);
 
-    script.onload = () => {
-      setIsPaystackLoaded(true);
-    };
+  // Switching method invalidates whatever proof was attached: an uploaded
+  // transfer slip isn't proof of a cash payment, and vice versa.
+  const clearReceipt = () => {
+    setReceiptBlob(null);
+    setReceiptName("");
+    setReceiptPreview((url) => {
+      if (url) URL.revokeObjectURL(url);
+      return null;
+    });
+    if (receiptInputRef.current) receiptInputRef.current.value = "";
+  };
 
-    script.onerror = () => {
-      console.error("Failed to load Paystack script");
-    };
+  const handleSelectMethod = (methodId: string) => {
+    setSelectedPaymentMethod(methodId);
+    clearReceipt();
+  };
 
-    document.body.appendChild(script);
+  const handleReceiptFile = (file?: File | null) => {
+    if (!file) return;
+    if (!/^image\/(jpe?g|png|webp|heic|heif)$/i.test(file.type)) {
+      toast.error("Unsupported file", {
+        description: "Upload the receipt as a JPG, PNG or WEBP image.",
+      });
+      return;
+    }
+    // 10MB ceiling — receipts are photos/screenshots, anything larger is a
+    // mistake and just slows the upload down.
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large", {
+        description: "Please upload a receipt image under 10MB.",
+      });
+      return;
+    }
+    clearReceipt();
+    setReceiptBlob(file);
+    setReceiptName(file.name);
+    setReceiptPreview(URL.createObjectURL(file));
+  };
 
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
+  // Cash leaves no bank record, so we mint the proof ourselves: a receipt image
+  // drawn on a canvas (no extra dependency) that is stored against the payment
+  // exactly like an uploaded transfer slip, so Finance reviews both the same way.
+  const generateCashReceipt = async () => {
+    setIsGeneratingReceipt(true);
+    try {
+      const receiptNo = `EH-CASH-${Date.now().toString(36).toUpperCase()}`;
+      const W = 760;
+      const H = 1000;
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas is not supported in this browser");
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, W, H);
+
+      // Header band
+      ctx.fillStyle = "#44CE2D";
+      ctx.fillRect(0, 0, W, 110);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 34px Helvetica, Arial, sans-serif";
+      ctx.fillText("EezyHealth", 40, 58);
+      ctx.font = "16px Helvetica, Arial, sans-serif";
+      ctx.fillText("Official Payment Receipt", 40, 88);
+
+      ctx.fillStyle = "#1f2733";
+      ctx.font = "bold 26px Helvetica, Arial, sans-serif";
+      ctx.fillText("CASH PAYMENT RECEIVED", 40, 175);
+
+      const rows: [string, string][] = [
+        ["Receipt No.", receiptNo],
+        ["Issued", new Date().toLocaleString("en-GB")],
+        ["Patient", patientName || "—"],
+        ["Doctor", searchParams.get("doctorName") || doctorId || "—"],
+        ["Appointment", date ? formatDate(date) : "—"],
+        ["Time", time ? formatTime(time) : "—"],
+        ["Channel", channel || "—"],
+        ["Amount", `NGN ${consultationFee.toLocaleString()}`],
+        ["Method", "Cash (collected at clinic)"],
+        ["Recorded by", "Nurse"],
+      ];
+
+      let y = 235;
+      rows.forEach(([label, value]) => {
+        ctx.fillStyle = "#8a94a6";
+        ctx.font = "15px Helvetica, Arial, sans-serif";
+        ctx.fillText(label, 40, y);
+
+        ctx.fillStyle = "#1f2733";
+        ctx.font = "bold 17px Helvetica, Arial, sans-serif";
+        // Long values (names) get clipped rather than overflowing the card.
+        const text = String(value);
+        const maxWidth = W - 300;
+        let shown = text;
+        while (ctx.measureText(shown).width > maxWidth && shown.length > 4) {
+          shown = shown.slice(0, -2);
+        }
+        if (shown !== text) shown += "…";
+        ctx.fillText(shown, 260, y);
+
+        ctx.strokeStyle = "#eef1f4";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(40, y + 16);
+        ctx.lineTo(W - 40, y + 16);
+        ctx.stroke();
+
+        y += 52;
+      });
+
+      // Amount callout
+      ctx.fillStyle = "#f4fbf2";
+      ctx.fillRect(40, y + 14, W - 80, 92);
+      ctx.fillStyle = "#1f9d16";
+      ctx.font = "bold 40px Helvetica, Arial, sans-serif";
+      ctx.fillText(`NGN ${consultationFee.toLocaleString()}`, 64, y + 74);
+
+      ctx.fillStyle = "#8a94a6";
+      ctx.font = "13px Helvetica, Arial, sans-serif";
+      ctx.fillText(
+        "Cash received in full for the consultation above.",
+        40,
+        y + 142
+      );
+      ctx.fillText(
+        "This receipt was generated by EezyHealth at the point of collection.",
+        40,
+        y + 166
+      );
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png")
+      );
+      if (!blob) throw new Error("Could not render the receipt image");
+
+      clearReceipt();
+      setReceiptBlob(blob);
+      setReceiptName(`${receiptNo}.png`);
+      setReceiptPreview(URL.createObjectURL(blob));
+      toast.success("Receipt generated", {
+        description: `${receiptNo} — review it, then confirm the payment.`,
+      });
+    } catch (err) {
+      toast.error("Could not generate receipt", {
+        description: extractErrorMessage(err),
+      });
+    } finally {
+      setIsGeneratingReceipt(false);
+    }
+  };
+
+  const uploadReceipt = async (): Promise<string> => {
+    if (!receiptBlob) return "";
+    const { ref, uploadBytes, getDownloadURL } = await import(
+      "firebase/storage"
+    );
+    const { storage } = await import("@/lib/firebase");
+
+    const isPng = receiptName.toLowerCase().endsWith(".png");
+    const ext = isPng ? "png" : "jpg";
+    // Same Storage path the mobile patient flow writes to, so Finance's receipt
+    // viewer resolves both without special-casing.
+    const path = `payment-receipts/${patientId || "nurse"}/${Date.now()}.${ext}`;
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, receiptBlob, {
+      contentType: isPng ? "image/png" : "image/jpeg",
+    });
+    return await getDownloadURL(storageRef);
+  };
 
   const handlePayment = async () => {
     if (!selectedPaymentMethod) {
@@ -148,15 +281,29 @@ export default function PaymentPage() {
       return;
     }
 
-    if (selectedPaymentMethod === "cash" || selectedPaymentMethod === "transfer") {
-      handleManualPayment(selectedPaymentMethod);
+    if (selectedPaymentMethod === "transfer" && !selectedBankId) {
+      toast.error("Select the account the patient transferred to");
       return;
     }
 
-    if (selectedPaymentMethod === "paystack") {
-      handlePaystackPayment();
+    // No proof, no payment — this is the check that used to be missing, which
+    // let a booking be completed with nothing to verify it against.
+    if (!hasReceipt) {
+      toast.error(
+        selectedPaymentMethod === "transfer"
+          ? "Upload the transfer receipt first"
+          : "Generate the cash receipt first",
+        {
+          description:
+            selectedPaymentMethod === "transfer"
+              ? "Finance needs the receipt image to verify this transfer."
+              : "A receipt has to be issued and stored before cash can be recorded.",
+        }
+      );
       return;
     }
+
+    handleManualPayment(selectedPaymentMethod);
   };
 
   // Pull the most specific error message available (cloud function error,
@@ -177,20 +324,33 @@ export default function PaymentPage() {
     );
   };
 
+  // Cash is money already in hand, so it books immediately. A bank transfer has
+  // to be verified by Finance first, so it only RESERVES the slot: the payment
+  // is written as pending and the booking as reserved, which is what triggers
+  // the Finance alert (onPaymentCreated) and, on confirmation, the promotion to
+  // scheduled (onPaymentStatusChanged).
   const handleManualPayment = async (method: string) => {
+    const needsVerification = method === "transfer";
     try {
       setIsProcessing(true);
 
-      // Create payment record in Firebase
-      await createPaymentInFirebase(method);
-      // Create the booking
-      await createBookingWithRTK();
+      // Store the proof first — if this fails we must not create a payment
+      // record that claims a receipt exists.
+      const receiptUrl = await uploadReceipt();
+      const paymentId = await createPaymentInFirebase(method, receiptUrl);
+      await createBookingWithRTK(needsVerification, paymentId, receiptUrl);
 
       setIsSuccess(true);
-      toast.success(`${method === "cash" ? "Cash" : "Bank Transfer"} payment confirmed!`, {
-        description: "Booking has been successfully created.",
-      });
-
+      if (needsVerification) {
+        toast.success("Receipt recorded — slot reserved", {
+          description:
+            "Finance has been notified to verify the transfer. The appointment is confirmed once they approve it.",
+        });
+      } else {
+        toast.success("Cash payment confirmed!", {
+          description: "Booking has been successfully created.",
+        });
+      }
     } catch (error) {
       toast.error("Booking confirmation failed", {
         description: extractErrorMessage(error),
@@ -200,162 +360,75 @@ export default function PaymentPage() {
     }
   };
 
-  const handlePaystackPayment = async () => {
-    try {
-      // Check if Paystack is loaded
-      if (!isPaystackLoaded) {
-        setIsPaystackLoaded(false);
-        toast.error("Payment system not ready", {
-          description: "Please wait for the payment system to load",
-        });
-        return;
-      }
+  const createPaymentInFirebase = async (method: string, receiptUrl: string) => {
+    const { collection, addDoc } = await import("firebase/firestore");
+    const { db } = await import("@/lib/firebase");
 
-      setIsProcessing(true);
+    const needsVerification = method === "transfer";
+    const ref = transferReference.trim() || `APPT_MANUAL_${Date.now()}`;
 
-      // Create payment data
-      const paymentData = {
-        email: "chinedu.go@gmail.com",
-        amount: consultationFee, // Amount in kobo
-        currency: "NGN",
-        reference: `APPT_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}`,
-        callback_url: `${window.location.origin}/nurse/patients/payment/success`,
-        metadata: {
-          doctorId,
-          patientName,
-          date,
-          time,
-          channel,
-          reason,
-          type: "appointment_booking",
-        },
-        channels: [
-          "card",
-          "bank",
-          "ussd",
-          "qr",
-          "mobile_money",
-          "bank_transfer",
-        ],
-        label: "Appointment Booking",
-        custom_fields: [
-          {
-            display_name: "Patient Name",
-            variable_name: "patient_name",
-            value: patientName || "Unknown",
-          },
-          {
-            display_name: "Doctor ID",
-            variable_name: "doctor_id",
-            value: doctorId || "Unknown",
-          },
-          {
-            display_name: "Appointment Date",
-            variable_name: "appointment_date",
-            value: date || "Unknown",
-          },
-        ],
+    const paymentData: Record<string, unknown> = {
+      doctorId: doctorId || "",
+      patientName: patientName || "",
+      patientId: patientId || "",
+      bookingDate: date || "",
+      slot: time || "",
+      channel: channel || "",
+      reason: reason || "",
+      amount: consultationFee,
+      currency: "NGN",
+      paymentReference: ref,
+      // A transfer is only a claim until Finance checks the account, so it stays
+      // pending — that's what puts it in the Finance verification queue and
+      // fires the alert. Cash is already collected, so it's complete.
+      paymentStatus: needsVerification ? "pending" : "completed",
+      status: needsVerification ? "pending" : "completed",
+      bookingStatus: needsVerification ? "reserved" : "scheduled",
+      paymentMethod: needsVerification ? "bank_transfer" : method,
+      transactionId: ref,
+      recordedBy: "nurse",
+      receiptUrl,
+      // Distinguishes a receipt we minted for cash from one the patient
+      // supplied, so Finance knows what they're looking at.
+      receiptSource: needsVerification ? "uploaded" : "system_generated",
+      paymentDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (needsVerification && selectedBank) {
+      paymentData.bankDetails = {
+        bankName: selectedBank.bankName || "",
+        accountNumber: selectedBank.accountNumber || "",
+        accountName: selectedBank.accountName || "",
       };
-
-      if (!window.PaystackPop) {
-        throw new Error("Paystack script not loaded");
+      if (transferReference.trim()) {
+        paymentData.transferNotes = transferReference.trim();
       }
-      // Initialize Paystack payment
-      const handler = window.PaystackPop.setup({
-        key: "pk_test_ef4c125c1c19ff96aabef9d613d5b49b1c83718b", // process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!
-        ...paymentData,
-        //@ts-expect-error - callback is not in the type PaystackOptions
-        callback: (response: PaystackResponse) => {
-          setIsPaystackLoaded(false);
-          setIsProcessing(false);
-          toast.success(`Payment successful! Ref: ${response.reference}`);
-          // Call your booking function
-          handlePaymentSuccess(response);
-          // or handlePaymentSuccess(response);
-        },
-        onClose: () => {
-          setIsProcessing(false);
-          setIsPaystackLoaded(false);
-          toast.error("Payment cancelled", {
-            description:
-              "You can try again or select a different payment method",
-          });
-        },
-      });
-
-      handler.openIframe();
-    } catch (error) {
-      setIsProcessing(false);
-      toast.error("Payment initialization failed", {
-        description: "Please try again or contact support",
-      });
     }
+
+    const paymentsRef = collection(db, "payments");
+    const paymentDoc = await addDoc(paymentsRef, paymentData);
+    return paymentDoc.id;
   };
 
-  const createPaymentInFirebase = async (method: string, reference?: string, trxref?: string) => {
+  const createBookingWithRTK = async (
+    needsVerification: boolean,
+    paymentId?: string,
+    receiptUrl?: string
+  ) => {
     try {
-      const { collection, addDoc } = await import("firebase/firestore");
-      const { db } = await import("@/lib/firebase");
-
-      const paymentData = {
-        doctorId: doctorId || "",
-        patientName: patientName || "",
-        patientId: patientId || "",
-        bookingDate: date || "",
-        slot: time || "",
-        channel: channel || "",
-        reason: reason || "",
-        amount: consultationFee,
-        currency: "NGN",
-        paymentReference: reference || `APPT_MANUAL_${Date.now()}`,
-        paymentStatus: "completed",
-        paymentMethod: method,
-        transactionId: trxref || reference || `APPT_MANUAL_${Date.now()}`,
-        paymentDate: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const paymentsRef = collection(db, "payments");
-      const paymentDoc = await addDoc(paymentsRef, paymentData);
-      return paymentDoc.id;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handlePaymentSuccess = async (response: PaystackResponse) => {
-    setIsPaystackLoaded(true);
-    try {
-      toast.success("Payment successful!", {
-        description: "Your appointment has been confirmed",
-      });
-
-      // First, create payment record in Firebase
-      await createPaymentInFirebase("paystack", response.reference, response.trxref);
-      await createBookingWithRTK();
-
-      setIsSuccess(true);
-      setIsProcessing(false);
-      // Stop the loading state
-    } catch (error) {
-      toast.error("Booking confirmation failed", {
-        description: extractErrorMessage(error),
-      });
-      setIsProcessing(false); // Stop the loading state on error
-    }
-  };
-
-  const createBookingWithRTK = async () => {
-    setIsPaystackLoaded(false);
-    try {
-      // Prepare the input data for the API
+      // Prepare the input data for the API. bookingStatus/paymentStatus/paymentId
+      // are honoured by bookDoctorAppointment; a transfer is created as
+      // "reserved" so the slot is held but not yet confirmed.
       const input = {
         bookingChannel: channel || "",
         bookingDate: moment(date).format("DD-MMM-YY") || "",
         slot: time || "",
+        bookingStatus: needsVerification ? "reserved" : "scheduled",
+        paymentStatus: needsVerification ? "pending" : "Paid",
+        paymentId: paymentId || null,
+        receiptUrl: receiptUrl || "",
       };
 
       // Use RTK mutation to create the booking
@@ -365,8 +438,6 @@ export default function PaymentPage() {
         bookingData: input,
       }).unwrap();
 
-      toast.success("Booking created successfully");
-      setIsPaystackLoaded(false);
       // Redirect to success page or dashboard after a delay
       setTimeout(() => {
         window.location.href = "/nurse/patients";
@@ -375,7 +446,6 @@ export default function PaymentPage() {
     } catch (error) {
       // Don't toast here — the caller (handleManualPayment / handlePaymentSuccess)
       // surfaces the real error message, so toasting here would double-report.
-      setIsPaystackLoaded(true);
       throw error;
     }
   };
@@ -448,7 +518,7 @@ export default function PaymentPage() {
                         ? "border-green-500 bg-green-500/10"
                         : "border-[var(--border)] hover:border-[var(--muted-foreground)]"
                       }`}
-                    onClick={() => setSelectedPaymentMethod(method.id)}>
+                    onClick={() => handleSelectMethod(method.id)}>
                     <div className="flex items-center space-x-4">
                       <div className="text-[var(--muted-foreground)]">{method.icon}</div>
                       <div className="flex-1">
@@ -469,14 +539,115 @@ export default function PaymentPage() {
                 ))}
               </div>
 
+              {/* Proof of payment — required before the payment can be recorded */}
+              {selectedPaymentMethod && (
+                <div className="mt-8 border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900 text-[14px]">
+                      {selectedPaymentMethod === "transfer"
+                        ? "Upload transfer receipt"
+                        : "Cash receipt"}
+                      <span className="text-red-600"> *</span>
+                    </h3>
+                    {hasReceipt && (
+                      <span className="text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
+                        Attached
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[12px] text-gray-600 mb-3">
+                    {selectedPaymentMethod === "transfer"
+                      ? "Attach the receipt or screenshot of the patient's transfer. Finance verifies this before the appointment is confirmed."
+                      : "Cash leaves no bank record, so generate a receipt for the patient. It's stored with the payment as proof of collection."}
+                  </p>
+
+                  {selectedPaymentMethod === "transfer" ? (
+                    <>
+                      <input
+                        ref={receiptInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleReceiptFile(e.target.files?.[0] ?? null)
+                        }
+                        className="block w-full text-[12px] text-gray-700 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[12px] file:font-medium file:bg-green-600 file:text-white hover:file:bg-green-700 file:cursor-pointer cursor-pointer"
+                      />
+                      <p className="text-[11px] text-gray-500 mt-2">
+                        JPG, PNG or WEBP — up to 10MB.
+                      </p>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={generateCashReceipt}
+                      disabled={isGeneratingReceipt}
+                      className={`w-full py-2.5 px-4 rounded-lg text-[13px] font-medium border transition-colors ${
+                        isGeneratingReceipt
+                          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          : "bg-white text-green-700 border-green-600 hover:bg-green-50 cursor-pointer"
+                      }`}>
+                      {isGeneratingReceipt
+                        ? "Generating receipt..."
+                        : hasReceipt
+                          ? "Regenerate receipt"
+                          : `Generate cash receipt — ₦${consultationFee.toLocaleString()}`}
+                    </button>
+                  )}
+
+                  {receiptPreview && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className="text-[12px] text-gray-700 truncate max-w-[70%]"
+                          title={receiptName}>
+                          {receiptName}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <a
+                            href={receiptPreview}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[12px] font-medium text-blue-600 hover:underline">
+                            View full size
+                          </a>
+                          <button
+                            type="button"
+                            onClick={clearReceipt}
+                            className="text-[12px] font-medium text-red-600 hover:underline cursor-pointer">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={receiptPreview}
+                        alt="Payment receipt preview"
+                        className="max-h-64 w-auto rounded-md border border-gray-200"
+                      />
+                    </div>
+                  )}
+
+                  {!hasReceipt && (
+                    <p className="text-[11px] text-amber-700 mt-3">
+                      {selectedPaymentMethod === "transfer"
+                        ? "Upload the receipt to enable the confirm button."
+                        : "Generate the receipt to enable the confirm button."}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Payment Button */}
               <div className="mt-8">
                 <button
                   onClick={handlePayment}
                   disabled={
-                    !selectedPaymentMethod || isProcessing || isCreatingBooking
+                    !selectedPaymentMethod ||
+                    !hasReceipt ||
+                    isProcessing ||
+                    isCreatingBooking
                   }
-                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${selectedPaymentMethod && !isProcessing
+                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${selectedPaymentMethod && hasReceipt && !isProcessing
                       ? "bg-green-600 text-white hover:bg-green-700"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}>
@@ -490,35 +661,63 @@ export default function PaymentPage() {
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       <span>Creating Payment & Booking...</span>
                     </div>
-                  ) : selectedPaymentMethod === "paystack" ? (
-                    `Pay N${(
-                      consultationFee / 100
-                    ).toLocaleString()} with Paystack`
                   ) : selectedPaymentMethod === "transfer" ? (
-                    `Confirm Bank Transfer N${(
-                      consultationFee / 100
-                    ).toLocaleString()}`
+                    `Record Transfer & Reserve — ₦${consultationFee.toLocaleString()}`
                   ) : (
-                    `Confirm Cash Payment N${(
-                      consultationFee / 100
-                    ).toLocaleString()}`
+                    `Confirm Cash Payment ₦${consultationFee.toLocaleString()}`
                   )}
                 </button>
               </div>
 
-              {/* Paystack Info */}
-              {selectedPaymentMethod === "paystack" && (
+              {/* Bank transfer: which account was paid, plus the reference */}
+              {selectedPaymentMethod === "transfer" && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-start space-x-2">
-                    <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className=" !text-[10px]  !md:text-[12px] text-blue-800">
-                      <p className="font-medium">
-                        Secure Payment with Paystack
-                      </p>
+                    <Landmark className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <div className="text-[12px] text-blue-800 w-full">
+                      <p className="font-medium">Awaiting Finance verification</p>
                       <p className="mt-1">
-                        Your payment is processed securely by Paystack. We
-                        support cards, bank transfers, USSD, and mobile money.
+                        The slot is <b>reserved</b> once you record this. Finance
+                        is notified to verify the transfer, and the appointment
+                        is confirmed after they approve it. Unverified
+                        reservations are released after 24 hours.
                       </p>
+
+                      <label className="block mt-4 mb-1 font-medium text-gray-700">
+                        Account transferred to
+                      </label>
+                      {bankAccounts.length === 0 ? (
+                        <p className="text-red-600">
+                          No active company bank account is configured. Ask
+                          Finance to add one before recording a transfer.
+                        </p>
+                      ) : (
+                        <select
+                          value={selectedBankId}
+                          onChange={(e) => setSelectedBankId(e.target.value)}
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900">
+                          {bankAccounts.map((acc) => (
+                            <option key={acc.id} value={String(acc.id)}>
+                              {acc.bankName} — {acc.accountNumber} (
+                              {acc.accountName})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      <label className="block mt-3 mb-1 font-medium text-gray-700">
+                        Transfer reference{" "}
+                        <span className="font-normal text-gray-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={transferReference}
+                        onChange={(e) => setTransferReference(e.target.value)}
+                        placeholder="e.g. session ID or payer name on the receipt"
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900"
+                      />
                     </div>
                   </div>
                 </div>
@@ -578,7 +777,7 @@ export default function PaymentPage() {
                     Total:
                   </span>
                   <span className="text-[18px] md:text-[20px] font-bold text-green-600">
-                    N{(consultationFee / 100).toLocaleString()}
+                    ₦{consultationFee.toLocaleString()}
                   </span>
                 </div>
               </div>
