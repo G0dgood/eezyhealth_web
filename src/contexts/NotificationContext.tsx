@@ -44,6 +44,24 @@ interface Notification {
   data?: Record<string, unknown>; // Additional data for the notification
 }
 
+/**
+ * Prepend notifications, skipping any id already in the list.
+ *
+ * The snapshot listeners re-attach whenever their effect re-runs (role and
+ * preferences resolve shortly after login), and a fresh listener replays its
+ * documents. Without this, the same notification could be appended repeatedly.
+ * Returning `prev` unchanged when nothing is new also avoids a pointless render.
+ */
+const prependUnique = (
+  incoming: Notification[],
+  prev: Notification[]
+): Notification[] => {
+  if (!incoming.length) return prev;
+  const existing = new Set(prev.map((n) => n.id));
+  const fresh = incoming.filter((n) => !existing.has(n.id));
+  return fresh.length ? [...fresh, ...prev] : prev;
+};
+
 interface NotificationPreferences {
   newPatientBookings: boolean;
   appointmentReminders: boolean;
@@ -190,14 +208,21 @@ export function NotificationProvider({
       return 0;
     };
 
+    // Local to THIS subscription, so every re-attach silences its own backlog.
+    // (`isInitialLoadRef` is still reset above for compatibility, but relying on
+    // a component-level ref is fragile: a listener that re-attaches after the
+    // ref has been consumed would treat the whole backlog as new.)
+    let isFirstNotificationsSnapshot = true;
+
     const unsubscribeNotifications = onSnapshot(
       notificationsQuery,
       (snapshot) => {
         // Record all existing notification IDs on initial snapshot load so historical items don't trigger toasts
-        if (isInitialLoadRef.current) {
+        if (isFirstNotificationsSnapshot) {
           snapshot.docs.forEach((docSnap) => {
             toastedNotificationIds.current.add(docSnap.id);
           });
+          isFirstNotificationsSnapshot = false;
           isInitialLoadRef.current = false;
         } else {
           // On real-time updates (e.g. appointment booking from mobile app), fire toast + sound for newly added items
@@ -402,7 +427,7 @@ export function NotificationProvider({
           });
 
           if (messageNotifications.length > 0) {
-            setNotifications((prev) => [...messageNotifications, ...prev]);
+            setNotifications((prev) => prependUnique(messageNotifications, prev));
           }
         },
         (error) => {
@@ -424,9 +449,24 @@ export function NotificationProvider({
       limit(10)
     );
 
+    // Firestore reports EVERY document in a new listener's first snapshot as an
+    // "added" change. Without a guard this listener therefore re-injected the
+    // whole cancellation backlog (up to `limit(10)`) into the notification list
+    // on every login and every re-subscribe — the flood of old notifications.
+    //
+    // The flag is deliberately local to this subscription rather than a
+    // component-level ref: this effect re-runs when `role`/prefs resolve just
+    // after login, and each new listener must silence its own backlog.
+    let isFirstCancellationSnapshot = true;
+
     const unsubscribeCancellations = onSnapshot(
       cancellationsQuery,
       (snapshot) => {
+        if (isFirstCancellationSnapshot) {
+          isFirstCancellationSnapshot = false;
+          return; // backlog, not news
+        }
+
         const cancellationNotifications: Notification[] = [];
 
         snapshot.docChanges().forEach((change) => {
@@ -461,7 +501,7 @@ export function NotificationProvider({
         });
 
         if (cancellationNotifications.length > 0) {
-          setNotifications((prev) => [...cancellationNotifications, ...prev]);
+          setNotifications((prev) => prependUnique(cancellationNotifications, prev));
         }
       },
       (error) => {

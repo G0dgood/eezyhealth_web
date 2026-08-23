@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCreateDoctorAppointmentMutation } from "@/store/bookingApi";
 import { useGetPricingQuery } from "@/store/pricingApi";
 import { useGetCompanyBankAccountsQuery } from "@/store/financeApi";
+import { useAuth } from "@/contexts/AuthContext";
 // import axios from "axios";
 import { formatTime } from "@/components/Options";
 import moment from "moment";
@@ -38,6 +39,7 @@ const paymentMethods: PaymentMethod[] = [
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -265,9 +267,23 @@ export default function PaymentPage() {
 
     const isPng = receiptName.toLowerCase().endsWith(".png");
     const ext = isPng ? "png" : "jpg";
-    // Same Storage path the mobile patient flow writes to, so Finance's receipt
-    // viewer resolves both without special-casing.
-    const path = `payment-receipts/${patientId || "nurse"}/${Date.now()}.${ext}`;
+
+    // The folder segment MUST be the uploader's own uid. storage.rules allows
+    // writes to payment-receipts/{userId}/** only when
+    // `request.auth.uid == userId`, so uploading into the PATIENT's folder while
+    // signed in as the nurse fails with storage/unauthorized. Storage rules can't
+    // read Firestore roles, so there's no staff exemption to grant — instead the
+    // nurse writes to their own folder and the patient stays traceable via the
+    // filename. Reads are open to any authenticated user, so Finance can still
+    // view it, and the payment doc stores the full download URL regardless.
+    const uploaderId = user?.uid;
+    if (!uploaderId) {
+      throw new Error("You must be signed in to upload a receipt.");
+    }
+
+    const path = `payment-receipts/${uploaderId}/${
+      patientId ? `${patientId}-` : ""
+    }${Date.now()}.${ext}`;
     const storageRef = ref(storage, path);
     await uploadBytes(storageRef, receiptBlob, {
       contentType: isPng ? "image/png" : "image/jpeg",
