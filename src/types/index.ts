@@ -55,9 +55,24 @@ export interface RawBookingData {
   };
 }
 
+export type UserRole = "admin" | "doctor" | "nurse" | "patient" | "finance";
+
+export interface BankAccount {
+  id?: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  isActive: boolean;
+  instructions?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export type AppointmentStatus =
   | "pending"
+  | "reserved"
   | "confirmed"
+  | "scheduled"
   | "rescheduled"
   | "completed"
   | "cancelled";

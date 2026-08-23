@@ -15,6 +15,9 @@ import {
   Contact,
   CircleDollarSign,
   Info,
+  Landmark,
+  Wallet,
+  Receipt,
 } from "lucide-react";
 
 export interface NavItem {
@@ -37,11 +40,34 @@ export const getNavItems = (rawRole: string): NavItem[] => {
       label: "Dashboard",
       icon: <Grid3X3 className="w-5 h-5" />,
       href: `/${role.toLowerCase()}`,
-      roles: ["nurse", "doctor", "admin"],
+      roles: ["nurse", "doctor", "admin", "finance"],
     },
   ];
 
-  if (role === "nurse") {
+  if (role === "finance") {
+    return [
+      ...baseItems,
+      {
+        id: "payments",
+        label: "Payments",
+        icon: <CreditCard className="w-5 h-5" />,
+        href: `/finance/payments`,
+        dynamicCount: true,
+      },
+      {
+        id: "bank-accounts",
+        label: "Bank Accounts",
+        icon: <Landmark className="w-5 h-5" />,
+        href: `/finance/bank-accounts`,
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        icon: <Settings className="w-5 h-5" />,
+        href: `/finance/settings`,
+      },
+    ];
+  } else if (role === "nurse") {
     return [
       ...baseItems,
       {
@@ -193,12 +219,38 @@ export const getNavItems = (rawRole: string): NavItem[] => {
             href: `/${role.toLowerCase()}/users/patients`,
             dynamicCount: true,
           },
-          // {
-          //   id: "doctor-account-management",
-          //   label: "Doctor Account Management",
-          //   icon: <Shield className="w-4 h-4" />,
-          //   href: `/${role.toLowerCase()}/doctors/account-management`,
-          // },
+          {
+            id: "finance",
+            label: "Finance",
+            icon: <Landmark className="w-4 h-4" />,
+            href: `/${role.toLowerCase()}/users/finance`,
+            dynamicCount: true,
+          },
+        ],
+      },
+      {
+        id: "finance-group",
+        label: "Finance",
+        icon: <Landmark className="w-5 h-5" />,
+        subItems: [
+          {
+            id: "finance-dashboard",
+            label: "Finance Overview",
+            icon: <BarChart3 className="w-4 h-4" />,
+            href: `/finance`,
+          },
+          {
+            id: "finance-payments",
+            label: "Payments & Verification",
+            icon: <CreditCard className="w-4 h-4" />,
+            href: `/finance/payments`,
+          },
+          {
+            id: "finance-bank-accounts",
+            label: "Bank Accounts",
+            icon: <Landmark className="w-4 h-4" />,
+            href: `/finance/bank-accounts`,
+          },
         ],
       },
       {
@@ -287,14 +339,14 @@ export const getNavItems = (rawRole: string): NavItem[] => {
 
 // Helper function to get navigation items for a specific role
 export const getNavigationItems = (
-  userRole: "nurse" | "doctor" | "admin"
+  userRole: "nurse" | "doctor" | "admin" | "finance"
 ): NavItem[] => {
   return getNavItems(userRole);
 };
 
 // Helper function to get all available roles
 export const getAvailableRoles = (): string[] => {
-  return ["nurse", "doctor", "admin"];
+  return ["nurse", "doctor", "admin", "finance"];
 };
 
 // Helper function to check if a role has access to a specific navigation item
@@ -308,7 +360,7 @@ export const hasAccessToNavItem = (
 
 // Helper function to get navigation items filtered by role access
 export const getFilteredNavItems = (
-  userRole: "nurse" | "doctor" | "admin"
+  userRole: "nurse" | "doctor" | "admin" | "finance"
 ): NavItem[] => {
   const navItems = getNavItems(userRole);
   return navItems.filter((item) => hasAccessToNavItem(userRole, item));

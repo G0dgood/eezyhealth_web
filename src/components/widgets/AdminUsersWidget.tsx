@@ -19,7 +19,7 @@ interface UserData {
   display_name?: string;
   first_name?: string;
   last_name?: string;
-  role: "admin" | "doctor" | "nurse" | "patient";
+  role: "admin" | "doctor" | "nurse" | "patient" | "finance";
   phone_number?: string;
   isActive?: boolean;
   createdTime?: string;

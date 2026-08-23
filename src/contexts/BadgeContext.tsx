@@ -4,7 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useGetFirebasePatientsQuery } from "@/store/patientApi";
 import {
   useGetFirebaseDoctorsQuery,
-  useGetFirebaseNurseProfilesQuery
+  useGetFirebaseNurseProfilesQuery,
+  useGetFirebaseFinanceUsersQuery,
 } from "@/store/doctorFirebaseApi";
 import { useGetFirebaseBookingsQuery } from "@/store/bookingApi";
 import { useGetBookingCancellationsQuery } from "@/store/bookingCancellationApi";
@@ -16,6 +17,7 @@ interface BadgeCounts {
   doctors: number;
   nurses: number;
   patients: number;
+  finance: number;
 
   // Bookings
   totalBookings: number;
@@ -50,6 +52,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     doctors: 0,
     nurses: 0,
     patients: 0,
+    finance: 0,
     totalBookings: 0,
     pendingBookings: 0,
     cancelledBookings: 0,
@@ -100,15 +103,22 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
     error: nursesError
   } = useGetFirebaseNurseProfilesQuery({});
 
+  const {
+    data: financeData,
+    isLoading: financeLoading,
+    error: financeError
+  } = useGetFirebaseFinanceUsersQuery({});
+
   // Calculate badge counts from real data
   useEffect(() => {
     const calculateBadgeCounts = () => {
       try {
         // Calculate user counts
-        const allUsers = (patientsData?.length || 0) + (doctorsData?.length || 0) + (nursesData?.length || 0);
+        const finance = financeData?.length || 0;
         const doctors = doctorsData?.length || 0;
         const nurses = Array.isArray(nursesData) ? nursesData.length : 0;
         const patients = patientsData?.length || 0;
+        const allUsers = patients + doctors + nurses + finance;
 
         // Calculate booking counts
         const totalBookings = bookingsData?.length || 0;
@@ -129,6 +139,7 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
           doctors,
           nurses,
           patients,
+          finance,
           totalBookings,
           pendingBookings,
           cancelledBookings,
@@ -145,19 +156,32 @@ export function BadgeProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Check if any API calls are still loading
-    const isLoading = patientsLoading || doctorsLoading || nursesLoading || bookingsLoading ||
-      cancellationsLoading || paymentsLoading;
+    const isLoading =
+      patientsLoading ||
+      doctorsLoading ||
+      nursesLoading ||
+      bookingsLoading ||
+      cancellationsLoading ||
+      paymentsLoading ||
+      financeLoading;
 
     setLoading(isLoading);
-
-    // Calculate counts when data is available
-    if (!isLoading) {
-      calculateBadgeCounts();
-    }
+    calculateBadgeCounts();
   }, [
-    patientsData, doctorsData, nursesData, bookingsData, cancellationsData, paymentsData,
-    patientsLoading, doctorsLoading, nursesLoading, bookingsLoading, cancellationsLoading, paymentsLoading
+    patientsData,
+    doctorsData,
+    nursesData,
+    financeData,
+    bookingsData,
+    cancellationsData,
+    paymentsData,
+    patientsLoading,
+    doctorsLoading,
+    nursesLoading,
+    financeLoading,
+    bookingsLoading,
+    cancellationsLoading,
+    paymentsLoading,
   ]);
 
   const refreshBadges = async () => {
@@ -210,6 +234,10 @@ export const getBadgeCount = (badgeCounts: BadgeCounts, itemId: string, subItemI
         return badgeCounts.nurses;
       case 'patients':
         return badgeCounts.patients;
+      case 'finance':
+        return badgeCounts.finance;
+      case 'finance-payments':
+        return badgeCounts.pendingPayments;
       default:
         return 0;
     }
@@ -217,11 +245,16 @@ export const getBadgeCount = (badgeCounts: BadgeCounts, itemId: string, subItemI
 
   // Handle main items
   switch (itemId) {
+    case 'users':
+      return badgeCounts.allUsers;
+    case 'finance-group':
+      return badgeCounts.finance;
     case 'bookings':
       return badgeCounts.totalBookings;
     case 'booking-cancellation':
       return badgeCounts.cancelledBookings;
     case 'payment':
+    case 'payments':
       return badgeCounts.totalPayments;
     case 'document':
       return badgeCounts.pendingDocuments;

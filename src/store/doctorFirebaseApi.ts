@@ -538,6 +538,34 @@ export const doctorFirebaseApi = api.injectEndpoints({
       },
       providesTags: ["Doctor"],
     }),
+
+    // Firebase-powered finance users query
+    getFirebaseFinanceUsers: builder.query({
+      async queryFn() {
+        try {
+          const { createFirebaseQuery, firebaseConstraints } =
+            await import("@/lib/firebase-rtk");
+
+          const financeData = await createFirebaseQuery("users", [
+            firebaseConstraints.where("role", "==", "finance"),
+          ]);
+
+          return { data: financeData };
+        } catch (error) {
+          console.error("Error fetching Firebase finance users:", error);
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+            },
+          };
+        }
+      },
+      providesTags: ["User"],
+    }),
   }),
 });
 
@@ -548,6 +576,7 @@ export const {
   useGetDoctorAvailabilityQuery,
   useSaveDoctorAvailabilityMutation,
   useGetFirebaseNurseProfilesQuery,
+  useGetFirebaseFinanceUsersQuery,
   useVerifyDoctorDataQuery,
   useGetAuditLogsQuery,
   useBulkUpdateDoctorStatusMutation,

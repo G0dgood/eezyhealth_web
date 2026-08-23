@@ -15,7 +15,7 @@ interface UserInfo {
   email: string;
   display_name: string;
   photo_url?: string;
-  role: "admin" | "doctor" | "nurse";
+  role: "admin" | "doctor" | "nurse" | "finance" | "patient";
   phone_number?: string;
   address?: string;
   date_of_birth?: string | { seconds: number; nanoseconds: number }; // Firestore timestamp

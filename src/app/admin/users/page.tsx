@@ -33,7 +33,7 @@ interface UserData {
  uid: string;
  email: string;
  display_name?: string;
- role: "admin" | "doctor" | "nurse" | "patient";
+ role: "admin" | "doctor" | "nurse" | "patient" | "finance";
  phone_number?: string;
  address?: string;
  location?: string;
@@ -369,6 +369,7 @@ export default function AdminUsersPage() {
       options={[
        { value: "all", label: "All Roles" },
        { value: "admin", label: "Admin" },
+       { value: "finance", label: "Finance" },
        { value: "doctor", label: "Doctor" },
        { value: "nurse", label: "Nurse" },
        { value: "patient", label: "Patient" },

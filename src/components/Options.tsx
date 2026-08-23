@@ -22,6 +22,8 @@ const getRoleBadge = (role: string) => {
   switch (role) {
     case "admin":
       return `${baseClasses} bg-red-50 text-red-700 border-red-200`;
+    case "finance":
+      return `${baseClasses} bg-amber-50 text-amber-700 border-amber-200`;
     case "doctor":
       return `${baseClasses} bg-blue-50 text-blue-700 border-blue-200`;
     case "nurse":
@@ -31,6 +33,87 @@ const getRoleBadge = (role: string) => {
     default:
       return `${baseClasses} bg-gray-50 text-gray-700 border-gray-200`;
   }
+};
+
+const getBookingStatusBadge = (status?: string) => {
+  const baseClasses =
+    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize";
+  const s = (status || "").toLowerCase();
+  let colorClasses = "bg-gray-50 text-gray-700 border-gray-200";
+
+  switch (s) {
+    case "reserved":
+      colorClasses = "bg-amber-50 text-amber-700 border-amber-200";
+      break;
+    case "scheduled":
+    case "confirmed":
+    case "approved":
+      colorClasses = "bg-green-50 text-green-700 border-green-200";
+      break;
+    case "completed":
+      colorClasses = "bg-blue-50 text-blue-700 border-blue-200";
+      break;
+    case "cancelled":
+    case "rejected":
+    case "declined":
+      colorClasses = "bg-red-50 text-red-700 border-red-200";
+      break;
+    case "rescheduled":
+      colorClasses = "bg-purple-50 text-purple-700 border-purple-200";
+      break;
+    default:
+      colorClasses = "bg-gray-50 text-gray-700 border-gray-200";
+      break;
+  }
+
+  return (
+    <span className={`${baseClasses} ${colorClasses}`}>
+      {status || "Unknown"}
+    </span>
+  );
+};
+
+const getPaymentStatusBadge = (status?: string) => {
+  const baseClasses =
+    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize";
+  const s = (status || "").toLowerCase();
+  let colorClasses = "bg-gray-50 text-gray-700 border-gray-200";
+  let displayLabel = status || "Pending";
+
+  switch (s) {
+    case "completed":
+    case "done":
+    case "successful":
+    case "confirmed":
+      colorClasses = "bg-green-50 text-green-700 border-green-200";
+      displayLabel = "Confirmed";
+      break;
+    case "pending":
+    case "reserved":
+      colorClasses = "bg-amber-50 text-amber-700 border-amber-200";
+      displayLabel = "Pending";
+      break;
+    case "failed":
+    case "declined":
+    case "rejected":
+      colorClasses = "bg-red-50 text-red-700 border-red-200";
+      displayLabel = "Failed";
+      break;
+    case "refunded":
+    case "refund":
+      colorClasses = "bg-purple-50 text-purple-700 border-purple-200";
+      displayLabel = "Refunded";
+      break;
+    default:
+      colorClasses = "bg-gray-50 text-gray-700 border-gray-200";
+      break;
+  }
+
+  return (
+    <span className={`${baseClasses} ${colorClasses}`}>
+      {displayLabel}
+    </span>
+  );
 };
 
 const getStatusBadge = (isActive: boolean) => {
@@ -406,6 +489,8 @@ export {
   SVGLoaderFetch,
   NoRecordFound,
   getRoleBadge,
+  getBookingStatusBadge,
+  getPaymentStatusBadge,
   getStatusBadge,
   getSpecializationBadge,
   getCancellationStatusBadge,
