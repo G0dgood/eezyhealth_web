@@ -211,7 +211,7 @@ export default function AdminFinanceUsersPage() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Date Created</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -260,7 +260,7 @@ export default function AdminFinanceUsersPage() {
                           {user.createdTime ? formatDate(user.createdTime) : "—"}
                         </td>
 
-                        <td className="px-5 py-4 text-right space-x-1.5">
+                        <td className="space-x-1.5">
                           <Button
                             variant="ghost-neutral"
                             size="sm"

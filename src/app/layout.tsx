@@ -19,9 +19,9 @@ export const metadata: Metadata = {
  title: "eezyhealth",
  description: "Healthcare Management System",
  icons: {
-  icon: [{ url: "/logodark.svg", type: "image/svg+xml" }],
-  shortcut: "/logodark.svg",
-  apple: "/logodark.svg",
+  icon: [{ url: "/halflogo.png", type: "image/png" }],
+  shortcut: "/halflogo.png",
+  apple: "/halflogo.png",
  },
 };
 
