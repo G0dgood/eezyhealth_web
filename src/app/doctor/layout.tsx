@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import VideoProvider from "@/components/VideoProvider";
 import { useCreateStreamTokenMutation } from "@/store/streamChatApi";
 import { useGetUploadsByDoctorIdQuery } from "@/store/uploadApi";
-import { useGetDoctorAvailabilityQuery } from "@/store/api";
+import { useGetDoctorAvailabilityQuery } from "@/store/doctorFirebaseApi";
 import { streamApiKey } from "@/lib/config";
 
 // The ONLY route an unverified doctor may visit — everything else is blocked

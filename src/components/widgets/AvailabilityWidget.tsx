@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Clock, Calendar, Save } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDoctorAvailabilityQuery, useSaveDoctorAvailabilityMutation } from "@/store/api";
+import { useGetDoctorAvailabilityQuery, useSaveDoctorAvailabilityMutation } from "@/store/doctorFirebaseApi";
 import { toast } from "sonner";
 import { timeSlots as referenceTimeSlots } from "@/components/Options";
 

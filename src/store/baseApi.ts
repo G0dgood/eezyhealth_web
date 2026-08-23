@@ -41,3 +41,14 @@ export const api = createApi({
 });
 
 
+
+/**
+ * RTK Query logs "called `injectEndpoints` to override already-existing
+ * endpointName … without specifying `overrideExisting: true`" whenever a slice
+ * module is evaluated more than once. Next.js Fast Refresh does exactly that on
+ * every edit, so the warning is dev-only noise, not a real duplicate endpoint.
+ *
+ * Allow re-injection in development to silence it, while keeping the default
+ * (warn) in production builds so a genuine duplicate endpoint name still shows.
+ */
+export const ALLOW_HMR_REINJECT = process.env.NODE_ENV === "development";

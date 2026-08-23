@@ -32,18 +32,29 @@ const PillTabs = ({
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex-shrink-0 flex items-center gap-2 whitespace-nowrap relative z-10 px-3 py-2 transition-colors font-inter font-semibold  !text-[10px]  !md:text-[12px] leading-5 rounded-md
+          className={`flex-shrink-0 flex items-center whitespace-nowrap relative px-3 py-2 transition-colors font-inter font-semibold  !text-[10px]  !md:text-[12px] leading-5 rounded-md
             ${activeTab === tab.id ? "text-white" : "text-gray-600"}`}
         >
-          {tab.icon && <span>{tab.icon}</span>}
-          <span>{tab.label}</span>
+          {/*
+            The pill is rendered BEFORE the label and carries no z-index, so
+            normal paint order puts it under the text. It previously used
+            `z-[-1]`: framer-motion applies a transform while animating between
+            tabs, which makes the pill its own stacking context, and a negative
+            z-index child then paints *behind* the container's `bg-gray-50` —
+            producing the gray flash across the track mid-animation.
+          */}
           {activeTab === tab.id && (
             <motion.div
               layoutId={layoutId}
-              className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md z-[-1]"
+              className="absolute inset-0 bg-[#44CE2D] shadow-sm rounded-md"
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
             />
           )}
+          {/* Lifted above the pill so the label stays readable throughout. */}
+          <span className="relative z-10 flex items-center gap-2">
+            {tab.icon && <span className="flex items-center">{tab.icon}</span>}
+            <span>{tab.label}</span>
+          </span>
         </button>
       ))}
     </div>

@@ -32,6 +32,8 @@ export default function AddFinanceModal({
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +88,10 @@ export default function AddFinanceModal({
         date_of_birth: dateOfBirth || null,
         role: "finance",
         phone_number: phoneNumber.trim(),
+        // Same field names UserEditModal edits and patientApi reads, so the
+        // record stays consistent with every other user document.
+        address: address.trim(),
+        location: location.trim(),
         isActive: true,
         createdTime: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -99,6 +105,8 @@ export default function AddFinanceModal({
       setDateOfBirth("");
       setEmail("");
       setPhoneNumber("");
+      setAddress("");
+      setLocation("");
       setPassword("");
       setConfirmPassword("");
       onSuccess();
@@ -193,6 +201,32 @@ export default function AddFinanceModal({
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="+234..."
+              fullWidth
+            />
+          </div>
+        </div>
+
+        {/* Address & Location */}
+        <div className="grid gap-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+              Address
+            </label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="e.g. 12 Adeola Odeku Street, Victoria Island"
+              fullWidth
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+              Location
+            </label>
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="City, Country"
               fullWidth
             />
           </div>

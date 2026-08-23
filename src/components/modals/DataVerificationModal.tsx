@@ -42,7 +42,7 @@ export default function DataVerificationModal({
       aria-modal="true"
       aria-label="Data verification"
     >
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 max-w-[800px] w-full mx-4 max-h-96 overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-[14px] md:text-[16px] font-medium text-gray-900">
             Data Verification{subjectName ? ` - ${subjectName}` : ""}

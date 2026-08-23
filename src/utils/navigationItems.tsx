@@ -55,6 +55,12 @@ export const getNavItems = (rawRole: string): NavItem[] => {
         dynamicCount: true,
       },
       {
+        id: "refunds",
+        label: "Refunds",
+        icon: <CircleDollarSign className="w-5 h-5" />,
+        href: `/finance/refunds`,
+      },
+      {
         id: "bank-accounts",
         label: "Bank Accounts",
         icon: <Landmark className="w-5 h-5" />,
