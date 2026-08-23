@@ -24,7 +24,9 @@ export default function PageLoader({
       aria-busy="true"
     >
       <div className="text-center">
-        <div className="relative mx-auto h-24 w-24">
+        {/* Sized in px, not rem: this app sets a reduced root font-size, which
+            would otherwise shrink the loader to 75% of its intended size. */}
+        <div className="relative mx-auto h-[96px] w-[96px]">
           {/* Track: the full circle the arc travels along */}
           <div className="absolute inset-0 rounded-full border-4 border-[#44CE2D]/15" />
 
@@ -36,7 +38,7 @@ export default function PageLoader({
 
           {/* Counter-rotating inner arc, slower and lighter, for depth */}
           <div
-            className="absolute inset-2 rounded-full border-2 border-transparent border-b-[#44CE2D]/40 animate-spin"
+            className="absolute inset-[9px] rounded-full border-2 border-transparent border-b-[#44CE2D]/40 animate-spin"
             style={{ animationDuration: "1.8s", animationDirection: "reverse" }}
           />
 
@@ -48,7 +50,7 @@ export default function PageLoader({
               width={370}
               height={377}
               priority
-              className="h-10 w-10 object-contain"
+              className="h-[46px] w-[46px] object-contain"
             />
           </div>
         </div>
