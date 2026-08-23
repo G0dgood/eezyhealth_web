@@ -78,7 +78,7 @@ export default function FinanceDashboardPage() {
     let pendingCount = 0;
     let completedCount = 0;
     let failedCount = 0;
-    let refundedPaymentBookings = new Set<string>();
+    const refundedPaymentBookings = new Set<string>();
     let refundedPaymentsWithoutRequest = 0;
 
     paymentsList.forEach((p: any) => {

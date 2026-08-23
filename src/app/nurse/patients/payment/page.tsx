@@ -618,7 +618,9 @@ export default function PaymentPage() {
                           </button>
                         </div>
                       </div>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {/* A plain <img> on purpose: the src is a local blob:/object
+                          URL for the not-yet-uploaded receipt, which next/image
+                          cannot optimise. */}
                       <img
                         src={receiptPreview}
                         alt="Payment receipt preview"
