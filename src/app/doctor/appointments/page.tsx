@@ -27,6 +27,7 @@ import { useApiError } from "@/hooks/useApiError";
 import { convertSlotToTime, NoRecordFound } from "@/components/Options";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import PaidPendingBookingsSection from "@/components/PaidPendingBookingsSection";
+import { classifyBooking } from "@/utils/bookingStatus";
 
 export default function DoctorAppointmentsPage() {
   const { user } = useAuth();
@@ -212,14 +213,14 @@ export default function DoctorAppointmentsPage() {
           return "videoCall";
         })(),
         status: (() => {
-          const status = String(booking.bookingStatus || booking.status || "").toLowerCase();
-          if (status === "accepted" || status === "confirmed")
-            return "confirmed";
-          if (status === "rescheduled") return "rescheduled";
-          if (status === "completed") return "completed";
-          if (status === "pending") return "pending";
-          if (status === "cancelled") return "cancelled";
-          return "pending";
+          // Three distinct stages, all present in AppointmentStatus:
+          //   reserved  — receipt submitted, Finance hasn't verified it yet
+          //   scheduled — Finance verified the payment; the doctor's turn
+          //   confirmed — the doctor accepted
+          // Previously "scheduled" and "reserved" both fell through to the
+          // default and displayed as plain "pending".
+          const phase = classifyBooking(booking);
+          return phase === "booked" ? "scheduled" : phase;
         })(),
         patientAge: Number(booking.patientAge) || 0,
         temperature: "36°C", // Default values since these aren't in booking data
@@ -499,7 +500,11 @@ export default function DoctorAppointmentsPage() {
                             <FileText className="w-4 h-4" />
                             <span>Consultation Details</span>
                           </button>
-                          {(appointment.status === "pending" || appointment.status === "rescheduled") && (
+                          {/* Confirm becomes available once Finance verifies the
+                              payment ("scheduled") — never while "reserved". */}
+                          {(appointment.status === "pending" ||
+                            appointment.status === "scheduled" ||
+                            appointment.status === "rescheduled") && (
                             <button
                               onClick={() => handleConfirmClick(appointment)}
                               className="flex items-center space-x-1 text-[var(--primary)] hover:opacity-80 transition-opacity font-medium"
@@ -509,7 +514,10 @@ export default function DoctorAppointmentsPage() {
                               <span>Confirm</span>
                             </button>
                           )}
-                          {(appointment.status === "pending" || appointment.status === "confirmed" || appointment.status === "rescheduled") && (
+                          {(appointment.status === "pending" ||
+                            appointment.status === "scheduled" ||
+                            appointment.status === "confirmed" ||
+                            appointment.status === "rescheduled") && (
                             <>
                               <button
                                 onClick={() => handleReschedule(appointment)}

@@ -17,6 +17,7 @@ import { NoRecordFound } from "@/components/Options";
 import Pagination from "@/components/Pagination";
 import { useApiError } from "@/hooks/useApiError";
 import { hasAppointmentTimePassed } from "@/utils/missedBookings";
+import { classifyBooking, isLockedIn } from "@/utils/bookingStatus";
 
 export default function DoctorPatientAppointmentsPage() {
   const router = useRouter();
@@ -54,14 +55,21 @@ export default function DoctorPatientAppointmentsPage() {
       .filter((booking: any) => !doctorId || booking.doctorId === doctorId)
       .map((booking: any) => {
       const rawStatus = (booking.bookingStatus || "").toLowerCase();
+      const phase = classifyBooking(booking);
       // Time-aware: an appointment is only "passed" once its slot (date + time)
-      // has fully elapsed — an 8 PM booking is not passed at 8 AM.
-      const isPassed = hasAppointmentTimePassed(booking) && rawStatus !== "completed" && rawStatus !== "cancelled" && rawStatus !== "canceled" && rawStatus !== "missed" && rawStatus !== "accepted" && rawStatus !== "confirmed";
+      // has fully elapsed — an 8 PM booking is not passed at 8 AM. Confirmed now
+      // includes Finance-verified "scheduled", so those are no longer swept into
+      // the Cancelled tab once their time passes.
+      const isPassed =
+        hasAppointmentTimePassed(booking) &&
+        phase !== "completed" &&
+        phase !== "cancelled" &&
+        !isLockedIn(phase);
 
       let tabStatus = "Upcoming";
-      if (rawStatus === "completed") tabStatus = "Completed";
-      else if (rawStatus === "cancelled" || rawStatus === "canceled" || rawStatus === "missed" || isPassed) tabStatus = "Cancelled";
-      else if (rawStatus === "accepted" || rawStatus === "pending") tabStatus = "Upcoming";
+      if (phase === "completed") tabStatus = "Completed";
+      else if (phase === "cancelled" || isPassed) tabStatus = "Cancelled";
+      else tabStatus = "Upcoming"; // pending, reserved, confirmed, rescheduled
 
       const displayStatus = isPassed ? "Passed" : booking.bookingStatus || "Pending";
 
