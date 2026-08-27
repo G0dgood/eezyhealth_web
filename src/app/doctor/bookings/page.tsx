@@ -31,6 +31,7 @@ import {
   convertBookingsToStandardFormat,
 } from "@/utils/bookingDataConverter";
 import { RawBookingData } from "@/types";
+import { classifyBooking, isLockedIn } from "@/utils/bookingStatus";
 
 interface DayBooking {
   date: string;
@@ -124,15 +125,19 @@ export default function DoctorBookingsPage() {
               ? "Physical Booking"
               : "Online Booking",
           status: (() => {
-            const status = (sb.bookingStatus || "").toLowerCase();
+            const phase = classifyBooking(sb);
             // Time-aware: only "passed" once the slot (date + time) has elapsed.
-            const isPassed = hasAppointmentTimePassed(sb) && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+            // A confirmed booking (which now includes Finance-verified
+            // "scheduled") is never downgraded to passed.
+            const isPassed =
+              hasAppointmentTimePassed(sb) &&
+              phase !== "completed" &&
+              phase !== "cancelled" &&
+              !isLockedIn(phase);
 
             if (isPassed) return "passed" as any;
-            if (status === "accepted" || status === "confirmed")
-              return "confirmed" as any;
-            if (status === "cancelled" || status === "rejected")
-              return "cancelled" as any;
+            if (isLockedIn(phase)) return "confirmed" as any;
+            if (phase === "cancelled") return "cancelled" as any;
             return "pending" as any;
           })(),
           channel: (() => {

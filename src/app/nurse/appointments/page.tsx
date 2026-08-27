@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calendar, Plus, Search } from "lucide-react";
+import { Calendar, Plus, Search, CheckCircle } from "lucide-react";
 import DataTable from "@/components/DataTable";
 import Input from "@/components/Input";
-import { useGetBookingsQuery } from "@/store/bookingApi";
+import { toast } from "sonner";
+import {
+  useGetBookingsQuery,
+  useUpdateBookingStatusMutation,
+} from "@/store/bookingApi";
 import { useGetFirebaseDoctorsQuery } from "@/store/doctorFirebaseApi";
 import StatusBadge from "@/components/StatusBadge";
+import { classifyBooking, isLockedIn } from "@/utils/bookingStatus";
 
 const getDoctorName = (doc: any) => {
   if (doc.displayName) return doc.displayName;
@@ -24,8 +29,12 @@ export default function NurseAppointmentsPage() {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
 
   // RTK Query calls
-  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({});
+  const { data: bookingsData, isLoading, error, refetch } =
+    useGetBookingsQuery({});
   const { data: doctorsData } = useGetFirebaseDoctorsQuery({});
+  const [updateBookingStatus] = useUpdateBookingStatusMutation();
+  // Which row is mid-confirm, so only that button shows a spinner.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const doctors = useMemo(() => {
     return (doctorsData || []) as any[];
@@ -77,12 +86,22 @@ export default function NurseAppointmentsPage() {
         dateKey: dateKey,
         time: slotToTime(booking.slot),
         type: booking.bookingChannel === "physical" ? "Physical Consultation" : `${booking.bookingChannel || "Video"} Consultation`,
-        status: ((s) => {
-          const status = (s || "").toLowerCase();
-          if (status === "accepted" || status === "confirmed") return "Confirmed";
-          if (status === "cancelled" || status === "rejected") return "Cancelled";
+        // Kept on the row so the Actions column can decide whether this
+        // appointment is confirmable (see the `columns` config below).
+        phase: classifyBooking(booking),
+        status: (() => {
+          // Three distinct stages, matching the doctor's view:
+          //   Reserved  — receipt submitted, Finance hasn't verified it
+          //   Booked    — Finance verified the payment; awaiting confirmation
+          //   Confirmed — confirmed by the doctor or the nurse
+          const phase = classifyBooking(booking);
+          if (phase === "reserved") return "Reserved";
+          if (phase === "booked") return "Booked";
+          if (phase === "confirmed") return "Confirmed";
+          if (phase === "cancelled") return "Cancelled";
+          if (phase === "completed") return "Completed";
           return "Pending";
-        })(booking.bookingStatus),
+        })(),
       };
     });
   }, [bookingsData]);
@@ -121,6 +140,46 @@ export default function NurseAppointmentsPage() {
     };
   }, [appointments]);
 
+  /**
+   * Nurses can confirm an appointment as well as doctors.
+   *
+   * Only once Finance has verified the payment though — a `reserved` booking is
+   * just a hold, so it gets no Confirm action. "Accepted" is the same value the
+   * doctor writes, which fires the onBookingUpdated cloud function and notifies
+   * the patient.
+   */
+  const handleConfirm = async (appointment: any) => {
+    if (!appointment?.id) return;
+    if (appointment.phase === "reserved") {
+      toast.warning("Awaiting payment", {
+        description:
+          "Finance still needs to verify this patient's payment before the appointment can be confirmed.",
+      });
+      return;
+    }
+
+    setConfirmingId(appointment.id);
+    try {
+      await updateBookingStatus({
+        bookingId: appointment.id,
+        newStatus: "Accepted",
+      }).unwrap();
+      toast.success("Appointment confirmed", {
+        description: `${appointment.patient}'s appointment has been confirmed.`,
+      });
+      await refetch();
+    } catch (err) {
+      toast.error("Could not confirm appointment", {
+        description:
+          (err as any)?.data?.error ||
+          (err as any)?.error ||
+          "Please try again.",
+      });
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
   const columns = [
     { key: "patient", label: "PATIENT" },
     { key: "doctor", label: "DOCTOR" },
@@ -133,6 +192,32 @@ export default function NurseAppointmentsPage() {
       render: (value: string | number) => (
         <StatusBadge status={String(value)} />
       ),
+    },
+    {
+      key: "actions",
+      label: "ACTIONS",
+      render: (_value: string | number, row: any) => {
+        // Confirmable only when payment is verified and nobody has confirmed yet.
+        if (row?.phase === "booked" || row?.phase === "pending") {
+          return (
+            <button
+              onClick={() => handleConfirm(row)}
+              disabled={confirmingId === row.id}
+              className="flex items-center gap-1 text-[var(--primary)] hover:opacity-80 transition-opacity font-medium disabled:opacity-50 cursor-pointer"
+              title="Confirm Appointment"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>{confirmingId === row.id ? "Confirming…" : "Confirm"}</span>
+            </button>
+          );
+        }
+        if (row?.phase === "reserved") {
+          return (
+            <span className="text-[11px] text-amber-700">Awaiting payment</span>
+          );
+        }
+        return <span className="text-gray-400">—</span>;
+      },
     },
   ];
 

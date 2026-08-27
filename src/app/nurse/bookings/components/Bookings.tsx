@@ -26,6 +26,7 @@ import { convertBookingsToStandardFormat } from "@/utils/bookingDataConverter";
 import { useApiError } from "@/hooks/useApiError";
 import BookingDetailModal, { Booking } from "@/components/modals/BookingDetailModal";
 import { hasAppointmentTimePassed } from "@/utils/missedBookings";
+import { classifyBooking, isLockedIn } from "@/utils/bookingStatus";
 
 interface LocalBooking extends Booking {
   doctorName?: string;
@@ -185,13 +186,16 @@ export default function Bookings({ doctorId }: { doctorId?: string } = {}) {
             const status = (s || "").toLowerCase();
             // Time-aware: only "passed" once the slot (date + time) has elapsed,
             // so an appointment booked for later today isn't flagged early.
-            const isPassed = hasAppointmentTimePassed({ bookingDate, slot }) && status !== "completed" && status !== "cancelled" && status !== "canceled" && status !== "missed" && status !== "accepted" && status !== "confirmed";
+            const phase = classifyBooking({ bookingStatus: status });
+            const isPassed =
+              hasAppointmentTimePassed({ bookingDate, slot }) &&
+              phase !== "completed" &&
+              phase !== "cancelled" &&
+              !isLockedIn(phase);
 
             if (isPassed) return "passed";
-            if (status === "accepted" || status === "confirmed")
-              return "confirmed";
-            if (status === "cancelled" || status === "rejected")
-              return "cancelled";
+            if (isLockedIn(phase)) return "confirmed";
+            if (phase === "cancelled") return "cancelled";
             return "pending";
           })(booking.bookingStatus, booking.bookingDate, booking.slot),
           channel: mapChannel(booking.bookingChannel),
